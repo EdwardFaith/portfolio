@@ -1,0 +1,59 @@
+/* Body senza margini, senza scrollbar, e sfondo trasparente */
+body {
+  margin: 0;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  background: transparent;
+  position: relative;
+  cursor: none; /* NASCONDI CURSORE */
+    
+}
+
+/* Video background centrato, che copre tutto lo schermo */
+#background-video {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 100vh;
+  transform: translate(-50%, -50%);
+  object-fit: cover; /* riempie tutto senza distorsioni */
+  z-index: -1;
+  background: transparent;
+}
+#webcam {
+visibility: hidden;
+}
+
+/* Container simboli e player senza sfondo */
+#symbols-container, #player {
+  position: absolute;
+  background: transparent;
+  box-shadow: none;
+  filter: none;
+}
+
+/* Player centrato in basso, più grande, senza sfondo */
+#player {
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 120px; /* più grande */
+  opacity: 0,8;
+}
+
+/* Simboli più grandi e senza sfondo */
+.symbol {
+  position: absolute;
+  width: 60px;   /* aumentato da 50 */
+  height: 60px;  /* aumentato da 50 */
+  background-size: cover;
+    pointer-events: none;
+    mix-blend-mode: difference;
+    transition: transform 0.1s ease-out;
+    will-change: transform;
+    opacity: 0,1; /* Imposta l'opacità del cursore */
+   
+    z-index: 1; 
+}
