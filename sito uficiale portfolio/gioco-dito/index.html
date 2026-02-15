@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENTRA NEL FLUSSO - DEBUG MODE</title>
+    <style>
+        /* --- VHS AESTHETICS --- */
+        @font-face {
+            font-family: 'VCR';
+            src: url('https://db.onlinewebfonts.com/t/2c206f3630da962c64b6e51240398686.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --static-color: #111;
+            --phosphor: #ccc;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'VCR', 'Courier New', monospace;
+            color: var(--phosphor);
+            user-select: none;
+            /* Constant faint chromatic aberration */
+            text-shadow: 2px 0 #ff0000, -2px 0 #0000ff;
+        }
+
+        body.game-active {
+            cursor: none;
+        }
+
+        /* --- LAYERS --- */
+        #bg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.6;
+            filter: contrast(1.5) brightness(0.8) sepia(100%) hue-rotate(-50deg) saturate(3);
+            z-index: 0;
+        }
+
+        /* Scanlines & Noise */
+        .vhs-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            /* Reduced opacity to ensure game is visible */
+            background:
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
+            /* mix-blend-mode: overlay; Does not work well with all browsers, sticking to alpha */
+        }
+
+        .tracking-error {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            animation: tracking 5s infinite linear;
+            z-index: 998;
+            pointer-events: none;
+        }
+
+        @keyframes tracking {
+            0% {
+                top: -10%;
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+
+            100% {
+                top: 110%;
+                opacity: 0;
+            }
+        }
+
+        /* --- GAME ENTITIES --- */
+        #game-area {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+            overflow: hidden;
+        }
+
+        #player {
+            position: absolute;
+            width: 80px;
+            /* Slightly larger purely for visibility check */
+            height: 80px;
+            z-index: 60;
+            transform: translate(-50%, -50%);
+            /* If image fails, this style ensures we see something */
+            background-color: transparent;
+            transition: left 0.1s linear, top 0.1s linear;
+        }
+
+        /* Fallback for broken player image */
+        #player.error {
+            background-color: cyan;
+            border-radius: 50%;
+            box-shadow: 0 0 20px cyan;
+        }
+
+        #player img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .enemy {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            z-index: 55;
+            transform: translate(-50%, -50%);
+            /* Mask black background */
+            border-radius: 50%;
+            overflow: hidden;
+            mix-blend-mode: lighten;
+            /* Glitch effect maintained but no red glow */
+            filter: contrast(1.2) hue-rotate(-10deg);
+            opacity: 0.9;
+        }
+
+        /* Fallback for broken enemy image */
+        .enemy.error {
+            background-color: red;
+            border-radius: 50%;
+            box-shadow: 0 0 10px red;
+            /* Remove filter so red shows */
+            filter: none;
+        }
+
+        /* --- HUD --- */
+        .hud {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            z-index: 100;
+            font-size: 1.5rem;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+            letter-spacing: 2px;
+        }
+
+        #rec-dot {
+            color: red;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* --- SCREENS --- */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            text-align: center;
+        }
+
+        .screen.hidden {
+            display: none;
+        }
+
+        .start-content {
+            border: 1px solid white;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            font-weight: normal;
+            border-bottom: 1px dashed white;
+            padding-bottom: 10px;
+        }
+
+        .tutorial-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            text-align: left;
+            margin-bottom: 25px;
+        }
+
+        button {
+            background: transparent;
+            color: white;
+            border: 1px solid white;
+            padding: 10px 20px;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: white;
+            color: black;
+        }
+
+        .fullscreen-gif {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: contrast(1.2) brightness(0.9) sepia(0.3);
+        }
+
+        .click-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 201;
+            cursor: pointer;
+        }
+
+        /* Debug Log */
+        #debug-log {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: yellow;
+            font-size: 12px;
+            z-index: 1000;
+            pointer-events: none;
+            max-height: 100px;
+            overflow: hidden;
+        }
+
+        #input-video {
+            transform: scaleX(-1);
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Audio -->
+    <audio id="bgm" src="bulbi.mp3" loop></audio>
+
+    <!-- VHS Overlay -->
+    <div class="vhs-overlay"></div>
+    <div class="tracking-error"></div>
+
+    <!-- Background -->
+    <video id="bg-layer" autoplay muted loop playsinline>
+        <source src="bg.mp4" type="video/mp4">
+    </video>
+
+    <!-- Game Layer -->
+    <div id="game-area">
+        <!-- Player is directly an IMG, but let's handle error better -->
+        <img id="player" src="astronaut.gif" alt="Astro">
+    </div>
+
+    <!-- HUD (REC Timer + Score) -->
+    <div class="hud" id="hud" style="display:none;">
+        <span id="rec-dot">●</span> REC <span id="timer">00:30</span><br>
+        <span style="font-size: 0.8em; opacity: 0.8;">VITTORIE: <span id="win-count">0</span> | SCONFITTE: <span
+                id="loss-count">0</span></span>
+    </div>
+
+    <div id="debug-log">Pronto.</div>
+
+    <!-- 1. START SCREEN -->
+    <div id="start-screen" class="screen">
+        <div class="start-content">
+            <h1>IL COSMO TI OSSERVA</h1>
+            <div class="tutorial-text">
+                > INIZIALIZZAZIONE LINK NEURALE...<br>
+                > MISSIONE: SOPRAVVIVERE 30 SECONDI<br>
+                > CONTROLLO: DITO INDICE<br>
+            </div>
+            <button onclick="startGameSequence()">[ AVVIA REGISTRAZIONE ]</button>
+        </div>
+    </div>
+
+    <!-- 2. WIN SCREEN -->
+    <div id="win-screen" class="screen hidden">
+        <img src="inizio.gif" class="fullscreen-gif">
+    </div>
+
+    <!-- 3. LOSE SCREEN -->
+    <div id="lose-screen" class="screen hidden">
+        <img src="fine.gif" class="fullscreen-gif">
+    </div>
+
+    <!-- Scripts -->
+    <video id="input-video" playsinline></video>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <script>
+        const videoElement = document.getElementById('input-video');
+        const player = document.getElementById('player');
+        const timerDisplay = document.getElementById('timer');
+        const winCountDisplay = document.getElementById('win-count');
+        const lossCountDisplay = document.getElementById('loss-count');
+        const hud = document.getElementById('hud');
+        const bgm = document.getElementById('bgm');
+        const debugLog = document.getElementById('debug-log');
+
+        let isPlaying = false;
+        let timeRemaining = 30;
+        let spawnInterval;
+        let enemies = [];
+        let playerPos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+        // Score State
+        let wins = 0;
+        let losses = 0;
+
+        function log(msg) {
+            debugLog.innerText = msg;
+            console.log(msg);
+        }
+
+        // --- HANDS SETUP ---
+        const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+
+        hands.onResults(results => {
+            if (!isPlaying) return;
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const lm = results.multiHandLandmarks[0][8]; // Index Tip
+                playerPos.x = (1 - lm.x) * window.innerWidth;
+                playerPos.y = lm.y * window.innerHeight;
+                updatePlayerPos();
+            }
+        });
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => { await hands.send({ image: videoElement }); },
+            width: 1280, height: 720
+        });
+
+        // Player Image Error Handling
+        player.onerror = function () {
+            log("Errore: astronaut.gif non trovato. Uso fallback.");
+            this.src = ""; // Clear
+            this.className = "error";
+        };
+
+        // --- GAME LOGIC ---
+        function startGameSequence() {
+            // Initial Start from Button
+            document.getElementById('start-screen').classList.add('hidden');
+
+            // Try Audio
+            bgm.volume = 0.5;
+            bgm.play().catch(e => log("Audio block: interact to play"));
+
+            log("Avvio fotocamera...");
+            camera.start().then(() => {
+                log("Fotocamera attiva.");
+                resetAndStart();
+            }).catch(e => {
+                log("Errore fotocamera: " + e);
+                resetAndStart(); // Start anyway (mouse mode)
+            });
+        }
+
+        function resetAndStart() {
+            // Reset Game State
+            isPlaying = true;
+            timeRemaining = 30;
+            enemies.forEach(e => e.el.remove());
+            enemies = [];
+
+            hud.style.display = 'block';
+            player.style.display = 'block';
+            document.getElementById('win-screen').classList.add('hidden');
+            document.getElementById('lose-screen').classList.add('hidden');
+            document.body.classList.add('game-active');
+
+            // Force play audio if it was stopped
+            bgm.currentTime = 0;
+            bgm.play();
+
+            startLoop();
+        }
+
+        function updatePlayerPos() {
+            player.style.left = playerPos.x + 'px';
+            player.style.top = playerPos.y + 'px';
+        }
+
+        // Mouse Fallback
+        window.addEventListener('mousemove', (e) => {
+            if (!isPlaying) return;
+            playerPos.x = e.clientX;
+            playerPos.y = e.clientY;
+            updatePlayerPos();
+        });
+
+        function startLoop() {
+            // Clear any existing intervals just in case
+            clearInterval(spawnInterval);
+
+            // Timer
+            const countdown = setInterval(() => {
+                if (!isPlaying) { clearInterval(countdown); return; }
+                timeRemaining--;
+                timerDisplay.innerText = `00:${timeRemaining < 10 ? '0' + timeRemaining : timeRemaining}`;
+                if (timeRemaining <= 0) endGame(true);
+            }, 1000);
+
+            // Spawner
+            spawnInterval = setInterval(spawnEnemy, 800);
+
+            function render() {
+                if (!isPlaying) return;
+                updateEnemies();
+                checkCollisions();
+                requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        function spawnEnemy() {
+            const el = document.createElement('img');
+            el.src = 'bulbi.gif';
+            el.className = 'enemy';
+            el.onerror = function () {
+                this.classList.add('error');
+                this.src = "";
+            };
+
+            // Edge Randomizer
+            const edge = Math.floor(Math.random() * 4);
+            let x, y;
+            const pad = 60;
+
+            if (edge === 0) { x = Math.random() * window.innerWidth; y = -pad; }
+            else if (edge === 1) { x = window.innerWidth + pad; y = Math.random() * window.innerHeight; }
+            else if (edge === 2) { x = Math.random() * window.innerWidth; y = window.innerHeight + pad; }
+            else { x = -pad; y = Math.random() * window.innerHeight; }
+
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+
+            document.getElementById('game-area').appendChild(el);
+            enemies.push({ el, x, y });
+        }
+
+        function updateEnemies() {
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const e = enemies[i];
+                // Homing Logic
+                const dx = playerPos.x - e.x;
+                const dy = playerPos.y - e.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const speed = 2; // Slower
+
+                if (dist > 0) {
+                    e.x += (dx / dist) * speed;
+                    e.y += (dy / dist) * speed;
+                }
+
+                e.el.style.left = e.x + 'px';
+                e.el.style.top = e.y + 'px';
+            }
+        }
+
+        function checkCollisions() {
+            const hitDist = 40;
+            for (const e of enemies) {
+                const dist = Math.hypot(playerPos.x - e.x, playerPos.y - e.y);
+                if (dist < hitDist) {
+                    endGame(false);
+                    break;
+                }
+            }
+        }
+
+        function endGame(won) {
+            isPlaying = false;
+            clearInterval(spawnInterval);
+            hud.style.display = 'none';
+            document.body.classList.remove('game-active');
+            bgm.pause(); // Pause music during end screen
+
+            if (won) {
+                wins++;
+                winCountDisplay.innerText = wins;
+                document.getElementById('win-screen').classList.remove('hidden');
+            } else {
+                losses++;
+                lossCountDisplay.innerText = losses;
+                document.getElementById('lose-screen').classList.remove('hidden');
+            }
+
+            // RESTART LOGIC: Wait 5 seconds (gif duration approx) then restart
+            setTimeout(() => {
+                if (!isPlaying) { // Check to ensure we didn't already restart manually
+                    resetAndStart();
+                }
+            }, 5000);
+        }
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Falling Symbols Game</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- clmtrackr library -->
+  <script src="https://cdn.jsdelivr.net/npm/clmtrackr@1.1.2/build/clmtrackr.min.js"></script>
+
+  <!-- Google Font: Special Elite (horror sobrio, macchina da scrivere) -->
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+
+  <!-- Stile countdown -->
+  <style>
+    #countdown-timer {
+      font-family: 'Special Elite', cursive;
+      font-size: 20px;
+      color: #ffffff;
+      position: fixed;
+      top: 5px;
+      right: 5px;
+      z-index: 1000;
+      text-shadow: 1px 1px 3px black;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Sfondo video -->
+  <video id="background-video" autoplay loop muted>
+    <source src="background.mp4/sfondo2(1).mp4" type="video/mp4" />
+    Il tuo browser non supporta il video in background.
+  </video>
+
+  <!-- Musica di sottofondo -->
+  <audio id="background-music" autoplay loop>
+    <source src="background.mp4/0613-1.mp3" type="audio/MP3" />
+    Il tuo browser non supporta l'audio.
+  </audio>
+
+  <!-- Player -->
+  <img id="player" src="player.gif/player.gif" alt="Player" />
+
+  <!-- Container per i simboli -->
+  <div id="symbols-container"></div>
+
+  <!-- Countdown visibile in alto a destra -->
+  <div id="countdown-timer">
+    Tempo rimasto: 60
+  </div>
+
+  <!-- Webcam per tracking (visibile, puoi nascondere via CSS) -->
+  <video id="webcam" width="320" height="240" autoplay muted
+    style="position: fixed; top: 50px; right: 10px; z-index: 10; border: 1px solid #ccc;"></video>
+
+  <!-- Script principale -->
+  <script src="script.js"></script>
+</body>
+
+</html>
