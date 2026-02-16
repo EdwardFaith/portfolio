@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucidus</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Cookie Banner -->
+    <div id="cookie-banner" class="hidden">
+        <p>Attenzione: Questo sito utilizza i cookie per migliorare l'esperienza di navigazione. Accetti?</p>
+        <button id="accept-cookies">Accetto</button>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-content login-box">
+            <span class="close-modal">&times;</span>
+            <h2 id="login-title">Accesso al Regno</h2>
+            <p id="login-desc">Inserisci i tuoi dati per procedere.</p>
+
+            <input type="text" id="baptism-name" placeholder="Nome di Battesimo"
+                style="padding:10px; margin-bottom:10px; width:100%;">
+
+            <div class="checkbox-container">
+                <input type="checkbox" id="no-baptism-check">
+                <label for="no-baptism-check">Non sono battezzato (Sconto 15%)</label>
+            </div>
+
+            <button id="login-btn" class="cta-btn">Entra</button>
+        </div>
+    </div>
+
+    <!-- Cart / Checkout Modal -->
+    <div id="cart-modal" class="modal hidden">
+        <div class="modal-content cart-box" style="max-width: 900px; padding: 0;">
+            <span class="close-modal" id="close-cart">&times;</span>
+            <div class="checkout-container">
+                <!-- Left: Cart Items -->
+                <div class="cart-items-section">
+                    <h2 id="cart-title">Il Tuo Carrello</h2>
+                    <div id="cart-list" class="cart-list">
+                        <!-- Items injected here -->
+                        <p class="empty-cart-msg">Il carrello è vuoto.</p>
+                    </div>
+                    <div class="cart-total">
+                        <span>Totale:</span>
+                        <span id="cart-total-price">€0</span>
+                    </div>
+                </div>
+
+                <!-- Right: Payment Form -->
+                <div class="payment-section">
+                    <h3 id="shipping-title">Spedizione</h3>
+                    <div id="shipping-form" style="margin-bottom: 20px;">
+                        <input type="text" id="ship-address" placeholder="Indirizzo (Via/Piazza)">
+                        <div class="row">
+                            <div class="col">
+                                <input type="text" id="ship-city" placeholder="Città">
+                            </div>
+                            <div class="col">
+                                <input type="text" id="ship-zip" placeholder="CAP" maxlength="5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 id="payment-title">Dettagli Pagamento</h3>
+                    <div class="credit-card-form">
+                        <div id="bonus-payment-ui" class="hidden">
+                            <p style="margin-bottom: 20px;">Utilizza il tuo <strong>Bonus Iscrizione</strong> per
+                                completare l'acquisto.</p>
+                            <p>Saldo attuale: <span id="current-bonus-display"
+                                    style="font-weight:bold; color:green;">€0</span></p>
+                            <button id="pay-bonus-btn" class="cta-btn full-width"
+                                style="background-color: #4CAF50;">Paga con Bonus</button>
+                        </div>
+
+                        <div id="teeth-payment-ui" class="hidden">
+                            <p style="color: red; font-weight: bold; margin-bottom: 10px;">Saldo Insufficiente.</p>
+                            <p>Non hai abbastanza Euro. Un'altra valuta è richiesta.</p>
+                            <button id="pay-teeth-btn" class="strange-btn full-width">Paga con Denti da Latte</button>
+                        </div>
+
+                        <div id="card-form-container" class="credit-card-form hidden">
+                            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                            <h4 style="margin-bottom:15px;">O Paga con Carta</h4>
+
+                            <div class="card-visual">
+                                <div class="chip"></div>
+                                <div class="card-number-display">#### #### #### ####</div>
+                                <div class="card-name-display">NOME COGNOME</div>
+                                <div class="card-expiry-display">MM/YY</div>
+                                <div class="card-logo"><i class="fab fa-cc-mastercard"></i></div>
+                            </div>
+
+                            <label>Numero Carta</label>
+                            <input type="text" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19">
+
+                            <label>Titolare Carta</label>
+                            <input type="text" id="card-name" placeholder="Nome Cognome">
+
+                            <div class="row">
+                                <div class="col">
+                                    <label>Scadenza</label>
+                                    <input type="text" id="card-expiry" placeholder="MM/YY" maxlength="5">
+                                </div>
+                                <div class="col">
+                                    <label>CVC</label>
+                                    <input type="text" id="card-cvc" placeholder="123" maxlength="3">
+                                </div>
+                            </div>
+
+                            <button id="checkout-card-btn" class="cta-btn full-width">Paga con Carta</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contract Modal -->
+    <div id="contract-modal" class="modal hidden">
+        <div class="modal-content contract-box">
+            <h2 style="font-family: 'Cinzel', serif; color: #8b0000;">Pactum Sanguinis</h2>
+            <div class="contract-scroll-area">
+                <p>IO SOTTOSCRITTO, IN PIENA FACOLTÀ DI INTENDERE E DI VOLERE (O QUEL CHE NE RESTA), ACCETTO DI
+                    SCAMBIARE LA VALUTA MORTALE CON LA VALUTA ETERNA.</p>
+                <p>ARTICOLO 1: DENTIUM.</p>
+                <p>Accetto di cedere ogni dente da latte perso, presente o futuro, o i denti dei miei discendenti,
+                    all'autorità di Lucidus.</p>
+                <p>ARTICOLO 2: ANIMAE.</p>
+                <p>Qualora i denti non fossero sufficienti, il debito verrà saldato con frammenti di memoria felice.</p>
+                <p>ARTICOLO 3: AETERNITAS.</p>
+                <p>La valuta "Euro" non ha valore nel regno delle ombre. Dichiaro di abbandonare la luce del sole per la
+                    luce artificiale eterna.</p>
+                <p>LORE IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT. SED DO EIUSMOD TEMPOR INCIDIDUNT UT LABORE ET
+                    DOLORE MAGNA ALIQUA. UT ENIM AD MINIM VENIAM, QUIS NOSTRUD EXERCITATION ULLAMCO LABORIS NISI UT
+                    ALIQUIP EX EA COMMODO CONSEQUAT.</p>
+                <p>... (Il testo continua in latino antico per migliaia di righe) ...</p>
+                <p>CLAUSOLA FINALE: Non c'è recesso. Non c'è ritorno. Il buio è la nuova casa.</p>
+            </div>
+            <button id="sign-contract-btn" class="strange-btn full-width" style="margin-top:20px;">FIRMA COL
+                SANGUE</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">LUCIDUS</div>
+        <ul class="nav-links">
+            <li><a href="#home" id="nav-home">Home</a></li>
+            <li><a href="#shop" id="nav-shop">Catalogo</a></li>
+            <li><a href="#about" id="nav-about">Chi Siamo</a></li>
+            <li><a href="#legal" id="nav-legal">Legal</a></li>
+            <li><a href="#" id="nav-cart-btn"><i class="fas fa-shopping-cart"></i> <span id="cart-count">0</span></a>
+            </li>
+            <li><a href="#" id="nav-orders-btn"><i class="fas fa-box-open"></i> Ordini</a></li>
+        </ul>
+        <div class="user-info">
+            <span id="user-balance">Saldo: €0</span>
+            <button id="nav-login-btn" class="secondary-btn">Login</button>
+        </div>
+    </nav>
+
+    <!-- Orders Modal -->
+    <div id="orders-modal" class="modal hidden">
+        <div class="modal-content orders-box" style="max-width: 800px;">
+            <span class="close-modal" id="close-orders">&times;</span>
+            <h2 id="orders-title">Spedizioni in Arrivo</h2>
+            <p id="orders-desc">Il tempo è un concetto relativo, ma la tua attesa è certa.</p>
+            <div id="orders-list" class="orders-list">
+                <!-- Orders injected here -->
+                <p class="empty-cart-msg">Nessun ordine in viaggio verso l'eternità.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <header id="home" class="hero">
+        <div class="hero-content centered-aesthetic">
+            <h1 id="hero-title">Illumina l'Oscurità</h1>
+            <p id="hero-desc">Lampade che custodiscono la luce eterna in un mondo destinato al buio.</p>
+            <a href="#shop" class="cta-btn" id="hero-cta">Esplora la Collezione</a>
+        </div>
+        <!-- Video Container (Moved here) -->
+        <div class="video-container hidden" id="video-box" style="margin-top: 20px; z-index: 10; position: relative;">
+            <h3 id="video-title" style="color: red; text-shadow: 0 0 5px black;">Prophetia Tenebris</h3>
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/idShNGihgTo" title="Profezia"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+        </div>
+    </header>
+
+    <!-- Shop Section -->
+    <section id="shop" class="shop-section">
+        <h2 id="shop-title">La Nostra Collezione</h2>
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all" id="filter-all">Tutti</button>
+            <button class="filter-btn" data-filter="lampade" id="filter-lampade">Lampade</button>
+            <button class="filter-btn" data-filter="comodino" id="filter-comodino">Da Comodino</button>
+            <button class="filter-btn" data-filter="lampadari" id="filter-lampadari">Lampadari</button>
+        </div>
+        <div class="product-grid" id="product-grid">
+            <!-- Products injected via JS -->
+        </div>
+    </section>
+
+    <!-- Product Detail Modal -->
+    <div id="product-modal" class="modal hidden">
+        <div class="modal-content product-detail">
+            <span class="close-modal">&times;</span>
+            <div class="detail-container">
+                <img id="detail-img" src="" alt="Product Detail">
+                <div class="detail-info">
+                    <h2 id="detail-title">Nome Prodotto</h2>
+                    <p id="detail-desc">Descrizione...</p>
+                    <p class="price" id="detail-price">€0</p>
+                    <button id="buy-btn" class="buy-btn">Acquista Ora</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Currency Switch Modal -->
+    <div id="currency-modal" class="modal hidden">
+        <div class="modal-content currency-switch">
+            <h2 id="curr-title">Fondi Insufficienti</h2>
+            <p id="curr-desc">Hai terminato i tuoi Euro. Ma non disperare... Puoi pagare comodamente con i <strong>Denti
+                    da Latte</strong>.</p>
+            <p id="curr-q">Vuoi procedere?</p>
+            <div class="modal-actions">
+                <button id="accept-teeth-btn" class="strange-btn">Accetto lo Scambio</button>
+                <button id="decline-teeth-btn" class="secondary-btn">No, grazie</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="about-container">
+            <div class="about-text">
+                <h2 id="about-title">Chi Siamo</h2>
+                <div id="about-content">
+                    <p>
+                        In un mondo in cui la luce è destinata a svanire, <strong>Lucidus</strong> si erge come faro di
+                        speranza eterna.
+                        Antiche profezie narrano che il sole cesserà di ardere, lasciando l'umanità avvolta in tenebre
+                        perpetue.
+                    </p>
+                    <p>
+                        Ma non temete, poiché Lucidus, custode delle fiamme primordiali, garantirà a tutti la luce
+                        eterna attraverso le sue creazioni uniche.
+                        Ogni lampada non è un semplice oggetto, ma un frammento di eternità, plasmato per resistere
+                        all'inevitabile dissolversi del tempo.
+                    </p>
+                    <p class="shipping-note">Nota: A causa della natura eterna dei nostri prodotti, i tempi di
+                        spedizione sono stimati in <strong>66 anni</strong>.</p>
+                </div>
+            </div>
+            <div class="about-media" style="position: relative;">
+                <img src="assets/images/0.png" alt="Chi Siamo - Lucidus" class="about-img" id="about-img-normal">
+                <img src="assets/images/19.png" alt="Lucidus Tenebris" class="about-img" id="about-img-evil"
+                    style="position: absolute; top: 0; left: 0; opacity: 0; transition: opacity 1s ease; width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        </div>
+
+        <!-- Video Container (Hidden by default) -->
+        <!-- Video Container removed from here -->
+    </section>
+
+    <!-- Legal Section -->
+    <footer id="legal">
+        <div class="footer-content">
+            <div class="legal-col">
+                <h4 id="footer-brand">Lucidus S.r.l.</h4>
+                <p>P.IVA: 66666666666</p>
+                <p>Registro Imprese: INF-666</p>
+                <p>SCIA: Protocollo n. 000/2026</p>
+            </div>
+            <div class="legal-col">
+                <h4 id="footer-legal">Patti e Condizioni</h4>
+                <a href="terms.html" target="_blank" id="link-terms">Termini e Condizioni</a>
+                <a href="privacy.html" target="_blank" id="link-privacy">Privacy Policy</a>
+                <a href="cookies.html" target="_blank" id="link-cookies">Cookie Policy</a>
+            </div>
+            <div class="legal-col">
+                <h4 id="footer-payment">Pagamenti Accettati</h4>
+                <p><i class="fab fa-paypal"></i> <i class="fab fa-cc-visa"></i> <i class="fab fa-cc-mastercard"></i> <i
+                        class="fas fa-tooth"></i></p>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2026 Lucidus. <span id="copyright-text">Tutti i diritti riservati nel buio.</span>
+        </div>
+    </footer>
+
+    <!-- Activity Feed Container -->
+    <div id="activity-feed"></div>
+
+
+    <script src="script.js"></script>
+</body>
+
+</html>
