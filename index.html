@@ -4,7 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Tele KaOsS | Multimedia Artist</title>
+    <title>Portfolio Emanuele Baccigalupi</title>
+    <meta name="description"
+        content="Portfolio di Emanuele Baccigalupi. Artista Indipendente & Designer Multidisciplinare: Videomaking, Sound Design, Visual & AI Art, Programmazione, Illustrazione.">
+    <meta property="og:title" content="Portfolio Emanuele Baccigalupi">
+    <meta property="og:description"
+        content="Artista Indipendente & Designer Multidisciplinare: Videomaking, Sound Design, Visual & AI Art, Programmazione, Illustrazione.">
+    <meta property="og:type" content="website">
 
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -51,20 +57,15 @@
             width: 100%;
             overflow-x: hidden;
             position: relative;
+            overflow-y: auto;
+            /* Ensure vertical scroll is enabled */
+            -webkit-overflow-scrolling: touch;
+            /* Restore momentum scrolling on iOS */
         }
 
         #root {
             width: 100%;
             overflow-x: hidden;
-        }
-
-        /* Mobile specific fixes for stability */
-        @media (max-width: 768px) {
-
-            html,
-            body {
-                overscroll-behavior-y: none;
-            }
         }
 
         h1,
