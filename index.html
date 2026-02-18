@@ -40,27 +40,21 @@
 
         html {
             scroll-behavior: smooth;
+            width: 100%;
+            overflow-x: hidden;
         }
 
         body {
             margin: 0;
             padding: 0;
             width: 100%;
+            min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
             font-family: 'Space Grotesk', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-        }
-
-        html,
-        body {
-            width: 100%;
-            overflow-x: hidden;
-            position: relative;
-            overflow-y: auto;
-            /* Ensure vertical scroll is enabled */
             -webkit-overflow-scrolling: touch;
-            /* Restore momentum scrolling on iOS */
         }
 
         #root {
@@ -329,7 +323,7 @@
                 {/* Background Image */}
                 <div className="absolute inset-0 z-0">
                     <img
-                        src="giff-presentazione/intro.png"
+                        src="nuovo-web-design/player.gif/lv_0_20250613181641.gif"
                         className="w-full h-full object-cover object-center opacity-80 filter grayscale contrast-125"
                         alt="Background Intro"
                     />
