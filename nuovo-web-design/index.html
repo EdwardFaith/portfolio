@@ -2,91 +2,474 @@
 <html lang="it">
 
 <head>
-  <meta charset="UTF-8" />
-  <title>Intro Video + Audio con GIF Bottone e Click Anywhere</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: black;
-      cursor: none;
-      /* NASCONDI CURSORE */
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Falling Symbols Game</title>
 
-    video {
-      display: none;
-      /* nascosto finché non parte */
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 90%;
-      height: 90%;
-      object-fit: cover;
-    }
+    <!-- clmtrackr library -->
+    <script src="https://cdn.jsdelivr.net/npm/clmtrackr@1.1.2/build/clmtrackr.min.js"></script>
 
-    #playGif {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      cursor: pointer;
-      width: 150px;
-      height: auto;
-    }
-  </style>
+    <!-- Google Font: Special Elite -->
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+
+    <style>
+        /* Body without margins, scrollbars, black background */
+        body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            background: black;
+            position: relative;
+            cursor: none;
+            font-family: 'Special Elite', cursive;
+            user-select: none;
+        }
+
+        /* --- SCREENS --- */
+
+        /* 1. START SCREEN (Main Page) */
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            cursor: pointer;
+            /* Clickable */
+        }
+
+        #start-btn {
+            width: 100px;
+            /* "in piccolo" */
+            height: auto;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #start-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* 2. TUTORIAL OVERLAY */
+        #tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 2900;
+            display: none;
+            /* Shown after Start Screen */
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        #tutorial-overlay h2 {
+            color: red;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 5px red;
+            animation: blink 1s infinite;
+        }
+
+        #tutorial-overlay p {
+            font-family: 'Courier New', monospace;
+            color: white;
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        /* 3. VICTORY CONTAINER */
+        #win-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 4000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #win-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 4. ORIENTATION WARNING */
+        #orientation-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        #orientation-warning h2 {
+            font-family: 'Courier New', monospace;
+            color: red;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            animation: blink 0.5s infinite;
+        }
+
+        #orientation-warning p {
+            font-family: 'Courier New', monospace;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* --- GAME UI --- */
+        #background-video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+            z-index: -1;
+            background: transparent;
+        }
+
+        #symbols-container,
+        #player {
+            position: absolute;
+            background: transparent;
+        }
+
+        #player {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 120px;
+            z-index: 200;
+            opacity: 0.8;
+        }
+
+        .symbol {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-size: cover;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            z-index: 150;
+        }
+
+        #countdown-timer {
+            font-family: 'Special Elite', cursive;
+            font-size: 20px;
+            color: #ffffff;
+            position: fixed;
+            top: 5px;
+            right: 5px;
+            z-index: 1000;
+            text-shadow: 1px 1px 3px black;
+        }
+
+        #webcam {
+            visibility: hidden;
+            /* Hidden but active for tracking */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 1px;
+            height: 1px;
+        }
+    </style>
 </head>
 
 <body>
 
-  <!-- Video intro -->
-  <video id="introVideo">
-    <source src="intro/simbolo(1).mp4" type="video/mp4">
-    Il tuo browser non supporta il video.
-  </video>
+    <!-- 1. START SCREEN (MAIN PAGE) -->
+    <div id="start-screen">
+        <!-- Button Image (GIF) -->
+        <img id="start-btn" src="player.gif/lv_0_20250613181641.gif" alt="Start Game" />
+        <p style="color: white; margin-top: 10px; font-size: 0.8rem;">[ CLICK TO ENTER ]</p>
+    </div>
 
-  <!-- Audio intro separato -->
-  <audio id="introAudio">
-    <source src="intro/0613.MP3" type="audio/MP3">
-    Il tuo browser non supporta l'audio.
-  </audio>
+    <!-- 2. TUTORIAL OVERLAY (WARNINGS) -->
+    <div id="tutorial-overlay">
+        <h2>SISTEMA DI SICUREZZA</h2>
+        <p>
+            <strong>COSA DEVI SAPERE:</strong><br><br>
+            1. <strong>POPUP</strong>: Questo gioco apre finestre popup se vieni colpito. <br>
+            <em>PER FAVORE DISABILITA IL BLOCCO POPUP ORA.</em><br><br>
+            2. <strong>VIDEOCAMERA</strong>: Usa la testa per muoverti (o i tasti A/D). <br>
+            <em>CONSENTI L'ACCESSO ALLA WEBCAM.</em><br><br>
+            3. <strong>MOBILE</strong>: Ruota il telefono in orizzontale.<br><br>
+            [ CLICCA OVUNQUE PER INIZIARE ]
+        </p>
+    </div>
 
-  <!-- GIF bottone da premere -->
-  <img id="playGif" src="player.gif/lv_0_20250613181641.gif" alt="Play Intro">
+    <!-- 3. VICTORY CONTAINER -->
+    <div id="win-container">
+        <video id="win-video" playsinline>
+            <source src="background.mp4/intro4.mp4" type="video/mp4">
+        </video>
+        <div style="position:absolute; bottom:10%; text-align:center; width:100%;">
+            <button onclick="location.reload()"
+                style="background:transparent; color:white; border:1px solid white; padding:10px 20px; font-family:'Courier New'; cursor:pointer;">[
+                RIAVVIA ]</button>
+        </div>
+    </div>
 
-  <script>
-    const video = document.getElementById('introVideo');
-    const audio = document.getElementById('introAudio');
-    const playGif = document.getElementById('playGif');
+    <!-- 4. ORIENTATION WARNING -->
+    <div id="orientation-warning">
+        <h2>ATTENZIONE</h2>
+        <p>RILEVATA VISUALIZZAZIONE VERTICALE.<br><br>RUOTA IL DISPOSITIVO ORRIZZONTALMENTE<br>PER PROSEGUIRE.</p>
+    </div>
 
-    let introStarted = false;
+    <!-- 5. GAME UI ELEMENTS -->
+    <video id="background-video" autoplay loop muted>
+        <source src="background.mp4/sfondo2(1).mp4" type="video/mp4" />
+    </video>
 
-    function goToGame() {
-      window.location.href = "game.html";
-    }
+    <audio id="background-music" loop>
+        <source src="background.mp4/0613-1.mp3" type="audio/MP3" />
+    </audio>
 
-    playGif.onclick = (e) => {
-      e.stopPropagation(); // Evita che il click passi anche al body
-      if (!introStarted) {
-        introStarted = true;
-        playGif.style.display = 'none';
-        video.style.display = 'block';
-        video.play();
-        audio.play();
-      }
-    };
+    <img id="player" src="player.gif/player.gif" alt="Player" />
+    <div id="symbols-container"></div>
+    <div id="countdown-timer">Tempo rimasto: 60</div>
+    <video id="webcam" width="320" height="240" autoplay muted playsinline></video>
 
-    // Se clicchi OVUNQUE dopo l'avvio → vai al gioco
-    document.body.onclick = () => {
-      if (introStarted) {
-        goToGame();
-      }
-    };
+    <!-- LOGIC -->
+    <script>
+        // --- DOM ---
+        const startScreen = document.getElementById('start-screen');
+        const startBtn = document.getElementById('start-btn');
+        const tutorialOverlay = document.getElementById('tutorial-overlay');
+        const winContainer = document.getElementById('win-container');
+        const winVideo = document.getElementById('win-video');
+        const bgMusic = document.getElementById('background-music');
 
-    // Se il video finisce → vai al gioco
-    video.onended = goToGame;
-  </script>
+        // --- FLOW CONTROLLER ---
 
+        // 1. CLICK START BTN (GIF)
+        startBtn.onclick = function (e) {
+            e.stopPropagation(); // Prevents body click from triggering tutorial skip immediately
+            startScreen.style.display = 'none';
+            tutorialOverlay.style.display = 'flex';
+        };
+        startScreen.onclick = function () {
+            startScreen.style.display = 'none';
+            tutorialOverlay.style.display = 'flex';
+        }
+
+        // 2. CLICK TUTORIAL -> START GAME
+        tutorialOverlay.onclick = function () {
+            tutorialOverlay.style.display = 'none';
+            window.startGame();
+        };
+
+        // --- GAME LOGIC ---
+        const symbolsData = [
+            { src: 'assets/symbol1.gif', hitSound: 'hit/hit1.mp3', url: 'https://it.wikipedia.org/wiki/Orologio_dell%27apocalisse' },
+            { src: 'assets/symbol2.gif', hitSound: 'hit/hit2.mp3', url: 'https://www.atlanteguerre.it/' },
+            { src: 'assets/symbol3.gif', hitSound: 'hit/hit3.mp3', url: 'https://climate.copernicus.eu/climate-projections' },
+            { src: 'assets/symbol4.gif', hitSound: 'hit/hit4.mp3', url: 'https://www.livescience.com/worlds-biggest-man-made-disasters' }
+        ];
+
+        const container = document.getElementById('symbols-container');
+        const player = document.getElementById('player');
+        const video = document.getElementById('webcam');
+        const countdownDisplay = document.getElementById('countdown-timer');
+
+        let countdown = 60;
+        let gameActive = false;
+        let spawnerInterval;
+        let timerInterval;
+
+        function updateCountdownDisplay() {
+            if (countdownDisplay) countdownDisplay.textContent = `Tempo rimasto: ${countdown}`;
+        }
+        updateCountdownDisplay(); // Init string
+
+        // Spawn logic
+        function spawnSymbol() {
+            if (!gameActive) return;
+            const data = symbolsData[Math.floor(Math.random() * symbolsData.length)];
+            const el = document.createElement('img');
+            el.src = data.src;
+            el.className = 'symbol';
+            el.style.left = `${Math.random() * (window.innerWidth - 60)}px`;
+            container.appendChild(el);
+
+            let top = -60;
+            const fall = setInterval(() => {
+                if (!gameActive) { clearInterval(fall); el.remove(); return; }
+                top += 2;
+                el.style.top = `${top}px`;
+
+                const r1 = el.getBoundingClientRect();
+                const r2 = player.getBoundingClientRect();
+
+                if (r1.bottom >= r2.top && r1.left < r2.right && r1.right > r2.left) {
+                    clearInterval(fall);
+                    playHit(data);
+                    el.remove();
+                    countdown = 60;
+                    updateCountdownDisplay();
+                } else if (top > window.innerHeight) {
+                    clearInterval(fall);
+                    el.remove();
+                }
+            }, 10);
+        }
+
+        function playHit(data) {
+            new Audio(data.hitSound).play().catch(e => { });
+            try { window.open(data.url, '_blank'); } catch (e) { }
+        }
+
+        // Movement
+        let playerX = window.innerWidth / 2;
+        function updatePlayerPosition() {
+            if (player) player.style.left = `${playerX}px`;
+        }
+        updatePlayerPosition();
+
+        // Webcam
+        let ctrack;
+        if (typeof clm !== 'undefined') {
+            ctrack = new clm.tracker();
+            ctrack.init();
+        }
+
+        // MAIN START
+        window.startGame = function () {
+            gameActive = true;
+
+            // Audio
+            if (bgMusic) {
+                bgMusic.currentTime = 0;
+                bgMusic.play().catch(console.warn);
+            }
+
+            // Loop
+            spawnerInterval = setInterval(spawnSymbol, 1000);
+            timerInterval = setInterval(() => {
+                if (!gameActive) return;
+                countdown--;
+                updateCountdownDisplay();
+                if (countdown <= 0) {
+                    winGame();
+                }
+            }, 1000);
+
+            // Webcam Init
+            initWebcam();
+        };
+
+        function initWebcam() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        if (video) video.srcObject = stream;
+                    })
+                    .catch(console.error);
+            }
+            if (video && ctrack) {
+                video.addEventListener('play', () => {
+                    ctrack.start(video);
+                    requestAnimationFrame(trackLoop);
+                });
+            }
+        }
+
+        function trackLoop() {
+            if (!gameActive) return;
+            const pos = ctrack.getCurrentPosition();
+            if (pos) {
+                const eyeX = (pos[27][0] + pos[32][0]) / 2;
+                if (video) {
+                    const invX = video.width - eyeX;
+                    const normX = (invX / video.width) * window.innerWidth;
+                    if (player) {
+                        const w = player.getBoundingClientRect().width;
+                        playerX = Math.min(Math.max(normX, w / 2), window.innerWidth - w / 2);
+                        updatePlayerPosition();
+                    }
+                }
+            }
+            requestAnimationFrame(trackLoop);
+        }
+
+        // Keyboard
+        document.addEventListener('keydown', (e) => {
+            if (!gameActive) return;
+            const step = 20;
+            if (e.key === 'ArrowLeft' || e.key === 'a') playerX -= step;
+            if (e.key === 'ArrowRight' || e.key === 'd') playerX += step;
+            updatePlayerPosition();
+        });
+
+        // WIN
+        function winGame() {
+            gameActive = false;
+            clearInterval(spawnerInterval);
+            clearInterval(timerInterval);
+
+            if (bgMusic) bgMusic.pause();
+
+            winContainer.style.display = 'flex';
+            if (winVideo) {
+                winVideo.volume = 1.0;
+                winVideo.muted = false; // Ensure unmuted
+                winVideo.currentTime = 0;
+                winVideo.play().catch(console.warn);
+            }
+        }
+
+        // ORIENTATION
+        const warning = document.getElementById('orientation-warning');
+        function checkOrientation() {
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (isMobile && window.innerHeight > window.innerWidth) {
+                warning.style.display = 'flex';
+            } else {
+                warning.style.display = 'none';
+            }
+        }
+        window.addEventListener('resize', checkOrientation);
+        checkOrientation();
+
+    </script>
 </body>
 
 </html>
