@@ -500,28 +500,21 @@
             const vhsIntro = document.getElementById('vhs-intro-overlay');
             const bgm = document.getElementById('bgm');
 
-            // Hide initial menu
             if (startScreen) startScreen.classList.add('hidden');
 
-            // Show VHS text
             if (vhsIntro) {
                 const vhsText = vhsIntro.querySelector('p');
                 vhsIntro.classList.remove('hidden');
 
-                // Show simple text immediately
                 if (vhsText) {
                     vhsText.innerHTML = "> SISTEMA PRONTO.<br><br>[ CLICCA OVUNQUE PER ENTRARE ]<br><br>ATTENZIONE: AUDIO ALTO.";
                     vhsText.style.animation = "blink 1s infinite";
                 }
 
-                // Wait for explicit interaction
+                // Explicit click handler
                 const startHandler = (e) => {
-                    // Prevent crazy double firings but allow start
-                    // e.preventDefault(); 
-
                     vhsIntro.style.display = 'none';
 
-                    // Force audio on interaction
                     if (bgm) {
                         bgm.volume = 0.5;
                         bgm.play().catch(e => log("Audio force start error: " + e));
@@ -531,28 +524,30 @@
 
                     document.body.removeEventListener('click', startHandler);
                     document.body.removeEventListener('touchstart', startHandler);
-                    document.body.removeEventListener('touchend', startHandler);
                 };
 
-                document.body.addEventListener('click', startHandler);
-                document.body.addEventListener('touchstart', startHandler);
-                document.body.addEventListener('touchend', startHandler);
+                // Use a short timeout to prevent immediate triggering if the BUTTON click bubbled up
+                setTimeout(() => {
+                    document.body.addEventListener('click', startHandler);
+                    document.body.addEventListener('touchstart', startHandler);
+                }, 100);
 
             } else {
-                // Should not happen, but fallback
                 startGame();
             }
         }
 
         function startGame() {
             log("Avvio gioco...");
-            // Non-blocking camera start
+
+            // Fire and forget camera start
             camera.start().then(() => {
                 log("Fotocamera attiva.");
             }).catch(e => {
                 log("Errore fotocamera: " + e);
             });
-            // Proceed immediately
+
+            // Start immediately
             resetAndStart();
         }
 
