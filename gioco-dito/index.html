@@ -497,17 +497,51 @@
         // --- GAME LOGIC ---
         function startIntroSequence() {
             const startScreen = document.getElementById('start-screen');
+            const vhsIntro = document.getElementById('vhs-intro-overlay');
             const bgm = document.getElementById('bgm');
 
+            // Hide initial menu
             if (startScreen) startScreen.classList.add('hidden');
 
-            // Immediately play audio
-            if (bgm) {
-                bgm.volume = 0.5;
-                bgm.play().catch(e => log("Audio force start error: " + e));
-            }
+            // Show VHS text
+            if (vhsIntro) {
+                const vhsText = vhsIntro.querySelector('p');
+                vhsIntro.classList.remove('hidden');
 
-            startGame();
+                // Show simple text immediately
+                if (vhsText) {
+                    vhsText.innerHTML = "> SISTEMA PRONTO.<br><br>[ CLICCA OVUNQUE PER ENTRARE ]<br><br>ATTENZIONE: AUDIO ALTO.";
+                    vhsText.style.animation = "blink 1s infinite";
+                }
+
+                // Wait for explicit interaction
+                const startHandler = (e) => {
+                    // Prevent crazy double firings but allow start
+                    // e.preventDefault(); 
+
+                    vhsIntro.style.display = 'none';
+
+                    // Force audio on interaction
+                    if (bgm) {
+                        bgm.volume = 0.5;
+                        bgm.play().catch(e => log("Audio force start error: " + e));
+                    }
+
+                    startGame();
+
+                    document.body.removeEventListener('click', startHandler);
+                    document.body.removeEventListener('touchstart', startHandler);
+                    document.body.removeEventListener('touchend', startHandler);
+                };
+
+                document.body.addEventListener('click', startHandler);
+                document.body.addEventListener('touchstart', startHandler);
+                document.body.addEventListener('touchend', startHandler);
+
+            } else {
+                // Should not happen, but fallback
+                startGame();
+            }
         }
 
         function startGame() {
