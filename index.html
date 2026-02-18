@@ -1306,20 +1306,76 @@
 
         const BioSection = () => (
             <section id="bio" className="py-12 md:py-24 bg-black border-t border-neutral-900">
-                <div className="max-w-4xl mx-auto px-6 text-center">
-                    <h2 className="brand-font text-4xl text-white mb-8">Emanuele Baccigalupi</h2>
-                    <div className="w-12 h-1 bg-red-600 mx-auto mb-12"></div>
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="flex flex-col md:flex-row gap-12 items-start mb-24">
+                        {/* Image Column - Smaller and Square */}
+                        <div className="w-full md:w-auto flex justify-center md:justify-start shrink-0">
+                            <div className="w-64 h-64 aspect-square overflow-hidden bg-neutral-900 border border-neutral-800 relative group">
+                                <img
+                                    src="immagini/io.png"
+                                    alt="Emanuele Baccigalupi"
+                                    className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-700"
+                                />
+                                <div className="absolute inset-0 border border-white/10 pointer-events-none"></div>
+                            </div>
+                        </div>
 
-                    <div className="prose prose-invert text-neutral-400 leading-relaxed text-lg space-y-6 mx-auto">
-                        <p>
-                            Nato a Carrara nel 2001, <strong>Baccigalupi</strong> è un artista poliedrico la cui ricerca spazia tra teatro, musica e arti visive.
-                        </p>
-                        <p>
-                            Dopo una formazione come attore teatrale e liricista, ha abbracciato le arti multimediali studiando presso la <em>Scuola di Nuove Tecnologie per l'Arte</em> dell'Accademia di Belle Arti di Carrara.
-                        </p>
-                        <p>
-                            La sua opera esplora la memoria, il cosmo e la percezione umana, fondendo suono e immagine in esperienze immersive che sfidano la gravità emotiva e la narrazione tradizionale.
-                        </p>
+                        {/* Text Column */}
+                        <div className="w-full text-left">
+                            <h2 className="brand-font text-4xl md:text-5xl text-white mb-6">Chi <span className="text-neutral-600">Sono</span></h2>
+                            <div className="w-12 h-1 bg-red-600 mb-8"></div>
+
+                            <div className="prose prose-invert text-neutral-400 leading-relaxed space-y-6 mb-8">
+                                <p>
+                                    Nato a Carrara nel 2001, <strong>Baccigalupi</strong> è un artista poliedrico la cui ricerca spazia tra teatro, musica e arti visive.
+                                </p>
+                                <p>
+                                    Dopo una formazione come attore teatrale e liricista, ha abbracciato le arti multimediali studiando presso la <em>Scuola di Nuove Tecnologie per l'Arte</em> dell'Accademia di Belle Arti di Carrara.
+                                </p>
+                                <p>
+                                    La sua opera esplora la memoria, il cosmo e la percezione umana, fondendo suono e immagine in esperienze immersive che sfidano la gravità emotiva e la narrazione tradizionale.
+                                </p>
+                            </div>
+
+                            {/* Exhibitions List */}
+                            <div className="space-y-4 border-t border-neutral-800 pt-8">
+                                <h3 className="text-white font-bold uppercase tracking-widest text-sm mb-4">Mostre & Partecipazioni</h3>
+                                <ul className="space-y-3 text-sm text-neutral-400">
+                                    <li>
+                                        <a href="https://overthereal.com/memorie-dal-cosmo/" target="_blank" className="hover:text-red-500 transition-colors flex items-center gap-2 group">
+                                            Over The Real - Memorie dal Cosmo <Icons.ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://luccatimes.it/musa-pietrasanta-la-mostra-multimediale-presente-indicativo/" target="_blank" className="hover:text-red-500 transition-colors flex items-center gap-2 group">
+                                            Musa Pietrasanta - Presente Indicativo <Icons.ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://thegramjournal.com/de-digitalis-natura-nella-galleria-the-project-space-le-nuove-frontiere-dell-arte-digitale/" target="_blank" className="hover:text-red-500 transition-colors flex items-center gap-2 group">
+                                            The Project Space - De Digitalis Natura <Icons.ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Gallery Grid - Masonry Layout */}
+                    <div>
+                        <h3 className="text-white font-bold uppercase tracking-widest text-sm mb-8 border-b border-neutral-800 pb-2">Galleria</h3>
+                        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+                            {[1, 2, 3].map((num) => (
+                                <div key={num} className="break-inside-avoid bg-neutral-900 border border-neutral-800 hover:border-red-600 transition-colors">
+                                    <img
+                                        src={`immagini/${num}.jpeg`}
+                                        alt={`Gallery image ${num}`}
+                                        className="w-full h-auto block opacity-80 hover:opacity-100 transition-opacity duration-500"
+                                    />
+                                </div>
+                            ))}
+
+                        </div>
                     </div>
                 </div>
             </section>
