@@ -87,19 +87,6 @@ function playHitAndRedirect(data) {
   window.open(data.url, '_blank'); // apre nuova scheda IMMEDIATAMENTE
 }
 
-// Fa partire i simboli ogni 1 secondo
-setInterval(spawnSymbol, 1000);
-
-// Decrementa countdown ogni secondo e aggiorna display, se arriva a 0 redirect
-setInterval(() => {
-  countdown--;
-  updateCountdownDisplay();
-
-  if (countdown <= 0) {
-    window.location.href = 'index1.html';
-  }
-}, 1000);
-
 // Movimento player con frecce e WASD + movimento testa tramite webcam
 let playerX = window.innerWidth / 2;
 
@@ -111,26 +98,47 @@ function updatePlayerPosition() {
 // Aggiorna posizione iniziale
 updatePlayerPosition();
 
-// --- Setup webcam e tracciamento con clmtrackr ---
-
-// Inizializza clmtrackr
+// Funzione globale per avviare il gioco
+// Setup webcam e tracciamento con clmtrackr
 const ctrack = new clm.tracker();
 ctrack.init();
 
-// Avvia la webcam
-navigator.mediaDevices.getUserMedia({ video: true })
-  .then(stream => {
-    video.srcObject = stream;
-  })
-  .catch(err => {
-    console.error("Errore nell'attivare la webcam:", err);
-  });
+// Funzione globale per avviare il gioco
+window.startGame = function () {
+  // Tentativo di avviare l'audio con interazione utente
+  const bgMusic = document.getElementById('background-music');
+  if (bgMusic) {
+    bgMusic.play().catch(e => console.log("Audio autoplay bloccato, attendo interazione", e));
+  }
 
-// Avvia il tracking quando il video parte
-video.addEventListener('play', () => {
-  ctrack.start(video);
-  requestAnimationFrame(trackLoop);
-});
+  // Fa partire i simboli ogni 1 secondo
+  setInterval(spawnSymbol, 1000);
+
+  // Decrementa countdown ogni secondo e aggiorna display, se arriva a 0 redirect
+  setInterval(() => {
+    countdown--;
+    updateCountdownDisplay();
+
+    if (countdown <= 0) {
+      window.location.href = 'index1.html';
+    }
+  }, 1000);
+
+  // Avvia la webcam
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+    })
+    .catch(err => {
+      console.error("Errore nell'attivare la webcam:", err);
+    });
+
+  // Avvia il tracking quando il video parte
+  video.addEventListener('play', () => {
+    ctrack.start(video);
+    requestAnimationFrame(trackLoop);
+  });
+};
 
 // Loop di tracking con inversione del movimento orizzontale
 function trackLoop() {
