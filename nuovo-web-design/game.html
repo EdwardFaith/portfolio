@@ -25,8 +25,8 @@
       text-shadow: 1px 1px 3px black;
     }
 
-    /* VHS Intro Overlay */
-    #vhs-intro-overlay {
+    /* Tutorial Overlay */
+    #tutorial-overlay {
       position: fixed;
       top: 0;
       left: 0;
@@ -39,43 +39,26 @@
       justify-content: center;
       flex-direction: column;
       text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
     }
 
-    #vhs-intro-overlay p {
+    #tutorial-overlay h2 {
+      font-family: 'Special Elite', cursive;
+      color: red;
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      text-shadow: 0 0 5px red;
+      animation: blink 1s infinite;
+    }
+
+    #tutorial-overlay p {
       font-family: 'Courier New', monospace;
-      color: #00ff00;
-      font-size: 1.5rem;
-      max-width: 80%;
-      text-shadow: 2px 2px 5px rgba(0, 255, 0, 0.5);
-      animation: glitchText 0.5s infinite;
-    }
-
-    @keyframes glitchText {
-      0% {
-        transform: translate(0, 0);
-      }
-
-      20% {
-        transform: translate(-2px, 2px);
-      }
-
-      40% {
-        transform: translate(2px, -2px);
-      }
-
-      60% {
-        transform: translate(-2px, -2px);
-        opacity: 0.8;
-      }
-
-      80% {
-        transform: translate(2px, 2px);
-        opacity: 1;
-      }
-
-      100% {
-        transform: translate(0, 0);
-      }
+      color: white;
+      font-size: 1.2rem;
+      max-width: 800px;
+      margin-bottom: 30px;
+      line-height: 1.5;
     }
 
     /* Orientation Warning */
@@ -160,17 +143,12 @@
   <script src="script.js"></script>
 
   <script>
-    // Intro Logic
+    // Tutorial & Start Logic
     window.addEventListener('load', () => {
-      const introOverlay = document.getElementById('vhs-intro-overlay');
-      const introText = introOverlay.querySelector('p');
-
-      // Immediate prompt
-      introText.innerHTML = "> SISTEMA PRONTO.<br><br>[ CLICCA OVUNQUE PER ENTRARE ]<br><br>ATTENZIONE: AUDIO ALTO.";
-      introText.style.animation = "blink 1s infinite";
+      const tutorialOverlay = document.getElementById('tutorial-overlay');
 
       const startHandler = () => {
-        introOverlay.style.display = 'none';
+        tutorialOverlay.style.display = 'none';
         if (window.startGame) {
           window.startGame();
         }
