@@ -276,7 +276,7 @@
             height: 100%;
             background: black;
             z-index: 300;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             flex-direction: column;
@@ -497,44 +497,17 @@
         // --- GAME LOGIC ---
         function startIntroSequence() {
             const startScreen = document.getElementById('start-screen');
-            const vhsIntro = document.getElementById('vhs-intro-overlay');
             const bgm = document.getElementById('bgm');
 
             if (startScreen) startScreen.classList.add('hidden');
 
-            if (vhsIntro) {
-                const vhsText = vhsIntro.querySelector('p');
-                vhsIntro.classList.remove('hidden');
-
-                if (vhsText) {
-                    vhsText.innerHTML = "> SISTEMA PRONTO.<br><br>[ CLICCA OVUNQUE PER ENTRARE ]<br><br>ATTENZIONE: AUDIO ALTO.";
-                    vhsText.style.animation = "blink 1s infinite";
-                }
-
-                // Explicit click handler
-                const startHandler = (e) => {
-                    vhsIntro.style.display = 'none';
-
-                    if (bgm) {
-                        bgm.volume = 0.5;
-                        bgm.play().catch(e => log("Audio force start error: " + e));
-                    }
-
-                    startGame();
-
-                    document.body.removeEventListener('click', startHandler);
-                    document.body.removeEventListener('touchstart', startHandler);
-                };
-
-                // Use a short timeout to prevent immediate triggering if the BUTTON click bubbled up
-                setTimeout(() => {
-                    document.body.addEventListener('click', startHandler);
-                    document.body.addEventListener('touchstart', startHandler);
-                }, 100);
-
-            } else {
-                startGame();
+            // Immediately play audio
+            if (bgm) {
+                bgm.volume = 0.5;
+                bgm.play().catch(e => log("Audio force start error: " + e));
             }
+
+            startGame();
         }
 
         function startGame() {
