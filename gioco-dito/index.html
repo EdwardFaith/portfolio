@@ -266,6 +266,90 @@
             transform: scaleX(-1);
             display: none;
         }
+
+        /* --- NUOVI OVERLAY --- */
+        #vhs-intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        #vhs-intro-overlay p {
+            font-family: 'VCR', monospace;
+            color: #00ff00;
+            /* Green terminal look */
+            font-size: 1.5rem;
+            max-width: 80%;
+            text-shadow: 2px 2px 5px rgba(0, 255, 0, 0.5);
+            animation: glitchText 0.5s infinite;
+        }
+
+        @keyframes glitchText {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            20% {
+                transform: translate(-2px, 2px);
+            }
+
+            40% {
+                transform: translate(2px, -2px);
+            }
+
+            60% {
+                transform: translate(-2px, -2px);
+                opacity: 0.8;
+            }
+
+            80% {
+                transform: translate(2px, 2px);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+
+        #orientation-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 400;
+            display: none;
+            /* Managed by JS */
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        #orientation-warning h2 {
+            font-family: 'VCR', monospace;
+            color: red;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            animation: blink 0.5s infinite;
+        }
+
+        #orientation-warning p {
+            font-family: 'VCR', monospace;
+            color: white;
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 
@@ -298,6 +382,18 @@
 
     <div id="debug-log">Pronto.</div>
 
+    <!-- VHS Intro Overlay (New) -->
+    <div id="vhs-intro-overlay" class="hidden">
+        <p>> CARICAMENTO SIMULAZIONE...<br><br>SCAPPA DAI BULBI OCULARI.<br>USA IL DITO.<br>NON FARTI PRENDERE.</p>
+    </div>
+
+    <!-- Orientation Warning (New) -->
+    <div id="orientation-warning">
+        <h2>ATTENZIONE</h2>
+        <p>RILEVATA VISUALIZZAZIONE VERTICALE.<br><br>RUOTA IL DISPOSITIVO ORRIZZONTALMENTE<br>PER ABILITARE IL LINK
+            NEURALE.</p>
+    </div>
+
     <!-- 1. START SCREEN -->
     <div id="start-screen" class="screen">
         <div class="start-content">
@@ -307,7 +403,7 @@
                 > MISSIONE: SOPRAVVIVERE 30 SECONDI<br>
                 > CONTROLLO: DITO INDICE<br>
             </div>
-            <button onclick="startGameSequence()">[ AVVIA REGISTRAZIONE ]</button>
+            <button onclick="startIntroSequence()">[ AVVIA REGISTRAZIONE ]</button>
         </div>
     </div>
 
@@ -337,6 +433,8 @@
         const hud = document.getElementById('hud');
         const bgm = document.getElementById('bgm');
         const debugLog = document.getElementById('debug-log');
+        const vhsIntro = document.getElementById('vhs-intro-overlay');
+        const orientationWarning = document.getElementById('orientation-warning');
 
         let isPlaying = false;
         let timeRemaining = 30;
@@ -352,6 +450,23 @@
             debugLog.innerText = msg;
             console.log(msg);
         }
+
+        // --- ORIENTATION CHECK ---
+        function checkOrientation() {
+            // Check if mobile (approx)
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (isMobile && window.innerHeight > window.innerWidth) {
+                orientationWarning.style.display = 'flex';
+                // Pause game if running? Maybe not needed for simple warning overlay
+            } else {
+                orientationWarning.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('load', checkOrientation);
+
 
         // --- HANDS SETUP ---
         const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
@@ -380,22 +495,31 @@
         };
 
         // --- GAME LOGIC ---
-        function startGameSequence() {
-            // Initial Start from Button
-            document.getElementById('start-screen').classList.add('hidden');
+        function startIntroSequence() {
+            const startScreen = document.getElementById('start-screen');
+            const bgm = document.getElementById('bgm');
 
-            // Try Audio
-            bgm.volume = 0.5;
-            bgm.play().catch(e => log("Audio block: interact to play"));
+            if (startScreen) startScreen.classList.add('hidden');
 
-            log("Avvio fotocamera...");
+            // Immediately play audio
+            if (bgm) {
+                bgm.volume = 0.5;
+                bgm.play().catch(e => log("Audio force start error: " + e));
+            }
+
+            startGame();
+        }
+
+        function startGame() {
+            log("Avvio gioco...");
+            // Non-blocking camera start
             camera.start().then(() => {
                 log("Fotocamera attiva.");
-                resetAndStart();
             }).catch(e => {
                 log("Errore fotocamera: " + e);
-                resetAndStart(); // Start anyway (mouse mode)
             });
+            // Proceed immediately
+            resetAndStart();
         }
 
         function resetAndStart() {
@@ -430,6 +554,16 @@
             playerPos.y = e.clientY;
             updatePlayerPos();
         });
+
+        // Touch fallback (important for mobile if webcam fails or user prefers touch)
+        window.addEventListener('touchmove', (e) => {
+            if (!isPlaying) return;
+            if (e.targetTouches.length > 0) {
+                playerPos.x = e.targetTouches[0].clientX;
+                playerPos.y = e.targetTouches[0].clientY;
+                updatePlayerPos();
+            }
+        }, { passive: false });
 
         function startLoop() {
             // Clear any existing intervals just in case
