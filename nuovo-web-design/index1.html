@@ -3,201 +3,46 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>Falling Symbols Game</title>
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- clmtrackr library -->
-  <script src="https://cdn.jsdelivr.net/npm/clmtrackr@1.1.2/build/clmtrackr.min.js"></script>
-
-  <!-- Google Font: Special Elite (horror sobrio, macchina da scrivere) -->
-  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
-
-  <!-- Stile countdown -->
+  <title>Index 1 - Video e Audio</title>
   <style>
-    #countdown-timer {
-      font-family: 'Special Elite', cursive;
-      font-size: 20px;
-      color: #ffffff;
-      position: fixed;
-      top: 5px;
-      right: 5px;
-      z-index: 1000;
-      text-shadow: 1px 1px 3px black;
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
     }
 
-    /* VHS Intro Overlay */
-    #vhs-intro-overlay {
+    video {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      z-index: 2000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      text-align: center;
-    }
-
-    #vhs-intro-overlay p {
-      font-family: 'Courier New', monospace;
-      color: #00ff00;
-      font-size: 1.5rem;
-      max-width: 80%;
-      text-shadow: 2px 2px 5px rgba(0, 255, 0, 0.5);
-      animation: glitchText 0.5s infinite;
-    }
-
-    @keyframes glitchText {
-      0% {
-        transform: translate(0, 0);
-      }
-
-      20% {
-        transform: translate(-2px, 2px);
-      }
-
-      40% {
-        transform: translate(2px, -2px);
-      }
-
-      60% {
-        transform: translate(-2px, -2px);
-        opacity: 0.8;
-      }
-
-      80% {
-        transform: translate(2px, 2px);
-        opacity: 1;
-      }
-
-      100% {
-        transform: translate(0, 0);
-      }
-    }
-
-    /* Orientation Warning */
-    #orientation-warning {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      z-index: 3000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      text-align: center;
-    }
-
-    #orientation-warning h2 {
-      font-family: 'Courier New', monospace;
-      color: red;
-      font-size: 2rem;
-      margin-bottom: 20px;
-      animation: blink 0.5s infinite;
-    }
-
-    #orientation-warning p {
-      font-family: 'Courier New', monospace;
-      color: white;
-      font-size: 1.2rem;
-    }
-
-    @keyframes blink {
-      50% {
-        opacity: 0;
-      }
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- VHS Intro -->
-  <div id="vhs-intro-overlay">
-    <p>> CARICAMENTO SIMULAZIONE...<br><br>EVITA I SIMBOLI.<br>USA LA TESTA O I TASTI.<br>NON FARTI COLPIRE.</p>
-  </div>
-
-  <!-- Orientation Warning -->
-  <div id="orientation-warning">
-    <h2>ATTENZIONE</h2>
-    <p>RILEVATA VISUALIZZAZIONE VERTICALE.<br><br>RUOTA IL DISPOSITIVO ORRIZZONTALMENTE<br>PER PROSEGUIRE.</p>
-  </div>
-
-  <!-- Sfondo video -->
-  <video id="background-video" autoplay loop muted>
-    <source src="background.mp4/sfondo2(1).mp4" type="video/mp4" />
-    Il tuo browser non supporta il video in background.
+  <!-- Video a schermo intero -->
+  <video id="myVideo" muted autoplay playsinline>
+    <source src="background.mp4/intro4.mp4" type="video/mp4" />
+    Il tuo browser non supporta il video.
   </video>
 
-  <!-- Musica di sottofondo -->
-  <audio id="background-music" autoplay loop>
-    <source src="background.mp4/0613-1.mp3" type="audio/MP3" />
+  <!-- Audio in sottofondo -->
+  <audio id="bgAudio" autoplay loop>
+    <source src="intro/fine-3/fine-3.mp3" type="audio/mp3" />
     Il tuo browser non supporta l'audio.
   </audio>
 
-  <!-- Player -->
-  <img id="player" src="player.gif/player.gif" alt="Player" />
-
-  <!-- Container per i simboli -->
-  <div id="symbols-container"></div>
-
-  <!-- Countdown visibile in alto a destra -->
-  <div id="countdown-timer">
-    Tempo rimasto: 60
-  </div>
-
-  <!-- Webcam per tracking (visibile, puoi nascondere via CSS) -->
-  <video id="webcam" width="320" height="240" autoplay muted
-    style="position: fixed; top: 50px; right: 10px; z-index: 10; border: 1px solid #ccc;"></video>
-
-  <!-- Script principale -->
-  <script src="script.js"></script>
-
   <script>
-    // Intro Logic
-    // Intro Logic
-    // Intro Logic
-    window.addEventListener('load', () => {
-      const introOverlay = document.getElementById('vhs-intro-overlay');
-      const introText = introOverlay.querySelector('p');
-
-      // Immediate prompt
-      introText.innerHTML = "> SISTEMA PRONTO.<br><br>[ CLICCA OVUNQUE PER ENTRARE ]<br><br>ATTENZIONE: AUDIO ALTO.";
-      introText.style.animation = "blink 1s infinite";
-
-      const startHandler = () => {
-        introOverlay.style.display = 'none';
-        if (window.startGame) {
-          window.startGame();
-        }
-        document.body.removeEventListener('click', startHandler);
-        document.body.removeEventListener('touchstart', startHandler);
-      };
-
-      document.body.addEventListener('click', startHandler);
-      document.body.addEventListener('touchstart', startHandler);
-
-      // Orientation Check
-      const orientationWarning = document.getElementById('orientation-warning');
-      function checkOrientation() {
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (isMobile && window.innerHeight > window.innerWidth) {
-          orientationWarning.style.display = 'flex';
-        } else {
-          orientationWarning.style.display = 'none';
-        }
-      }
-
-      window.addEventListener('resize', checkOrientation);
-      checkOrientation();
+    const video = document.getElementById('myVideo');
+    video.addEventListener('ended', () => {
+      window.location.href = 'index.html';
     });
   </script>
+
 </body>
 
 </html>
