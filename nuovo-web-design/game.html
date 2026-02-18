@@ -24,10 +24,110 @@
       z-index: 1000;
       text-shadow: 1px 1px 3px black;
     }
+
+    /* VHS Intro Overlay */
+    #vhs-intro-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    #vhs-intro-overlay p {
+      font-family: 'Courier New', monospace;
+      color: #00ff00;
+      font-size: 1.5rem;
+      max-width: 80%;
+      text-shadow: 2px 2px 5px rgba(0, 255, 0, 0.5);
+      animation: glitchText 0.5s infinite;
+    }
+
+    @keyframes glitchText {
+      0% {
+        transform: translate(0, 0);
+      }
+
+      20% {
+        transform: translate(-2px, 2px);
+      }
+
+      40% {
+        transform: translate(2px, -2px);
+      }
+
+      60% {
+        transform: translate(-2px, -2px);
+        opacity: 0.8;
+      }
+
+      80% {
+        transform: translate(2px, 2px);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translate(0, 0);
+      }
+    }
+
+    /* Orientation Warning */
+    #orientation-warning {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      z-index: 3000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    #orientation-warning h2 {
+      font-family: 'Courier New', monospace;
+      color: red;
+      font-size: 2rem;
+      margin-bottom: 20px;
+      animation: blink 0.5s infinite;
+    }
+
+    #orientation-warning p {
+      font-family: 'Courier New', monospace;
+      color: white;
+      font-size: 1.2rem;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 
 <body>
+
+  <!-- VHS Intro -->
+  <div id="vhs-intro-overlay">
+    <p>> CARICAMENTO SIMULAZIONE...<br><br>EVITA I SIMBOLI.<br>USA LA TESTA O I TASTI.<br>NON FARTI COLPIRE.</p>
+  </div>
+
+  <!-- Orientation Warning -->
+  <div id="orientation-warning">
+    <h2>ATTENZIONE</h2>
+    <p>RILEVATA VISUALIZZAZIONE VERTICALE.<br><br>RUOTA IL DISPOSITIVO ORRIZZONTALMENTE<br>PER PROSEGUIRE.</p>
+  </div>
 
   <!-- Sfondo video -->
   <video id="background-video" autoplay loop muted>
@@ -58,6 +158,46 @@
 
   <!-- Script principale -->
   <script src="script.js"></script>
+
+  <script>
+    // Intro Logic
+    // Intro Logic
+    // Intro Logic
+    window.addEventListener('load', () => {
+      const introOverlay = document.getElementById('vhs-intro-overlay');
+      const introText = introOverlay.querySelector('p');
+
+      // Immediate prompt
+      introText.innerHTML = "> SISTEMA PRONTO.<br><br>[ CLICCA OVUNQUE PER ENTRARE ]<br><br>ATTENZIONE: AUDIO ALTO.";
+      introText.style.animation = "blink 1s infinite";
+
+      const startHandler = () => {
+        introOverlay.style.display = 'none';
+        if (window.startGame) {
+          window.startGame();
+        }
+        document.body.removeEventListener('click', startHandler);
+        document.body.removeEventListener('touchstart', startHandler);
+      };
+
+      document.body.addEventListener('click', startHandler);
+      document.body.addEventListener('touchstart', startHandler);
+
+      // Orientation Check
+      const orientationWarning = document.getElementById('orientation-warning');
+      function checkOrientation() {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile && window.innerHeight > window.innerWidth) {
+          orientationWarning.style.display = 'flex';
+        } else {
+          orientationWarning.style.display = 'none';
+        }
+      }
+
+      window.addEventListener('resize', checkOrientation);
+      checkOrientation();
+    });
+  </script>
 </body>
 
 </html>
