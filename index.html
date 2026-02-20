@@ -186,6 +186,20 @@
 
         const VideoPlaceholder = ({ label, extraClass = "", url, videoId }) => {
             const [isPlaying, setIsPlaying] = useState(false);
+            const [isVisible, setIsVisible] = useState(false);
+            const containerRef = React.useRef(null);
+
+            useEffect(() => {
+                const observer = new IntersectionObserver(([entry]) => {
+                    if (entry.isIntersecting) {
+                        setIsVisible(true);
+                        observer.disconnect();
+                    }
+                }, { rootMargin: '200px' });
+
+                if (containerRef.current) observer.observe(containerRef.current);
+                return () => observer.disconnect();
+            }, []);
 
             // Construct YouTube thumbnail URL if videoId is present
             const thumbnailUrl = videoId
@@ -194,7 +208,7 @@
 
             if (videoId && isPlaying) {
                 return (
-                    <div className={`relative bg-neutral-900 border border-neutral-800 w-full h-full ${extraClass}`}>
+                    <div ref={containerRef} className={`relative bg-neutral-900 border border-neutral-800 w-full h-full ${extraClass}`}>
                         <iframe
                             width="100%"
                             height="100%"
@@ -203,6 +217,7 @@
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
+                            loading="lazy"
                             className="absolute inset-0"
                         ></iframe>
                     </div>
@@ -218,6 +233,7 @@
             return (
                 <Tag
                     {...props}
+                    ref={containerRef}
                     onClick={handleClick}
                     className={`relative bg-neutral-900 border border-neutral-800 flex items-center justify-center group cursor-pointer overflow-hidden ${extraClass}`}
                 >
@@ -225,7 +241,7 @@
                     {/* Dynamic Thumbnail */}
                     <div
                         className="absolute inset-0 bg-cover bg-center opacity-50 group-hover:scale-105 transition-transform duration-700"
-                        style={{ backgroundImage: `url('${thumbnailUrl}')` }}
+                        style={isVisible ? { backgroundImage: `url('${thumbnailUrl}')` } : {}}
                     ></div>
 
                     <div className="z-20 text-center">
@@ -590,7 +606,7 @@
                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                             {galleryItems.map((item, index) => (
                                 <div key={index} onClick={() => openLightbox(item)} className="group relative aspect-square bg-neutral-900 border border-neutral-800 cursor-pointer overflow-hidden">
-                                    <img src={item.src} alt={item.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 grayscale group-hover:grayscale-0" />
+                                    <img src={item.src} alt={item.title} loading="lazy" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 grayscale group-hover:grayscale-0" />
 
                                     {/* Hover Overlay */}
                                     <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black via-black/80 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300">
@@ -710,6 +726,7 @@
                                     <img
                                         src={selectedImage.src}
                                         alt={selectedImage.title}
+                                        loading="lazy"
                                         className="max-w-full max-h-[80vh] object-contain block pointer-events-none"
                                     />
                                 </div>
@@ -1352,6 +1369,7 @@
                                     <img
                                         src="immagini/io.png"
                                         alt="Emanuele Baccigalupi"
+                                        loading="lazy"
                                         className="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-700"
                                     />
                                     <div className="absolute inset-0 border border-white/10 pointer-events-none"></div>
@@ -1443,7 +1461,7 @@
 
             useEffect(() => {
                 const handleScroll = () => {
-                    const sections = ['home', 'skills', 'cosmo', 'kaoss', 'portfolio', 'games', 'materials', 'illustrations', 'bio', 'contact'];
+                    const sections = ['home', 'cosmo', 'kaoss', 'visual-ai', 'games', 'illustrations', 'materials', 'portfolio', 'bio', 'contact'];
                     const scrollPosition = window.scrollY + 100;
 
                     for (const section of sections) {
@@ -1495,4 +1513,3 @@
 </body>
 
 </html>
-
