@@ -159,7 +159,10 @@
     <!-- Navigation -->
     <nav>
         <div class="logo">LUCIDUS</div>
-        <ul class="nav-links">
+        <div class="mobile-menu-btn" id="mobile-menu-btn">
+            <i class="fas fa-bars"></i>
+        </div>
+        <ul class="nav-links" id="nav-links">
             <li><a href="#home" id="nav-home">Home</a></li>
             <li><a href="#shop" id="nav-shop">Catalogo</a></li>
             <li><a href="#about" id="nav-about">Chi Siamo</a></li>
@@ -167,6 +170,8 @@
             <li><a href="#" id="nav-cart-btn"><i class="fas fa-shopping-cart"></i> <span id="cart-count">0</span></a>
             </li>
             <li><a href="#" id="nav-orders-btn"><i class="fas fa-box-open"></i> Ordini</a></li>
+            <li class="mobile-only-user"><span id="user-balance-mobile"></span></li>
+            <li class="mobile-only-user"><button id="nav-login-btn-mobile" class="secondary-btn">Login</button></li>
         </ul>
         <div class="user-info">
             <span id="user-balance">Saldo: €0</span>
