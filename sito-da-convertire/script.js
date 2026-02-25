@@ -22,8 +22,7 @@ const initialState = {
 };
 
 // 2. STATE RESTORATION
-// let state = JSON.parse(localStorage.getItem('lucidusState'));
-let state = null; // FORCE RESET ON RELOAD
+let state = JSON.parse(localStorage.getItem('lucidusState'));
 
 if (!state) {
     state = initialState;
@@ -274,8 +273,7 @@ function startActivityFeed() {
 }
 
 function saveState() {
-    // localStorage.setItem('lucidusState', JSON.stringify(state));
-    // PERSISTENCE DISABLED
+    localStorage.setItem('lucidusState', JSON.stringify(state));
 }
 
 // ==========================================
@@ -377,7 +375,9 @@ function applyCorruption(level) {
 
 function updateUI() {
     const balanceSpan = getEl('user-balance');
+    const balanceSpanMobile = getEl('user-balance-mobile');
     const loginBtn = getEl('nav-login-btn');
+    const loginBtnMobile = getEl('nav-login-btn-mobile');
     const cartCount = getEl('cart-count');
 
     if (state.isLoggedIn) {
@@ -387,26 +387,33 @@ function updateUI() {
             suffix = state.teethPurchaseCount >= 1 ? 'Dentes' : 'Denti';
         }
 
-        balanceSpan.textContent = `Saldo: ${state.currency === '€' ? '€' : ''}${state.balance}${state.currency !== '€' ? ' ' + suffix : ''}`;
+        const balanceText = `Saldo: ${state.currency === '€' ? '€' : ''}${state.balance}${state.currency !== '€' ? ' ' + suffix : ''}`;
+        balanceSpan.textContent = balanceText;
+        if (balanceSpanMobile) balanceSpanMobile.textContent = balanceText;
 
         // Button Logic
         if (loginBtn) {
             loginBtn.textContent = (state.teethPurchaseCount >= 1) ? "Exitus" : "Esci";
         }
+        if (loginBtnMobile) loginBtnMobile.textContent = loginBtn ? loginBtn.textContent : "Esci";
 
         // Cart Count
         if (cartCount) cartCount.textContent = state.cart.length;
     } else {
         balanceSpan.textContent = "Accedi per acquistare";
+        if (balanceSpanMobile) balanceSpanMobile.textContent = "Accedi per acquistare";
         if (cartCount) cartCount.textContent = '0';
         if (loginBtn) loginBtn.textContent = "Login";
+        if (loginBtnMobile) loginBtnMobile.textContent = "Login";
     }
 
     // Stylistic override for evil balance
-    if (state.currency !== '€' && balanceSpan) {
-        balanceSpan.style.color = '#ff3e3e';
-    } else if (balanceSpan) {
-        balanceSpan.style.color = '';
+    if (state.currency !== '€') {
+        if (balanceSpan) balanceSpan.style.color = '#ff3e3e';
+        if (balanceSpanMobile) balanceSpanMobile.style.color = '#ff3e3e';
+    } else {
+        if (balanceSpan) balanceSpan.style.color = '';
+        if (balanceSpanMobile) balanceSpanMobile.style.color = '';
     }
 }
 
@@ -883,7 +890,7 @@ function setupEventListeners() {
     });
 
     // Login
-    getEl('nav-login-btn')?.addEventListener('click', () => {
+    const handleLoginClick = () => {
         if (!state.isLoggedIn) loginModal.classList.remove('hidden');
         else {
             if (confirm("Vuoi davvero uscire?")) {
@@ -893,7 +900,25 @@ function setupEventListeners() {
                 location.reload();
             }
         }
-    });
+    };
+    getEl('nav-login-btn')?.addEventListener('click', handleLoginClick);
+    getEl('nav-login-btn-mobile')?.addEventListener('click', handleLoginClick);
+
+    // Mobile Menu Toggle
+    const mobileBtn = getEl('mobile-menu-btn');
+    const navLinks = getEl('nav-links');
+    if (mobileBtn && navLinks) {
+        mobileBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        // Close menu on link click
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+            });
+        });
+    }
 
     // Login Modal
     const lBtn = getEl('login-btn');
