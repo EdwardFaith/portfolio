@@ -483,6 +483,17 @@ nav {
     gap: 30px;
 }
 
+.mobile-menu-btn {
+    display: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--accent-color);
+}
+
+.mobile-only-user {
+    display: none;
+}
+
 /* Hero */
 .hero {
     height: 100vh;
@@ -805,10 +816,43 @@ footer {
 @media (max-width: 768px) {
     nav {
         padding: 15px 20px;
+        flex-wrap: wrap;
+    }
+
+    .mobile-menu-btn {
+        display: block;
+    }
+
+    .user-info {
+        display: none;
     }
 
     .nav-links {
         display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: rgba(10, 10, 10, 0.98);
+        padding: 20px 0;
+        gap: 20px;
+        align-items: center;
+        border-bottom: 2px solid var(--accent-color);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.8);
+    }
+
+    .nav-links.active {
+        display: flex;
+    }
+
+    .mobile-only-user {
+        display: block;
+        text-align: center;
+    }
+
+    .mobile-only-user #nav-login-btn-mobile {
+        margin-top: 10px;
     }
 
     #hero-title {
