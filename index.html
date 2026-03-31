@@ -267,8 +267,8 @@
 
             const links = [
                 { id: 'home', label: 'Home' },
-                { id: 'cosmo', label: 'Memorie del Cosmo' },
                 { id: 'kaoss', label: 'Radio Kaoss' },
+                { id: 'cosmo', label: 'Memorie del Cosmo' },
                 { id: 'visual-ai', label: 'Visual & AI' },
                 { id: 'games', label: 'Games' },
                 { id: 'illustrations', label: 'Illustrazioni' },
@@ -329,8 +329,8 @@
         const Nav = ({ activeSection, scrollToSection }) => {
             const links = [
                 { id: 'home', label: 'Home' },
-                { id: 'cosmo', label: 'Memorie del Cosmo' },
                 { id: 'kaoss', label: 'Radio Kaoss' },
+                { id: 'cosmo', label: 'Memorie del Cosmo' },
                 { id: 'visual-ai', label: 'Visual & AI' },
                 { id: 'games', label: 'Games' },
                 { id: 'illustrations', label: 'Illustrazioni' },
@@ -398,7 +398,7 @@
         );
 
         const IntroSection = ({ scrollToContact, scrollToBio, scrollToSection }) => (
-            <section className="py-12 md:py-20 bg-black border-b border-neutral-900">
+            <section className="py-24 md:py-32 bg-black border-b border-neutral-900">
                 <div className="max-w-5xl mx-auto px-6 text-center">
                     <p className="text-neutral-400 text-lg md:text-xl leading-relaxed mb-8">
                         <strong className="text-white">Artista Indipendente & Designer Multidisciplinare</strong><br />
@@ -445,16 +445,16 @@
 
                     {/* Quick Nav Grid - Ordered by Site Flow */}
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full">
-                        {/* 1. Videomaking -> Cosmo */}
-                        <div onClick={() => scrollToSection('cosmo')} className="bg-neutral-900/50 border border-neutral-800 p-6 hover:border-red-600 hover:bg-neutral-900 transition-all cursor-pointer group backdrop-blur-sm">
-                            <Icons.Film className="w-8 h-8 text-neutral-500 group-hover:text-red-600 mb-3 mx-auto transition-colors" />
-                            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Videomaking</h3>
-                        </div>
-
-                        {/* 2. Sound Design -> Kaoss */}
+                        {/* 1. Sound Design -> Kaoss */}
                         <div onClick={() => scrollToSection('kaoss')} className="bg-neutral-900/50 border border-neutral-800 p-6 hover:border-red-600 hover:bg-neutral-900 transition-all cursor-pointer group backdrop-blur-sm">
                             <Icons.Mic2 className="w-8 h-8 text-neutral-500 group-hover:text-red-600 mb-3 mx-auto transition-colors" />
                             <h3 className="text-xs font-bold text-white uppercase tracking-widest">Sound Design</h3>
+                        </div>
+
+                        {/* 2. Videomaking -> Cosmo */}
+                        <div onClick={() => scrollToSection('cosmo')} className="bg-neutral-900/50 border border-neutral-800 p-6 hover:border-red-600 hover:bg-neutral-900 transition-all cursor-pointer group backdrop-blur-sm">
+                            <Icons.Film className="w-8 h-8 text-neutral-500 group-hover:text-red-600 mb-3 mx-auto transition-colors" />
+                            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Videomaking</h3>
                         </div>
 
                         {/* 3. Visual & AI -> Visual AI */}
@@ -479,7 +479,7 @@
             </section>
         );
         const VisualAISection = () => (
-            <section id="visual-ai" className="py-12 md:py-24 bg-neutral-950 border-t border-neutral-900">
+            <section id="visual-ai" className="py-24 md:py-40 bg-neutral-950 border-t border-neutral-900">
                 <div className="max-w-7xl mx-auto px-6">
                     <h2 className="brand-font text-3xl text-white mb-8">Visual <span className="text-neutral-600">& AI Art</span></h2>
 
@@ -586,7 +586,7 @@
             };
 
             return (
-                <section id="illustrations" className="py-12 md:py-24 bg-black border-t border-neutral-900 relative">
+                <section id="illustrations" className="py-24 md:py-40 bg-black border-t border-neutral-900 relative">
                     <div className="max-w-7xl mx-auto px-6">
                         <div className="flex flex-col md:flex-row justify-between items-end mb-12">
                             <div>
@@ -742,7 +742,7 @@
         };
 
         const PortfolioSection = () => (
-            <section id="portfolio" className="py-12 md:py-24 bg-neutral-950 border-t border-neutral-900">
+            <section id="portfolio" className="py-24 md:py-40 bg-neutral-950 border-t border-neutral-900">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="mb-16">
                         <span className="text-red-600 font-mono text-xs uppercase tracking-[0.3em] mb-4 block">Collaborazioni & Media</span>
@@ -779,7 +779,7 @@
             const [showConcept, setShowConcept] = useState(false);
 
             return (
-                <section id="cosmo" className="py-12 md:py-24 bg-black border-t border-neutral-900">
+                <section id="cosmo" className="py-24 md:py-40 bg-black border-t border-neutral-900">
                     <div className="max-w-7xl mx-auto px-6">
                         <div className="grid lg:grid-cols-12 gap-16">
                             {/* Left Column: Narrative */}
@@ -900,8 +900,9 @@
                     theme: "",
                     desc: "Dio per il troppo imbarazzo ha deciso di lanciarsi dalla sua finestra. Il Diavolo, uscito dall'inferno, si è messo a vendere lampade per denti da latte.",
                     clipLabel: "Teaser Ep. 03",
-                    fullVidUrl: "https://youtu.be/j7TIlwA4xh4",
-                    videos: ["j7TIlwA4xh4", "idShNGihgTo", "kn9YrcXbI4Y"]
+                    fullVidUrl: "https://youtu.be/do6QxOju8VE",
+                    linkText: "Vedi teaser",
+                    videos: ["do6QxOju8VE", "idShNGihgTo", "kn9YrcXbI4Y"]
                 },
                 {
                     id: 2,
@@ -924,12 +925,12 @@
             ];
 
             return (
-                <section id="kaoss" className="py-12 md:py-24 bg-neutral-950 border-t border-neutral-900 relative">
+                <section id="kaoss" className="py-24 md:py-40 bg-neutral-950 border-t border-neutral-900 relative">
                     <div className="absolute top-0 right-0 w-1/3 h-full bg-neutral-900/20 skew-x-12 pointer-events-none"></div>
 
                     <div className="max-w-7xl mx-auto px-6 relative z-10">
-                        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8 md:gap-0">
-                            <div className="w-full md:w-auto flex flex-col items-end md:items-start text-right md:text-left">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8 md:gap-0">
+                            <div className="w-full md:w-auto flex flex-col items-start text-left">
                                 <span className="inline-block px-3 py-1 bg-red-600 text-black font-bold text-xs mb-4">SERIE DI CORTI</span>
                                 <h2 className="section-title text-white mb-0">Radio<br />Kaoss</h2>
                                 <button
@@ -939,7 +940,7 @@
                                     Leggi il Concept Completo
                                 </button>
                             </div>
-                            <div className="text-right max-w-md w-full md:w-auto flex flex-col items-end">
+                            <div className="max-w-md w-full md:w-auto flex flex-col items-start md:items-end text-left md:text-right">
                                 <p className="text-neutral-400 italic">"Una radio per una generazione che non stringe un cazzo."</p>
                                 <p className="text-neutral-500 text-sm mt-2">Conduttori: Edward Faith & Charles</p>
                             </div>
@@ -1024,7 +1025,7 @@
                                         {ep.theme && <p className="text-red-500 font-mono text-xs uppercase mb-4 tracking-wider">{ep.theme}</p>}
                                         <p className="text-neutral-400 mb-6 leading-relaxed">{ep.desc}</p>
                                         <a href={ep.fullVidUrl} target="_blank" className="text-white text-xs font-bold uppercase hover:text-red-500 transition-colors flex items-center gap-2">
-                                            Vedi episodio completo <Icons.ArrowRight className="w-3 h-3" />
+                                            {ep.linkText || "Vedi episodio completo"} <Icons.ArrowRight className="w-3 h-3" />
                                         </a>
                                     </div>
 
@@ -1066,7 +1067,7 @@
 
 
         const GamesSection = () => (
-            <section id="games" className="py-12 md:py-24 bg-black border-t border-neutral-900">
+            <section id="games" className="py-24 md:py-40 bg-black border-t border-neutral-900">
                 <div className="max-w-7xl mx-auto px-6">
                     <h2 className="brand-font text-3xl md:text-5xl text-white mb-2 text-center">
                         <span className="text-neutral-700">Interactive</span> Games
@@ -1135,7 +1136,7 @@
         );
 
         const MaterialsSection = () => (
-            <section id="materials" className="py-12 md:py-24 bg-neutral-950 border-t border-neutral-900">
+            <section id="materials" className="py-24 md:py-40 bg-neutral-950 border-t border-neutral-900">
                 <div className="max-w-7xl mx-auto px-6">
                     <h2 className="brand-font text-3xl text-white mb-12">Archivio <span className="text-neutral-600">Materiali</span></h2>
 
@@ -1329,7 +1330,7 @@
 
 
             return (
-                <section id="bio" className="py-12 md:py-24 bg-black border-t border-neutral-900">
+                <section id="bio" className="py-24 md:py-40 bg-black border-t border-neutral-900">
                     <div className="max-w-6xl mx-auto px-6">
                         <div className="flex flex-col md:flex-row gap-12 items-start mb-24">
                             {/* Image Column - Smaller and Square */}
@@ -1395,7 +1396,7 @@
         };
 
         const Footer = () => (
-            <footer id="contact" className="bg-neutral-950 py-12 md:py-24 pb-32 md:pb-24 border-t border-neutral-900">
+            <footer id="contact" className="bg-neutral-950 py-24 md:py-40 pb-32 md:pb-24 border-t border-neutral-900">
                 <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
                     <div>
                         <h2 className="brand-font text-4xl text-white mb-4">Parliamo di<br />Futuro</h2>
@@ -1430,7 +1431,7 @@
 
             useEffect(() => {
                 const handleScroll = () => {
-                    const sections = ['home', 'cosmo', 'kaoss', 'visual-ai', 'games', 'illustrations', 'materials', 'portfolio', 'bio', 'contact'];
+                    const sections = ['home', 'kaoss', 'cosmo', 'visual-ai', 'games', 'illustrations', 'materials', 'portfolio', 'bio', 'contact'];
                     const scrollPosition = window.scrollY + 100;
 
                     for (const section of sections) {
@@ -1462,8 +1463,8 @@
                     <Hero />
                     <IntroSection scrollToContact={() => scrollToSection('contact')} scrollToBio={() => scrollToSection('bio')} scrollToSection={scrollToSection} />
 
-                    <CosmoSection />
                     <KaossSection />
+                    <CosmoSection />
                     <VisualAISection />
 
                     <GamesSection />
