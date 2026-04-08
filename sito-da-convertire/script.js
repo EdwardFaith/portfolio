@@ -626,25 +626,17 @@ function openCart() {
             list.appendChild(div);
         });
 
-        // Show Payment Options based on Balance
-        const bonusUI = getEl('bonus-payment-ui');
+        // Show Payment Options
         const teethUI = getEl('teeth-payment-ui');
         const cardUI = getEl('card-form-container');
 
-        getEl('current-bonus-display').textContent = '€' + state.balance;
-
         // Reset Visibilities
-        bonusUI.classList.add('hidden');
-        teethUI.classList.add('hidden');
-        cardUI.classList.remove('hidden'); // Default card always visible
+        if (teethUI) teethUI.classList.add('hidden');
+        if (cardUI) cardUI.classList.remove('hidden'); // Default card always visible
 
         if (state.currency === '€') {
-            if (state.balance >= total) {
-                // Solvent
-                bonusUI.classList.remove('hidden');
-                getEl('pay-bonus-btn').onclick = () => checkout('bonus');
-            } else {
-                // Insolvent -> Show Teeth Option
+            // Show Teeth Option as alternative
+            if (teethUI) {
                 teethUI.classList.remove('hidden');
                 getEl('pay-teeth-btn').onclick = () => {
                     cartModal.classList.add('hidden');
@@ -653,35 +645,24 @@ function openCart() {
             }
         } else {
             // Teeth Mode
-            cardUI.classList.add('hidden'); // Card useless here
-            teethUI.classList.remove('hidden');
-            getSel('#teeth-payment-ui p').textContent = "Pagamento in Denti da Latte";
-            getSel('#teeth-payment-ui p:first-child').style.display = 'none';
+            if (cardUI) cardUI.classList.add('hidden'); // Card useless here
+            if (teethUI) {
+                teethUI.classList.remove('hidden');
+                getSel('#teeth-payment-ui p').textContent = "Pagamento in Denti da Latte";
+                const pFirst = getSel('#teeth-payment-ui p:first-child');
+                if (pFirst) pFirst.style.display = 'none';
 
-            const btn = getEl('pay-teeth-btn');
-            btn.textContent = "Concludi Sacrificio";
-            btn.onclick = () => checkout('teeth');
+                const btn = getEl('pay-teeth-btn');
+                if (btn) {
+                    btn.textContent = "Concludi Sacrificio";
+                    btn.onclick = () => checkout('teeth');
+                }
+            }
         }
     }
 
     getEl('cart-total-price').textContent = (state.currency === '€' ? '€' : '') + total;
     cartModal.classList.remove('hidden');
-
-    // SHIPPING: Always show, pre-fill if saved
-    const shippingForm = getEl('shipping-form');
-    if (shippingForm) {
-        shippingForm.style.display = 'block';
-
-        if (state.shippingAddress) {
-            getEl('ship-address').value = state.shippingAddress.address || '';
-            getEl('ship-city').value = state.shippingAddress.city || '';
-            getEl('ship-zip').value = state.shippingAddress.zip || '';
-        } else {
-            getEl('ship-address').value = '';
-            getEl('ship-city').value = '';
-            getEl('ship-zip').value = '';
-        }
-    }
 }
 
 window.removeFromCart = function (index) {
@@ -694,41 +675,10 @@ window.removeFromCart = function (index) {
 function checkout(method) {
     let total = state.cart.reduce((sum, item) => sum + item.price, 0);
 
-    // Validation Indirizzo
-    const addr = getEl('ship-address').value;
-    const city = getEl('ship-city').value;
-    const zip = getEl('ship-zip').value;
-
-    if (!addr || !city) {
-        alert("Per favore, inserisci un indirizzo di spedizione valido.");
-        return;
-    }
-
-    // Save shipping address
-    state.shippingAddress = { address: addr, city: city, zip: zip };
-    saveState();
     if (state.currency === '€') {
         if (method === 'card') {
-            // Fake decline logic for story
-            if (state.balance < total) {
-                alert("Transazione Negata: Saldo Insufficiente.");
-                return;
-            }
-            // If balance represents 'real money' in this logic, we assume card works if 'balance' allows it?
-            // Or user just pays. Let's assume Card simply works if they have balance (which is weird but ok),
-            // OR card fails if balance < total to force teeth.
-
-            if (state.balance < total) {
-                alert("Transazione Negata dalla Banca.");
-                return;
-            }
-        }
-        if (method === 'bonus' && state.balance < total) {
-            alert("Fondi Bonus insufficienti.");
+            alert("Transazione Negata dalla Banca. Saldo Insufficiente.");
             return;
-        }
-        if (method === 'bonus' || method === 'card') {
-            state.balance -= total;
         }
     }
 
@@ -770,6 +720,12 @@ function checkout(method) {
     updateUI();
     renderProducts(); // Refresh in case corruption happened
     applyCorruption(state.teethPurchaseCount);
+
+    if (state.purchaseCount === 3) {
+        setTimeout(() => {
+            window.open('../index.html', '_blank');
+        }, 3000);
+    }
 }
 
 // Contract Sign
@@ -950,8 +906,8 @@ function setupEventListeners() {
             state.isLoggedIn = true;
             state.baptismName = name;
             state.hasDiscount = notBapt;
-            // Grant bonus if new
-            if (state.purchaseCount === 0 && state.balance === 0) state.balance = 50;
+            // No bonus, balance stays 0
+            if (state.purchaseCount === 0 && state.balance === 0) state.balance = 0;
 
             // Check Pending Item
             if (state.pendingCartItem) {
@@ -979,9 +935,6 @@ function setupEventListeners() {
             playSfx('login'); // [NEW]
             // Refresh
             init();
-            
-            // Apri index.html in un'altra pagina
-            window.open('../index.html', '_blank');
         });
     }
 
