@@ -350,12 +350,23 @@ function applyCorruption(level) {
         if (aboutImgEvil) aboutImgEvil.style.opacity = '1';
     }
 
-    // LEVEL 6: TOTAL CORRUPTION (Video Reveal)
-    if (level >= 1) { // Changed: Video appears earlier if contract signed (which implies level >=1 usually)
-        // But logic says "video appare in home... appena firmi il contratto".
-        // Contract signing sets teethPurchaseCount++ (so level >=1).
-        if (state.currency !== '€') {
-            if (videoBox) videoBox.classList.remove('hidden');
+    // LEVEL 1: Contract Signed (Video 1 Reveal)
+    if (state.currency !== '€') {
+        const cvb = getEl('contract-video-box');
+        if (cvb && cvb.classList.contains('hidden')) {
+            cvb.classList.remove('hidden');
+            const frame = cvb.querySelector('iframe');
+            if (frame && !frame.src) frame.src = frame.getAttribute('data-src') + "?autoplay=1&mute=0";
+        }
+    }
+
+    // LEVEL 2: Purchase Made (Video 2 Reveal)
+    if (state.purchaseCount >= 1) {
+        const pvb = getEl('purchase-video-box');
+        if (pvb && pvb.classList.contains('hidden')) {
+            pvb.classList.remove('hidden');
+            const frame = pvb.querySelector('iframe');
+            if (frame && !frame.src) frame.src = frame.getAttribute('data-src') + "?autoplay=1&mute=0";
         }
     }
 
