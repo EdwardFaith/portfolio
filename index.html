@@ -267,8 +267,8 @@
 
             const links = [
                 { id: 'home', label: 'Home' },
-                { id: 'cosmo', label: 'Memorie del Cosmo' },
                 { id: 'kaoss', label: 'Radio Kaoss' },
+                { id: 'cosmo', label: 'Memorie del Cosmo' },
                 { id: 'visual-ai', label: 'Visual & AI' },
                 { id: 'games', label: 'Games' },
                 { id: 'illustrations', label: 'Illustrazioni' },
@@ -329,8 +329,8 @@
         const Nav = ({ activeSection, scrollToSection }) => {
             const links = [
                 { id: 'home', label: 'Home' },
-                { id: 'cosmo', label: 'Memorie del Cosmo' },
                 { id: 'kaoss', label: 'Radio Kaoss' },
+                { id: 'cosmo', label: 'Memorie del Cosmo' },
                 { id: 'visual-ai', label: 'Visual & AI' },
                 { id: 'games', label: 'Games' },
                 { id: 'illustrations', label: 'Illustrazioni' },
@@ -445,16 +445,16 @@
 
                     {/* Quick Nav Grid - Ordered by Site Flow */}
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full">
-                        {/* 1. Videomaking -> Cosmo */}
-                        <div onClick={() => scrollToSection('cosmo')} className="bg-neutral-900/50 border border-neutral-800 p-6 hover:border-red-600 hover:bg-neutral-900 transition-all cursor-pointer group backdrop-blur-sm">
-                            <Icons.Film className="w-8 h-8 text-neutral-500 group-hover:text-red-600 mb-3 mx-auto transition-colors" />
-                            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Videomaking</h3>
-                        </div>
-
-                        {/* 2. Sound Design -> Kaoss */}
+                        {/* 1. Sound Design -> Kaoss */}
                         <div onClick={() => scrollToSection('kaoss')} className="bg-neutral-900/50 border border-neutral-800 p-6 hover:border-red-600 hover:bg-neutral-900 transition-all cursor-pointer group backdrop-blur-sm">
                             <Icons.Mic2 className="w-8 h-8 text-neutral-500 group-hover:text-red-600 mb-3 mx-auto transition-colors" />
                             <h3 className="text-xs font-bold text-white uppercase tracking-widest">Sound Design</h3>
+                        </div>
+
+                        {/* 2. Videomaking -> Cosmo */}
+                        <div onClick={() => scrollToSection('cosmo')} className="bg-neutral-900/50 border border-neutral-800 p-6 hover:border-red-600 hover:bg-neutral-900 transition-all cursor-pointer group backdrop-blur-sm">
+                            <Icons.Film className="w-8 h-8 text-neutral-500 group-hover:text-red-600 mb-3 mx-auto transition-colors" />
+                            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Videomaking</h3>
                         </div>
 
                         {/* 3. Visual & AI -> Visual AI */}
@@ -909,8 +909,8 @@
                     theme: "",
                     desc: "Dio per il troppo imbarazzo ha deciso di lanciarsi dalla sua finestra. Il Diavolo, uscito dall'inferno, si è messo a vendere lampade per denti da latte.",
                     clipLabel: "Teaser Ep. 03",
-                    fullVidUrl: "https://youtu.be/j7TIlwA4xh4",
-                    videos: ["j7TIlwA4xh4", "aSD5oB4C2k0", "kn9YrcXbI4Y"]
+                    fullVidUrl: "https://youtu.be/do6QxOju8VE",
+                    videos: ["do6QxOju8VE", "aSD5oB4C2k0", "kn9YrcXbI4Y"]
                 },
                 {
                     id: 2,
@@ -1331,10 +1331,18 @@
 
                             <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
                                 <div className="aspect-video mb-4 relative overflow-hidden">
-                                    <VideoPlaceholder label="Sponsor Video" extraClass="w-full h-full" videoId="idShNGihgTo" />
+                                    <VideoPlaceholder label="lucidus" extraClass="w-full h-full" videoId="idShNGihgTo" />
                                 </div>
-                                <h4 className="text-white font-bold text-lg">Sponsor Video</h4>
-                                <p className="text-neutral-500 text-sm">Sponsor Ufficiale</p>
+                                <h4 className="text-white font-bold text-lg">lucidus</h4>
+                                <p className="text-neutral-500 text-sm">una luce che se ne fotte della realtà</p>
+                            </div>
+
+                            <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
+                                <div className="aspect-video mb-4 relative overflow-hidden">
+                                    <VideoPlaceholder label="lucidus news" extraClass="w-full h-full" videoId="MugCiJit7dY" />
+                                </div>
+                                <h4 className="text-white font-bold text-lg">lucidus news</h4>
+                                <p className="text-neutral-500 text-sm">una luce che ti è amica!</p>
                             </div>
                         </div>
                     </div>
@@ -1447,7 +1455,7 @@
 
             useEffect(() => {
                 const handleScroll = () => {
-                    const sections = ['home', 'cosmo', 'kaoss', 'visual-ai', 'games', 'illustrations', 'materials', 'portfolio', 'bio', 'contact'];
+                    const sections = ['home', 'kaoss', 'cosmo', 'visual-ai', 'games', 'illustrations', 'materials', 'portfolio', 'bio', 'contact'];
                     const scrollPosition = window.scrollY + 100;
 
                     for (const section of sections) {
@@ -1479,8 +1487,8 @@
                     <Hero />
                     <IntroSection scrollToContact={() => scrollToSection('contact')} scrollToBio={() => scrollToSection('bio')} scrollToSection={scrollToSection} />
 
-                    <CosmoSection />
                     <KaossSection />
+                    <CosmoSection />
                     <VisualAISection />
 
                     <GamesSection />

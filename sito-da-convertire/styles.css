@@ -855,13 +855,63 @@ footer {
         margin-top: 10px;
     }
 
+    .centered-aesthetic {
+        padding: 30px 20px;
+        width: 90%;
+    }
+
     #hero-title {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
+    }
+
+    #hero-desc {
+        font-size: 1.1rem;
+        margin-bottom: 25px;
+    }
+
+    .cta-btn {
+        padding: 12px 30px;
+        font-size: 1rem;
+    }
+
+    .shop-section {
+        padding: 60px 15px;
+    }
+
+    .product-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .filter-btn {
+        width: 100%;
+        padding: 12px;
+    }
+
+    .about-section {
+        padding: 60px 15px;
+    }
+
+    .about-container {
+        flex-direction: column;
+        gap: 30px;
+        text-align: center;
     }
 
     .footer-content {
         gap: 30px;
         flex-direction: column;
+        text-align: center;
+    }
+    
+    footer {
+        padding: 40px 15px;
     }
 
     /* Modal perfection on mobile */
@@ -872,7 +922,7 @@ footer {
     }
 
     .detail-container img {
-        width: 80%;
+        width: 100%;
         max-width: 250px;
     }
 
@@ -888,6 +938,35 @@ footer {
 
     .modal-content {
         padding: 30px 20px;
+        width: 95%;
+    }
+    
+    .checkout-container {
+        flex-direction: column;
+    }
+
+    .cart-box {
+        width: 100%;
+        height: auto;
+        max-height: 95vh;
+        border-radius: 8px;
+    }
+
+    .cart-items-section, .payment-section {
+        padding: 20px 15px;
+        min-width: 100%;
+    }
+
+    #activity-feed {
+        bottom: 80px; 
+        left: 10px;
+        right: 10px;
+        max-width: none;
+    }
+
+    .card-visual {
+        height: auto;
+        min-height: 160px;
     }
 }
 

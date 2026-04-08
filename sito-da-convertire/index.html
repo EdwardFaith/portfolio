@@ -171,15 +171,19 @@
             <li><a href="#shop" id="nav-shop">Catalogo</a></li>
             <li><a href="#about" id="nav-about">Chi Siamo</a></li>
             <li><a href="#legal" id="nav-legal">Legal</a></li>
-            <li><a href="#" id="nav-cart-btn"><i class="fas fa-shopping-cart"></i> <span id="cart-count">0</span></a>
-            </li>
             <li><a href="#" id="nav-orders-btn"><i class="fas fa-box-open"></i> Ordini</a></li>
             <li class="mobile-only-user"><span id="user-balance-mobile"></span></li>
             <li class="mobile-only-user"><button id="nav-login-btn-mobile" class="secondary-btn">Login</button></li>
         </ul>
-        <div class="user-info">
-            <span id="user-balance">Saldo: €0</span>
-            <button id="nav-login-btn" class="secondary-btn">Login</button>
+        <div class="nav-actions-container" style="display: flex; align-items: center; gap: 20px;">
+            <a href="#" id="nav-cart-btn" style="font-size: 1.2rem; display: flex; align-items: center; gap: 5px;"><i class="fas fa-shopping-cart"></i> <span id="cart-count">0</span></a>
+            <div class="user-info">
+                <span id="user-balance">Saldo: €0</span>
+                <button id="nav-login-btn" class="secondary-btn">Login</button>
+            </div>
+            <div class="mobile-menu-btn" id="mobile-menu-btn" style="margin-left: 5px;">
+                <i class="fas fa-bars"></i>
+            </div>
         </div>
     </nav>
 

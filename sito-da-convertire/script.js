@@ -22,7 +22,7 @@ const initialState = {
 };
 
 // 2. STATE RESTORATION
-let state = JSON.parse(localStorage.getItem('lucidusState'));
+let state = JSON.parse(sessionStorage.getItem('lucidusState'));
 
 if (!state) {
     state = initialState;
@@ -273,7 +273,7 @@ function startActivityFeed() {
 }
 
 function saveState() {
-    localStorage.setItem('lucidusState', JSON.stringify(state));
+    sessionStorage.setItem('lucidusState', JSON.stringify(state));
 }
 
 // ==========================================
@@ -868,7 +868,11 @@ function startOrderTimer() {
 // EVENT LISTENERS
 // ==========================================
 
+let isEventListenersSetup = false;
 function setupEventListeners() {
+    if (isEventListenersSetup) return;
+    isEventListenersSetup = true;
+
     // Nav Click
     getEl('nav-cart-btn')?.addEventListener('click', e => {
         e.preventDefault();
@@ -964,6 +968,9 @@ function setupEventListeners() {
             playSfx('login'); // [NEW]
             // Refresh
             init();
+            
+            // Apri index.html in un'altra pagina
+            window.open('../index.html', '_blank');
         });
     }
 
@@ -1102,7 +1109,7 @@ function checkEvilTrigger() {
 // Add fadeIn animation (Removed old injection, used CSS class instead)
 // OLD CODE REMOVAL:
 // const styleSheet = document.createElement("style"); ...
-window.reset = function () { localStorage.clear(); location.reload(); };
+window.reset = function () { sessionStorage.clear(); localStorage.clear(); location.reload(); };
 
 // LAUNCH
 try {
