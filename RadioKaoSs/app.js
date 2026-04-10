@@ -386,10 +386,8 @@ function renderTick() {
 
     const logo = document.getElementById('radio-logo-react');
     if (logo) {
-        const isMobile = window.innerWidth <= 600;
-        const rotation = isMobile ? 'rotate(90deg)' : '';
         logo.style.display = 'block'; // Ovunque
-        logo.style.transform = `translate(-50%, -50%) ${rotation} scale(${1 + energy / 800})`;
+        logo.style.transform = `translate(-50%, -50%) scale(${1 + energy / 800})`;
         logo.style.opacity   = 0.90 + Math.min(0.10, energy / 255);
     }
 

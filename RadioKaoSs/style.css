@@ -517,9 +517,8 @@ body, html {
         position: absolute;
     }
     
-    /* Ruotiamo anche il logo per coerenza con il ribalto dello schermo */
+    /* Logo rimane orizzontale come da richiesta */
     #radio-logo-react {
-        transform: translate(-50%, -50%) rotate(90deg);
         width: 85vw;
         filter: url(#chromakey) drop-shadow(0 0 30px rgba(255,0,0,1)) brightness(1.4);
     }
