@@ -352,7 +352,7 @@ body, html {
     #accept-btn        { font-size: 5vmin; padding: 4vmin 8vmin; }
 }
 
-#rk-toggle, #rk-skip {
+#rk-toggle, #rk-skip, #rk-playpause {
     position: fixed;
     top: 16px;
     z-index: 3000;
@@ -371,9 +371,10 @@ body, html {
     transition: border-color 0.2s, color 0.2s, background 0.2s;
 }
 #rk-toggle { right: 16px; }
-#rk-skip   { right: 68px; }
+#rk-playpause { right: 68px; font-size: 14px; } /* Slightly smaller for icon */
+#rk-skip   { right: 120px; }
 
-#rk-toggle:hover, #rk-skip:hover { 
+#rk-toggle:hover, #rk-skip:hover, #rk-playpause:hover { 
     border-color: #7f1d1d; 
     color: #ff8888; 
     background: rgba(40, 0, 0, 0.3);
@@ -456,10 +457,10 @@ body, html {
 
 /* Mobile: dropdown diventa bottom-sheet */
 @media (max-width: 600px) {
-    #rk-toggle, #rk-skip {
+    #rk-toggle, #rk-skip, #rk-playpause {
         top: auto;
         bottom: 0;
-        width: 50%;
+        width: 33.33%;
         height: 56px; /* Slightly taller for touch */
         border-top: 1px solid #3b0a0a;
         border-left: none;
@@ -469,11 +470,21 @@ body, html {
         padding: 0;
         display: flex;
         font-size: 24px; /* Larger icons on mobile */
+        position: fixed;
+        z-index: 3000;
+        background: rgba(10,10,10,0.95);
+        color: #cc6666;
     }
     #rk-skip {
         left: 0;
         right: auto;
         border-right: 1px solid #1a1a1a;
+    }
+    #rk-playpause {
+        left: 33.33%;
+        right: auto;
+        border-right: 1px solid #1a1a1a;
+        font-size: 20px;
     }
     #rk-toggle {
         left: auto;
@@ -493,9 +504,9 @@ body, html {
     #rk-menu.open { max-height: 55vh; }
     .rk-list      { max-height: 150px; }
 
-    /* Rendi tutto verticale: ribalta il montaggio e lo sfondo su mobile */
-    #montage-container, #song-bg {
-        transform: rotate(90deg);
+    /* Rendi tutto verticale: ribalta il montaggio, lo sfondo e il canvas su mobile */
+    #montage-container, #song-bg, #glitch-canvas {
+        transform: rotate(90deg) scale(1.1);
         transform-origin: center;
         width: 100vh;
         height: 100vw;
@@ -506,7 +517,9 @@ body, html {
         position: absolute;
     }
     
+    /* Ruotiamo anche il logo per coerenza con il ribalto dello schermo */
     #radio-logo-react {
+        transform: translate(-50%, -50%) rotate(90deg);
         width: 85vw;
         filter: url(#chromakey) drop-shadow(0 0 30px rgba(255,0,0,1)) brightness(1.4);
     }

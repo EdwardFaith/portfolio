@@ -182,6 +182,10 @@ function playFolder(folder) {
         guiElements.montageContainer.innerHTML = '';
     }
     refreshMenuHighlight();
+    
+    // Update Play/Pause button icon state
+    const pp = document.getElementById('rk-playpause');
+    if (pp) pp.innerHTML = '&#10074;&#10074;';
 }
 
 function playNext() {
@@ -237,6 +241,22 @@ function buildMenu() {
         playNext();
     });
     document.body.appendChild(skip);
+
+    const playPause = document.createElement('button');
+    playPause.id = 'rk-playpause';
+    playPause.innerHTML = '&#10074;&#10074;';
+    playPause.title = 'PLAY/PAUSE';
+    playPause.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (guiElements.audioElement.paused) {
+            guiElements.audioElement.play();
+            playPause.innerHTML = '&#10074;&#10074;';
+        } else {
+            guiElements.audioElement.pause();
+            playPause.innerHTML = '&#9654;';
+        }
+    });
+    document.body.appendChild(playPause);
 
     const toggle = document.createElement('button');
     toggle.id = 'rk-toggle';
@@ -366,15 +386,19 @@ function renderTick() {
 
     const logo = document.getElementById('radio-logo-react');
     if (logo) {
+        const isMobile = window.innerWidth <= 600;
+        const rotation = isMobile ? 'rotate(90deg)' : '';
         logo.style.display = 'block'; // Ovunque
-        logo.style.transform = `translate(-50%, -50%) scale(${1 + energy / 800})`;
+        logo.style.transform = `translate(-50%, -50%) ${rotation} scale(${1 + energy / 800})`;
         logo.style.opacity   = 0.90 + Math.min(0.10, energy / 255);
     }
 
     // Animazione beat sull'immagine statica durante le canzoni
     if (currentIsSong && songBgEl) {
-        const songScale = 1 + (energy / 600);
-        songBgEl.style.transform = `scale(${songScale})`;
+        const isMobile = window.innerWidth <= 600;
+        const rotation = isMobile ? 'rotate(90deg)' : '';
+        const songScale = (isMobile ? 1.1 : 1) + (energy / 600);
+        songBgEl.style.transform = `${rotation} scale(${songScale})`;
         songBgEl.style.transition = 'transform 0.15s ease-out';
     }
 
