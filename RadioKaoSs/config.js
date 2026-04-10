@@ -1,4 +1,4 @@
-// RADIO KAOSS - Database File Audio & Sequenziazione Visiva Procedurale (30 Keywords per Cartella)
+// RADIO KAOSS - Database File Audio & Sequenziazione Visiva Procedurale
 const RADIO_CONFIG = [];
 
 // Cartella 0 - L'INTERMEZZO
@@ -28,39 +28,38 @@ RADIO_CONFIG.push({
     ]
 });
 
-// ESPANSIONE DATABASE LOREMFLICKR: ALMENO 30 PAROLE PER CARTELLA (Dalla 2 alla 15)
+// Temi aggiornati secondo le tue indicazioni
 const temiOrizzontali = [
-    // 2: Sottosuolo
-    ["dark_cave", "catacombs", "bunker", "mine_shaft", "underground", "skulls", "fossils", "subway_tunnel", "sewer", "creepy_tunnel", "abyss", "black_pit", "descent", "occult", "bones", "subterranean", "dark_basement", "dirt", "roots", "burial", "grave", "crypt", "claustrophobia", "trapped", "shadows", "creepy_stairs", "abandoned_station", "torch_light", "hole", "creepy_well"],
-    // 3: Morte / Pozzo
-    ["cemetery", "grim_reaper", "tombstone", "ghost_town", "funerals", "skeleton", "dead_tree", "skull", "coffin", "urn", "graveyard", "ashes", "decay", "rotten", "abandoned_house", "dark_forest", "fog", "mist", "raven", "crow", "vulture", "black_cat", "hearse", "mourning", "sadness", "grief", "ghost", "spirit", "phantom", "specter"],
-    // 4: Il Diavolo
-    ["satan", "hell_fire", "demonic_face", "blood", "pentagram", "goat_head", "horns", "demons", "lucifer", "pitchfork", "burning", "flames", "sulfur", "ritual", "sacrifice", "altar", "dark_priest", "possession", "exorcism", "evil_eye", "wicked", "monster", "hell", "inferno", "damned", "torture", "sin", "evil_grin", "creepy_smile"],
-    // 5: Malattia / Orrore Biologico
-    ["virus", "biohazard", "plague_doctor", "hospital", "disease", "infection", "pandemic", "quarantine", "hazmat_suit", "patient", "surgery", "blood_sample", "microscope", "bacteria", "mutation", "infected", "syringe", "needle", "medicine", "pills", "toxic", "poison", "radiation_burn", "sick_person", "fever", "cough", "mask", "medical_ward", "asylum"],
-    // 6: Controllo Mentale
-    ["cctv", "brainwash", "surveillance", "human_eye", "mk_ultra", "hypnosis", "spiral", "tv_static", "screens", "glitch", "mind_control", "propaganda_poster", "obey", "watching", "spying", "camera_lens", "microchip", "wires", "helmet", "experiment", "laboratory", "mad_scientist", "electrode", "strapped_to_chair", "monitor", "barcode", "drone", "security_camera", "eye"],
-    // 7: Rovina / Distruzione
-    ["ruined_city", "wasteland", "destruction", "earthquake", "famine", "poverty", "rubble", "collapse", "destroyed_building", "abandoned_city", "post_apocalyptic", "desert", "dry_land", "drought", "starvation", "homeless", "refugees", "ruins", "broken_glass", "debris", "wreckage", "crash", "explosion_aftermath", "fire_damage", "ash_covered", "smog", "pollution", "garbage", "dump"],
-    // 8: Ribellione Civile
-    ["riot", "anarchy", "protest", "molotov", "police_clash", "street_fight", "barricade", "fire", "burning_car", "rebellion", "uprising", "angry_mob", "shouting", "megaphones", "banners", "strike", "tear_gas_canister", "gas_mask", "combat", "fist", "resistance", "freedom_fighter", "insurgency", "violence", "chaos", "looting", "smashed_window", "street_gang", "hoodie"],
-    // 9: Carne e Corpo (Gore)
-    ["creepy_basement", "chainsaw", "butcher", "meat", "slaughterhouse", "blood_splatter", "knife", "cleaver", "hook", "flesh", "mutilation", "scars", "stitches", "body_horror", "creepy_doll", "mannequin", "dismembered", "veins", "muscle", "teeth", "jaw", "nails", "surgery_tools", "scalpel", "gore", "gruesome", "horror_movie", "scream", "pain"],
-    // 10: Cosmo Alieno
-    ["ufo", "monolith", "alien", "space_void", "strange_signal", "spaceship", "abduction", "galaxy_chaos", "nebula", "black_hole", "planet", "stars", "meteor", "asteroid", "crater", "moon_surface", "milky_way", "telescope", "observatory", "extraterrestrial", "greys", "flying_saucer", "crop_circle", "laser_beam", "teleport", "portal", "wormhole", "dimension", "multiverse", "void"],
-    // 11: Piaghe (Insetti e Bestie)
-    ["spider_web", "rats", "snake", "locust_swarm", "creepy_crawly", "maggots", "flies", "cockroach", "bugs", "insects", "venom", "fangs", "scales", "reptile", "serpent", "scorpion", "centipede", "worms", "parasite", "leech", "bat", "swarm", "hive", "nest", "web", "tarantula", "infested", "plague", "vermin"],
-    // 12: Macchina / Cyberpunk
-    ["hacker", "binary_code", "server", "cyberpunk", "motherboard", "cpu", "wires", "circuit_board", "robot", "cyborg", "artificial_intelligence", "android", "computer_virus", "glitch_art", "dark_web", "terminal", "code_screen", "matrix", "neon_lights", "dystopia", "drone", "cyber_attack", "data_breach", "password", "encryption", "system_failure", "error", "blue_screen"],
-    // 13: Inverno Nucleare / Fallout
-    ["gas_mask", "nuclear", "fallout_shelter", "chernobyl", "radiation", "toxic_waste", "hazmat", "mushroom_cloud", "atomic_test", "nuclear_winter", "frozen_city", "ice", "snow_storm", "blizzard", "frostbite", "abandoned_factory", "reactor", "cooling_tower", "siren", "warning_sign", "bunker_door", "survival", "canned_food", "geiger_counter", "mutant", "toxic_sludge", "green_glow"],
-    // 14: Culto / Magia Oscura
-    ["cult_ritual", "dark_magic", "witch", "spell", "cauldron", "coven", "hooded_figure", "candles", "sacrifice", "altar", "blood_moon", "eclipse", "tarot", "ouija", "seance", "voodoo", "curse", "amulet", "talisman", "runes", "pagan", "wicca", "magic_circle", "chanting", "robes", "dagger", "chalice", "mystic", "oracle", "prophecy"],
-    // 15: Pazzia / Il Vuoto
-    ["insanity", "nightmare", "screaming_face", "sleep_paralysis", "hallucination", "madness", "straight_jacket", "padded_cell", "psychiatrist", "schizophrenia", "voices", "shadow_person", "anxiety", "panic", "fear", "terror", "paranoia", "delirium", "maze", "confusion", "dizzy", "vertigo", "falling", "endless_corridor", "mirrors", "distorted_face", "blur", "static", "amnesia"]
+    // 2: Dio e Suicidio
+    ["god", "spirituality", "divine", "heaven", "suicide", "despair", "rope", "razor", "cliff", "bridge", "sadness", "revelation"],
+    // 3: Diavolo e Satan
+    ["devil", "satan", "lucifer", "demons", "hell", "inferno", "dante", "fire", "horns", "pentagram", "occult", "underworld"],
+    // 4: Luce e Fragilità
+    ["lamp", "chandelier", "light", "god", "fragility", "poetry", "notes", "glass", "crystal", "illumination", "handwriting", "broken"],
+    // 5: Morte e Insetti
+    ["death", "ants", "insects", "anthill", "computer", "genocide", "war_crimes", "skeleton", "decay", "colony", "biology", "human_extinction"],
+    // 6: Delirio e Orrore
+    ["devil", "teeth", "dentist", "bombing", "horror", "presence", "delirium", "mental_asylum", "shouting", "pain", "claws", "extraction"],
+    // 7: Angoscia e Radio
+    ["radio", "cinema", "suicide", "psychiatry", "pain", "entropy", "anguish", "microphone", "theater", "electroshock", "isolation", "static"],
+    // 8: Margherita
+    ["daisy", "margherita", "flower", "imaginary_friend", "kids_drawing", "garden", "innocence", "memory", "petal", "sunlight", "friendship"],
+    // 9: Luna e Stelle
+    ["moon", "stars", "bathroom", "vomit", "snail", "falling_star", "rabbits", "night_sky", "astronomy", "disgust", "slime", "cosmic"],
+    // 10: Fanciullo e Bosco
+    ["child", "boy", "rabbit", "fox", "death", "evening", "woods", "forest", "dark_woods", "animals", "fairy_tale", "dusk"],
+    // 11: Fiaba e Tragedia
+    ["rabbit", "snail", "spider", "god", "nietzsche", "fair", "comedy", "tragedy", "fantasy", "fairy_tale", "roses", "carnival", "philosophy"],
+    // 12: Potenti e Danza
+    ["rabbit", "spider", "disco", "dance", "trump", "powerful", "mass", "dancing", "politicians", "party", "clubbing", "crowd"],
+    // 13: Paura e Simboli
+    ["rabbits", "snails", "symbols", "cartoons", "clown", "fear", "brain", "wheat_ears", "clown_horror", "mickey_mouse", "occult_symbols", "mind"],
+    // 14: Depressione e Ragni
+    ["fear", "rabbits", "snails", "spiders", "isolation", "depression", "alcoholism", "whiskey", "loneliness", "web", "basement", "trapped"],
+    // 15: Conigli e Ragni
+    ["rabbits", "snails", "spiders", "infestation", "multiplication", "swarm", "web", "fur", "shell", "garden_horror", "nature_dark", "creepy_crawly"]
 ];
 
-// Il tuo pool personale di Immagini Inedite e Fatate
 const tueImmaginiCreate = [
     "immagini/1 (1).jpeg", "immagini/1 (1).jpg", "immagini/1 (1).png",
     "immagini/1 (10).jpg", "immagini/1 (10).png", "immagini/1 (11).jpg",
@@ -77,20 +76,20 @@ const tueImmaginiCreate = [
 for(let i = 2; i <= 15; i++) {
     let tags = temiOrizzontali[i-2];
     const titoli = [
-        "Il Sottosuolo",       // 2
-        "La Morte",            // 3
-        "Il Diavolo",          // 4
-        "La Malattia",         // 5
-        "Il Controllo",        // 6
-        "La Rovina",           // 7
-        "La Ribellione",       // 8
-        "La Carne",            // 9
-        "Il Cosmo Alieno",     // 10
-        "Le Piaghe",           // 11
-        "La Macchina",         // 12
-        "L'Inverno Nucleare",  // 13
-        "Il Culto",            // 14
-        "La Pazzia"            // 15
+        "Dio e Suicidio",      // 2
+        "Il Pozzo",            // 3
+        "Fragilità",           // 4
+        "Genocidio",           // 5
+        "Delirio",             // 6
+        "Angoscia",            // 7
+        "Margherita",          // 8
+        "Luna e Vomito",       // 9
+        "Il Fanciullo",        // 10
+        "Commedia e Tragedia", // 11
+        "Potenti alla Danza",  // 12
+        "Cervello",            // 13
+        "Alcolismo",           // 14
+        "Infestazione"         // 15
     ];
     RADIO_CONFIG.push({
         cartella: `cartella${i}`,
