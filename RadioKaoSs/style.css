@@ -319,24 +319,138 @@ body, html {
     }
 }
 
-/* Ottimizzazione Specifica per Mobile / Telefono */
+/* ─── Menu Toggle + Dropdown dall'alto ─────────────────────────────────────── */
+
+/* Ottimizzazione mobile */
 @media (max-width: 600px) {
     #radio-logo-react {
-        width: 70vw; /* Più piccolo e bilanciato per mobile */
-        filter: url(#chromakey) drop-shadow(0 0 25px rgba(255, 0, 0, 0.9)) brightness(1.3);
+        width: 70vw;
+        filter: url(#chromakey) drop-shadow(0 0 25px rgba(255,0,0,0.9)) brightness(1.3);
     }
-    
-    #warning-screen h1 {
-        font-size: 12vmin;
-    }
-    
-    #warning-screen p {
-        font-size: 4.5vmin;
-        max-width: 85%;
-    }
-    
-    #accept-btn {
-        font-size: 5vmin;
-        padding: 4vmin 8vmin;
-    }
+    #warning-screen h1 { font-size: 12vmin; }
+    #warning-screen p  { font-size: 4.5vmin; max-width: 85%; }
+    #accept-btn        { font-size: 5vmin; padding: 4vmin 8vmin; }
 }
+
+/* Bottone toggle — fisso in alto a destra, sempre visibile */
+#rk-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 3000;
+    background: rgba(10,10,10,0.95);
+    border: 1px solid #3b0a0a;
+    color: #cc6666;
+    font-family: 'Megrim', 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+}
+#rk-toggle:hover { border-color: #7f1d1d; color: #ff8888; }
+
+/* Dropdown menu */
+#rk-menu {
+    position: fixed;
+    top: 56px;
+    right: 16px;
+    width: 260px;
+    max-height: 0;
+    overflow: hidden;
+    background: rgba(6,6,6,0.98);
+    border: 1px solid #1a1a1a;
+    border-top: 2px solid #3b0a0a;
+    z-index: 2999;
+    display: flex;
+    flex-direction: column;
+    transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
+    font-family: 'Megrim', 'Space Mono', monospace;
+}
+#rk-menu.open {
+    max-height: 75vh;
+}
+
+/* Liste scorrevoli */
+.rk-list {
+    overflow-y: auto;
+    max-height: 200px;
+}
+.rk-list::-webkit-scrollbar       { width: 3px; }
+.rk-list::-webkit-scrollbar-track { background: #080808; }
+.rk-list::-webkit-scrollbar-thumb { background: #3b0a0a; border-radius: 2px; }
+.rk-list::-webkit-scrollbar-thumb:hover { background: #7f1d1d; }
+
+/* Intestazioni sezione */
+.rk-section-head {
+    padding: 12px 16px 8px;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #886655;
+    text-transform: uppercase;
+    border-bottom: 1px solid #1a1a1a;
+    background: rgba(20,8,8,0.8);
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.rk-separator {
+    height: 1px;
+    background: #1a1a1a;
+    flex-shrink: 0;
+}
+
+/* Voci del menu — testo chiaro e leggibile */
+.rk-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    color: #bbb;
+    border: none;
+    border-bottom: 1px solid #111;
+    padding: 11px 16px;
+    cursor: pointer;
+    font-family: 'Megrim', monospace;
+    font-size: 13px;
+    letter-spacing: 1px;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.rk-item:hover  { background: rgba(60,10,10,0.5); color: #ffaaaa; }
+.rk-item.active { background: rgba(80,0,0,0.6);   color: #ff6666; border-left: 2px solid #cc3333; }
+
+/* Mobile: dropdown diventa bottom-sheet */
+@media (max-width: 600px) {
+    #rk-toggle {
+        top: auto;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        width: 100%;
+        border-top: 1px solid #3b0a0a;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        text-align: center;
+        padding: 14px;
+    }
+    #rk-menu {
+        top: auto;
+        bottom: 50px;
+        right: 0;
+        left: 0;
+        width: 100%;
+        border-top: 2px solid #3b0a0a;
+        border-left: none;
+        border-right: none;
+        max-height: 0;
+    }
+    #rk-menu.open { max-height: 55vh; }
+    .rk-list      { max-height: 150px; }
+}
+
+

@@ -1,420 +1,340 @@
 let queue = [];
 let currentIndex = 0;
 let currentFolderImages = [];
-
-const guiElements = {
-    acceptBtn: document.getElementById('accept-btn'),
-    warningScreen: document.getElementById('warning-screen'),
-    vhsContainer: document.getElementById('vhs-container'),
-    audioElement: document.getElementById('main-audio'),
-    camVideo: document.getElementById('webcam-video'),
-    canvas: document.getElementById('glitch-canvas'),
-    montageContainer: document.getElementById('montage-container')
-};
-
-const ctx = guiElements.canvas.getContext('2d', { willReadFrequently: true });
+let currentFolderData = null;
+let isPlayingTrack = false;
+let gainNode = null;
 let audioCtx, analyser, dataArray;
 let prevEnergy = 0;
-let gainNode = null; // globale per la dissolvenza
+let lastEpisode = null;
 
-// 1. Build Queue - Pattern: 0 → random → 0 → random → (rimescola garantendo varietà)
-let lastEpisode = null; // Traccia l'ultima cartella casuale per evitare ripetizioni al loop
+// ─── Lista canzoni ────────────────────────────────────────────────────────────
+const MUSIC_TRACKS = [
+    { titolo: "Charles",                 file: "canzoni/charles.mpeg" },
+    { titolo: "Corre il Coniglio",       file: "canzoni/corre il coniglio.mpeg" },
+    { titolo: "Destino Formicaio",       file: "canzoni/destino formicaio.MP3" },
+    { titolo: "Destino Sgarbato",        file: "canzoni/destino sgarbato.mpeg" },
+    { titolo: "Dio",                     file: "canzoni/dio.mpeg" },
+    { titolo: "Dove il Tramonto Brucia", file: "canzoni/dove il tramonto brucia.mpeg" },
+    { titolo: "E Ritorna il Giorno",     file: "canzoni/e ritorna il giorno.mpeg" },
+    { titolo: "Icaro",                   file: "canzoni/icaro.mpeg" },
+    { titolo: "La Paura di Finire",      file: "canzoni/la paura di finire.mpeg" },
+    { titolo: "Margherita",              file: "canzoni/margehrita.MP3" },
+    { titolo: "Mortem",                  file: "canzoni/mortem.MP3" },
+    { titolo: "Oggi Non Resto",          file: "canzoni/oggi non resto.mp3" },
+    { titolo: "Per un Tempo Futuro",     file: "canzoni/per un tempo futuro.mpeg" },
+    { titolo: "Satan",                   file: "canzoni/satan.MP3" },
+    { titolo: "Sei Sicura",              file: "canzoni/sei sicura.MP3" },
+];
 
+// ─── GUI ──────────────────────────────────────────────────────────────────────
+const guiElements = {
+    acceptBtn:        document.getElementById('accept-btn'),
+    warningScreen:    document.getElementById('warning-screen'),
+    vhsContainer:     document.getElementById('vhs-container'),
+    audioElement:     document.getElementById('main-audio'),
+    camVideo:         document.getElementById('webcam-video'),
+    canvas:           document.getElementById('glitch-canvas'),
+    montageContainer: document.getElementById('montage-container')
+};
+const ctx = guiElements.canvas.getContext('2d', { willReadFrequently: true });
+let beatCooldown = 0, currentLayout = 'single', layoutBeatsLeft = 0;
+
+// ─── Queue ────────────────────────────────────────────────────────────────────
 function buildShuffledQueue() {
-    let folder0 = RADIO_CONFIG.find(cfg => cfg.cartella === "cartella0");
-    if (!folder0) { console.error("Cartella 0 mancante."); return []; }
-
-    // Tutte le cartelle tranne la 0, mischiate casualmente
+    const folder0 = RADIO_CONFIG.find(cfg => cfg.cartella === "cartella0");
+    if (!folder0) return [];
     let episodes = RADIO_CONFIG.filter(cfg => cfg.cartella !== "cartella0");
-    
-    // Fisher-Yates shuffle (più affidabile di sort random)
     for (let i = episodes.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [episodes[i], episodes[j]] = [episodes[j], episodes[i]];
     }
-
-    // Se la prima casuale coincide con l'ultima del ciclo precedente, ruota l'array di 1
-    if (lastEpisode && episodes.length > 1 && episodes[0].cartella === lastEpisode) {
+    if (lastEpisode && episodes.length > 1 && episodes[0].cartella === lastEpisode)
         episodes.push(episodes.shift());
-    }
-
-    let result = [];
-    for (let ep of episodes) {
-        result.push(folder0); // intermezzo fisso (cartella 0)
-        result.push(ep);      // cartella casuale
-    }
-    
-    // Memorizza l'ultima cartella casuale di questo ciclo
-    if (episodes.length > 0) lastEpisode = episodes[episodes.length - 1].cartella;
-    
+    const result = [];
+    for (const ep of episodes) { result.push(folder0); result.push(ep); }
+    if (episodes.length) lastEpisode = episodes[episodes.length - 1].cartella;
     return result;
 }
+function initQueue() { queue = buildShuffledQueue(); currentIndex = 0; }
 
-function initQueue() {
-    queue = buildShuffledQueue();
-    currentIndex = 0;
+// ─── Audio ────────────────────────────────────────────────────────────────────
+function initAudio() {
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    analyser  = audioCtx.createAnalyser();
+    const src = audioCtx.createMediaElementSource(guiElements.audioElement);
+    const cmp = audioCtx.createDynamicsCompressor();
+    cmp.threshold.setValueAtTime(-24,  audioCtx.currentTime);
+    cmp.knee.setValueAtTime(10,        audioCtx.currentTime);
+    cmp.ratio.setValueAtTime(4,        audioCtx.currentTime);
+    cmp.attack.setValueAtTime(0.003,   audioCtx.currentTime);
+    cmp.release.setValueAtTime(0.25,   audioCtx.currentTime);
+    gainNode = audioCtx.createGain();
+    gainNode.gain.setValueAtTime(0.7,  audioCtx.currentTime);
+    src.connect(cmp); cmp.connect(gainNode); gainNode.connect(analyser); analyser.connect(audioCtx.destination);
+    analyser.fftSize = 512;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+}
+function restoreGain() {
+    if (!gainNode || !audioCtx) return;
+    gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+    gainNode.gain.setValueAtTime(0.7, audioCtx.currentTime);
 }
 
-// 2. Start Live Scene
-guiElements.acceptBtn.addEventListener('click', async () => {
-    guiElements.warningScreen.style.display = 'none';
-    guiElements.vhsContainer.style.display = 'block';
+// ─── Playback ─────────────────────────────────────────────────────────────────
+function playFolder(folder) {
+    isPlayingTrack = false;
+    currentFolderData = folder;
+    restoreGain();
+    guiElements.audioElement.src = `${folder.cartella}/${folder.audio}`;
+    guiElements.audioElement.play().catch(e => console.error("Play failed:", e));
+    currentFolderImages = (folder.immagini || []).map(img => {
+        if (img.startsWith('http') || img.startsWith('immagini/')) return img;
+        return `${folder.cartella}/${img}`;
+    });
+    guiElements.montageContainer.innerHTML = '';
+    refreshMenuHighlight();
+}
 
+function playTrack(track) {
+    isPlayingTrack = true;
+    currentFolderData = null;
+    restoreGain();
+    guiElements.audioElement.src = track.file;
+    guiElements.audioElement.play().catch(e => console.error("Play failed:", e));
+    // Immagini restano quelle dell'ultimo canale per il visualizzatore
+    guiElements.montageContainer.innerHTML = '';
+    refreshMenuHighlight();
+}
+
+function playNext() {
+    if (queue.length === 0) return;
+    if (currentIndex >= queue.length) { queue = buildShuffledQueue(); currentIndex = 0; }
+    playFolder(queue[currentIndex]);
+    currentIndex++;
+}
+
+// Quando un audio finisce
+guiElements.audioElement.addEventListener('ended', () => {
+    // Se era una canzone → riprende Radio Kaoss dal punto esatto in cui era ferma
+    if (isPlayingTrack) {
+        isPlayingTrack = false;
+        if (queue.length === 0) return;
+        if (currentIndex >= queue.length) { queue = buildShuffledQueue(); currentIndex = 0; }
+        playFolder(queue[currentIndex]);
+        currentIndex++;
+    } else {
+        playNext();
+    }
+});
+guiElements.audioElement.addEventListener('error', () => { isPlayingTrack = false; playNext(); });
+
+// Dissolvenza negli ultimi 2 secondi
+guiElements.audioElement.addEventListener('timeupdate', () => {
+    if (!gainNode || !audioCtx) return;
+    const a = guiElements.audioElement;
+    if (!a.duration || isNaN(a.duration)) return;
+    const rem = a.duration - a.currentTime;
+    if (rem <= 2.0 && rem > 0) gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
+});
+
+// ─── Avvio ────────────────────────────────────────────────────────────────────
+guiElements.acceptBtn.addEventListener('click', () => {
+    guiElements.warningScreen.style.display = 'none';
+    guiElements.vhsContainer.style.display  = 'block';
     initQueue();
     initAudio();
     initTracking();
     playNext();
+    buildMenu();
 });
 
-// Audio setup con normalizzazione volume
-function initAudio() {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioCtx.createAnalyser();
-    let sourceNode = audioCtx.createMediaElementSource(guiElements.audioElement);
-
-    // Compressore dinamico: livella i picchi tra tracce con volumi diversi
-    let compressor = audioCtx.createDynamicsCompressor();
-    compressor.threshold.setValueAtTime(-24, audioCtx.currentTime);
-    compressor.knee.setValueAtTime(10, audioCtx.currentTime);
-    compressor.ratio.setValueAtTime(4, audioCtx.currentTime);
-    compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
-    compressor.release.setValueAtTime(0.25, audioCtx.currentTime);
-
-    // Gain finale per mantenere volume percepito costante
-    gainNode = audioCtx.createGain();
-    gainNode.gain.setValueAtTime(1.2, audioCtx.currentTime);
-
-    sourceNode.connect(compressor);
-    compressor.connect(gainNode);
-    gainNode.connect(analyser);
-    analyser.connect(audioCtx.destination);
-
-    analyser.fftSize = 512;
-    dataArray = new Uint8Array(analyser.frequencyBinCount);
+// ─── Webcam ───────────────────────────────────────────────────────────────────
+function initTracking() {
+    if (!navigator.mediaDevices?.getUserMedia) return;
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(s => { guiElements.camVideo.srcObject = s; guiElements.camVideo.play(); })
+        .catch(e => console.error("Camera:", e));
 }
 
-let currentFolderData = null;
+// ─── Menu tendina dall'alto ───────────────────────────────────────────────────
+function buildMenu() {
+    if (document.getElementById('rk-toggle')) return;
 
-function playNext() {
-    if (queue.length === 0) return;
+    // Bottone toggle — fisso in alto a destra sia su desktop che mobile
+    const toggle = document.createElement('button');
+    toggle.id = 'rk-toggle';
+    toggle.innerHTML = '&#9776;&nbsp;CANALI';
+    toggle.addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('rk-menu').classList.toggle('open');
+    });
+    document.body.appendChild(toggle);
 
-    // Quando finisce il ciclo, rimescola tutto da capo per sembrare sempre nuovo
-    if (currentIndex >= queue.length) {
-        queue = buildShuffledQueue();
-        currentIndex = 0;
-    }
-    
-    let folder = queue[currentIndex];
-    currentFolderData = folder;
+    // Dropdown
+    const menu = document.createElement('div');
+    menu.id = 'rk-menu';
+    document.body.appendChild(menu);
 
-    // Ripristina volume pieno prima di partire
-    if (gainNode && audioCtx) {
-        gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(1.2, audioCtx.currentTime);
-    }
-
-    console.log("Playing folder:", folder.cartella);
-
-    guiElements.audioElement.src = `${folder.cartella}/${folder.audio}`;
-    guiElements.audioElement.play().catch(e => console.error("Playback failed:", e));
-    
-    // Create paths for images
-    if(folder.immagini && folder.immagini.length > 0) {
-        currentFolderImages = folder.immagini.map(img => {
-            if (img.startsWith('http')) return img;
-            if (img.startsWith('immagini/')) return img;
-            return `${folder.cartella}/${img}`;
+    // -- SOLO MUSICA --
+    addSection(menu, 'SOLO MUSICA');
+    const musicList = document.createElement('div');
+    musicList.className = 'rk-list';
+    MUSIC_TRACKS.forEach(track => {
+        const btn = makeItem(track.titolo);
+        btn.dataset.file = track.file;
+        btn.addEventListener('click', () => {
+            playTrack(track);
+            refreshMenuHighlight();
+            menu.classList.remove('open');
         });
-    } else {
-        currentFolderImages = [];
-    }
-    
-    // Clear prev montage
-    guiElements.montageContainer.innerHTML = '';
+        musicList.appendChild(btn);
+    });
+    menu.appendChild(musicList);
 
-    currentIndex++;
-}
+    // Separatore
+    const sep = document.createElement('div');
+    sep.className = 'rk-separator';
+    menu.appendChild(sep);
 
-guiElements.audioElement.addEventListener('ended', playNext);
-guiElements.audioElement.addEventListener('error', playNext);
-
-// Dissolvenza finale: abbassa il volume negli ultimi 2 secondi
-guiElements.audioElement.addEventListener('timeupdate', () => {
-    if (!gainNode || !audioCtx) return;
-    let audio = guiElements.audioElement;
-    if (!audio.duration || isNaN(audio.duration)) return;
-    let remaining = audio.duration - audio.currentTime;
-    if (remaining <= 2.0 && remaining > 0) {
-        // Fade lineare verso 0 nei 2 secondi rimanenti
-        gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
-    }
-});
-
-// ─── Menu Canali (tasto C) ───────────────────────────────────────────────────
-function buildChapterMenu() {
-    let existing = document.getElementById('chapter-menu');
-    if (existing) { existing.remove(); return; } // toggle chiudi
-
-    let menu = document.createElement('div');
-    menu.id = 'chapter-menu';
-    menu.style.cssText = `
-        position: fixed; top: 0; right: 0; width: 280px; height: 100vh;
-        background: rgba(5,5,5,0.96); border-left: 1px solid #2a2a2a;
-        z-index: 9999; overflow-y: auto; padding: 20px 0;
-        font-family: 'Megrim', monospace;
-        display: flex; flex-direction: column;
-        animation: slideInMenu 0.3s ease;
-    `;
-
-    let title = document.createElement('div');
-    title.textContent = '▶ CANALI';
-    title.style.cssText = 'color:#555; font-size:11px; letter-spacing:4px; padding:0 20px 16px; border-bottom:1px solid #1a1a1a; margin-bottom:8px;';
-    menu.appendChild(title);
-
-    RADIO_CONFIG.forEach((cfg, idx) => {
-        let item = document.createElement('button');
-        let num = cfg.cartella.replace('cartella', '');
-        let isActive = currentFolderData && currentFolderData.cartella === cfg.cartella;
-        item.textContent = `${num.padStart(2,'0')}  ${cfg.titolo || cfg.cartella}`;
-        item.style.cssText = `
-            display: block; width: 100%; text-align: left;
-            background: ${isActive ? 'rgba(80,0,0,0.5)' : 'transparent'};
-            color: ${isActive ? '#cc3333' : '#666'};
-            border: none; border-bottom: 1px solid #111;
-            padding: 12px 20px; cursor: pointer;
-            font-family: 'Megrim', monospace; font-size: 14px;
-            letter-spacing: 2px; transition: background 0.2s, color 0.2s;
-        `;
-        item.addEventListener('mouseenter', () => { item.style.background = 'rgba(60,0,0,0.4)'; item.style.color = '#ff4444'; });
-        item.addEventListener('mouseleave', () => { item.style.background = isActive ? 'rgba(80,0,0,0.5)' : 'transparent'; item.style.color = isActive ? '#cc3333' : '#666'; });
-        item.addEventListener('click', () => {
-            // Salta direttamente a quella cartella
-            let targetIdx = queue.findIndex(q => q.cartella === cfg.cartella);
-            if (targetIdx !== -1) {
-                currentIndex = targetIdx;
-            } else {
-                // La cartella non è in coda ora: aggiungila come prossima
-                queue.splice(currentIndex, 0, cfg);
-            }
+    // -- CANALI --
+    addSection(menu, 'CANALI');
+    const chanList = document.createElement('div');
+    chanList.className = 'rk-list';
+    RADIO_CONFIG.forEach(cfg => {
+        const num = cfg.cartella.replace('cartella', '').padStart(2, '0');
+        const btn = makeItem(`${num}  ${cfg.titolo || cfg.cartella}`);
+        btn.dataset.cartella = cfg.cartella;
+        btn.addEventListener('click', () => {
+            const idx = queue.findIndex(q => q.cartella === cfg.cartella);
+            if (idx !== -1) currentIndex = idx; else queue.splice(currentIndex, 0, cfg);
             guiElements.audioElement.pause();
             guiElements.audioElement.currentTime = 0;
             playNext();
-            menu.remove();
+            menu.classList.remove('open');
         });
-        menu.appendChild(item);
+        chanList.appendChild(btn);
     });
+    menu.appendChild(chanList);
 
-    document.body.appendChild(menu);
-
-    // Stile animazione
-    if (!document.getElementById('menu-style')) {
-        let s = document.createElement('style');
-        s.id = 'menu-style';
-        s.textContent = '@keyframes slideInMenu { from { transform: translateX(100%); } to { transform: translateX(0); } }';
-        document.head.appendChild(s);
-    }
+    // Chiudi cliccando fuori
+    document.addEventListener('click', () => menu.classList.remove('open'));
+    menu.addEventListener('click', e => e.stopPropagation());
 }
 
-// Tasto C → apre/chiude il menu canali
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'c' || e.key === 'C') {
-        buildChapterMenu();
-    }
-});
+function addSection(parent, html) {
+    const h = document.createElement('div');
+    h.className = 'rk-section-head';
+    h.innerHTML = html;
+    parent.appendChild(h);
+}
+function makeItem(text) {
+    const b = document.createElement('button');
+    b.className = 'rk-item';
+    b.textContent = text;
+    return b;
+}
 
-// Click fuori dal menu → chiudi
-document.addEventListener('click', (e) => {
-    let menu = document.getElementById('chapter-menu');
-    if (menu && !menu.contains(e.target)) menu.remove();
-});
-
-
-// 3. Telecamera Baseline
-function initTracking() {
-    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert("Attenzione: Telecamera non disponibile.");
-        return;
-    }
-    
-    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-        guiElements.camVideo.srcObject = stream;
-        guiElements.camVideo.play();
-    }).catch(err => {
-        console.error("Camera denied:", err);
+function refreshMenuHighlight() {
+    document.querySelectorAll('.rk-item').forEach(btn => {
+        btn.classList.remove('active');
+        if (currentFolderData && btn.dataset.cartella === currentFolderData.cartella) btn.classList.add('active');
     });
 }
 
-// 4. Game Loop / Render (Glitch, Audio Reactivity)
+// ─── Render Loop ──────────────────────────────────────────────────────────────
 window.addEventListener('resize', () => {
-    guiElements.canvas.width = window.innerWidth;
+    guiElements.canvas.width  = window.innerWidth;
     guiElements.canvas.height = window.innerHeight;
 });
-guiElements.canvas.width = window.innerWidth;
+guiElements.canvas.width  = window.innerWidth;
 guiElements.canvas.height = window.innerHeight;
-
-let beatCooldown = 0;
-let currentLayout = 'single';
-let layoutBeatsLeft = 0;
 
 function renderTick() {
     requestAnimationFrame(renderTick);
-    if(guiElements.vhsContainer.style.display === 'none') return;
+    if (guiElements.vhsContainer.style.display === 'none') return;
 
-    // 1. Audio Analysis
     let energy = 0;
     if (analyser) {
         analyser.getByteFrequencyData(dataArray);
-        for (let i = 1; i < 40; i++) {
-            energy += dataArray[i];
-        }
-        energy = energy / 39;
+        for (let i = 1; i < 40; i++) energy += dataArray[i];
+        energy /= 39;
     }
-
-    let delta = energy - prevEnergy;
+    const delta = energy - prevEnergy;
     prevEnergy = energy;
-
     let isHardBeat = (delta > 8) && (energy > 30);
-    let isBeat = isHardBeat;
-    
+
     let bE = 0, mE = 0;
     if (analyser) {
-        for(let i=1; i<5; i++) bE += dataArray[i];
-        for(let i=15; i<35; i++) mE += dataArray[i];
+        for (let i = 1; i < 5; i++)   bE += dataArray[i];
+        for (let i = 15; i < 35; i++) mE += dataArray[i];
         bE /= 4; mE /= 20;
     }
-    
-    let isSoloVoce = (mE > 40 && bE < 10);
-    
-    if (isSoloVoce) {
-        guiElements.montageContainer.innerHTML = '';
-        isHardBeat = false;
-    }
-    
-    // Logo sync
-    let logoReact = document.getElementById('radio-logo-react');
-    if (logoReact) {
-        if (currentFolderData && currentFolderData.cartella === "cartella0") {
-            logoReact.style.display = 'none';
+    if (mE > 40 && bE < 10) { guiElements.montageContainer.innerHTML = ''; isHardBeat = false; }
+
+    const logo = document.getElementById('radio-logo-react');
+    if (logo) {
+        if (currentFolderData?.cartella === "cartella0") {
+            logo.style.display = 'none';
         } else {
-            logoReact.style.display = 'block';
-            let audioScale = 1 + (energy / 800); 
-            logoReact.style.transform = `translate(-50%, -50%) scale(${audioScale})`;
-            logoReact.style.opacity = 0.90 + Math.min(0.10, energy / 255);
+            logo.style.display = 'block';
+            logo.style.transform = `translate(-50%, -50%) scale(${1 + energy / 800})`;
+            logo.style.opacity   = 0.90 + Math.min(0.10, energy / 255);
         }
     }
-    
-    // 2. Glitch Canvas Background
-    let w = guiElements.canvas.width;
-    let h = guiElements.canvas.height;
-    
-    ctx.fillStyle = 'rgba(3, 3, 3, 0.45)'; 
+
+    const w = guiElements.canvas.width, h = guiElements.canvas.height;
+    ctx.fillStyle = 'rgba(3,3,3,0.45)';
     ctx.fillRect(0, 0, w, h);
-
-    if (guiElements.camVideo.readyState === guiElements.camVideo.HAVE_ENOUGH_DATA) {
-        if (Math.random() > 0.8) {
-            ctx.fillStyle = `rgba(255, 255, 255, ${Math.random()*0.08})`;
-            ctx.fillRect(0, Math.random() * h, w, Math.random() * 5);
-        }
+    if (guiElements.camVideo.readyState === guiElements.camVideo.HAVE_ENOUGH_DATA && Math.random() > 0.8) {
+        ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.08})`;
+        ctx.fillRect(0, Math.random() * h, w, Math.random() * 5);
     }
 
-    // 3. Montaggio Reattivo
     if (isHardBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
-        if (guiElements.montageContainer.children.length > 2) {
+        if (guiElements.montageContainer.children.length > 2)
             guiElements.montageContainer.firstChild.remove();
-        }
-        
-        let layerProxy = document.createElement('div');
-        layerProxy.style.position = 'absolute';
-        layerProxy.style.top = '0';
-        layerProxy.style.left = '0';
-        layerProxy.style.width = '100%';
-        layerProxy.style.height = '100%';
-        layerProxy.style.mixBlendMode = 'normal';
-
+        const layer = document.createElement('div');
+        layer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;mix-blend-mode:normal;';
         if (layoutBeatsLeft <= 0) {
-            const strutture = ['single', 'single', 'single', 'splitV', 'splitH', 'grid4'];
-            currentLayout = strutture[Math.floor(Math.random() * strutture.length)];
-            layoutBeatsLeft = 2 + Math.floor(Math.random() * 4); 
+            const s = ['single','single','single','splitV','splitH','grid4'];
+            currentLayout   = s[Math.floor(Math.random() * s.length)];
+            layoutBeatsLeft = 2 + Math.floor(Math.random() * 4);
         }
         layoutBeatsLeft--;
-        
-        let multiplier = 1;
-        if (currentLayout === 'splitV' || currentLayout === 'splitH') multiplier = 2;
-        if (currentLayout === 'grid4') multiplier = 4;
-        if (currentLayout === 'grid6') multiplier = 6;
-        
-        layerProxy.className = `layout-${currentLayout}`;
-
-        for (let i = 0; i < multiplier; i++) {
-            
-            let useCamera = Math.random() > 0.95;
+        layer.className = `layout-${currentLayout}`;
+        const mult = currentLayout === 'splitV' || currentLayout === 'splitH' ? 2 : currentLayout === 'grid4' ? 4 : 1;
+        for (let i = 0; i < mult; i++) {
+            const useCamera = Math.random() > 0.95;
             let imgSrc = '';
-
             if (!useCamera) {
-                let rIdx = Math.floor(Math.random() * currentFolderImages.length);
-                imgSrc = currentFolderImages[rIdx];
-                
-                if (imgSrc.startsWith('http') && !imgSrc.includes('.gif')) {
-                    let randID = Math.random().toString(36).substring(7) + Date.now();
-                    imgSrc += (imgSrc.includes('?') ? '&' : '?') + 'r=' + randID;
-                }
+                imgSrc = currentFolderImages[Math.floor(Math.random() * currentFolderImages.length)];
+                if (imgSrc?.startsWith('http') && !imgSrc.includes('.gif'))
+                    imgSrc += (imgSrc.includes('?') ? '&' : '?') + 'r=' + Math.random().toString(36).substring(7) + Date.now();
             }
-            
-            let mediaEl;
-            
+            let el;
             if (useCamera) {
-                mediaEl = document.createElement('canvas');
-                let vw = guiElements.camVideo.videoWidth || window.innerWidth;
-                let vh = guiElements.camVideo.videoHeight || window.innerHeight;
-                mediaEl.width = vw;
-                mediaEl.height = vh;
-                
-                let cctx = mediaEl.getContext('2d');
-                cctx.translate(vw, 0);
-                cctx.scale(-1, 1);
-                cctx.drawImage(guiElements.camVideo, 0, 0, vw, vh);
+                el = document.createElement('canvas');
+                el.width  = guiElements.camVideo.videoWidth  || innerWidth;
+                el.height = guiElements.camVideo.videoHeight || innerHeight;
+                const cx = el.getContext('2d');
+                cx.translate(el.width, 0); cx.scale(-1, 1);
+                cx.drawImage(guiElements.camVideo, 0, 0, el.width, el.height);
+            } else if (imgSrc?.toLowerCase().endsWith('.mp4') || imgSrc?.toLowerCase().endsWith('.webm')) {
+                el = document.createElement('video');
+                Object.assign(el, { src: imgSrc, autoplay: true, loop: true, muted: true, playsInline: true });
             } else {
-                if (imgSrc.toLowerCase().endsWith('.mp4') || imgSrc.toLowerCase().endsWith('.webm')) {
-                    mediaEl = document.createElement('video');
-                    mediaEl.src = imgSrc;
-                    mediaEl.autoplay = true;
-                    mediaEl.loop = true;
-                    mediaEl.muted = true;
-                    mediaEl.playsInline = true;
-                } else {
-                    mediaEl = document.createElement('img');
-                    mediaEl.src = imgSrc;
-                }
+                el = document.createElement('img');
+                el.src = imgSrc;
             }
-            
-            mediaEl.className = 'montage-base-img';
-            mediaEl.style.transition = 'transform 12s ease-out';
-            mediaEl.style.transform = 'scale(1.05)';
-            
-            let con = 110 + Math.floor(Math.random() * 80); 
-            mediaEl.style.filter = `contrast(${con}%) grayscale(100%)`;
-            mediaEl.style.opacity = '0.55';
-            
-            layerProxy.appendChild(mediaEl);
-            
-            setTimeout(() => {
-                if (mediaEl) mediaEl.style.transform = 'scale(1.15)';
-            }, 50);
+            el.className = 'montage-base-img';
+            el.style.cssText = `transition:transform 12s ease-out;transform:scale(1.05);filter:contrast(${110 + Math.floor(Math.random() * 80)}%) grayscale(100%);opacity:0.55;`;
+            layer.appendChild(el);
+            setTimeout(() => { if (el) el.style.transform = 'scale(1.15)'; }, 50);
         }
-
-        guiElements.montageContainer.appendChild(layerProxy);
-
-        let pacingRand = Math.random();
-        if (pacingRand > 0.7) {
-            beatCooldown = 20;
-        } else if (pacingRand > 0.2) {
-            beatCooldown = 70;
-        } else {
-            beatCooldown = 150;
-        }
+        guiElements.montageContainer.appendChild(layer);
+        beatCooldown = Math.random() > 0.7 ? 20 : Math.random() > 0.2 ? 70 : 150;
     }
     if (beatCooldown > 0) beatCooldown--;
 }
-
-// Start Render Loop
 requestAnimationFrame(renderTick);
