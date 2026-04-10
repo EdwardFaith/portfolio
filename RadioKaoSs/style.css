@@ -347,11 +347,9 @@ body, html {
     #accept-btn        { font-size: 5vmin; padding: 4vmin 8vmin; }
 }
 
-/* Bottone toggle — fisso in alto a destra, sempre visibile */
-#rk-toggle {
+#rk-toggle, #rk-skip {
     position: fixed;
     top: 16px;
-    right: 16px;
     z-index: 3000;
     background: rgba(10,10,10,0.95);
     border: 1px solid #3b0a0a;
@@ -362,9 +360,16 @@ body, html {
     text-transform: uppercase;
     padding: 10px 16px;
     cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
 }
-#rk-toggle:hover { border-color: #7f1d1d; color: #ff8888; }
+#rk-toggle { right: 16px; }
+#rk-skip   { right: 125px; }
+
+#rk-toggle:hover, #rk-skip:hover { 
+    border-color: #7f1d1d; 
+    color: #ff8888; 
+    background: rgba(40, 0, 0, 0.3);
+}
 
 /* Dropdown menu */
 #rk-menu {
@@ -439,12 +444,10 @@ body, html {
 
 /* Mobile: dropdown diventa bottom-sheet */
 @media (max-width: 600px) {
-    #rk-toggle {
+    #rk-toggle, #rk-skip {
         top: auto;
         bottom: 0;
-        right: 0;
-        left: 0;
-        width: 100%;
+        width: 50%;
         border-top: 1px solid #3b0a0a;
         border-left: none;
         border-right: none;
@@ -452,9 +455,18 @@ body, html {
         text-align: center;
         padding: 14px;
     }
+    #rk-skip {
+        left: 0;
+        right: auto;
+        border-right: 1px solid #1a1a1a;
+    }
+    #rk-toggle {
+        left: auto;
+        right: 0;
+    }
     #rk-menu {
         top: auto;
-        bottom: 50px;
+        bottom: 48px;
         right: 0;
         left: 0;
         width: 100%;
@@ -466,5 +478,6 @@ body, html {
     #rk-menu.open { max-height: 55vh; }
     .rk-list      { max-height: 150px; }
 }
+
 
 

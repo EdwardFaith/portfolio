@@ -10,12 +10,12 @@ let lastEpisode = null;
 
 // ─── Pubblicità — cartelle pronte, audio da aggiungere ──────────────────────
 const PUB_CONFIG = [
-    { cartella: "pub-clinica",              titolo: "Clinica - Uccidi il Ricordo", isPub: true },
-    { cartella: "pub-purify",               titolo: "Purify",                      isPub: true },
-    { cartella: "pub-lucidus",              titolo: "Lucidus",                     isPub: true },
-    { cartella: "pub-latte-materno",        titolo: "Latte Materno",               isPub: true },
-    { cartella: "pub-spedizione-su-venere", titolo: "Spedizione su Venere",        isPub: true },
-    { cartella: "pub-ciclette-interattiva", titolo: "Ciclette Interattiva",        isPub: true },
+    { cartella: "pub-clinica",              titolo: "Clinica - Uccidi il Ricordo", isPub: true, audio: "audio.MP3" },
+    { cartella: "pub-purify",               titolo: "Purify",                      isPub: true, audio: "audio.MP3" },
+    { cartella: "pub-lucidus",              titolo: "Lucidus",                     isPub: true, audio: "audio.MP3" },
+    { cartella: "pub-latte-materno",        titolo: "Latte Materno",               isPub: true, audio: "audio.MP3" },
+    { cartella: "pub-spedizione-su-venere", titolo: "Spedizione su Venere",        isPub: true, audio: "audio.MP3" },
+    { cartella: "pub-ciclette-interattiva", titolo: "Ciclette Interattiva",        isPub: true, audio: "audio.MP3" },
 ];
 
 // ─── Canzoni — integrate nella queue come gli altri canali ───────────────────
@@ -211,6 +211,16 @@ function initTracking() {
 function buildMenu() {
     if (document.getElementById('rk-toggle')) return;
 
+    // Bottone SKIP
+    const skip = document.createElement('button');
+    skip.id = 'rk-skip';
+    skip.innerHTML = 'SKIP &raquo;';
+    skip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        playNext();
+    });
+    document.body.appendChild(skip);
+
     const toggle = document.createElement('button');
     toggle.id = 'rk-toggle';
     toggle.innerHTML = '&#9776;&nbsp;MENU';
@@ -262,17 +272,14 @@ function buildMenu() {
         list.appendChild(btn);
     });
 
-    // Pubblicità (in attesa dei file audio)
+    // Pubblicità
     const sepPub = document.createElement('div');
     sepPub.className = 'rk-separator';
     list.appendChild(sepPub);
     PUB_CONFIG.forEach(pub => {
         const btn = makeItem(`  * ${pub.titolo}`);
         btn.dataset.ref = pub.cartella;
-        btn.style.opacity = '0.45'; // visivamente distinte, in attesa dei file
-        btn.title = 'Audio non ancora caricato';
         btn.addEventListener('click', () => {
-            if (!pub.audio) { return; } // skip se manca ancora l'audio
             queue.splice(currentIndex, 0, pub);
             guiElements.audioElement.pause();
             guiElements.audioElement.currentTime = 0;
@@ -299,9 +306,12 @@ function refreshMenuHighlight() {
     document.querySelectorAll('.rk-item').forEach(btn => {
         btn.classList.remove('active');
         if (!currentFolderData) return;
-        const ref = currentIsSong
-            ? currentFolderData.cartella + '/' + currentFolderData.audio
-            : currentFolderData.cartella;
+        
+        let ref = currentFolderData.cartella;
+        if (currentIsSong) {
+            ref = currentFolderData.cartella + '/' + currentFolderData.audio;
+        }
+        
         if (btn.dataset.ref === ref) btn.classList.add('active');
     });
 }
@@ -338,15 +348,9 @@ function renderTick() {
 
     const logo = document.getElementById('radio-logo-react');
     if (logo) {
-        const isIntermezzo = ['cartella0','cartella01','cartella02'].includes(currentFolderData?.cartella);
-        if (isIntermezzo) {
-            logo.style.display = 'none';
-
-        } else {
-            logo.style.display = 'block';
-            logo.style.transform = `translate(-50%, -50%) scale(${1 + energy / 800})`;
-            logo.style.opacity   = 0.90 + Math.min(0.10, energy / 255);
-        }
+        logo.style.display = 'block'; // Ovunque
+        logo.style.transform = `translate(-50%, -50%) scale(${1 + energy / 800})`;
+        logo.style.opacity   = 0.90 + Math.min(0.10, energy / 255);
     }
 
     // Animazione beat sull'immagine statica durante le canzoni
