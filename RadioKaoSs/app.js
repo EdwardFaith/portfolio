@@ -159,6 +159,13 @@ function playFolder(folder) {
     restoreGain();
     // Audio path: se isSong, il file è già relativo alla root; altrimenti cartella/audio
     guiElements.audioElement.src = `${folder.cartella}/${folder.audio}`;
+    
+    // Abbassa il volume per cartella0 come richiesto
+    if (gainNode && audioCtx) {
+        const vol = (folder.cartella === "cartella0") ? 0.35 : 0.7;
+        gainNode.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.1);
+    }
+
     guiElements.audioElement.play().catch(e => console.error("Play failed:", e));
 
     if (currentIsSong) {
@@ -220,10 +227,11 @@ function initTracking() {
 function buildMenu() {
     if (document.getElementById('rk-toggle')) return;
 
-    // Bottone SKIP
+    // Bottone SKIP - Solo freccia
     const skip = document.createElement('button');
     skip.id = 'rk-skip';
-    skip.innerHTML = 'SKIP &raquo;';
+    skip.innerHTML = '&raquo;';
+    skip.title = 'SKIP';
     skip.addEventListener('click', (e) => {
         e.stopPropagation();
         playNext();
@@ -232,7 +240,8 @@ function buildMenu() {
 
     const toggle = document.createElement('button');
     toggle.id = 'rk-toggle';
-    toggle.innerHTML = '&#9776;&nbsp;MENU';
+    toggle.innerHTML = '&#9776;';
+    toggle.title = 'MENU';
     toggle.addEventListener('click', e => {
         e.stopPropagation();
         document.getElementById('rk-menu').classList.toggle('open');
@@ -416,8 +425,13 @@ function renderTick() {
                 el.onerror = () => el.remove();
                 el.src = imgSrc;
             }
+            // Opacità ridotta per cartelle 2-15 come richiesto
+            let targetOpacity = 0.65;
+            const folderNum = parseInt(currentFolderData?.cartella.replace('cartella', ''));
+            if (folderNum >= 2 && folderNum <= 15) targetOpacity = 0.35;
+
             el.className = 'montage-base-img';
-            el.style.cssText = `transition:transform 12s ease-out;transform:scale(1.05);filter:contrast(${110 + Math.floor(Math.random() * 80)}%) grayscale(100%);opacity:0.55;`;
+            el.style.cssText = `transition:transform 12s ease-out;transform:scale(1.05);filter:contrast(${110 + Math.floor(Math.random() * 80)}%) grayscale(100%);opacity:${targetOpacity};`;
             layer.appendChild(el);
             setTimeout(() => { if (el) el.style.transform = 'scale(1.15)'; }, 50);
         }

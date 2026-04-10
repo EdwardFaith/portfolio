@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,18 +9,21 @@
     <link rel="icon" type="image/png" sizes="32x32" href="../immagini/favicon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="../immagini/favicon.png">
     <link rel="shortcut icon" href="../immagini/favicon.png" type="image/png">
-    <!-- Alienating Font per frasi subliminali -->
-    <link href="https://fonts.googleapis.com/css2?family=Megrim&display=swap" rel="stylesheet">
+    <!-- More modern/premium fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <!-- Configuration file -->
     <script src="config.js"></script>
 </head>
+
 <body>
     <!-- App Container -->
     <div id="vhs-container" style="display: none;">
         <!-- Hidden actual webcam feed for processing -->
         <video id="webcam-video" autoplay muted playsinline></video>
-        
+
         <!-- Glitched and processed webcam output -->
         <canvas id="glitch-canvas"></canvas>
 
@@ -43,7 +47,7 @@
             <!-- Images montage layer (div for multiple overlapping dynamically spawned images) -->
             <div id="montage-container"></div>
         </div>
-        
+
         <!-- CRT Effects Overlay -->
         <div class="crt-lines"></div>
         <div class="crt-overlay"></div>
@@ -52,7 +56,9 @@
     <!-- Entry / Warning Screen -->
     <div id="warning-screen">
         <h1>RADIO KAOSS</h1>
-        <p>ATTENZIONE: QUESTA È UNA TRASMISSIONE RADIOFONICA CONTINUA IN LIVE STREAMING.<br><br>Il flusso visivo contiene scatti stroboscopici, glitch frammentari violenti e frequenze anomale generate dalla diretta in sottofondo. Procedi nella sintonia esclusivamente se ne accetti le conseguenze.</p>
+        <p>ATTENZIONE: QUESTA È UNA TRASMISSIONE RADIOFONICA<br><br>Il flusso visivo contiene scatti stroboscopici,
+            glitch frammentari violenti e frequenze anomale. È caldamente consigliato concedere l'autorizzazione per la
+            webcam. Vivi un'esperienza "entropica" completa.</p>
         <button id="accept-btn">ACCETTA LE AVVERTENZE E SINTONIZZATI</button>
         <div class="crt-lines"></div>
         <div class="crt-overlay"></div>
@@ -63,4 +69,5 @@
 
     <script type="module" src="app.js"></script>
 </body>
+
 </html>

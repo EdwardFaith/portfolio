@@ -18,7 +18,7 @@ body, html {
     background-color: #030303;
     overflow: hidden;
     color: #e5e5e5;
-    font-family: 'Space Mono', 'Courier New', Courier, monospace;
+    font-family: 'Outfit', sans-serif;
 }
 
 /* Typography styles */
@@ -96,16 +96,17 @@ body, html {
     align-items: center;
     text-align: center;
     z-index: 1000;
-    font-family: 'Space Mono', 'Courier New', monospace;
+    font-family: 'Outfit', sans-serif;
 }
 
 #warning-screen h1 {
     font-size: 8vmin;
     margin-bottom: 4vmin;
-    letter-spacing: 0.3rem;
-    font-weight: 900;
+    letter-spacing: 0.6rem;
+    font-weight: 700;
     color: #fff;
     text-transform: uppercase;
+    font-family: 'Syncopate', sans-serif;
 }
 
 #warning-screen p {
@@ -118,15 +119,16 @@ body, html {
 
 #accept-btn {
     padding: 2.5vmin 5vmin;
-    font-size: 2.8vmin;
+    font-size: 2.2vmin;
     background: transparent;
     color: #fff;
     border: 3px solid #fff;
     cursor: pointer;
-    font-family: 'Space Mono', monospace;
+    font-family: 'Syncopate', sans-serif;
     font-weight: bold;
     text-transform: uppercase;
     transition: all 0.2s;
+    letter-spacing: 2px;
 }
 
 #accept-btn:hover {
@@ -197,6 +199,9 @@ body, html {
     box-shadow: 0 0 50px rgba(0,0,0,1), inset 0 0 60px rgba(0,0,0,1);
     background-color: #000;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Effetto vetro bombato TV */
@@ -327,7 +332,7 @@ body, html {
     background-position: center;
     background-repeat: no-repeat;
     filter: grayscale(100%) contrast(120%);
-    opacity: 0.35;
+    opacity: 0.2;
     z-index: 3;
     display: none;
     transform-origin: center center;
@@ -354,16 +359,19 @@ body, html {
     background: rgba(10,10,10,0.95);
     border: 1px solid #3b0a0a;
     color: #cc6666;
-    font-family: 'Megrim', 'Space Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    padding: 10px 16px;
+    font-family: 'Syncopate', sans-serif;
+    font-size: 18px; /* Bigger for icons */
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
     cursor: pointer;
     transition: border-color 0.2s, color 0.2s, background 0.2s;
 }
 #rk-toggle { right: 16px; }
-#rk-skip   { right: 125px; }
+#rk-skip   { right: 68px; }
 
 #rk-toggle:hover, #rk-skip:hover { 
     border-color: #7f1d1d; 
@@ -385,7 +393,8 @@ body, html {
     display: flex;
     flex-direction: column;
     transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
-    font-family: 'Megrim', 'Space Mono', monospace;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
 }
 #rk-menu.open {
     max-height: 75vh;
@@ -406,6 +415,8 @@ body, html {
     padding: 12px 16px 8px;
     font-size: 10px;
     letter-spacing: 3px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
     color: #886655;
     text-transform: uppercase;
     border-bottom: 1px solid #1a1a1a;
@@ -431,7 +442,8 @@ body, html {
     border-bottom: 1px solid #111;
     padding: 11px 16px;
     cursor: pointer;
-    font-family: 'Megrim', monospace;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 400;
     font-size: 13px;
     letter-spacing: 1px;
     transition: background 0.15s, color 0.15s;
@@ -448,12 +460,15 @@ body, html {
         top: auto;
         bottom: 0;
         width: 50%;
+        height: 56px; /* Slightly taller for touch */
         border-top: 1px solid #3b0a0a;
         border-left: none;
         border-right: none;
         border-bottom: none;
         text-align: center;
-        padding: 14px;
+        padding: 0;
+        display: flex;
+        font-size: 24px; /* Larger icons on mobile */
     }
     #rk-skip {
         left: 0;
@@ -477,6 +492,31 @@ body, html {
     }
     #rk-menu.open { max-height: 55vh; }
     .rk-list      { max-height: 150px; }
+
+    /* Rendi tutto verticale: ribalta il montaggio e lo sfondo su mobile */
+    #montage-container, #song-bg {
+        transform: rotate(90deg);
+        transform-origin: center;
+        width: 100vh;
+        height: 100vw;
+        left: 50%;
+        top: 50%;
+        margin-left: -50vh;
+        margin-top: -50vw;
+        position: absolute;
+    }
+    
+    #radio-logo-react {
+        width: 85vw;
+        filter: url(#chromakey) drop-shadow(0 0 30px rgba(255,0,0,1)) brightness(1.4);
+    }
+
+    #vhs-container {
+        width: 96vw;
+        height: 85vh; /* Più stretto e alto per feeling mobile */
+        border-width: 2vmin;
+        border-radius: 4vmin;
+    }
 }
 
 
