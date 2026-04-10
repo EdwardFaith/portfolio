@@ -2,29 +2,39 @@ let queue = [];
 let currentIndex = 0;
 let currentFolderImages = [];
 let currentFolderData = null;
-let isPlayingTrack = false;
+let currentIsSong = false;
 let gainNode = null;
 let audioCtx, analyser, dataArray;
 let prevEnergy = 0;
 let lastEpisode = null;
 
-// ─── Lista canzoni ────────────────────────────────────────────────────────────
-const MUSIC_TRACKS = [
-    { titolo: "Charles",                 file: "canzoni/charles.mpeg" },
-    { titolo: "Corre il Coniglio",       file: "canzoni/corre il coniglio.mpeg" },
-    { titolo: "Destino Formicaio",       file: "canzoni/destino formicaio.MP3" },
-    { titolo: "Destino Sgarbato",        file: "canzoni/destino sgarbato.mpeg" },
-    { titolo: "Dio",                     file: "canzoni/dio.mpeg" },
-    { titolo: "Dove il Tramonto Brucia", file: "canzoni/dove il tramonto brucia.mpeg" },
-    { titolo: "E Ritorna il Giorno",     file: "canzoni/e ritorna il giorno.mpeg" },
-    { titolo: "Icaro",                   file: "canzoni/icaro.mpeg" },
-    { titolo: "La Paura di Finire",      file: "canzoni/la paura di finire.mpeg" },
-    { titolo: "Margherita",              file: "canzoni/margehrita.MP3" },
-    { titolo: "Mortem",                  file: "canzoni/mortem.MP3" },
-    { titolo: "Oggi Non Resto",          file: "canzoni/oggi non resto.mp3" },
-    { titolo: "Per un Tempo Futuro",     file: "canzoni/per un tempo futuro.mpeg" },
-    { titolo: "Satan",                   file: "canzoni/satan.MP3" },
-    { titolo: "Sei Sicura",              file: "canzoni/sei sicura.MP3" },
+// ─── Pubblicità — cartelle pronte, audio da aggiungere ──────────────────────
+const PUB_CONFIG = [
+    { cartella: "pub-clinica",              titolo: "Clinica - Uccidi il Ricordo", isPub: true },
+    { cartella: "pub-purify",               titolo: "Purify",                      isPub: true },
+    { cartella: "pub-lucidus",              titolo: "Lucidus",                     isPub: true },
+    { cartella: "pub-latte-materno",        titolo: "Latte Materno",               isPub: true },
+    { cartella: "pub-spedizione-su-venere", titolo: "Spedizione su Venere",        isPub: true },
+    { cartella: "pub-ciclette-interattiva", titolo: "Ciclette Interattiva",        isPub: true },
+];
+
+// ─── Canzoni — integrate nella queue come gli altri canali ───────────────────
+const SONGS_CONFIG = [
+    { cartella: "canzoni", audio: "charles.mpeg",                  titolo: "Charles",                 isSong: true },
+    { cartella: "canzoni", audio: "corre il coniglio.mpeg",         titolo: "Corre il Coniglio",       isSong: true },
+    { cartella: "canzoni", audio: "destino formicaio.MP3",          titolo: "Destino Formicaio",       isSong: true },
+    { cartella: "canzoni", audio: "destino sgarbato.mpeg",          titolo: "Destino Sgarbato",        isSong: true },
+    { cartella: "canzoni", audio: "dio.mpeg",                       titolo: "Dio",                     isSong: true },
+    { cartella: "canzoni", audio: "dove il tramonto brucia.mpeg",   titolo: "Dove il Tramonto Brucia", isSong: true },
+    { cartella: "canzoni", audio: "e ritorna il giorno.mpeg",       titolo: "E Ritorna il Giorno",     isSong: true },
+    { cartella: "canzoni", audio: "icaro.mpeg",                     titolo: "Icaro",                   isSong: true },
+    { cartella: "canzoni", audio: "la paura di finire.mpeg",        titolo: "La Paura di Finire",      isSong: true },
+    { cartella: "canzoni", audio: "margehrita.MP3",                 titolo: "Margherita",              isSong: true },
+    { cartella: "canzoni", audio: "mortem.MP3",                     titolo: "Mortem",                  isSong: true },
+    { cartella: "canzoni", audio: "oggi non resto.mp3",             titolo: "Oggi Non Resto",          isSong: true },
+    { cartella: "canzoni", audio: "per un tempo futuro.mpeg",       titolo: "Per un Tempo Futuro",     isSong: true },
+    { cartella: "canzoni", audio: "satan.MP3",                      titolo: "Satan",                   isSong: true },
+    { cartella: "canzoni", audio: "sei sicura.MP3",                 titolo: "Sei Sicura",              isSong: true },
 ];
 
 // ─── GUI ──────────────────────────────────────────────────────────────────────
@@ -40,20 +50,53 @@ const guiElements = {
 const ctx = guiElements.canvas.getContext('2d', { willReadFrequently: true });
 let beatCooldown = 0, currentLayout = 'single', layoutBeatsLeft = 0;
 
-// ─── Queue ────────────────────────────────────────────────────────────────────
+// Tutte le immagini personali per lo sfondo delle canzoni
+const PERSONAL_IMAGES = typeof tueImmaginiCreate !== 'undefined' ? tueImmaginiCreate : [];
+
+// ─── Queue — canali + canzoni + pubblicità con il giusto intermezzo ───────────
 function buildShuffledQueue() {
-    const folder0 = RADIO_CONFIG.find(cfg => cfg.cartella === "cartella0");
+    // Intermezzi per tipo
+    const folder0  = RADIO_CONFIG.find(cfg => cfg.cartella === "cartella0");  // prima di canali 2-15
+    const folder01 = { cartella: "cartella01", audio: "audio01.MP3",          // prima delle canzoni
+                       immagini: ["audio01.mp4"], titolo: "Intermezzo Musica" };
+    const folder02 = { cartella: "cartella02", audio: "audio02.MP3",          // prima delle pubblicità
+                       immagini: ["audio02.mp4"], titolo: "Intermezzo Pubblicità" };
+    const folder1  = RADIO_CONFIG.find(cfg => cfg.cartella === "cartella1");  // parte senza intro
+
     if (!folder0) return [];
-    let episodes = RADIO_CONFIG.filter(cfg => cfg.cartella !== "cartella0");
-    for (let i = episodes.length - 1; i > 0; i--) {
+
+    // Pool: canali 2-15 + canzoni + pubblicità con audio
+    let pool = [
+        ...RADIO_CONFIG.filter(cfg => cfg.cartella !== "cartella0" && cfg.cartella !== "cartella1"),
+        ...SONGS_CONFIG,
+        ...PUB_CONFIG.filter(p => p.audio), // solo pub già configurate
+    ];
+
+    // Fisher-Yates shuffle
+    for (let i = pool.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [episodes[i], episodes[j]] = [episodes[j], episodes[i]];
+        [pool[i], pool[j]] = [pool[j], pool[i]];
     }
-    if (lastEpisode && episodes.length > 1 && episodes[0].cartella === lastEpisode)
-        episodes.push(episodes.shift());
+
+    // Evita ripetizione al loop boundary
+    const lastKey = e => e.cartella + (e.audio || '');
+    if (lastEpisode && pool.length > 1 && lastKey(pool[0]) === lastEpisode)
+        pool.push(pool.shift());
+
     const result = [];
-    for (const ep of episodes) { result.push(folder0); result.push(ep); }
-    if (episodes.length) lastEpisode = episodes[episodes.length - 1].cartella;
+
+    // cartella1 parte sempre per primo, senza intro
+    if (folder1) result.push(folder1);
+
+    // Per ogni altro episodio → intermezzo corretto
+    for (const ep of pool) {
+        if (ep.isSong)      result.push(folder01); // intermezzo musica
+        else if (ep.isPub)  result.push(folder02); // intermezzo pubblicità
+        else                result.push(folder0);  // intermezzo canale normale
+        result.push(ep);
+    }
+
+    if (pool.length) lastEpisode = lastKey(pool[pool.length - 1]);
     return result;
 }
 function initQueue() { queue = buildShuffledQueue(); currentIndex = 0; }
@@ -71,7 +114,8 @@ function initAudio() {
     cmp.release.setValueAtTime(0.25,   audioCtx.currentTime);
     gainNode = audioCtx.createGain();
     gainNode.gain.setValueAtTime(0.7,  audioCtx.currentTime);
-    src.connect(cmp); cmp.connect(gainNode); gainNode.connect(analyser); analyser.connect(audioCtx.destination);
+    src.connect(cmp); cmp.connect(gainNode);
+    gainNode.connect(analyser); analyser.connect(audioCtx.destination);
     analyser.fftSize = 512;
     dataArray = new Uint8Array(analyser.frequencyBinCount);
 }
@@ -82,28 +126,45 @@ function restoreGain() {
 }
 
 // ─── Playback ─────────────────────────────────────────────────────────────────
-function playFolder(folder) {
-    isPlayingTrack = false;
-    currentFolderData = folder;
-    restoreGain();
-    guiElements.audioElement.src = `${folder.cartella}/${folder.audio}`;
-    guiElements.audioElement.play().catch(e => console.error("Play failed:", e));
-    currentFolderImages = (folder.immagini || []).map(img => {
-        if (img.startsWith('http') || img.startsWith('immagini/')) return img;
-        return `${folder.cartella}/${img}`;
-    });
-    guiElements.montageContainer.innerHTML = '';
-    refreshMenuHighlight();
+// Sfondo statico per canzoni
+let songBgEl = null;
+function showSongBg() {
+    if (!songBgEl) {
+        songBgEl = document.createElement('div');
+        songBgEl.id = 'song-bg';
+        guiElements.vhsContainer.appendChild(songBgEl);
+    }
+    if (PERSONAL_IMAGES.length > 0) {
+        const img = PERSONAL_IMAGES[Math.floor(Math.random() * PERSONAL_IMAGES.length)];
+        songBgEl.style.backgroundImage = `url('${img}')`;
+    }
+    songBgEl.style.display = 'block';
+}
+function hideSongBg() {
+    if (songBgEl) songBgEl.style.display = 'none';
 }
 
-function playTrack(track) {
-    isPlayingTrack = true;
-    currentFolderData = null;
+function playFolder(folder) {
+    currentIsSong = folder.isSong || false;
+    currentFolderData = folder;
     restoreGain();
-    guiElements.audioElement.src = track.file;
+    // Audio path: se isSong, il file è già relativo alla root; altrimenti cartella/audio
+    guiElements.audioElement.src = `${folder.cartella}/${folder.audio}`;
     guiElements.audioElement.play().catch(e => console.error("Play failed:", e));
-    // Immagini restano quelle dell'ultimo canale per il visualizzatore
-    guiElements.montageContainer.innerHTML = '';
+
+    if (currentIsSong) {
+        // Nessun montaggio video — solo una immagine statica di sfondo
+        currentFolderImages = [];
+        guiElements.montageContainer.innerHTML = '';
+        showSongBg();
+    } else {
+        hideSongBg();
+        currentFolderImages = (folder.immagini || []).map(img => {
+            if (img.startsWith('http') || img.startsWith('immagini/')) return img;
+            return `${folder.cartella}/${img}`;
+        });
+        guiElements.montageContainer.innerHTML = '';
+    }
     refreshMenuHighlight();
 }
 
@@ -114,24 +175,13 @@ function playNext() {
     currentIndex++;
 }
 
-// Quando un audio finisce
-guiElements.audioElement.addEventListener('ended', () => {
-    // Se era una canzone → riprende Radio Kaoss dal punto esatto in cui era ferma
-    if (isPlayingTrack) {
-        isPlayingTrack = false;
-        if (queue.length === 0) return;
-        if (currentIndex >= queue.length) { queue = buildShuffledQueue(); currentIndex = 0; }
-        playFolder(queue[currentIndex]);
-        currentIndex++;
-    } else {
-        playNext();
-    }
-});
-guiElements.audioElement.addEventListener('error', () => { isPlayingTrack = false; playNext(); });
+guiElements.audioElement.addEventListener('ended', playNext);
+guiElements.audioElement.addEventListener('error', playNext);
 
-// Dissolvenza negli ultimi 2 secondi
+// Dissolvenza negli ultimi 2 secondi — NON su cartella0
 guiElements.audioElement.addEventListener('timeupdate', () => {
     if (!gainNode || !audioCtx) return;
+    if (currentFolderData?.cartella === "cartella0") return; // nessuna dissolvenza per l'intermezzo
     const a = guiElements.audioElement;
     if (!a.duration || isNaN(a.duration)) return;
     const rem = a.duration - a.currentTime;
@@ -157,77 +207,87 @@ function initTracking() {
         .catch(e => console.error("Camera:", e));
 }
 
-// ─── Menu tendina dall'alto ───────────────────────────────────────────────────
+// ─── Menu unificato (tendina dall'alto) ───────────────────────────────────────
 function buildMenu() {
     if (document.getElementById('rk-toggle')) return;
 
-    // Bottone toggle — fisso in alto a destra sia su desktop che mobile
     const toggle = document.createElement('button');
     toggle.id = 'rk-toggle';
-    toggle.innerHTML = '&#9776;&nbsp;CANALI';
+    toggle.innerHTML = '&#9776;&nbsp;MENU';
     toggle.addEventListener('click', e => {
         e.stopPropagation();
         document.getElementById('rk-menu').classList.toggle('open');
     });
     document.body.appendChild(toggle);
 
-    // Dropdown
     const menu = document.createElement('div');
     menu.id = 'rk-menu';
     document.body.appendChild(menu);
 
-    // -- SOLO MUSICA --
-    addSection(menu, 'SOLO MUSICA');
-    const musicList = document.createElement('div');
-    musicList.className = 'rk-list';
-    MUSIC_TRACKS.forEach(track => {
-        const btn = makeItem(track.titolo);
-        btn.dataset.file = track.file;
-        btn.addEventListener('click', () => {
-            playTrack(track);
-            refreshMenuHighlight();
-            menu.classList.remove('open');
-        });
-        musicList.appendChild(btn);
+    const list = document.createElement('div');
+    list.className = 'rk-list';
+
+    // Tutti gli elementi in un'unica lista
+    // Prima: canali (cartella0 + 1-15) in ordine
+    const allChannels = [...RADIO_CONFIG].sort((a, b) => {
+        const n = x => parseInt(x.cartella.replace('cartella', '')) || 0;
+        return n(a) - n(b);
     });
-    menu.appendChild(musicList);
-
-    // Separatore
-    const sep = document.createElement('div');
-    sep.className = 'rk-separator';
-    menu.appendChild(sep);
-
-    // -- CANALI --
-    addSection(menu, 'CANALI');
-    const chanList = document.createElement('div');
-    chanList.className = 'rk-list';
-    RADIO_CONFIG.forEach(cfg => {
+    allChannels.forEach(cfg => {
         const num = cfg.cartella.replace('cartella', '').padStart(2, '0');
         const btn = makeItem(`${num}  ${cfg.titolo || cfg.cartella}`);
-        btn.dataset.cartella = cfg.cartella;
+        btn.dataset.ref = cfg.cartella;
         btn.addEventListener('click', () => {
-            const idx = queue.findIndex(q => q.cartella === cfg.cartella);
+            const idx = queue.findIndex(q => q.cartella === cfg.cartella && !q.isSong);
             if (idx !== -1) currentIndex = idx; else queue.splice(currentIndex, 0, cfg);
             guiElements.audioElement.pause();
             guiElements.audioElement.currentTime = 0;
             playNext();
             menu.classList.remove('open');
         });
-        chanList.appendChild(btn);
+        list.appendChild(btn);
     });
-    menu.appendChild(chanList);
 
-    // Chiudi cliccando fuori
+    // Poi: canzoni in ordine alfabetico
+    [...SONGS_CONFIG].sort((a, b) => a.titolo.localeCompare(b.titolo)).forEach(song => {
+        const btn = makeItem(`  — ${song.titolo}`);
+        btn.dataset.ref = song.cartella + '/' + song.audio;
+        btn.addEventListener('click', () => {
+            queue.splice(currentIndex, 0, song);
+            guiElements.audioElement.pause();
+            guiElements.audioElement.currentTime = 0;
+            playNext();
+            menu.classList.remove('open');
+        });
+        list.appendChild(btn);
+    });
+
+    // Pubblicità (in attesa dei file audio)
+    const sepPub = document.createElement('div');
+    sepPub.className = 'rk-separator';
+    list.appendChild(sepPub);
+    PUB_CONFIG.forEach(pub => {
+        const btn = makeItem(`  * ${pub.titolo}`);
+        btn.dataset.ref = pub.cartella;
+        btn.style.opacity = '0.45'; // visivamente distinte, in attesa dei file
+        btn.title = 'Audio non ancora caricato';
+        btn.addEventListener('click', () => {
+            if (!pub.audio) { return; } // skip se manca ancora l'audio
+            queue.splice(currentIndex, 0, pub);
+            guiElements.audioElement.pause();
+            guiElements.audioElement.currentTime = 0;
+            playNext();
+            menu.classList.remove('open');
+        });
+        list.appendChild(btn);
+    });
+
+    menu.appendChild(list);
+
     document.addEventListener('click', () => menu.classList.remove('open'));
     menu.addEventListener('click', e => e.stopPropagation());
 }
 
-function addSection(parent, html) {
-    const h = document.createElement('div');
-    h.className = 'rk-section-head';
-    h.innerHTML = html;
-    parent.appendChild(h);
-}
 function makeItem(text) {
     const b = document.createElement('button');
     b.className = 'rk-item';
@@ -238,7 +298,11 @@ function makeItem(text) {
 function refreshMenuHighlight() {
     document.querySelectorAll('.rk-item').forEach(btn => {
         btn.classList.remove('active');
-        if (currentFolderData && btn.dataset.cartella === currentFolderData.cartella) btn.classList.add('active');
+        if (!currentFolderData) return;
+        const ref = currentIsSong
+            ? currentFolderData.cartella + '/' + currentFolderData.audio
+            : currentFolderData.cartella;
+        if (btn.dataset.ref === ref) btn.classList.add('active');
     });
 }
 
@@ -274,13 +338,22 @@ function renderTick() {
 
     const logo = document.getElementById('radio-logo-react');
     if (logo) {
-        if (currentFolderData?.cartella === "cartella0") {
+        const isIntermezzo = ['cartella0','cartella01','cartella02'].includes(currentFolderData?.cartella);
+        if (isIntermezzo) {
             logo.style.display = 'none';
+
         } else {
             logo.style.display = 'block';
             logo.style.transform = `translate(-50%, -50%) scale(${1 + energy / 800})`;
             logo.style.opacity   = 0.90 + Math.min(0.10, energy / 255);
         }
+    }
+
+    // Animazione beat sull'immagine statica durante le canzoni
+    if (currentIsSong && songBgEl) {
+        const songScale = 1 + (energy / 600);
+        songBgEl.style.transform = `scale(${songScale})`;
+        songBgEl.style.transition = 'transform 0.15s ease-out';
     }
 
     const w = guiElements.canvas.width, h = guiElements.canvas.height;
@@ -291,7 +364,8 @@ function renderTick() {
         ctx.fillRect(0, Math.random() * h, w, Math.random() * 5);
     }
 
-    if (isHardBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
+    // Montaggio video — SOLO per i canali radio, non per le canzoni
+    if (!currentIsSong && isHardBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
         if (guiElements.montageContainer.children.length > 2)
             guiElements.montageContainer.firstChild.remove();
         const layer = document.createElement('div');

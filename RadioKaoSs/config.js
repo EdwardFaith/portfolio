@@ -13,7 +13,7 @@ RADIO_CONFIG.push({
 RADIO_CONFIG.push({
     cartella: "cartella1",
     titolo: "I Potenti",
-    audio: "audio1.mp3",
+    audio: "audio1.MP3",
     immagini: [
         "https://loremflickr.com/800/600/donald_trump",
         "https://loremflickr.com/800/600/putin",
