@@ -10,12 +10,12 @@ let lastEpisode = null;
 
 // ─── Pubblicità — cartelle pronte, audio da aggiungere ──────────────────────
 const PUB_CONFIG = [
-    { cartella: "pub-clinica",              titolo: "Clinica - Uccidi il Ricordo", isPub: true, audio: "audio.MP3" },
-    { cartella: "pub-purify",               titolo: "Purify",                      isPub: true, audio: "audio.MP3" },
-    { cartella: "pub-lucidus",              titolo: "Lucidus",                     isPub: true, audio: "audio.MP3" },
-    { cartella: "pub-latte-materno",        titolo: "Latte Materno",               isPub: true, audio: "audio.MP3" },
-    { cartella: "pub-spedizione-su-venere", titolo: "Spedizione su Venere",        isPub: true, audio: "audio.MP3" },
-    { cartella: "pub-ciclette-interattiva", titolo: "Ciclette Interattiva",        isPub: true, audio: "audio.MP3" },
+    // { cartella: "pub-clinica",              titolo: "Clinica - Uccidi il Ricordo", isPub: true, audio: "audio.MP3" }, // File audio mancante
+    { cartella: "pub-purify",               titolo: "Purify",                      isPub: true, audio: "audio.MP3", immagini: ["immagine.png", "0410 (3).png"] },
+    { cartella: "pub-lucidus",              titolo: "Lucidus",                     isPub: true, audio: "audio.MP3", immagini: ["immagine.png"] },
+    { cartella: "pub-latte-materno",        titolo: "Latte Materno",               isPub: true, audio: "audio.MP3", immagini: ["immagine.png", "0410 (3).png"] },
+    { cartella: "pub-spedizione-su-venere", titolo: "Spedizione su Venere",        isPub: true, audio: "audio.MP3", immagini: ["immagine.jpg"] },
+    { cartella: "pub-ciclette-interattiva", titolo: "Ciclette Interattiva",        isPub: true, audio: "audio.MP3", immagini: ["0410 (3).png", "0410 (3)(1).png", "0410 (3)(2).png", "0410 (3)(3).png"] },
 ];
 
 // ─── Canzoni — integrate nella queue come gli altri canali ───────────────────
@@ -78,15 +78,23 @@ function buildShuffledQueue() {
         [pool[i], pool[j]] = [pool[j], pool[i]];
     }
 
-    // Evita ripetizione al loop boundary
-    const lastKey = e => e.cartella + (e.audio || '');
-    if (lastEpisode && pool.length > 1 && lastKey(pool[0]) === lastEpisode)
-        pool.push(pool.shift());
+    // Estraiamo forzatamente una pubblicità per metterla dopo la cartella1
+    let firstAd = null;
+    const adIdx = pool.findIndex(ep => ep.isPub);
+    if (adIdx !== -1) {
+        firstAd = pool.splice(adIdx, 1)[0];
+    }
 
     const result = [];
 
     // cartella1 parte sempre per primo, senza intro
     if (folder1) result.push(folder1);
+
+    // Se abbiamo trovato una pubblicità, la mettiamo subito dopo (con intermezzo cartella02)
+    if (firstAd) {
+        result.push(folder02);
+        result.push(firstAd);
+    }
 
     // Per ogni altro episodio → intermezzo corretto
     for (const ep of pool) {
@@ -96,6 +104,7 @@ function buildShuffledQueue() {
         result.push(ep);
     }
 
+    const lastKey = e => e.cartella + (e.audio || '');
     if (pool.length) lastEpisode = lastKey(pool[pool.length - 1]);
     return result;
 }
@@ -400,9 +409,11 @@ function renderTick() {
                 cx.drawImage(guiElements.camVideo, 0, 0, el.width, el.height);
             } else if (imgSrc?.toLowerCase().endsWith('.mp4') || imgSrc?.toLowerCase().endsWith('.webm')) {
                 el = document.createElement('video');
+                el.onerror = () => el.remove();
                 Object.assign(el, { src: imgSrc, autoplay: true, loop: true, muted: true, playsInline: true });
             } else {
                 el = document.createElement('img');
+                el.onerror = () => el.remove();
                 el.src = imgSrc;
             }
             el.className = 'montage-base-img';
