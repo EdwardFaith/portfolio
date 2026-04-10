@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Kaoss</title>
+    <!-- Alienating Font per frasi subliminali -->
+    <link href="https://fonts.googleapis.com/css2?family=Megrim&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Configuration file -->
+    <script src="config.js"></script>
+</head>
+<body>
+    <!-- App Container -->
+    <div id="vhs-container" style="display: none;">
+        <!-- Hidden actual webcam feed for processing -->
+        <video id="webcam-video" autoplay muted playsinline></video>
+        
+        <!-- Glitched and processed webcam output -->
+        <canvas id="glitch-canvas"></canvas>
+
+        <!-- Motore Chroma-key Vettoriale per bucare il Green Screen -->
+        <svg style="display: none;">
+            <defs>
+                <filter id="chromakey" color-interpolation-filters="sRGB">
+                    <feColorMatrix type="matrix" values="
+                        1 1 1 0 0  
+                        0 0 0 0 0  
+                        0 0 0 0 0  
+                        3 -5 3 1 0" />
+                </filter>
+            </defs>
+        </svg>
+
+        <!-- Tua Immagine Originale con Chroma-key -->
+        <img id="radio-logo-react" src="giff/scritta.jpeg" alt="Radio Kaoss" />
+
+        <div id="content-container">
+            <!-- Images montage layer (div for multiple overlapping dynamically spawned images) -->
+            <div id="montage-container"></div>
+        </div>
+        
+        <!-- CRT Effects Overlay -->
+        <div class="crt-lines"></div>
+        <div class="crt-overlay"></div>
+    </div>
+
+    <!-- Entry / Warning Screen -->
+    <div id="warning-screen">
+        <h1>RADIO KAOSS</h1>
+        <p>ATTENZIONE: QUESTA È UNA TRASMISSIONE RADIOFONICA CONTINUA IN LIVE STREAMING.<br><br>Il flusso visivo contiene scatti stroboscopici, glitch frammentari violenti e frequenze anomale generate dalla diretta in sottofondo. Procedi nella sintonia esclusivamente se ne accetti le conseguenze.</p>
+        <button id="accept-btn">ACCETTA LE AVVERTENZE E SINTONIZZATI</button>
+        <div class="crt-lines"></div>
+        <div class="crt-overlay"></div>
+    </div>
+
+    <!-- Invisible audio player for processing -->
+    <audio id="main-audio" style="display:none;" crossorigin="anonymous"></audio>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

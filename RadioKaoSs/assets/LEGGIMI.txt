@@ -1,0 +1,2 @@
+Inserisci in questa cartella la tua immagine animata.
+DEVE obbligatoriamente chiamarsi "eye.gif" per funzionare correttamente all'interno del sito.

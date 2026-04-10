@@ -1,0 +1,2 @@
+Inserisci qui la tua traccia audio relativa a questa 'puntata' e tutte le immagini per il montaggio video di competenza.
+Verrà riprodotta a caso nel flusso di Radio Kaoss (subito dopo l'inizio di audio1).

@@ -1,0 +1,3 @@
+In base alla tua richiesta, questa è la PRIMA cartella in ordine.
+Inserisci qui "audio1.mp3" (o qualsiasi formato, es. .wav) in modo che venga riprodotto come primo file assoluto all'apertura del sito.
+Inserisci anche nella stessa cartella tutte le foto necessarie per il montaggio su questa traccia.

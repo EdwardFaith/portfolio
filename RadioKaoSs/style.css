@@ -1,0 +1,342 @@
+:root {
+    --vp-width: 100vw;
+    --vp-height: 100vh;
+    --vhs-green: #0f0;
+    --vhs-red: #f00;
+    --vhs-blue: #00f;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    width: var(--vp-width);
+    height: var(--vp-height);
+    background-color: #030303;
+    overflow: hidden;
+    color: #e5e5e5;
+    font-family: 'Space Mono', 'Courier New', Courier, monospace;
+}
+
+/* Typography styles */
+.glitch-text {
+    position: relative;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    text-shadow: 0.03em 0 0 rgba(255,0,0,0.7), -0.03em -0.03em 0 rgba(0,255,0,0.7), 0.025em 0.05em 0 rgba(0,0,255,0.7);
+    animation: glitch-anim 6s infinite alternate-reverse;
+}
+
+.elegant-line {
+    width: 60px;
+    height: 1px;
+    background-color: #555;
+    margin: 30px auto;
+}
+
+.warning-text p {
+    font-size: 1rem;
+    letter-spacing: 2px;
+    line-height: 1.8;
+    margin-bottom: 20px;
+}
+
+.warning-text .small-disclaimer {
+    font-size: 0.75rem;
+    color: #888;
+    letter-spacing: 1px;
+    margin-top: 10px;
+}
+
+/* CRT Lines */
+.crt-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0),
+        rgba(255, 255, 255, 0) 50%,
+        rgba(0, 0, 0, 0.1) 50%,
+        rgba(0, 0, 0, 0.1)
+    );
+    background-size: 100% 3px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.crt-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(0,0,0,0) 40%, rgba(0,0,0,0.85) 100%);
+    z-index: 11;
+    pointer-events: none;
+    animation: flicker 0.1s infinite;
+}
+
+/* Intro Screen - Sobrio, Nero, Centratissimo */
+#warning-screen {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: #030303; /* Nero quasi assoluto al posto del blu vhs */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 1000;
+    font-family: 'Space Mono', 'Courier New', monospace;
+}
+
+#warning-screen h1 {
+    font-size: 8vmin;
+    margin-bottom: 4vmin;
+    letter-spacing: 0.3rem;
+    font-weight: 900;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+#warning-screen p {
+    color: #bebebe;
+    font-size: 2.2vmin;
+    max-width: 65%;
+    margin-bottom: 6vmin;
+    line-height: 1.6;
+}
+
+#accept-btn {
+    padding: 2.5vmin 5vmin;
+    font-size: 2.8vmin;
+    background: transparent;
+    color: #fff;
+    border: 3px solid #fff;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-weight: bold;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+#accept-btn:hover {
+    background: #fff;
+    color: #000;
+}
+
+.stepper {
+    margin-top: 40px;
+}
+
+#accept-btn-container {
+    cursor: pointer;
+    display: inline-block;
+    padding: 20px;
+}
+
+.classic-btn {
+    border: 1px solid #777;
+    color: #fff;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    letter-spacing: 4px;
+    transition: all 0.3s ease;
+}
+
+#accept-btn-container:hover .classic-btn {
+    background: #fff;
+    color: #000;
+    box-shadow: 0 0 20px rgba(255,255,255,0.4);
+}
+
+@keyframes blinker {
+    50% { opacity: 0; }
+}
+
+
+
+/* Logo Immagine Reattivo Audio Onnipresente (Tua Immagine con Chroma-Key) */
+#radio-logo-react {
+    position: absolute;
+    top: 46%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 78vmin; /* Ridimensionato leggermente per eleganza */
+    max-width: 95vw;
+    height: auto;
+    object-fit: contain;
+    z-index: 500;
+    pointer-events: none;
+    /* Applica la chiave colore rimuovi-verde, tinge di rosso (via SVG) e aggiunge bagliore massivo */
+    filter: url(#chromakey) drop-shadow(0 0 50px rgba(255, 0, 0, 1)) brightness(1.5);
+    clip-path: inset(8px); /* Taglia via il bordo sporco del file JPEG ai margini */
+    mix-blend-mode: normal; 
+    display: none; 
+}
+
+/* Main App Container -> CSS CRT TV Frame */
+#vhs-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 94vw;
+    height: 94vh;
+    border: 3.5vmin solid #080808; /* Cornice nera robusta della TV */
+    border-radius: 6vmin; /* Bombatura angoli TV catodica */
+    box-shadow: 0 0 50px rgba(0,0,0,1), inset 0 0 60px rgba(0,0,0,1);
+    background-color: #000;
+    overflow: hidden;
+}
+
+/* Effetto vetro bombato TV */
+#vhs-container::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 2vmin;
+    box-shadow: inset 0 0 15vmin rgba(255,255,255,0.06); 
+    pointer-events: none;
+    z-index: 99;
+}
+
+/* Vetro bombato TV rimosso commento */
+
+#webcam-video {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0; /* Hidden, we draw on canvas */
+}
+
+#glitch-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0.7; /* Semi transparent */
+    mix-blend-mode: screen;
+}
+
+#content-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+
+#montage-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 4;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.montage-base-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cambiato a cover per riempire perfettamente gli spicchi fratturati */
+}
+
+/* Regia Multi-Schermo Procedurale */
+.layout-single {
+    display: flex;
+}
+.layout-splitV {
+    display: flex;
+    flex-direction: row;
+}
+.layout-splitV .montage-base-img {
+    width: 50%;
+}
+.layout-splitH {
+    display: flex;
+    flex-direction: column;
+}
+.layout-splitH .montage-base-img {
+    height: 50%;
+}
+.layout-grid4 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+.layout-grid6 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+
+
+
+/* Animations */
+@keyframes flicker {
+    0% { opacity: 0.96; }
+    50% { opacity: 0.98; }
+    100% { opacity: 1; }
+}
+
+@keyframes glitch-anim {
+    0% {
+        clip-path: inset(80% 0 10% 0);
+        transform: translate(-1px, 1px);
+    }
+    10% {
+        clip-path: inset(10% 0 80% 0);
+        transform: translate(1px, -1px);
+    }
+    20% {
+        clip-path: inset(40% 0 50% 0);
+        transform: translate(-1px, 1px);
+    }
+    100% {
+        clip-path: inset(50% 0 50% 0);
+        transform: translate(0, 0);
+    }
+}
+
+/* Ottimizzazione Specifica per Mobile / Telefono */
+@media (max-width: 600px) {
+    #radio-logo-react {
+        width: 70vw; /* Più piccolo e bilanciato per mobile */
+        filter: url(#chromakey) drop-shadow(0 0 25px rgba(255, 0, 0, 0.9)) brightness(1.3);
+    }
+    
+    #warning-screen h1 {
+        font-size: 12vmin;
+    }
+    
+    #warning-screen p {
+        font-size: 4.5vmin;
+        max-width: 85%;
+    }
+    
+    #accept-btn {
+        font-size: 5vmin;
+        padding: 4vmin 8vmin;
+    }
+}
