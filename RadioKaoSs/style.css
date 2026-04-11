@@ -195,7 +195,8 @@ html {
 /* Classe per la scritta2 - Bianca e Centrata (molto più piccola come richiesto) */
 #radio-logo-react.white-logo {
     left: 50%;
-    width: 32vmin;
+    width: 40vmin; /* Leggermente più grande per visibilità */
+    clip-path: none;
     filter: url(#chromakey) brightness(0) invert(1) drop-shadow(0 0 30px rgba(255, 255, 255, 0.8)) brightness(2);
 }
 
@@ -613,7 +614,8 @@ html {
     /* Rendi tutto verticale: ribalta il montaggio, lo sfondo e il canvas su mobile */
     #montage-container,
     #song-bg,
-    #glitch-canvas {
+    #glitch-canvas,
+    #fixed-glitch-video {
         transform: rotate(90deg) scale(1.1);
         transform-origin: center;
         width: 100vh;

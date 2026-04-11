@@ -9,9 +9,26 @@ let prevEnergy = 0;
 let lastEpisode = null;
 let currentIsTG = false;
 let currentIsIntermezzoTG = false;
+let isLowEnd = false;
+
+// ─── Performance Monitoring (Smart Low-End Mode) ───────────────────────────
+function detectPerformance() {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const lowMemory = navigator.deviceMemory && navigator.deviceMemory < 4;
+    const slowConnection = navigator.connection && (
+        navigator.connection.saveData || 
+        ['slow-2g', '2g', '3g'].includes(navigator.connection.effectiveType)
+    );
+
+    if (isMobile || lowMemory || slowConnection) {
+        isLowEnd = true;
+        document.body.classList.add('rk-low-end');
+        console.log("RadioKaoSs: Low-End Mode Attivato (Performance/Mobile Optimization)");
+    }
+}
+detectPerformance();
+
 const GLITCH_IMAGES_POOL = [
-    'cartella03/audio03.mp4',
-    'giff/eye.gif', // Asset locale sicuro già presente
     'cartella03/audio03.mp4'
 ];
 
@@ -32,7 +49,9 @@ function prefetchNextFolder(index) {
         prefetchCache.add(nextAudioUrl);
     }
 
-    // Precaricamento Immagini
+    // Precaricamento Immagini - Disattivato su Low-End per risparmiare RAM/Bandwidth
+    if (isLowEnd) return;
+
     const images = next.immagini || (next.isTG ? GLITCH_IMAGES_POOL : []);
     images.forEach(img => {
         let url = img;
@@ -258,6 +277,31 @@ function playFolder(folder) {
         }
     }
 
+    // Gestione Sfondo Fisso per TG e Cartella03 (Ottimizzazione Performance)
+    if (currentIsTG || currentIsIntermezzoTG) {
+        let fixedVideo = document.getElementById('fixed-glitch-video');
+        if (!fixedVideo) {
+            fixedVideo = document.createElement('video');
+            fixedVideo.id = 'fixed-glitch-video';
+            fixedVideo.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:2; opacity:0.25; filter:grayscale(100%) contrast(120%); pointer-events:none;';
+            fixedVideo.autoplay = true;
+            fixedVideo.loop = true;
+            fixedVideo.muted = true;
+            fixedVideo.playsInline = true;
+            guiElements.vhsContainer.appendChild(fixedVideo);
+        }
+        fixedVideo.src = 'cartella03/audio03.mp4';
+        fixedVideo.style.display = 'block';
+        fixedVideo.play().catch(() => {});
+    } else {
+        const fv = document.getElementById('fixed-glitch-video');
+        if (fv) {
+            fv.pause();
+            fv.style.display = 'none';
+            fv.src = "";
+        }
+    }
+
     // Audio path: se isSong, il file è già relativo alla root; altrimenti cartella/audio
     guiElements.audioElement.src = `${folder.cartella}/${folder.audio}`;
 
@@ -265,8 +309,8 @@ function playFolder(folder) {
     if (gainNode && audioCtx) {
         let vol = 0.7;
         if (folder.cartella === "cartella0") vol = 0.2; 
-        else if (folder.cartella === "cartella03") vol = 0.4; // Alzato ancora leggermente
-        else if (folder.isTG) vol = 0.55; // Leggermente più basso dello standard
+        else if (folder.cartella === "cartella03") vol = 0.4;
+        else if (folder.isTG) vol = 0.45; // Abbassato ulteriormente per TG
         
         gainNode.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.1);
     }
@@ -579,10 +623,11 @@ function renderTick() {
         }
     }
 
-    // Montaggio video — SOLO per i canali radio, canali intermezzo, etc.
-    // Durante il TG e Cartella03 usiamo immagini di glitch (montaggio sempre a ritmo)
-    if (!currentIsSong && isHardBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
-        if (guiElements.montageContainer.children.length > 2) {
+    // Montaggio video — SOLO per i canali radio normali, NO per TG/Cartella03 (ora fisso) o canzoni
+    if (!currentIsSong && !currentIsTG && !currentIsIntermezzoTG && isHardBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
+        // Su Low-End teniamo solo 1 layer alla volta per risparmiare memoria
+        const maxLayers = isLowEnd ? 1 : 2;
+        while (guiElements.montageContainer.children.length >= maxLayers) {
             const first = guiElements.montageContainer.firstChild;
             // Memory Cleanup: svuota src dei video/immagini prima di rimuovere
             first.querySelectorAll('video, img').forEach(media => {
@@ -619,6 +664,8 @@ function renderTick() {
                 cx.translate(el.width, 0); cx.scale(-1, 1);
                 cx.drawImage(guiElements.camVideo, 0, 0, el.width, el.height);
             } else if (imgSrc?.toLowerCase().endsWith('.mp4') || imgSrc?.toLowerCase().endsWith('.webm')) {
+                // Su Low-End evitiamo di caricare video nel montaggio per non saturare la RAM
+                if (isLowEnd) continue;
                 el = document.createElement('video');
                 el.onerror = () => el.remove();
                 Object.assign(el, { src: imgSrc, autoplay: true, loop: true, muted: true, playsInline: true });
