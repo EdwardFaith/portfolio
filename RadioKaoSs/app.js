@@ -9,6 +9,7 @@ let prevEnergy = 0;
 let lastEpisode = null;
 let currentIsTG = false;
 let currentIsIntermezzoTG = false;
+let currentIsFixedBackground = false;
 let isLowEnd = false;
 
 // ─── Performance Monitoring (Smart Low-End Mode) ───────────────────────────
@@ -277,20 +278,28 @@ function playFolder(folder) {
         }
     }
 
-    // Gestione Sfondo Fisso per TG e Cartella03 (Ottimizzazione Performance)
-    if (currentIsTG || currentIsIntermezzoTG) {
+    // Gestione Sfondo Fisso per Intermezzi (0, 01, 02), cartella03 e TG
+    currentIsFixedBackground = ["cartella0", "cartella01", "cartella02", "cartella03"].includes(folder.cartella) || folder.isTG;
+
+    if (currentIsFixedBackground) {
         let fixedVideo = document.getElementById('fixed-glitch-video');
         if (!fixedVideo) {
             fixedVideo = document.createElement('video');
             fixedVideo.id = 'fixed-glitch-video';
-            fixedVideo.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:2; opacity:0.25; filter:grayscale(100%) contrast(120%); pointer-events:none;';
             fixedVideo.autoplay = true;
             fixedVideo.loop = true;
             fixedVideo.muted = true;
             fixedVideo.playsInline = true;
             guiElements.vhsContainer.appendChild(fixedVideo);
         }
-        fixedVideo.src = 'cartella03/audio03.mp4';
+
+        // Determina il file corretto: audioX.mp4
+        let videoFile = "audio03.mp4"; // Default per TG e cartella03
+        if (folder.cartella === "cartella0") videoFile = "audio0.mp4";
+        else if (folder.cartella === "cartella01") videoFile = "audio01.mp4";
+        else if (folder.cartella === "cartella02") videoFile = "audio02.mp4";
+        
+        fixedVideo.src = `${folder.cartella}/${videoFile}`;
         fixedVideo.style.display = 'block';
         fixedVideo.play().catch(() => {});
     } else {
@@ -610,9 +619,18 @@ function renderTick() {
     ctx.fillStyle = 'rgba(3,3,3,0.45)';
     ctx.fillRect(0, 0, w, h);
 
-    // Disegno Processamento Webcam (Completamente disattivata per TG/Cartella03)
-    if (currentIsTG || currentIsIntermezzoTG) {
+    // Disegno Processamento Webcam (Completamente disattivata per cartelle con video fisso)
+    if (currentIsFixedBackground) {
         guiElements.canvas.style.opacity = '0';
+        
+        // Animazione beat anche per il video fisso background (ribaltato su mobile)
+        const fv = document.getElementById('fixed-glitch-video');
+        if (fv && fv.style.display !== 'none') {
+            const isMobile = window.innerWidth <= 600;
+            const rotation = isMobile ? 'rotate(90deg)' : '';
+            const fvScale = (isMobile ? 1.1 : 1) + (energy / 750);
+            fv.style.transform = `${rotation} scale(${fvScale})`;
+        }
     } else {
         guiElements.canvas.style.opacity = '0.7';
         if (guiElements.camVideo.readyState === guiElements.camVideo.HAVE_ENOUGH_DATA) {
@@ -623,8 +641,8 @@ function renderTick() {
         }
     }
 
-    // Montaggio video — SOLO per i canali radio normali, NO per TG/Cartella03 (ora fisso) o canzoni
-    if (!currentIsSong && !currentIsTG && !currentIsIntermezzoTG && isHardBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
+    // Montaggio video — SOLO per i canali radio normali, NO per cartelle a video fisso o canzoni
+    if (!currentIsSong && !currentIsFixedBackground && isHardBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
         // Su Low-End teniamo solo 1 layer alla volta per risparmiare memoria
         const maxLayers = isLowEnd ? 1 : 2;
         while (guiElements.montageContainer.children.length >= maxLayers) {
