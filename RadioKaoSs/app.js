@@ -11,9 +11,39 @@ let currentIsTG = false;
 let currentIsIntermezzoTG = false;
 const GLITCH_IMAGES_POOL = [
     'cartella03/audio03.mp4',
-
-
+    'giff/eye.gif', // Asset locale sicuro già presente
+    'cartella03/audio03.mp4'
 ];
+
+// ─── Smart Loading System ──────────────────────────────────────────────────
+const prefetchCache = new Set();
+function prefetchNextFolder(index) {
+    const next = queue[index];
+    if (!next) return;
+    
+    // Precaricamento Audio
+    const nextAudioUrl = next.audio ? `${next.cartella}/${next.audio}` : null;
+    if (nextAudioUrl && !prefetchCache.has(nextAudioUrl)) {
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.as = 'audio';
+        link.href = nextAudioUrl;
+        document.head.appendChild(link);
+        prefetchCache.add(nextAudioUrl);
+    }
+
+    // Precaricamento Immagini
+    const images = next.immagini || (next.isTG ? GLITCH_IMAGES_POOL : []);
+    images.forEach(img => {
+        let url = img;
+        if (!url.startsWith('http') && !url.startsWith('immagini/')) url = `${next.cartella}/${url}`;
+        if (!prefetchCache.has(url)) {
+            const i = new Image();
+            i.src = url;
+            prefetchCache.add(url);
+        }
+    });
+}
 
 // ─── Pubblicità — cartelle pronte, audio da aggiungere ──────────────────────
 const PUB_CONFIG = [
@@ -233,7 +263,7 @@ function playFolder(folder) {
 
     // Abbassa il volume per cartella0 e cartella03 come richiesto
     if (gainNode && audioCtx) {
-        const vol = (folder.cartella === "cartella0" || folder.cartella === "cartella03") ? 0.35 : 0.7;
+        const vol = (folder.cartella === "cartella0" || folder.cartella === "cartella03") ? 0.2 : 0.7;
         gainNode.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.1);
     }
 
@@ -275,6 +305,9 @@ function playNext() {
     if (currentIndex >= queue.length) { queue = buildShuffledQueue(); currentIndex = 0; }
     playFolder(queue[currentIndex]);
     currentIndex++;
+    
+    // Smart prefetch dell'elemento successivo
+    prefetchNextFolder(currentIndex);
 }
 
 guiElements.audioElement.addEventListener('ended', playNext);
@@ -545,8 +578,16 @@ function renderTick() {
     // Montaggio video — SOLO per i canali radio, canali intermezzo, etc.
     // Durante il TG e Cartella03 usiamo immagini di glitch (montaggio sempre a ritmo)
     if (!currentIsSong && isHardBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
-        if (guiElements.montageContainer.children.length > 2)
-            guiElements.montageContainer.firstChild.remove();
+        if (guiElements.montageContainer.children.length > 2) {
+            const first = guiElements.montageContainer.firstChild;
+            // Memory Cleanup: svuota src dei video/immagini prima di rimuovere
+            first.querySelectorAll('video, img').forEach(media => {
+                media.src = "";
+                media.load?.();
+                media.remove();
+            });
+            first.remove();
+        }
         const layer = document.createElement('div');
         layer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;mix-blend-mode:normal;';
         if (layoutBeatsLeft <= 0) {
