@@ -265,7 +265,7 @@ function playFolder(folder) {
     if (gainNode && audioCtx) {
         let vol = 0.7;
         if (folder.cartella === "cartella0") vol = 0.2; 
-        else if (folder.cartella === "cartella03") vol = 0.3; // Alzato un po' (era 0.2)
+        else if (folder.cartella === "cartella03") vol = 0.4; // Alzato ancora leggermente
         else if (folder.isTG) vol = 0.55; // Leggermente più basso dello standard
         
         gainNode.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.1);
