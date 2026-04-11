@@ -261,9 +261,13 @@ function playFolder(folder) {
     // Audio path: se isSong, il file è già relativo alla root; altrimenti cartella/audio
     guiElements.audioElement.src = `${folder.cartella}/${folder.audio}`;
 
-    // Abbassa il volume per cartella0 e cartella03 come richiesto
+    // Abbassa il volume per cartella0, cartella03 e TG come richiesto
     if (gainNode && audioCtx) {
-        const vol = (folder.cartella === "cartella0" || folder.cartella === "cartella03") ? 0.2 : 0.7;
+        let vol = 0.7;
+        if (folder.cartella === "cartella0") vol = 0.2; 
+        else if (folder.cartella === "cartella03") vol = 0.3; // Alzato un po' (era 0.2)
+        else if (folder.isTG) vol = 0.55; // Leggermente più basso dello standard
+        
         gainNode.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.1);
     }
 
