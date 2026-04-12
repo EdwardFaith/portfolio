@@ -421,6 +421,7 @@ html {
 
 #rk-toggle,
 #rk-skip,
+#rk-prev,
 #rk-playpause {
     position: fixed;
     top: 16px;
@@ -455,8 +456,13 @@ html {
     right: 120px;
 }
 
+#rk-prev {
+    right: 172px;
+}
+
 #rk-toggle:hover,
 #rk-skip:hover,
+#rk-prev:hover,
 #rk-playpause:hover {
     border-color: #7f1d1d;
     color: #ff8888;
@@ -566,10 +572,11 @@ html {
 
     #rk-toggle,
     #rk-skip,
+    #rk-prev,
     #rk-playpause {
         top: auto;
         bottom: 0;
-        width: 33.33%;
+        width: 25%;
         height: 56px;
         /* Slightly taller for touch */
         border-top: 1px solid #3b0a0a;
@@ -587,14 +594,20 @@ html {
         color: #cc6666;
     }
 
-    #rk-skip {
+    #rk-prev {
         left: 0;
         right: auto;
         border-right: 1px solid #1a1a1a;
     }
 
+    #rk-skip {
+        left: 50%;
+        right: auto;
+        border-right: 1px solid #1a1a1a;
+    }
+
     #rk-playpause {
-        left: 33.33%;
+        left: 25%;
         right: auto;
         border-right: 1px solid #1a1a1a;
         font-size: 20px;

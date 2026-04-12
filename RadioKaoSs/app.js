@@ -218,6 +218,28 @@ function initAudio() {
     gainNode.connect(analyser); analyser.connect(audioCtx.destination);
     analyser.fftSize = 512;
     dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    // Media Session Setup
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => {
+            guiElements.audioElement.play();
+            navigator.mediaSession.playbackState = "playing";
+            const pp = document.getElementById('rk-playpause');
+            if (pp) pp.innerHTML = '&#10074;&#10074;';
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+            guiElements.audioElement.pause();
+            navigator.mediaSession.playbackState = "paused";
+            const pp = document.getElementById('rk-playpause');
+            if (pp) pp.innerHTML = '&#9654;';
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+            playNext();
+        });
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+            playPrevious();
+        });
+    }
 }
 function restoreGain() {
     if (!gainNode || !audioCtx) return;
@@ -242,6 +264,31 @@ function showSongBg() {
 }
 function hideSongBg() {
     if (songBgEl) songBgEl.style.display = 'none';
+}
+
+function updateMediaSession(folder) {
+    if ('mediaSession' in navigator) {
+        let artwork = [
+            { src: 'giff/scritta.jpeg', sizes: '512x512', type: 'image/jpeg' }
+        ];
+
+        // Se abbiamo immagini nella cartella, proviamo a usarne una come artwork
+        if (folder.immagini && folder.immagini.length > 0) {
+            let img = folder.immagini[0];
+            if (!img.startsWith('http') && !img.startsWith('immagini/')) img = `${folder.cartella}/${img}`;
+            // Solo se non è un video
+            if (!img.toLowerCase().endsWith('.mp4') && !img.toLowerCase().endsWith('.webm')) {
+                artwork.push({ src: img, sizes: '512x512', type: 'image/jpeg' });
+            }
+        }
+
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: folder.titolo || 'Trasmissione Radio',
+            artist: 'Radio Kaoss',
+            album: 'Radio Kaoss Live',
+            artwork: artwork
+        });
+    }
 }
 
 function playFolder(folder) {
@@ -317,7 +364,7 @@ function playFolder(folder) {
     // Abbassa il volume per cartella0, cartella03 e TG come richiesto
     if (gainNode && audioCtx) {
         let vol = 0.7;
-        if (folder.cartella === "cartella0") vol = 0.2; 
+        if (folder.cartella === "cartella0") vol = 0.35; 
         else if (folder.cartella === "cartella03") vol = 0.4;
         else if (folder.isTG) vol = 0.45; // Abbassato ulteriormente per TG
         
@@ -355,6 +402,11 @@ function playFolder(folder) {
     // Update Play/Pause button icon state
     const pp = document.getElementById('rk-playpause');
     if (pp) pp.innerHTML = '&#10074;&#10074;';
+
+    updateMediaSession(folder);
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = "playing";
+    }
 }
 
 function playNext() {
@@ -365,6 +417,14 @@ function playNext() {
     
     // Smart prefetch dell'elemento successivo
     prefetchNextFolder(currentIndex);
+}
+
+function playPrevious() {
+    if (queue.length === 0) return;
+    currentIndex -= 2; // -1 per tornare all'attuale, -1 per il precedente
+    if (currentIndex < 0) currentIndex = 0;
+    playFolder(queue[currentIndex]);
+    currentIndex++;
 }
 
 guiElements.audioElement.addEventListener('ended', playNext);
@@ -401,6 +461,17 @@ function initTracking() {
 // ─── Menu unificato (tendina dall'alto) ───────────────────────────────────────
 function buildMenu() {
     if (document.getElementById('rk-toggle')) return;
+
+    // Bottone PREV
+    const prev = document.createElement('button');
+    prev.id = 'rk-prev';
+    prev.innerHTML = '&laquo;';
+    prev.title = 'PREV';
+    prev.addEventListener('click', (e) => {
+        e.stopPropagation();
+        playPrevious();
+    });
+    document.body.appendChild(prev);
 
     // Bottone SKIP - Solo freccia
     const skip = document.createElement('button');
