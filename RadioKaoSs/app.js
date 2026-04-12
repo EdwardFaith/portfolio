@@ -50,8 +50,8 @@ function prefetchNextFolder(index) {
         prefetchCache.add(nextAudioUrl);
     }
 
-    // Precaricamento Immagini - Disattivato su Low-End per risparmiare RAM/Bandwidth
-    if (isLowEnd) return;
+    // Precaricamento Immagini - Disattivato su Low-End o in background per risparmiare risorse
+    if (isLowEnd || document.hidden) return;
 
     const images = next.immagini || (next.isTG ? GLITCH_IMAGES_POOL : []);
     images.forEach(img => {
@@ -268,25 +268,13 @@ function hideSongBg() {
 
 function updateMediaSession(folder) {
     if ('mediaSession' in navigator) {
-        let artwork = [
-            { src: 'giff/scritta.jpeg', sizes: '512x512', type: 'image/jpeg' }
-        ];
-
-        // Se abbiamo immagini nella cartella, proviamo a usarne una come artwork
-        if (folder.immagini && folder.immagini.length > 0) {
-            let img = folder.immagini[0];
-            if (!img.startsWith('http') && !img.startsWith('immagini/')) img = `${folder.cartella}/${img}`;
-            // Solo se non è un video
-            if (!img.toLowerCase().endsWith('.mp4') && !img.toLowerCase().endsWith('.webm')) {
-                artwork.push({ src: img, sizes: '512x512', type: 'image/jpeg' });
-            }
-        }
-
+        // Artwork rimosso su richiesta dell'utente per evitare immagini sul display a schermo spento
+        // e migliorare la stabilità del collegamento in background (evita caricamenti extra).
         navigator.mediaSession.metadata = new MediaMetadata({
             title: folder.titolo || 'Trasmissione Radio',
             artist: 'Radio Kaoss',
             album: 'Radio Kaoss Live',
-            artwork: artwork
+            artwork: [] // Inviato vuoto per assicurarsi che non vengano usate immagini di default o cache
         });
     }
 }
@@ -635,7 +623,7 @@ guiElements.canvas.height = window.innerHeight;
 
 function renderTick() {
     requestAnimationFrame(renderTick);
-    if (guiElements.vhsContainer.style.display === 'none') return;
+    if (guiElements.vhsContainer.style.display === 'none' || document.hidden) return;
 
     let energy = 0;
     if (analyser) {
