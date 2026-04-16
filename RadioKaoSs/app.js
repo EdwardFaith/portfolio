@@ -368,7 +368,7 @@ function playFolder(folder) {
         showSongBg();
     } else {
         hideSongBg();
-        // ─── GESTIONE VIDEO PERSISTENTE TG DEL COSMO ───
+        // ─── GESTIONE MEDIA PERSISTENTI (TG DEL COSMO & GIF) ───
         const persistentTg = document.getElementById('persistent-tg-video');
         if (persistentTg) {
             if (currentIsTG) {
@@ -382,13 +382,25 @@ function playFolder(folder) {
             }
         }
 
+        const persistentGiff = document.getElementById('persistent-giff-video');
+        if (persistentGiff) {
+            const isCartellaAudio = folder.cartella.match(/^cartella([2-9]|1[0-5])$/);
+            if (isCartellaAudio) {
+                persistentGiff.src = `giff/${Math.floor(Math.random() * 3) + 1}.gif`;
+                persistentGiff.style.display = 'block';
+            } else {
+                persistentGiff.style.display = 'none';
+                persistentGiff.src = '';
+            }
+        }
+
         // Logica per TG e Cartella03: Video base + pool di immagini oculari
         if (currentIsTG || currentIsIntermezzoTG) {
             currentFolderImages = [...GLITCH_IMAGES_POOL];
             beatCooldown = 0;
         } else {
             currentFolderImages = (folder.immagini || []).map(img => {
-                if (img.startsWith('http') || img.startsWith('immagini/')) return img;
+                if (img.startsWith('http') || img.startsWith('immagini/') || img.startsWith('giff/')) return img;
                 return `${folder.cartella}/${img}`;
             });
         }

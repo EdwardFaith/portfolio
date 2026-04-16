@@ -46,8 +46,9 @@
         <div id="content-container">
             <!-- Images montage layer (div for multiple overlapping dynamically spawned images) -->
             <div id="montage-container"></div>
-            <!-- Persistent video for TG -->
+            <!-- Persistent media extensions -->
             <video id="persistent-tg-video" autoplay loop muted playsinline style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:3; opacity:0.35; filter:grayscale(100%) contrast(150%); pointer-events:none;"></video>
+            <img id="persistent-giff-video" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:2; opacity:0.6; mix-blend-mode: screen; pointer-events:none;">
         </div>
 
         <!-- CRT Effects Overlay -->
