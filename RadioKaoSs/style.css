@@ -668,3 +668,72 @@ html {
         border-radius: 4vmin;
     }
 }
+
+/* ─── NATIVE CURSOR AUTO-HIDE & PROGRESS BAR ─── */
+body.hide-cursor, body.hide-cursor * {
+    cursor: none !important;
+}
+
+/* Audio Progress Container */
+#audio-progress-container {
+    position: fixed;
+    bottom: 30px; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    max-width: 700px;
+    z-index: 9000;
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
+    pointer-events: none; /* Disable when hidden */
+}
+@media (max-width: 600px) {
+    #audio-progress-container {
+        bottom: 75px; /* Sopra ai controlli su telefono */
+    }
+}
+#audio-progress-container.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Range input styling */
+#audio-progress {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer; 
+}
+#audio-progress::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+#audio-progress::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    background: #fff;
+    border-radius: 50%;
+    margin-top: -8px;
+    box-shadow: 0 0 10px rgba(255,255,255,0.8);
+}
+#audio-progress::-moz-range-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+#audio-progress::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    border: none;
+}

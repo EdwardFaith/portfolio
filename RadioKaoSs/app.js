@@ -88,7 +88,7 @@ const SONGS_CONFIG = [
     { cartella: "canzoni", audio: "la paura di finire.mpeg", titolo: "La Paura di Finire", isSong: true },
     { cartella: "canzoni", audio: "napoleone.mpeg", titolo: "Napoleone", isSong: true },
     { cartella: "canzoni", audio: "mortem.MP3", titolo: "Mortem", isSong: true },
-    { cartella: "canzoni", audio: "oggi non resto.mp3", titolo: "Oggi Non Resto", isSong: true },
+    { cartella: "canzoni", audio: "La fantasia.mp3", titolo: "La Fantasia", isSong: true },
     { cartella: "canzoni", audio: "per un tempo futuro.mpeg", titolo: "Per un Tempo Futuro", isSong: true },
     { cartella: "canzoni", audio: "satan.MP3", titolo: "Satan", isSong: true },
     { cartella: "canzoni", audio: "sei sicura.MP3", titolo: "Sei Sicura", isSong: true },
@@ -368,15 +368,24 @@ function playFolder(folder) {
         showSongBg();
     } else {
         hideSongBg();
+        // ─── GESTIONE VIDEO PERSISTENTE TG DEL COSMO ───
+        const persistentTg = document.getElementById('persistent-tg-video');
+        if (persistentTg) {
+            if (currentIsTG) {
+                persistentTg.src = 'cartella03/audio03.mp4';
+                persistentTg.style.display = 'block';
+                persistentTg.play().catch(e => console.log('Persistent TG non partito:', e));
+            } else {
+                persistentTg.pause();
+                persistentTg.style.display = 'none';
+                persistentTg.src = '';
+            }
+        }
+
         // Logica per TG e Cartella03: Video base + pool di immagini oculari
         if (currentIsTG || currentIsIntermezzoTG) {
             currentFolderImages = [...GLITCH_IMAGES_POOL];
             beatCooldown = 0;
-            // Se siamo nel TG, forziamo il video di base spesso
-            if (currentIsTG) {
-                currentFolderImages.push('cartella03/audio03.mp4');
-                currentFolderImages.push('cartella03/audio03.mp4');
-            }
         } else {
             currentFolderImages = (folder.immagini || []).map(img => {
                 if (img.startsWith('http') || img.startsWith('immagini/')) return img;
@@ -418,13 +427,21 @@ function playPrevious() {
 guiElements.audioElement.addEventListener('ended', playNext);
 guiElements.audioElement.addEventListener('error', playNext);
 
-// Dissolvenza negli ultimi 2 secondi — NON su cartella0
+// Aggiornamento progress bar barra audio e dissolvenza
 guiElements.audioElement.addEventListener('timeupdate', () => {
-    if (!gainNode || !audioCtx) return;
-    if (currentFolderData?.cartella === "cartella0") return; // nessuna dissolvenza per l'intermezzo
     const a = guiElements.audioElement;
     if (!a.duration || isNaN(a.duration)) return;
     const rem = a.duration - a.currentTime;
+
+    // Sync audio progress bar
+    const progBar = document.getElementById('audio-progress');
+    if (progBar && !progBar.isDragging) {
+        progBar.value = (a.currentTime / a.duration) * 100;
+    }
+
+    if (!gainNode || !audioCtx) return;
+    if (currentFolderData?.cartella === "cartella0") return; // nessuna dissolvenza per l'intermezzo
+    
     if (rem <= 2.0 && rem > 0) gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
 });
 
@@ -700,8 +717,15 @@ function renderTick() {
         }
     }
 
+    let isCrazyCartella1 = currentFolderData?.cartella === 'cartella1' && guiElements.audioElement.currentTime >= 87;
+    let forceBeat = isHardBeat;
+    if (isCrazyCartella1) {
+        // Su cartella1 oltre 1:27 forceBeat sempre true per fare impazzire il montaggio
+        forceBeat = true;
+    }
+
     // Montaggio video — SOLO per i canali radio normali, NO per cartelle a video fisso o canzoni
-    if (!currentIsSong && !currentIsFixedBackground && isHardBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
+    if (!currentIsSong && !currentIsFixedBackground && forceBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
         // Su Low-End teniamo solo 1 layer alla volta per risparmiare memoria
         const maxLayers = isLowEnd ? 1 : 2;
         while (guiElements.montageContainer.children.length >= maxLayers) {
@@ -715,7 +739,8 @@ function renderTick() {
             first.remove();
         }
         const layer = document.createElement('div');
-        layer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;mix-blend-mode:normal;';
+        let blend = isCrazyCartella1 ? 'hard-light' : 'normal';
+        layer.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;mix-blend-mode:${blend};`;
         if (layoutBeatsLeft <= 0) {
             const s = ['single', 'single', 'single', 'splitV', 'splitH', 'grid4'];
             currentLayout = s[Math.floor(Math.random() * s.length)];
@@ -728,9 +753,45 @@ function renderTick() {
             const useCamera = Math.random() > 0.95;
             let imgSrc = '';
             if (!useCamera) {
-                imgSrc = currentFolderImages[Math.floor(Math.random() * currentFolderImages.length)];
-                if (imgSrc?.startsWith('http') && !imgSrc.includes('.gif'))
+                let pool = currentFolderImages;
+                if (isCrazyCartella1) {
+                    let cTime = guiElements.audioElement.currentTime;
+                    let storyKeywords = [];
+                    let extraGifs = [];
+                    // La fase apocalittica deve entrare molto prima! Scaliamo tutta la cronologia.
+                    if (cTime < 97) {
+                        storyKeywords = ["ape", "monkey", "chimpanzee", "jungle", "primitive"];
+                    } else if (cTime < 107) {
+                        storyKeywords = ["tribe", "indigenous", "spear", "hunter", "warriors"];
+                    } else if (cTime < 120) {
+                        storyKeywords = ["roman", "gladiator", "sword", "knight", "battle", "blood", "iron"];
+                    } else if (cTime < 140) {
+                        storyKeywords = ["trench", "ww1", "rifle", "factory", "commerce", "industry", "guns"];
+                    } else {
+                        // Da 140 secondi (2 min 20s) fino alla fine, dominio apocalittico (guerra e trump)
+                        storyKeywords = ["dictator", "trump", "putin", "army", "nuclear", "war", "massacre", "destruction", "weapons"];
+                        // Inseriamo le GIF nucleari aggiunte dall'utente e le facciamo apparire spessissimo
+                        extraGifs = [
+                            "cartella1/atomic-bomb.gif", 
+                            "cartella1/bombaatomi_nuxp91ui.gif", 
+                            "cartella1/explosion-explode.gif", 
+                            "cartella1/nbWJan.gif"
+                        ];
+                    }
+                    // Limitiamo il fetching a 8 varianti (random=1..8) per non distruggere la rete
+                    pool = storyKeywords.map(k => `https://loremflickr.com/800/600/${k}?random=${Math.floor(Math.random() * 8)}`);
+                    if (extraGifs.length > 0) {
+                        // Diamo un peso enorme alle gif nella selezione randomica e aggiungiamo più varianti
+                        pool = pool.concat(extraGifs, extraGifs, extraGifs, extraGifs);
+                    }
+                }
+                
+                imgSrc = pool[Math.floor(Math.random() * pool.length)];
+                
+                // Aggiungiamo r= solo se non è già il pool di cartella1 generato qui sopra
+                if (!isCrazyCartella1 && imgSrc?.startsWith('http') && !imgSrc.includes('.gif')) {
                     imgSrc += (imgSrc.includes('?') ? '&' : '?') + 'r=' + Math.random().toString(36).substring(7) + Date.now();
+                }
             }
             let el;
             if (useCamera) {
@@ -751,23 +812,38 @@ function renderTick() {
                 el.onerror = () => el.remove();
                 el.src = imgSrc;
             }
-            // Opacità ridotta per cartelle 2-15 come richiesto
+            // Opacità e Filtri Speciali
             let targetOpacity = 0.65;
-            const folderNum = parseInt(currentFolderData?.cartella.replace('cartella', ''));
-            if (folderNum >= 2 && folderNum <= 15) targetOpacity = 0.35;
-
-            // Logica TG: Ancora più trasparente e instabile per evitare "immagini fisse"
-            if (currentIsTG) targetOpacity = 0.22;
+            let currentContrast = 110 + Math.floor(Math.random() * 80);
+            let filterStr = `contrast(${currentContrast}%) grayscale(100%)`;
+            
+            if (currentFolderData?.cartella === 'pub-lucidus') {
+                targetOpacity = 0.85; // Più visibile per Lucidus
+                currentContrast = 100; // Nessun contrasto forzato
+                filterStr = `contrast(${currentContrast}%) grayscale(100%)`;
+            } else if (isCrazyCartella1) {
+                targetOpacity = 0.6 + Math.random() * 0.25; 
+                currentContrast = 130 + Math.random() * 100;
+                let redShift = `sepia(${50 + Math.random() * 50}%) hue-rotate(-20deg)`;
+                filterStr = `contrast(${currentContrast}%) grayscale(${40 + Math.random() * 40}%) ${redShift} brightness(${70 + Math.random() * 50}%)`;
+            } else {
+                const folderNum = parseInt(currentFolderData?.cartella.replace('cartella', ''));
+                if (folderNum >= 2 && folderNum <= 15) targetOpacity = 0.35;
+                if (currentIsTG) targetOpacity = 0.22;
+                filterStr = `contrast(${currentContrast}%) grayscale(100%)`;
+            }
 
             el.className = 'montage-base-img';
-            el.style.cssText = `transition:transform 12s ease-out;transform:scale(1.05);filter:contrast(${110 + Math.floor(Math.random() * 80)}%) grayscale(100%);opacity:${targetOpacity};`;
+            el.style.cssText = `transition:transform 12s ease-out;transform:scale(1.05);filter:${filterStr};opacity:${targetOpacity};`;
             layer.appendChild(el);
             setTimeout(() => { if (el) el.style.transform = 'scale(1.15)'; }, 50);
         }
         guiElements.montageContainer.appendChild(layer);
 
-        // Cooldown molto basso per il TG per renderlo frenetico e non statico
-        if (currentIsTG) {
+        // Cooldown
+        if (isCrazyCartella1) {
+            beatCooldown = 45; // Cambio ogni ~0.7s: permette il caricamento delle GIF e immagini senza pesare
+        } else if (currentIsTG) {
             beatCooldown = 4 + Math.floor(Math.random() * 8);
         } else {
             beatCooldown = Math.random() > 0.7 ? 20 : Math.random() > 0.2 ? 70 : 150;
@@ -776,3 +852,47 @@ function renderTick() {
     if (beatCooldown > 0) beatCooldown--;
 }
 requestAnimationFrame(renderTick);
+
+// ─── UI INTERACTIONS: AUTO-HIDE CURSOR & PROGRESS BAR ───
+const progressContainer = document.getElementById('audio-progress-container');
+const progressBar = document.getElementById('audio-progress');
+let uiTimeout = null;
+
+function showUI() {
+    // Show normal cursor
+    document.body.classList.remove('hide-cursor');
+    
+    // Mostra la barra audio solo se è partita l'app (currentFolderData esiste) e non siamo nell'intermezzo ("cartella0")
+    if (currentFolderData && currentFolderData.cartella !== "cartella0") {
+        progressContainer.classList.add('visible');
+    }
+
+    clearTimeout(uiTimeout);
+    uiTimeout = setTimeout(() => {
+        progressContainer.classList.remove('visible');
+        // Hide native cursor after 0.8 seconds of inactivity (quasi immediato)
+        document.body.classList.add('hide-cursor');
+    }, 800);
+}
+
+// Mouse interaction (Desktop + Mobile fallback)
+window.addEventListener('mousemove', showUI);
+
+// Touch interaction (Mobile)
+window.addEventListener('touchstart', showUI, { passive: true });
+window.addEventListener('touchmove', showUI, { passive: true });
+window.addEventListener('click', showUI);
+
+// Audio Seeking Logic
+progressBar.addEventListener('input', (e) => {
+    progressBar.isDragging = true;
+});
+
+progressBar.addEventListener('change', (e) => {
+    const a = guiElements.audioElement;
+    if (a.duration && !isNaN(a.duration)) {
+        a.currentTime = (progressBar.value / 100) * a.duration;
+    }
+    progressBar.isDragging = false;
+});
+

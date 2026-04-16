@@ -1494,14 +1494,26 @@
             useEffect(() => {
                 const handleScroll = () => {
                     const sections = ['home', 'kaoss', 'cosmo', 'visual-ai', 'games', 'illustrations', 'materials', 'portfolio', 'bio', 'contact'];
-                    const scrollPosition = window.scrollY + 100;
-
-                    for (const section of sections) {
-                        const element = document.getElementById(section);
-                        if (element && element.offsetTop <= scrollPosition && (element.offsetTop + element.offsetHeight) > scrollPosition) {
-                            setActiveSection(section);
-                        }
+                    
+                    // Controllo immediato fondo pagina (Contatti)
+                    const isBottom = (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100;
+                    if (isBottom) {
+                        setActiveSection('contact');
+                        return;
                     }
+
+                    let current = 'home';
+                    sections.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            const rect = el.getBoundingClientRect();
+                            // Se la cima della sezione ha superato la parte alta del viewport (con margine)
+                            if (rect.top <= 150) {
+                                current = id;
+                            }
+                        }
+                    });
+                    setActiveSection(current);
                 };
                 window.addEventListener('scroll', handleScroll);
                 return () => window.removeEventListener('scroll', handleScroll);
