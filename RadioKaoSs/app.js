@@ -852,13 +852,14 @@ function renderTick() {
         }
         guiElements.montageContainer.appendChild(layer);
 
-        // Cooldown
+        // Cooldown: Su mobile (Low-End) raddoppiamo i tempi d'attesa per evitare lag estremo da DOM reflow
         if (isCrazyCartella1) {
-            beatCooldown = 45; // Cambio ogni ~0.7s: permette il caricamento delle GIF e immagini senza pesare
+            beatCooldown = isLowEnd ? 85 : 45; // Cambio leggermente più lento su cellulare
         } else if (currentIsTG) {
-            beatCooldown = 4 + Math.floor(Math.random() * 8);
+            beatCooldown = isLowEnd ? 14 + Math.floor(Math.random() * 12) : 4 + Math.floor(Math.random() * 8);
         } else {
             beatCooldown = Math.random() > 0.7 ? 20 : Math.random() > 0.2 ? 70 : 150;
+            if (isLowEnd) beatCooldown = Math.floor(beatCooldown * 1.8);
         }
     }
     if (beatCooldown > 0) beatCooldown--;
