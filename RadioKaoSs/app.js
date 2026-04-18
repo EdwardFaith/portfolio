@@ -86,7 +86,7 @@ const SONGS_CONFIG = [
     { cartella: "canzoni", audio: "e ritorna il giorno.mpeg", titolo: "E Ritorna il Giorno", isSong: true },
     { cartella: "canzoni", audio: "icaro.mpeg", titolo: "Icaro", isSong: true },
     { cartella: "canzoni", audio: "la paura di finire.mpeg", titolo: "La Paura di Finire", isSong: true },
-    { cartella: "canzoni", audio: "napoleone.mpeg", titolo: "Napoleone", isSong: true },
+    { cartella: "canzoni", audio: "non voglio.mpeg", titolo: "Non Voglio", isSong: true },
     { cartella: "canzoni", audio: "mortem.MP3", titolo: "Mortem", isSong: true },
     { cartella: "canzoni", audio: "La fantasia.mp3", titolo: "La Fantasia", isSong: true },
     { cartella: "canzoni", audio: "per un tempo futuro.mpeg", titolo: "Per un Tempo Futuro", isSong: true },

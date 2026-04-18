@@ -30,17 +30,17 @@ RADIO_CONFIG.push({
 
 // Temi aggiornati secondo le tue indicazioni
 const temiOrizzontali = [
-    // 2: Dio e Suicidio
+    // 2: Memorie del Bosco
     ["god", "spirituality", "divine", "heaven", "suicide", "despair", "rope", "razor", "cliff", "bridge", "sadness", "revelation"],
-    // 3: Diavolo e Satan
+    // 3: Satan
     ["devil", "satan", "lucifer", "demons", "hell", "inferno", "dante", "fire", "horns", "pentagram", "occult", "underworld"],
-    // 4: Luce e Fragilità
+    // 4: Lettera di Dio
     ["lamp", "chandelier", "light", "god", "fragility", "poetry", "notes", "glass", "crystal", "illumination", "handwriting", "broken"],
-    // 5: Morte e Insetti
+    // 5: Installazione Morte
     ["death", "ants", "insects", "anthill", "computer", "genocide", "war_crimes", "skeleton", "decay", "colony", "biology", "human_extinction"],
-    // 6: Delirio e Orrore
+    // 6: Appunti di Dio
     ["devil", "teeth", "dentist", "bombing", "horror", "presence", "delirium", "mental_asylum", "shouting", "pain", "claws", "extraction"],
-    // 7: Angoscia e Radio
+    // 7: Radio KaOsS
     ["radio", "cinema", "suicide", "psychiatry", "pain", "entropy", "anguish", "microphone", "theater", "electroshock", "isolation", "static"],
     // 8: Margherita
     ["daisy", "margherita", "flower", "imaginary_friend", "kids_drawing", "garden", "innocence", "memory", "petal", "sunlight", "friendship"],
@@ -50,11 +50,11 @@ const temiOrizzontali = [
     ["child", "boy", "rabbit", "fox", "death", "evening", "woods", "forest", "dark_woods", "animals", "fairy_tale", "dusk"],
     // 11: Fiaba e Tragedia
     ["rabbit", "snail", "spider", "god", "nietzsche", "fair", "comedy", "tragedy", "fantasy", "fairy_tale", "roses", "carnival", "philosophy"],
-    // 12: Potenti e Danza
+    // 12: Simbolo
     ["rabbit", "spider", "disco", "dance", "trump", "powerful", "mass", "dancing", "politicians", "party", "clubbing", "crowd"],
-    // 13: Paura e Simboli
+    // 13: Assedio
     ["rabbits", "snails", "symbols", "cartoons", "clown", "fear", "brain", "wheat_ears", "clown_horror", "mickey_mouse", "occult_symbols", "mind"],
-    // 14: Depressione e Ragni
+    // 14: È Sempre Vero
     ["fear", "rabbits", "snails", "spiders", "isolation", "depression", "alcoholism", "whiskey", "loneliness", "web", "basement", "trapped"],
     // 15: Conigli e Ragni
     ["rabbits", "snails", "spiders", "infestation", "multiplication", "swarm", "web", "fur", "shell", "garden_horror", "nature_dark", "creepy_crawly"]
@@ -76,19 +76,19 @@ const tueImmaginiCreate = [
 for(let i = 2; i <= 15; i++) {
     let tags = temiOrizzontali[i-2];
     const titoli = [
-        "Dio e Suicidio",      // 2
-        "Il Pozzo",            // 3
-        "Fragilità",           // 4
-        "Genocidio",           // 5
-        "Delirio",             // 6
-        "Angoscia",            // 7
+        "Memorie del Bosco",   // 2
+        "Satan",               // 3
+        "Lettera di Dio",      // 4
+        "Installazione Morte", // 5
+        "Appunti di Dio",      // 6
+        "Radio KaOsS",         // 7
         "Margherita",          // 8
         "Luna e Vomito",       // 9
         "Il Fanciullo",        // 10
         "Commedia e Tragedia", // 11
-        "Potenti alla Danza",  // 12
-        "Cervello",            // 13
-        "Alcolismo",           // 14
+        "Simbolo",             // 12
+        "Assedio",             // 13
+        "È Sempre Vero",       // 14
         "Infestazione"         // 15
     ];
     RADIO_CONFIG.push({
