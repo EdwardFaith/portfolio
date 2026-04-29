@@ -238,10 +238,10 @@
                     onClick={handleClick}
                     className={`relative bg-neutral-900 border border-neutral-800 flex items-center justify-center group cursor-pointer overflow-hidden ${extraClass}`}
                 >
-                    <div className="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-all z-10"></div>
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all z-10"></div>
                     {/* Dynamic Thumbnail */}
                     <div
-                        className="absolute inset-0 bg-cover bg-center opacity-30 group-hover:scale-[1.02] transition-transform duration-700"
+                        className="absolute inset-0 bg-cover bg-center opacity-70 group-hover:scale-[1.02] transition-transform duration-700"
                         style={isVisible ? { backgroundImage: `url('${thumbnailUrl}')` } : {}}
                     ></div>
 
@@ -932,7 +932,7 @@
                 {
                     id: 3,
                     title: "Il Diavolo",
-                    theme: "",
+                    theme: "Satan rimembro diablos confermo",
                     desc: "Dio per il troppo imbarazzo ha deciso di lanciarsi dalla sua finestra. Il Diavolo, uscito dall'inferno, si è messo a vendere lampade per denti da latte.",
                     clipLabel: "Teaser Ep. 03",
                     fullVidUrl: "https://youtu.be/DhydWPXKyUo?si=dVrtQT7BsC0C04hp",
@@ -1204,17 +1204,17 @@
                             </div>
                             <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
                                 <div className="aspect-video mb-4 relative overflow-hidden">
-                                    <VideoPlaceholder label="Radio KaOsS !" extraClass="w-full h-full" videoId="brKG9cwOlRs" />
-                                </div>
-                                <h4 className="text-white font-bold text-lg">Radio KaOsS !</h4>
-                                <p className="text-neutral-500 text-sm">Episodio 1</p>
-                            </div>
-                            <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
-                                <div className="aspect-video mb-4 relative overflow-hidden">
                                     <VideoPlaceholder label="Radio KaOsS !!" extraClass="w-full h-full" videoId="J8TPWD2xSUk" />
                                 </div>
                                 <h4 className="text-white font-bold text-lg">Radio KaOsS !!</h4>
                                 <p className="text-neutral-500 text-sm">Episodio 2</p>
+                            </div>
+                            <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
+                                <div className="aspect-video mb-4 relative overflow-hidden">
+                                    <VideoPlaceholder label="Radio KaOsS !" extraClass="w-full h-full" videoId="brKG9cwOlRs" />
+                                </div>
+                                <h4 className="text-white font-bold text-lg">Radio KaOsS !</h4>
+                                <p className="text-neutral-500 text-sm">Episodio 1</p>
                             </div>
                             <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
                                 <div className="aspect-video mb-4 relative overflow-hidden">
