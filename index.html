@@ -935,7 +935,7 @@
                     theme: "",
                     desc: "Dio per il troppo imbarazzo ha deciso di lanciarsi dalla sua finestra. Il Diavolo, uscito dall'inferno, si è messo a vendere lampade per denti da latte.",
                     clipLabel: "Teaser Ep. 03",
-                    fullVidUrl: "https://youtu.be/DSSlnXeicsQ",
+                    fullVidUrl: "https://youtu.be/DhydWPXKyUo?si=dVrtQT7BsC0C04hp",
                     videos: ["DSSlnXeicsQ", "TzRSjsjwbbY", "aSD5oB4C2k0"]
                 },
                 {
@@ -1053,7 +1053,6 @@
                                             <span className="text-4xl font-bold text-neutral-800">0{ep.id}</span>
                                             <h3 className="text-2xl font-bold text-white uppercase">
                                                 {ep.title}
-                                                {ep.id === 3 && <span className="block text-xs text-red-500 italic lowercase mt-1 font-normal opacity-80 decoration-0">ancora in lavorazione...</span>}
                                             </h3>
                                         </div>
                                         {ep.theme && <p className="text-red-500 font-mono text-xs uppercase mb-4 tracking-wider">{ep.theme}</p>}
@@ -1195,7 +1194,14 @@
                             <Icons.Film className="text-red-600 w-6 h-6" />
                             <span className="uppercase tracking-widest">Cortometraggi</span>
                         </h3>
-                        <div className="grid md:grid-cols-3 gap-8">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                            <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
+                                <div className="aspect-video mb-4 relative overflow-hidden">
+                                    <VideoPlaceholder label="Radio KaOsS !!!" extraClass="w-full h-full" videoId="DhydWPXKyUo" />
+                                </div>
+                                <h4 className="text-white font-bold text-lg">Radio KaOsS !!!</h4>
+                                <p className="text-neutral-500 text-sm">Episodio 3</p>
+                            </div>
                             <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
                                 <div className="aspect-video mb-4 relative overflow-hidden">
                                     <VideoPlaceholder label="Radio KaOsS !" extraClass="w-full h-full" videoId="brKG9cwOlRs" />
