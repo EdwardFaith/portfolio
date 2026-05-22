@@ -62,7 +62,7 @@
 
     <!-- Google Fonts -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;700&family=Cinzel:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
         rel="stylesheet">
 
     <style>
@@ -101,12 +101,9 @@
         h2,
         h3,
         .brand-font {
-            font-family: 'Syncopate', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             text-transform: uppercase;
-        }
-
-        .serif-font {
-            font-family: 'Cinzel', serif;
+            letter-spacing: 0.05em;
         }
 
         .section-title {
@@ -379,7 +376,7 @@
         };
 
         const Hero = () => (
-            <section id="home" className="relative h-[65vh] md:h-screen flex flex-col items-center justify-center overflow-hidden bg-black px-4">
+            <section id="home" className="relative h-[75vh] md:h-[80vh] flex flex-col items-center justify-center overflow-hidden bg-black px-4">
                 {/* Background Image */}
                 <div className="absolute inset-0 z-0">
                     <video
@@ -388,113 +385,122 @@
                         muted
                         playsInline
                         src="gioco-dito/bg.mp4"
-                        className="w-full h-full object-cover object-center opacity-40 filter grayscale contrast-125"
+                        className="w-full h-full object-cover object-center opacity-50 filter grayscale contrast-125"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20"></div>
+                    {/* Gradient overlay for seamless blending at top and bottom */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black z-10"></div>
                 </div>
 
-                <div className="relative z-10 text-center max-w-6xl mx-auto mix-blend-screen">
-                    <h1 className="brand-font text-5xl md:text-8xl lg:text-9xl font-bold text-white mb-2 tracking-tighter leading-none">
+                <div className="relative z-10 text-center max-w-6xl mx-auto mix-blend-screen flex flex-col items-center justify-center">
+                    <h1 className="brand-font text-6xl md:text-8xl lg:text-9xl font-bold text-white mb-3 tracking-tighter leading-none">
                         E.B
                     </h1>
 
-                    <p className="text-red-600 font-mono text-xs md:text-sm uppercase tracking-[0.3em] font-bold mb-12">
+                    <p className="text-red-600 font-mono text-xs md:text-sm uppercase tracking-[0.3em] font-bold mb-6">
                         EMANUELE BACCIGALUPI PORTFOLIO
                     </p>
 
+                    <div className="w-12 h-[1px] bg-red-600/60 my-4"></div>
 
-
-
+                    <h2 className="text-neutral-300 text-xs md:text-sm lg:text-base uppercase tracking-[0.2em] font-medium max-w-2xl mx-auto leading-relaxed mt-2">
+                        Artista Indipendente & Designer Multidisciplinare
+                    </h2>
                 </div>
             </section>
         );
 
         const IntroSection = ({ scrollToContact, scrollToBio, scrollToSection }) => (
-            <section className="py-12 md:py-20 bg-black border-b border-neutral-900">
+            <section className="pt-24 pb-16 md:pt-36 md:pb-24 bg-black border-b border-neutral-900">
                 <div className="max-w-5xl mx-auto px-6 text-center">
-                    <p className="text-neutral-400 text-lg md:text-xl leading-relaxed mb-8">
-                        <strong className="text-white">Artista Indipendente & Designer Multidisciplinare</strong><br />
-                        Esploro l'intersezione tra Visual Design, AI Art, Videomaking e Sound Design.
-                        Offro una visione creativa integrata per dare vita a progetti unici e collaborazioni artistiche d'avanguardia.
-                    </p>
+                    
+                    {/* Header Intro - Intermediate position */}
+                    <div className="max-w-2xl mx-auto mb-8">
+                        <p className="text-neutral-300 text-sm md:text-base lg:text-lg leading-relaxed font-light px-4">
+                            Questo è il mio archivio. Una ricerca audiovisiva, radiofonica, sperimentale e tutto ciò che è stato oggetto del mio studio.
+                        </p>
+                    </div>
 
-                    {/* Main Buttons */}
-                    <div className="flex flex-col md:flex-row gap-6 justify-center items-center mb-12 flex-wrap w-full">
+                    {/* Navigation Control Bar - Intermediate position */}
+                    <div className="flex flex-row items-center justify-center gap-2 sm:gap-4 mb-12 max-w-3xl mx-auto px-2 sm:px-4">
                         <button
                             onClick={scrollToBio}
-                            className="w-full md:w-auto group relative px-8 py-4 bg-white text-black font-bold uppercase tracking-widest hover:bg-neutral-200 transition-all clip-path-slant"
+                            className="px-3 py-2 sm:px-5 sm:py-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-white border border-neutral-800 hover:border-red-600 hover:bg-red-950/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 backdrop-blur-sm whitespace-nowrap"
                         >
-                            <span className="relative z-10 flex items-center justify-center gap-3">
-                                CHI SONO <Icons.User className="w-5 h-5" />
-                            </span>
+                            <Icons.User className="w-3.5 h-3.5 text-neutral-500" />
+                            <span>Chi Sono</span>
                         </button>
-
-                        <button
-                            onClick={() => window.open('RadioKaoSs/index.html', '_blank')}
-                            className="w-full md:w-auto group relative px-8 py-4 font-bold uppercase tracking-widest transition-all border"
-                            style={{ backgroundColor: '#3b0a0a', color: '#cc8888', borderColor: '#5a1a1a' }}
-                        >
-                            <span className="relative z-10 flex items-center justify-center gap-3">
-                                LIVE <Icons.Radio className="w-5 h-5" />
-                            </span>
-                        </button>
-
-                        <button
-                            onClick={scrollToContact}
-                            className="w-full md:w-auto group px-8 py-4 border border-neutral-700 text-neutral-300 font-bold uppercase tracking-widest hover:border-red-600 hover:text-red-500 transition-colors backdrop-blur-sm"
-                        >
-                            <span className="flex items-center justify-center gap-3">
-                                CONTATTI <Icons.Mail className="w-5 h-5" />
-                            </span>
-                        </button>
-
                         <button
                             onClick={() => scrollToSection('portfolio')}
-                            className="w-full md:w-auto group px-8 py-4 border border-neutral-700 text-neutral-300 font-bold uppercase tracking-widest hover:border-white hover:text-white transition-colors backdrop-blur-sm"
+                            className="px-3 py-2 sm:px-5 sm:py-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-white border border-neutral-800 hover:border-red-600 hover:bg-red-950/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 backdrop-blur-sm whitespace-nowrap"
                         >
-                            <span className="flex items-center justify-center gap-3">
-                                COLLABORAZIONI <Icons.Users className="w-5 h-5" />
-                            </span>
+                            <Icons.Users className="w-3.5 h-3.5 text-neutral-500" />
+                            <span>Collaborazioni</span>
+                        </button>
+                        <button
+                            onClick={scrollToContact}
+                            className="px-3 py-2 sm:px-5 sm:py-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-white border border-neutral-800 hover:border-red-600 hover:bg-red-950/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 backdrop-blur-sm whitespace-nowrap"
+                        >
+                            <Icons.Mail className="w-3.5 h-3.5 text-neutral-500" />
+                            <span>Contatti</span>
                         </button>
                     </div>
 
-                    <div className="flex flex-col gap-3 items-center mb-16">
-                        <span className="text-xs font-bold uppercase tracking-widest text-neutral-600 mb-4 border-b border-neutral-800 pb-2">Mostre & Partecipazioni</span>
-                        <a href="https://overthereal.com/memorie-dal-cosmo/" target="_blank" className="text-neutral-400 hover:text-white text-sm transition-colors hover:scale-105 transform duration-300">Over The Real - Memorie dal Cosmo</a>
-                        <a href="https://luccatimes.it/musa-pietrasanta-la-mostra-multimediale-presente-indicativo/" target="_blank" className="text-neutral-400 hover:text-white text-sm transition-colors hover:scale-105 transform duration-300">Musa Pietrasanta - Presente Indicativo</a>
-                        <a href="https://thegramjournal.com/de-digitalis-natura-nella-galleria-the-project-space-le-nuove-frontiere-dell-arte-digitale/" target="_blank" className="text-neutral-400 hover:text-white text-sm transition-colors hover:scale-105 transform duration-300">The Project Space - De Digitalis Natura</a>
+                    {/* Poetic Dedication Section */}
+                    <div className="mb-12 max-w-xl mx-auto text-center px-4">
+                        <p className="italic text-xs md:text-sm text-neutral-400 leading-relaxed font-light">
+                            "La fantasia è la fiaba della perduta gente, che si confonde nella freschezza ritrovata, spesso smarrita da vivi. Passeggio nel mondo, cittadino del cosmo: un passo, un solo cammino dell'umanità."
+                        </p>
                     </div>
 
                     {/* Quick Nav Grid - Ordered by Site Flow */}
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 w-full max-w-5xl mx-auto">
+                        {/* 0. Radio Live Card */}
+                        <div 
+                            onClick={() => window.open('RadioKaoSs/index.html', '_blank')} 
+                            className="border p-6 hover:bg-red-950/20 hover:border-red-600 transition-all duration-300 cursor-pointer group backdrop-blur-sm relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left"
+                            style={{ backgroundColor: '#3b0a0a', color: '#cc8888', borderColor: '#5a1a1a' }}
+                        >
+                            <span className="absolute top-4 right-4 flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                            </span>
+                            <Icons.Radio className="w-6 h-6 text-red-400 transition-colors animate-pulse" />
+                            <h3 className="text-[11px] font-bold text-red-300 group-hover:text-white uppercase tracking-widest mt-6">Radio Live</h3>
+                        </div>
+
                         {/* 1. Sound Design -> Kaoss */}
-                        <div onClick={() => scrollToSection('kaoss')} className="bg-neutral-900/50 border border-neutral-800 p-6 hover:border-red-600 hover:bg-neutral-900 transition-all cursor-pointer group backdrop-blur-sm">
-                            <Icons.Mic2 className="w-8 h-8 text-neutral-500 group-hover:text-red-600 mb-3 mx-auto transition-colors" />
-                            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Sound Design</h3>
+                        <div onClick={() => scrollToSection('kaoss')} className="bg-neutral-950/40 border border-neutral-900/80 p-6 hover:border-red-900/80 hover:bg-neutral-900/20 transition-all duration-300 cursor-pointer group backdrop-blur-sm relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
+                            <span className="absolute top-4 right-4 text-[10px] font-mono text-neutral-700 group-hover:text-red-600/40 transition-colors">01 / I</span>
+                            <Icons.Mic2 className="w-6 h-6 text-neutral-600 group-hover:text-red-500 transition-colors" />
+                            <h3 className="text-[11px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-widest mt-6">Sound Design</h3>
                         </div>
 
                         {/* 2. Videomaking -> Cosmo */}
-                        <div onClick={() => scrollToSection('cosmo')} className="bg-neutral-900/50 border border-neutral-800 p-6 hover:border-red-600 hover:bg-neutral-900 transition-all cursor-pointer group backdrop-blur-sm">
-                            <Icons.Film className="w-8 h-8 text-neutral-500 group-hover:text-red-600 mb-3 mx-auto transition-colors" />
-                            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Videomaking</h3>
+                        <div onClick={() => scrollToSection('cosmo')} className="bg-neutral-950/40 border border-neutral-900/80 p-6 hover:border-red-900/80 hover:bg-neutral-900/20 transition-all duration-300 cursor-pointer group backdrop-blur-sm relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
+                            <span className="absolute top-4 right-4 text-[10px] font-mono text-neutral-700 group-hover:text-red-600/40 transition-colors">02 / II</span>
+                            <Icons.Film className="w-6 h-6 text-neutral-600 group-hover:text-red-500 transition-colors" />
+                            <h3 className="text-[11px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-widest mt-6">Videomaking</h3>
                         </div>
 
                         {/* 3. Visual & AI -> Visual AI */}
-                        <div onClick={() => scrollToSection('visual-ai')} className="bg-neutral-900/50 border border-neutral-800 p-6 hover:border-red-600 hover:bg-neutral-900 transition-all cursor-pointer group backdrop-blur-sm">
-                            <Icons.Eye className="w-8 h-8 text-neutral-500 group-hover:text-red-600 mb-3 mx-auto transition-colors" />
-                            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Visual & AI</h3>
+                        <div onClick={() => scrollToSection('visual-ai')} className="bg-neutral-950/40 border border-neutral-900/80 p-6 hover:border-red-900/80 hover:bg-neutral-900/20 transition-all duration-300 cursor-pointer group backdrop-blur-sm relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
+                            <span className="absolute top-4 right-4 text-[10px] font-mono text-neutral-700 group-hover:text-red-600/40 transition-colors">03 / III</span>
+                            <Icons.Eye className="w-6 h-6 text-neutral-600 group-hover:text-red-500 transition-colors" />
+                            <h3 className="text-[11px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-widest mt-6">Visual & AI</h3>
                         </div>
 
                         {/* 4. Programmatore -> Games */}
-                        <div onClick={() => scrollToSection('games')} className="bg-neutral-900/50 border border-neutral-800 p-6 hover:border-red-600 hover:bg-neutral-900 transition-all cursor-pointer group backdrop-blur-sm">
-                            <Icons.Code className="w-8 h-8 text-neutral-500 group-hover:text-red-600 mb-3 mx-auto transition-colors" />
-                            <h3 className="text-xs font-bold text-white uppercase tracking-widest">codice</h3>
+                        <div onClick={() => scrollToSection('games')} className="bg-neutral-950/40 border border-neutral-900/80 p-6 hover:border-red-900/80 hover:bg-neutral-900/20 transition-all duration-300 cursor-pointer group backdrop-blur-sm relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
+                            <span className="absolute top-4 right-4 text-[10px] font-mono text-neutral-700 group-hover:text-red-600/40 transition-colors">04 / IV</span>
+                            <Icons.Code className="w-6 h-6 text-neutral-600 group-hover:text-red-500 transition-colors" />
+                            <h3 className="text-[11px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-widest mt-6">Codice</h3>
                         </div>
 
                         {/* 5. Illustratore -> Illustrations */}
-                        <div onClick={() => scrollToSection('illustrations')} className="bg-neutral-900/50 border border-neutral-800 p-6 hover:border-red-600 hover:bg-neutral-900 transition-all cursor-pointer group backdrop-blur-sm">
-                            <Icons.PenTool className="w-8 h-8 text-neutral-500 group-hover:text-red-600 mb-3 mx-auto transition-colors" />
-                            <h3 className="text-xs font-bold text-white uppercase tracking-widest">Illustratore</h3>
+                        <div onClick={() => scrollToSection('illustrations')} className="bg-neutral-950/40 border border-neutral-900/80 p-6 hover:border-red-900/80 hover:bg-neutral-900/20 transition-all duration-300 cursor-pointer group backdrop-blur-sm relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
+                            <span className="absolute top-4 right-4 text-[10px] font-mono text-neutral-700 group-hover:text-red-600/40 transition-colors">05 / V</span>
+                            <Icons.PenTool className="w-6 h-6 text-neutral-600 group-hover:text-red-500 transition-colors" />
+                            <h3 className="text-[11px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-widest mt-6">Illustrazione</h3>
                         </div>
                     </div>
                 </div>
@@ -593,7 +599,7 @@
                 // Series: Proteggi ciò che era (Reduced to single)
                 { src: "illustrazioni/3.jpeg", title: "Protezione", series: "Proteggi ciò che era" },
                 // Singles
-                { src: "illustrazioni/4.jpg", title: "Ricorda chi sei" },
+                { src: "illustrazioni/4.png", title: "Ricorda chi sei" },
                 { src: "illustrazioni/5.jpg", title: "Nascondi le mani" },
                 { src: "illustrazioni/6.jpg", title: "Ricordo di terra" },
                 { src: "illustrazioni/7.png", title: "Presagio" },
@@ -601,7 +607,9 @@
                 { src: "illustrazioni/10.png", title: "Dormi e sogna" },
                 { src: "illustrazioni/11.jpeg", title: "Nella bottiglia" },
                 { src: "illustrazioni/12.jpeg", title: "Provocazione" },
-                { src: "illustrazioni/13.png", title: "Passività" }
+                { src: "illustrazioni/13.png", title: "Stretta" },
+                { src: "illustrazioni/14.jpg", title: "Funambolo" },
+                { src: "illustrazioni/15.jpg", title: "Persa nel bosco" }
             ];
 
             const handlePrev = (e) => {
