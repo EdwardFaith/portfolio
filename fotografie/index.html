@@ -28,6 +28,10 @@
     <!-- Babel for JSX compilation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- MediaPipe Hands for webcam finger tracking -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+
     <style>
         :root {
             --bg-color: #050507;
@@ -96,6 +100,12 @@
         }
         ::-webkit-scrollbar-thumb:hover {
             background: var(--accent-teal);
+        }
+
+        /* Hide native cursor when hand tracking is active */
+        .hand-active,
+        .hand-active * {
+            cursor: none !important;
         }
     </style>
 </head>
@@ -327,6 +337,50 @@
 
         const fireSound = new FireCrackler();
 
+        // ──────────────────────────────────────────────────────────────────
+        // HAND CURSOR — SVG overlay that follows the index finger tip
+        // Shows a teal ring that fills up during dwell (0 → 1 = 0.75s)
+        // ──────────────────────────────────────────────────────────────────
+        function HandCursor({ pos, progress, isOnHoldButton }) {
+            if (!pos) return null;
+            const R = 20;
+            const circumference = 2 * Math.PI * R;
+            const strokeDash = circumference * Math.min(progress, 1);
+            const color = isOnHoldButton ? '#065f46' : '#ef4444'; // red default, green on hold btn
+            return (
+                <div style={{
+                    position: 'fixed',
+                    left: pos.x,
+                    top: pos.y,
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 10000,
+                    pointerEvents: 'none',
+                    transition: 'left 0.04s linear, top 0.04s linear',
+                }}>
+                    <svg width={54} height={54} style={{ overflow: 'visible', display: 'block' }}>
+                        {/* Background ring */}
+                        <circle cx={27} cy={27} r={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={2.5} />
+                        {/* Progress fill ring */}
+                        <circle
+                            cx={27} cy={27} r={R}
+                            fill="none"
+                            stroke={color}
+                            strokeWidth={3}
+                            strokeLinecap="round"
+                            strokeDasharray={`${strokeDash} ${circumference}`}
+                            transform="rotate(-90 27 27)"
+                            style={{ transition: 'stroke-dasharray 0.05s linear' }}
+                        />
+                        {/* Inner dot */}
+                        <circle cx={27} cy={27} r={4} fill={color} opacity={0.95} />
+                        {/* Outer white ring */}
+                        <circle cx={27} cy={27} r={7} fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth={1} />
+                    </svg>
+                </div>
+            );
+        }
+
+
         function SandpayCatalog() {
             const [activeScene, setActiveScene] = useState(SCENES_DATA[0]);
             const [isViewerOpen, setIsViewerOpen] = useState(false);
@@ -337,12 +391,28 @@
             const [unlockedLots, setUnlockedLots] = useState([]);
             const [unlockedViewMode, setUnlockedViewMode] = useState('dream');
 
+            // ── Hand Tracking State ──
+            const [handEnabled, setHandEnabled] = useState(false);
+            const [fingerPos, setFingerPos] = useState(null);    // {x, y} screen coords
+            const [dwellProgress, setDwellProgress] = useState(0); // 0..1
+            const [isOnHoldBtn, setIsOnHoldBtn] = useState(false);
+
             const buttonRef = useRef(null);
             const animationRef = useRef(null);
             const velRef = useRef({ x: 0, y: 0 });
             const posRef = useRef({ x: 0, y: 0 });
             const mouseRef = useRef({ x: 0, y: 0 });
             const wasOverRef = useRef(false);
+
+            // ── Hand Tracking Refs ──
+            const videoRef = useRef(null);
+            const handsRef = useRef(null);
+            const cameraRef = useRef(null);
+            const dwellStartRef = useRef(null);
+            const dwellElementRef = useRef(null);
+            const isHoldingRef = useRef(false);   // mirror of isHolding for closures
+            const handEnabledRef = useRef(false);
+            const fingerPosRef = useRef(null);
 
             // State machine refs for evasive button gameplay
             const buttonStateRef = useRef('still'); // 'still', 'flickering', 'chase'
@@ -653,6 +723,181 @@
                 };
             }, [isHolding]);
 
+            // Keep isHoldingRef in sync with React state (for MediaPipe callback closures)
+            useEffect(() => { isHoldingRef.current = isHolding; }, [isHolding]);
+
+            // Hide/show native cursor based on hand tracking state
+            useEffect(() => {
+                if (handEnabled) {
+                    document.body.classList.add('hand-active');
+                } else {
+                    document.body.classList.remove('hand-active');
+                }
+                return () => document.body.classList.remove('hand-active');
+            }, [handEnabled]);
+
+            // ── Hand Tracking: enable / disable ──
+            useEffect(() => {
+                handEnabledRef.current = handEnabled;
+                if (!handEnabled) {
+                    // Tear down camera & hands
+                    if (cameraRef.current) { try { cameraRef.current.stop(); } catch(e) {} cameraRef.current = null; }
+                    if (handsRef.current) { try { handsRef.current.close(); } catch(e) {} handsRef.current = null; }
+                    setFingerPos(null);
+                    setDwellProgress(0);
+                    dwellStartRef.current = null;
+                    dwellElementRef.current = null;
+                    return;
+                }
+
+                // Small delay to let video element mount
+                const init = setTimeout(() => {
+                    const video = videoRef.current;
+                    if (!video || !window.Hands || !window.Camera) {
+                        console.warn('MediaPipe non disponibile (richiede HTTPS o localhost)');
+                        setHandEnabled(false);
+                        return;
+                    }
+
+                    const hands = new window.Hands({
+                        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+                    });
+                    hands.setOptions({
+                        maxNumHands: 1,
+                        modelComplexity: 1,
+                        minDetectionConfidence: 0.7,
+                        minTrackingConfidence: 0.5,
+                    });
+
+                    hands.onResults((results) => {
+                        if (!handEnabledRef.current) return;
+
+                        if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+                            // No hand detected — release hold if active
+                            if (isHoldingRef.current) handleStopHolding();
+                            setFingerPos(null);
+                            fingerPosRef.current = null;
+                            setDwellProgress(0);
+                            dwellStartRef.current = null;
+                            dwellElementRef.current = null;
+                            setIsOnHoldBtn(false);
+                            return;
+                        }
+
+                        // Landmark 8 = index finger tip
+                        const tip = results.multiHandLandmarks[0][8];
+                        // Mirror X so it feels like a mirror
+                        const x = (1 - tip.x) * window.innerWidth;
+                        const y = tip.y * window.innerHeight;
+
+                        setFingerPos({ x, y });
+                        fingerPosRef.current = { x, y };
+
+                        // ── Finger scroll zones (top 15% = up, bottom 15% = down) ──
+                        const scrollZone = window.innerHeight * 0.15;
+                        const scrollMaxSpeed = 18;
+                        if (y < scrollZone) {
+                            const intensity = 1 - (y / scrollZone);
+                            window.scrollBy({ top: -scrollMaxSpeed * intensity, behavior: 'auto' });
+                        } else if (y > window.innerHeight - scrollZone) {
+                            const intensity = (y - (window.innerHeight - scrollZone)) / scrollZone;
+                            window.scrollBy({ top: scrollMaxSpeed * intensity, behavior: 'auto' });
+                        }
+
+                        // ── Find what's under the finger ──
+                        const el = document.elementFromPoint(x, y);
+
+                        // ── Expanded hit zone for the fleeing 'Osserva il Sogno' button ──
+                        // Instead of exact hit-test, use distance from button center
+                        // +110px padding so finger only needs to be *near* it to keep hold active
+                        let onHoldBtn = false;
+                        if (buttonRef.current) {
+                            const rect = buttonRef.current.getBoundingClientRect();
+                            const btnCx = rect.left + rect.width / 2;
+                            const btnCy = rect.top + rect.height / 2;
+                            const naturalRadius = Math.max(rect.width, rect.height) / 2;
+                            const expandedRadius = naturalRadius + 110; // generous padding for finger imprecision
+                            const dist = Math.sqrt((x - btnCx) ** 2 + (y - btnCy) ** 2);
+                            onHoldBtn = dist <= expandedRadius;
+                        }
+
+                        setIsOnHoldBtn(onHoldBtn);
+
+                        if (onHoldBtn) {
+                            // Simulate mousedown hold
+                            if (!isHoldingRef.current) {
+                                handleStartHolding({ clientX: x, clientY: y, preventDefault: () => {} });
+                            }
+                            // Update mouse position so the button flees from the finger
+                            mouseRef.current = { x, y };
+                            dwellStartRef.current = null;
+                            dwellElementRef.current = null;
+                            setDwellProgress(0);
+                            return;
+                        } else {
+                            // Finger moved far from hold button — release
+                            if (isHoldingRef.current) handleStopHolding();
+                        }
+
+
+                        // ── Dwell detection for other interactive elements ──
+                        // Walk up DOM to find nearest interactive element
+                        let interactive = null;
+                        let cur = el;
+                        while (cur && cur !== document.body) {
+                            if (
+                                cur.tagName === 'BUTTON' ||
+                                cur.tagName === 'A' ||
+                                cur.classList.contains('cursor-pointer')
+                            ) { interactive = cur; break; }
+                            cur = cur.parentElement;
+                        }
+
+                        if (!interactive) {
+                            dwellStartRef.current = null;
+                            dwellElementRef.current = null;
+                            setDwellProgress(0);
+                            return;
+                        }
+
+                        if (dwellElementRef.current !== interactive) {
+                            // Entered a new element — restart dwell
+                            dwellStartRef.current = performance.now();
+                            dwellElementRef.current = interactive;
+                            setDwellProgress(0);
+                        } else {
+                            const elapsed = performance.now() - (dwellStartRef.current || performance.now());
+                            const progress = Math.min(elapsed / 750, 1);
+                            setDwellProgress(progress);
+
+                            if (elapsed >= 750) {
+                                // Fire click!
+                                interactive.click();
+                                // Reset so it doesn't fire again immediately
+                                dwellStartRef.current = performance.now() + 1000;
+                                setDwellProgress(0);
+                            }
+                        }
+                    });
+
+                    handsRef.current = hands;
+
+                    const camera = new window.Camera(video, {
+                        onFrame: async () => {
+                            if (handsRef.current && handEnabledRef.current) {
+                                await handsRef.current.send({ image: video });
+                            }
+                        },
+                        width: 320,
+                        height: 240,
+                    });
+                    cameraRef.current = camera;
+                    camera.start();
+                }, 200);
+
+                return () => clearTimeout(init);
+            }, [handEnabled]);
+
             const isStoryUnlocked = unlockedLots.includes(activeScene.id);
             const showDreamImage = isStoryUnlocked ? (unlockedViewMode === 'dream') : (isHolding && isOverButton);
 
@@ -673,10 +918,33 @@
                             </div>
                         </div>
 
-                        {/* Controls */}
+                        {/* Controls — Hand Tracking Toggle */}
                         <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setHandEnabled(v => !v)}
+                                className={`flex items-center gap-2 px-3 py-1.5 border text-xs font-mono-tech uppercase tracking-wider transition-all ${
+                                    handEnabled
+                                        ? 'border-[#065f46] text-[#065f46] bg-[#065f46]/10 hover:bg-[#065f46]/20'
+                                        : 'border-neutral-800 text-neutral-400 bg-[#08080b] hover:border-neutral-600 hover:text-white'
+                                }`}
+                                title={handEnabled ? 'Disattiva controllo mano' : 'Attiva controllo mano via webcam'}
+                            >
+                                <span style={{ fontSize: '14px' }}>{handEnabled ? '✋' : '🖐'}</span>
+                                <span className="hidden sm:inline">{handEnabled ? 'Mano Attiva' : 'Attiva Mano'}</span>
+                            </button>
                         </div>
                     </header>
+
+                    {/* Hidden webcam video for MediaPipe hand tracking */}
+                    <video
+                        ref={videoRef}
+                        style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none', left: -9999 }}
+                        playsInline
+                        muted
+                    />
+
+                    {/* Finger cursor overlay */}
+                    <HandCursor pos={fingerPos} progress={dwellProgress} isOnHoldButton={isOnHoldBtn} />
 
                     {/* Main Landing Workspace Layout */}
                     <main className="flex-grow flex flex-col items-center justify-center p-6 max-w-6xl w-full mx-auto gap-10">
