@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>SANDPAY™ - Guerre Passate</title>
+
+    <!-- Favicon & App Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="../immagini/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../immagini/favicon.png">
+    <link rel="shortcut icon" href="../immagini/favicon.png" type="image/png">
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="SANDPAY™ Dream Acquisition Corp. Catalogo di memorie infantili liquidabili. Progetto fotografico interattivo di Emanuele Baccigalupi.">
+    <meta name="author" content="Emanuele Baccigalupi">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Share+Tech+Mono&family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React and ReactDOM CDNs -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Babel for JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #050507;
+            --border-color: #121217;
+            --accent-teal: #065f46;
+            --accent-red: #ef4444;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #ffffff;
+            font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .font-mono-tech {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .font-serif-editorial {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Subtle technical dot background pattern instead of heavy grid */
+        .tech-dots-bg {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+
+        /* Glitch keyframe for transaction transition */
+        @keyframes glitch {
+            0% { transform: translate(0); filter: hue-rotate(0deg); }
+            20% { transform: translate(-2px, 1px); filter: hue-rotate(45deg); }
+            40% { transform: translate(2px, -1px); filter: hue-rotate(90deg); }
+            60% { transform: translate(-1px, -1px); filter: hue-rotate(135deg); }
+            80% { transform: translate(1px, 1px); filter: hue-rotate(180deg); }
+            100% { transform: translate(0); filter: none; }
+        }
+
+        .transaction-glitch {
+            animation: glitch 0.15s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050507;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1c1c24;
+            border-radius: 2px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-teal);
+        }
+    </style>
+</head>
+
+<body class="tech-dots-bg min-h-screen flex flex-col justify-between">
+    <div id="app-root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Scenes mapping
+        const SCENES_DATA = [
+            { 
+                id: 1, 
+                title: "Lui osserva", 
+                path1: "1/1.jpg", 
+                path2: "2/1.png",
+                story: "Li disponevo in cerchio sul tappeto, al centro della stanza, dove la luce della lampada creava un'arena d'oro. Volevo assistere al loro scontro, vedere i miei piccoli campioni battersi strenuamente al mio cospetto. In quel momento, ero un re invisibile che pretendeva di veder trionfare la propria forza d'immaginazione."
+            },
+            { 
+                id: 2, 
+                title: "Freddo e fuoco", 
+                path1: "1/2.jpg", 
+                path2: "2/2.png",
+                story: "Era la guerra del gelo eterno, combattuta sui bordi freddi delle mattonelle della cucina. I soldati si scontravano sotto il sibilo della tempesta invisibile per un unico, disperato scopo: decretare chi, tra i superstiti, avrebbe guadagnato il diritto di accedere al caldo e glorioso Regno del Fuoco."
+            },
+            { 
+                id: 3, 
+                title: "Sbarco stoviglie", 
+                path1: "1/3.jpg", 
+                path2: "2/3.png",
+                story: "L'acqua della bacinella era l'oceano tempestoso che lambiva il Regno delle Stoviglie. Un impero dominato dal temibile Mostro della Pazienza, che ogni sera radunava i piatti per lavarli e riporli nel buio della credenza. I soldati combattevano una guerra disperata contro quel ciclo infinito, per non dover lavare mai più nulla."
+            },
+            { 
+                id: 4, 
+                title: "La foresta del gallo", 
+                path1: "1/4.jpg", 
+                path2: "2/4.png",
+                story: "Tra i flaconi e i barattoli del bagno sorgeva una foresta di oggetti mistici e arcani. Da lì i soldati attingevano una forza prodigiosa, preparandosi a marciare solennemente sotto il richiamo di 'Frein', il leggendario gallo erede del Teschio di Fuoco, che guidava l'avanzata con il suo canto di battaglia."
+            },
+            { 
+                id: 5, 
+                title: "Maschera mangia sogni", 
+                path1: "1/5.jpg", 
+                path2: "2/5.png",
+                story: "Il soldato appartenente alla gloriosa Confederazione dei 'Sertil' attendeva immobile nell'oscurità del corridoio. Il suo destino era fondersi con una losca presenza d'ombra, una creatura antica che ben presto avrebbe divorato tutti i suoi incubi per lasciarlo dormire in pace."
+            },
+            { 
+                id: 6, 
+                title: "Paura del lupo", 
+                path1: "1/6.jpg", 
+                path2: "2/6.png",
+                story: "I soldati si erano schierati ai piedi della gamba del tavolo per difendere Cappuccetto Rosso. Ma tra i ranghi serpeggiava il dubbio: alcuni credevano fermamente che il Lupo avesse il diritto naturale di cacciare e nutrirsi. Iniziava così una guerra fratricida per stabilire quale visione del mondo avrebbe trionfato."
+            },
+            { 
+                id: 7, 
+                title: "Ignoto tra la nebbia", 
+                path1: "1/7.jpg", 
+                path2: "2/7.png",
+                story: "I soldati vagavano smarriti tra le pagine aperte dei libri, avvolti dalla nebbia dell'ignoto. Tra di loro si sussurrava una triste profezia: un giorno tutti noi finiremo in quel silenzio grigio e, diventando grandi, dimenticheremo ogni cosa, comprese le spettacolari battaglie combattute in questo pomeriggio."
+            },
+            { 
+                id: 8, 
+                title: "Assalto al ponte", 
+                path1: "1/8.jpg", 
+                path2: "2/8.png",
+                story: "L'attacco al ponte di foglie era l'ultima speranza per salvare il capitano Unric, il leggendario guardiano amico dell'acqua e della misteriosa luce rossa che brillava all'orizzonte. La pattuglia avanzava allo scoperto, sfidando il fuoco nemico per sottrarlo alla prigionia."
+            },
+            { 
+                id: 9, 
+                title: "Fuga di gas", 
+                path1: "1/9.png", 
+                path2: "2/9.png",
+                story: "Un'avvincente battaglia si consumava sul ripiano accanto ai fornelli. Eroi impavidi combattevano contro la paura del fuoco e il pericolo invisibile del gas, terrorizzati dall'idea che una singola scintilla potesse scatenare una tremenda esplosione capace di far saltare in aria l'intera casa."
+            },
+            { 
+                id: 10, 
+                title: "I termopotere", 
+                path1: "1/10.jpeg", 
+                path2: "2/10.png",
+                story: "Le fessure del termosifone erano generatori di radiazioni gamma. Lì dentro venivano forgiati i super-soldati radioattivi, corpi mutati pronti a sfidare i poteri degli Assoluti. Con le armature sature di energia nucleare, si preparavano allo scontro finale per ridisegnare i confini della realtà."
+            }
+        ];
+
+        // Synthesizer generating fire crackling sound
+        class FireCrackler {
+            constructor() {
+                this.ctx = null;
+                this.masterGain = null;
+                this.isPlaying = false;
+                this.intervalId = null;
+                this.isMuted = false; // default unmuted
+                this.noiseBuffer = null;
+            }
+
+            init() {
+                if (this.ctx) return;
+                try {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContextClass) return;
+                    this.ctx = new AudioContextClass();
+
+                    // Master gain node
+                    this.masterGain = this.ctx.createGain();
+                    this.masterGain.gain.setValueAtTime(0, this.ctx.currentTime);
+                    this.masterGain.connect(this.ctx.destination);
+
+                    // Low-frequency rumble (subtle fire warmth/combustion)
+                    this.rumbleOsc = this.ctx.createOscillator();
+                    this.rumbleOsc.type = 'sine';
+                    this.rumbleOsc.frequency.setValueAtTime(55, this.ctx.currentTime);
+
+                    const rumbleFilter = this.ctx.createBiquadFilter();
+                    rumbleFilter.type = 'lowpass';
+                    rumbleFilter.frequency.setValueAtTime(70, this.ctx.currentTime);
+
+                    this.rumbleGain = this.ctx.createGain();
+                    this.rumbleGain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+
+                    // Modulator LFO for low-end movement
+                    this.rumbleLFO = this.ctx.createOscillator();
+                    this.rumbleLFO.frequency.setValueAtTime(2.0, this.ctx.currentTime);
+                    const lfoGain = this.ctx.createGain();
+                    lfoGain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+                    this.rumbleLFO.connect(lfoGain);
+                    lfoGain.connect(this.rumbleGain.gain);
+
+                    this.rumbleOsc.connect(rumbleFilter);
+                    rumbleFilter.connect(this.rumbleGain);
+                    this.rumbleGain.connect(this.masterGain);
+
+                    this.rumbleOsc.start(0);
+                    this.rumbleLFO.start(0);
+
+                    // Pre-generate short noise buffer for embers pops
+                    const bufferSize = 0.05 * this.ctx.sampleRate; // 50ms buffer
+                    this.noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const channelData = this.noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        channelData[i] = Math.random() * 2 - 1;
+                    }
+                } catch (err) {
+                    console.warn("Web Audio API not supported or blocked", err);
+                }
+            }
+
+            playPop() {
+                if (!this.ctx || this.ctx.state === 'suspended' || this.isMuted) return;
+                try {
+                    const source = this.ctx.createBufferSource();
+                    source.buffer = this.noiseBuffer;
+
+                    // Highpass filter for crackling sound
+                    const hpFilter = this.ctx.createBiquadFilter();
+                    hpFilter.type = 'highpass';
+                    hpFilter.frequency.setValueAtTime(1800 + Math.random() * 1000, this.ctx.currentTime);
+
+                    // Quick decay gain envelope
+                    const popGain = this.ctx.createGain();
+                    const duration = 0.003 + Math.random() * 0.012; // 3ms to 15ms
+                    const volume = 0.010 + Math.random() * 0.025;
+
+                    popGain.gain.setValueAtTime(volume, this.ctx.currentTime);
+                    popGain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+                    source.connect(hpFilter);
+                    hpFilter.connect(popGain);
+                    popGain.connect(this.masterGain);
+
+                    source.start(0);
+                    source.stop(this.ctx.currentTime + duration + 0.01);
+                } catch (err) {
+                    // Silently fail
+                }
+            }
+
+            start() {
+                if (this.isMuted) return;
+                if (!this.ctx) this.init();
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume().catch(e => console.warn(e));
+                }
+
+                // Smoothly fade in fire sound
+                if (this.masterGain && this.ctx) {
+                    this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, this.ctx.currentTime);
+                    this.masterGain.gain.linearRampToValueAtTime(0.30, this.ctx.currentTime + 0.2);
+                }
+
+                // Crackles scheduling loop
+                if (this.intervalId) clearTimeout(this.intervalId);
+                this.isPlaying = true;
+                const schedule = () => {
+                    if (!this.isPlaying) return;
+                    const delay = 45 + Math.random() * 150;
+                    this.intervalId = setTimeout(() => {
+                        this.playPop();
+                        if (Math.random() < 0.20) {
+                            setTimeout(() => this.playPop(), 10 + Math.random() * 20);
+                        }
+                        if (this.isPlaying) schedule();
+                    }, delay);
+                };
+                schedule();
+            }
+
+            stop() {
+                this.isPlaying = false;
+                if (this.intervalId) {
+                    clearTimeout(this.intervalId);
+                    this.intervalId = null;
+                }
+                if (this.masterGain && this.ctx) {
+                    try {
+                        this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, this.ctx.currentTime);
+                        this.masterGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.2);
+                    } catch (err) {
+                        // Ignore
+                    }
+                }
+            }
+
+            setMute(mute) {
+                this.isMuted = mute;
+                if (mute) this.stop();
+                else this.start();
+            }
+        }
+
+        const fireSound = new FireCrackler();
+
+        function SandpayCatalog() {
+            const [activeScene, setActiveScene] = useState(SCENES_DATA[0]);
+            const [isViewerOpen, setIsViewerOpen] = useState(false);
+            const [isHolding, setIsHolding] = useState(false);
+            const [isOverButton, setIsOverButton] = useState(false);
+            const [isGlitching, setIsGlitching] = useState(false);
+            const [showConcept, setShowConcept] = useState(false);
+            const [unlockedLots, setUnlockedLots] = useState([]);
+            const [unlockedViewMode, setUnlockedViewMode] = useState('dream');
+
+            const buttonRef = useRef(null);
+            const animationRef = useRef(null);
+            const velRef = useRef({ x: 0, y: 0 });
+            const posRef = useRef({ x: 0, y: 0 });
+            const mouseRef = useRef({ x: 0, y: 0 });
+            const wasOverRef = useRef(false);
+
+            // State machine refs for evasive button gameplay
+            const buttonStateRef = useRef('still'); // 'still', 'flickering', 'chase'
+            const holdStartTimeRef = useRef(0);
+            const lastFrameTimeRef = useRef(0);
+            const currentSpeedRef = useRef(0.3); // starts extremely slow
+            const successfulHoldTimeRef = useRef(0);
+
+            // Launch immersive viewer on user interaction
+            const handleOpenDream = (scene) => {
+                setActiveScene(scene);
+                setIsViewerOpen(true);
+            };
+
+            const handleCloseDream = () => {
+                setIsViewerOpen(false);
+                handleStopHolding();
+                setUnlockedViewMode('dream');
+            };
+
+            const handleStartHolding = (e) => {
+                if (e) e.preventDefault();
+                setIsHolding(true);
+                setIsOverButton(true);
+                wasOverRef.current = true;
+                setIsGlitching(true);
+
+                // Start fire crackling sound on hold
+                fireSound.setMute(false);
+                fireSound.start();
+
+                // Set initial mouse reference from click/touch coordinates
+                if (e) {
+                    const clientX = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX);
+                    const clientY = e.clientY || (e.touches && e.touches[0] && e.touches[0].clientY);
+                    if (clientX !== undefined && clientY !== undefined) {
+                        mouseRef.current = { x: clientX, y: clientY };
+                    } else if (buttonRef.current) {
+                        const rect = buttonRef.current.getBoundingClientRect();
+                        mouseRef.current = {
+                            x: rect.left + rect.width / 2,
+                            y: rect.top + rect.height / 2
+                        };
+                    }
+                }
+
+                // Initialize the game loop states using high-precision timestamps
+                buttonStateRef.current = 'still';
+                holdStartTimeRef.current = performance.now();
+                lastFrameTimeRef.current = performance.now();
+                currentSpeedRef.current = 0.3; // very slow initial crawl
+                successfulHoldTimeRef.current = 0;
+                velRef.current = { x: 0, y: 0 };
+                posRef.current = { x: 0, y: 0 };
+
+                setTimeout(() => setIsGlitching(false), 150);
+            };
+
+            const handleStopHolding = () => {
+                setIsHolding(false);
+                setIsOverButton(false);
+                wasOverRef.current = false;
+                setIsGlitching(true);
+                fireSound.stop();
+                setTimeout(() => setIsGlitching(false), 120);
+            };
+
+            // Start fleeing animation loop
+            const startFleeing = () => {
+                posRef.current = { x: 0, y: 0 };
+
+                const updatePosition = () => {
+                    if (!buttonRef.current) {
+                        animationRef.current = requestAnimationFrame(updatePosition);
+                        return;
+                    }
+
+                    const now = performance.now();
+                    const elapsed = now - holdStartTimeRef.current;
+                    const frameTime = now - lastFrameTimeRef.current;
+                    const dt = Math.min(frameTime / 16.666, 3.0); // normalize dt to 60fps
+                    lastFrameTimeRef.current = now;
+
+                    let vx = velRef.current.x;
+                    let vy = velRef.current.y;
+                    let px = posRef.current.x;
+                    let py = posRef.current.y;
+
+                    // Get button coordinates and center
+                    const rect = buttonRef.current.getBoundingClientRect();
+                    const bx = rect.left + rect.width / 2;
+                    const by = rect.top + rect.height / 2;
+
+                    const mx = mouseRef.current.x;
+                    const my = mouseRef.current.y;
+
+                    const dx = bx - mx;
+                    const dy = by - my;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    const isOver = mx >= rect.left && mx <= rect.right && my >= rect.top && my <= rect.bottom;
+
+                    // State machine logic: Still (2s) -> Flickering (0.5s) -> Chase (Accelerating)
+                    if (elapsed < 2000) {
+                        buttonStateRef.current = 'still';
+                        vx = 0;
+                        vy = 0;
+                    } else if (elapsed < 2500) {
+                        buttonStateRef.current = 'flickering';
+                        vx = 0;
+                        vy = 0;
+
+                        // Physical shake in place
+                        const shakeX = (Math.random() - 0.5) * 6;
+                        const shakeY = (Math.random() - 0.5) * 6;
+                        buttonRef.current.style.transform = `translate(${shakeX}px, ${shakeY}px)`;
+
+                        // Rapid border/text color flickering
+                        if (Math.random() < 0.3) {
+                            buttonRef.current.style.borderColor = '#ef4444'; // Red
+                            buttonRef.current.style.color = '#ef4444';
+                            buttonRef.current.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+                        } else if (Math.random() < 0.6) {
+                            buttonRef.current.style.borderColor = '#f59e0b'; // Amber
+                            buttonRef.current.style.color = '#f59e0b';
+                            buttonRef.current.style.backgroundColor = 'rgba(245, 158, 11, 0.15)';
+                        } else {
+                            buttonRef.current.style.borderColor = '#ffffff'; // White
+                            buttonRef.current.style.color = '#ffffff';
+                            buttonRef.current.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+                        }
+                    } else {
+                        if (buttonStateRef.current !== 'chase') {
+                            buttonStateRef.current = 'chase';
+                            // Reset flickering colors back to CSS rules
+                            buttonRef.current.style.borderColor = '';
+                            buttonRef.current.style.color = '';
+                            buttonRef.current.style.backgroundColor = '';
+                        }
+
+                        // Continuous speed acceleration (extremely slow and gentle: 0.003 * dt per frame)
+                        currentSpeedRef.current += 0.003 * dt;
+                        const maxSpeed = 20; // humanly manageable speed cap
+                        const speed = Math.min(currentSpeedRef.current, maxSpeed);
+
+                        // Normalize fleeing direction away from the cursor
+                        const ndx = dist > 0 ? dx / dist : (Math.random() - 0.5);
+                        const ndy = dist > 0 ? dy / dist : (Math.random() - 0.5);
+                        const len = Math.sqrt(ndx * ndx + ndy * ndy);
+                        const ux = len > 0 ? ndx / len : (Math.random() > 0.5 ? 1 : -1);
+                        const uy = len > 0 ? ndy / len : (Math.random() > 0.5 ? 1 : -1);
+
+                        // Steer smoothly away from mouse (continuous and slow, not jerky)
+                        const targetVx = ux * speed;
+                        const targetVy = uy * speed;
+
+                        // High inertia: slow turn/response rate (0.97 vs 0.03)
+                        vx = vx * 0.97 + targetVx * 0.03;
+                        vy = vy * 0.97 + targetVy * 0.03;
+
+                        // Scale velocity to speed
+                        const vLen = Math.sqrt(vx * vx + vy * vy);
+                        if (vLen > 0) {
+                            vx = (vx / vLen) * speed;
+                            vy = (vy / vLen) * speed;
+                        }
+
+                        px += vx * dt;
+                        py += vy * dt;
+
+                        // Track 5-second childhood memory synchronization
+                        if (isOver) {
+                            successfulHoldTimeRef.current += frameTime;
+                            if (successfulHoldTimeRef.current >= 5000) {
+                                // Sincronizzazione completata!
+                                handleStopHolding();
+                                setUnlockedLots(prev => {
+                                    if (!prev.includes(activeScene.id)) {
+                                        return [...prev, activeScene.id];
+                                    }
+                                    return prev;
+                                });
+                            }
+                        }
+                    }
+
+                    // Viewport boundaries clamp (active only in chase state)
+                    if (buttonStateRef.current === 'chase') {
+                        let newLeft = rect.left + vx * dt;
+                        let newRight = rect.right + vx * dt;
+                        let newTop = rect.top + vy * dt;
+                        let newBottom = rect.bottom + vy * dt;
+
+                        if (newLeft < 20) {
+                            px += (20 - newLeft);
+                            vx = Math.abs(vx) * 0.5; // bounce off left
+                        } else if (newRight > window.innerWidth - 20) {
+                            px += ((window.innerWidth - 20) - newRight);
+                            vx = -Math.abs(vx) * 0.5; // bounce off right
+                        }
+
+                        if (newTop < 20) {
+                            py += (20 - newTop);
+                            vy = Math.abs(vy) * 0.5; // bounce off top
+                        } else if (newBottom > window.innerHeight - 20) {
+                            py += ((window.innerHeight - 20) - newBottom);
+                            vy = -Math.abs(vy) * 0.5; // bounce off bottom
+                        }
+                    }
+
+                    posRef.current = { x: px, y: py };
+                    velRef.current = { x: vx, y: vy };
+
+                    // Update transform directly in DOM (skip in flickering state to avoid conflict)
+                    if (buttonStateRef.current !== 'flickering') {
+                        buttonRef.current.style.transform = `translate(${px}px, ${py}px)`;
+                    }
+
+                    // Update memory HUD directly in DOM
+                    const pct = Math.min((successfulHoldTimeRef.current / 5000) * 100, 100);
+                    const progContainer = document.getElementById('memory-progress-container');
+                    const progressBar = document.getElementById('memory-progress-bar');
+                    const progressText = document.getElementById('memory-progress-text');
+
+                    if (progContainer && progressBar && progressText) {
+                        if (isHolding && buttonStateRef.current === 'chase') {
+                            progContainer.classList.remove('hidden');
+                            progressText.classList.remove('hidden');
+                            progressBar.style.width = `${pct}%`;
+                            progressText.innerText = `Sincronizzazione Memoria: ${Math.floor(pct)}%`;
+                        } else {
+                            progContainer.classList.add('hidden');
+                            progressText.classList.add('hidden');
+                            progressBar.style.width = '0%';
+                        }
+                    }
+
+                    // Check hover state change and update React state
+                    if (isOver !== wasOverRef.current) {
+                        wasOverRef.current = isOver;
+                        setIsOverButton(isOver);
+                    }
+
+                    animationRef.current = requestAnimationFrame(updatePosition);
+                };
+
+                animationRef.current = requestAnimationFrame(updatePosition);
+            };
+
+            const stopFleeing = () => {
+                if (animationRef.current) {
+                    cancelAnimationFrame(animationRef.current);
+                    animationRef.current = null;
+                }
+                posRef.current = { x: 0, y: 0 };
+                velRef.current = { x: 0, y: 0 };
+                buttonStateRef.current = 'still';
+                holdStartTimeRef.current = 0;
+                lastFrameTimeRef.current = 0;
+                currentSpeedRef.current = 0.3;
+                successfulHoldTimeRef.current = 0;
+
+                const progContainer = document.getElementById('memory-progress-container');
+                const progressBar = document.getElementById('memory-progress-bar');
+                const progressText = document.getElementById('memory-progress-text');
+                if (progContainer && progressBar && progressText) {
+                    progContainer.classList.add('hidden');
+                    progressText.classList.add('hidden');
+                    progressBar.style.width = '0%';
+                }
+
+                if (buttonRef.current) {
+                    buttonRef.current.style.transform = 'translate(0px, 0px)';
+                    // Reset any visually mutated styles
+                    buttonRef.current.style.borderColor = '';
+                    buttonRef.current.style.color = '';
+                    buttonRef.current.style.backgroundColor = '';
+                }
+            };
+
+            // Global listeners during active hold
+            useEffect(() => {
+                const handleMouseMove = (e) => {
+                    mouseRef.current = { x: e.clientX, y: e.clientY };
+                };
+
+                const handleTouchMove = (e) => {
+                    if (e.touches.length > 0) {
+                        mouseRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    }
+                };
+
+                if (isHolding) {
+                    window.addEventListener('mousemove', handleMouseMove);
+                    window.addEventListener('mouseup', handleStopHolding);
+                    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+                    window.addEventListener('touchend', handleStopHolding);
+                    startFleeing();
+                } else {
+                    stopFleeing();
+                }
+
+                return () => {
+                    window.removeEventListener('mousemove', handleMouseMove);
+                    window.removeEventListener('mouseup', handleStopHolding);
+                    window.removeEventListener('touchmove', handleTouchMove);
+                    window.removeEventListener('touchend', handleStopHolding);
+                };
+            }, [isHolding]);
+
+            const isStoryUnlocked = unlockedLots.includes(activeScene.id);
+            const showDreamImage = isStoryUnlocked ? (unlockedViewMode === 'dream') : (isHolding && isOverButton);
+
+            return (
+                <div className="min-h-screen flex flex-col justify-between bg-[#050507]">
+                    
+                    {/* Header */}
+                    <header className="border-b border-[#121217] bg-black/60 backdrop-blur-md px-6 py-4 flex items-center justify-between z-40">
+                        <div className="flex items-center gap-4">
+                            <a href="../index.html" className="text-neutral-500 hover:text-white transition-colors text-xs font-mono-tech uppercase tracking-wider border border-neutral-900 px-3 py-1.5 bg-[#08080b] hover:border-neutral-700">
+                                ◁ Torna al Portfolio
+                            </a>
+                            <div className="h-5 w-[1px] bg-neutral-900 hidden md:block"></div>
+                            <div>
+                                <h1 className="text-lg font-normal tracking-widest font-mono-tech text-white">
+                                    SANDPAY™
+                                </h1>
+                            </div>
+                        </div>
+
+                        {/* Controls */}
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => setShowConcept(true)}
+                                className="px-4 py-1.5 border border-neutral-800 hover:border-neutral-500 bg-[#08080b] text-xs font-mono-tech text-neutral-300 hover:text-white transition-all uppercase tracking-wider"
+                            >
+                                Leggi Concept
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Main Landing Workspace Layout */}
+                    <main className="flex-grow flex flex-col items-center justify-center p-6 max-w-6xl w-full mx-auto gap-10">
+                        
+                        {/* Sandpay Title & Official Corporate Description */}
+                        <div className="border border-[#121217] bg-[#08080b]/50 p-8 rounded-sm w-full">
+                            <h2 className="text-2xl font-normal font-serif-editorial text-white tracking-widest uppercase mb-6 text-center">
+                                Guerre Passate
+                            </h2>
+                            <p className="font-serif-editorial text-sm md:text-base leading-relaxed text-neutral-200 text-justify">
+                                Noi di Sandpay ci siamo posti una domanda: cosa accade davvero nella nostra testa quando imbracciamo un fucile giocattolo o stringiamo tra le mani un soldatino? La natura umana si esprime da sempre attraverso il gesto fisico e la capacità di astrazione. Per esplorare questo confine, abbiamo coinvolto un artista, chiedendogli di rievocare i pensieri e le sensazioni di quando giocava ai soldatini. Attraverso una mappatura della sua mente e le nostre avanzate tecnologie, abbiamo dato forma a quell'immaginario, ricreando la sua visione originaria.
+                            </p>
+                        </div>
+
+                        {/* Catalog Gallery Grid */}
+                        <div className="w-full flex flex-col gap-4">
+                            <div className="text-xs font-mono-tech text-neutral-500 border-b border-[#121217] pb-2 uppercase tracking-widest text-center">
+                                Selezione Lotti // Clicca su una foto per aprirla ed esplorare il sogno
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 py-8 max-w-5xl mx-auto">
+                                {SCENES_DATA.map((scene) => (
+                                    <div 
+                                        key={scene.id}
+                                        onClick={() => handleOpenDream(scene)}
+                                        className="group cursor-pointer border border-neutral-800 rounded-md p-3 bg-[#0a0a0f] hover:border-[#065f46] hover:shadow-[0_0_25px_rgba(6,95,70,0.18)] transition-all duration-300 flex flex-col gap-4"
+                                    >
+                                        <div className="aspect-[4/3] bg-neutral-950 rounded-sm overflow-hidden relative border border-neutral-900">
+                                            <img 
+                                                src={scene.path1} 
+                                                alt={scene.title} 
+                                                className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-[1.04] transition-all duration-700 ease-out"
+                                            />
+                                            <div className="absolute top-3 left-3 bg-black/80 px-2.5 py-1 rounded-sm text-[10px] font-mono-tech text-neutral-400 border border-neutral-800">
+                                                LOTTO {scene.id.toString().padStart(2, '0')}
+                                            </div>
+                                        </div>
+                                        <div className="text-xs md:text-sm font-mono-tech text-neutral-300 group-hover:text-[#065f46] transition-colors text-center uppercase tracking-widest pb-1 font-semibold">
+                                            {scene.title}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* IMMERSIVE DETAILED DREAM VIEWER */}
+                    {isViewerOpen && (
+                        <div className="fixed inset-0 z-50 bg-[#050507] flex flex-col justify-between p-6 select-none animate-fade-in animate-fade-in-override">
+                            
+                            {/* Top bar info */}
+                            <div className="flex items-center justify-between border-b border-[#121217] pb-3">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xs font-mono-tech text-[#065f46] tracking-widest uppercase">
+                                        OSSERVATORE SOGNI
+                                    </span>
+                                    <span className="text-xs font-mono-tech text-neutral-500">•</span>
+                                    <span className="text-xs font-mono-tech text-white uppercase tracking-wider">
+                                        LOTTO {activeScene.id.toString().padStart(2, '0')} // {activeScene.title}
+                                    </span>
+                                </div>
+                                
+                                <div className="flex items-center gap-3">
+                                    <button 
+                                        onClick={handleCloseDream}
+                                        className="px-4 py-1.5 border border-neutral-800 hover:border-neutral-500 text-xs font-mono-tech text-neutral-300 hover:text-white transition-all uppercase tracking-wider bg-[#08080b]"
+                                    >
+                                        Chiudi sogno ✕
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Main Content Workspace: Image Area or Split Screen */}
+                            <div className="flex-grow flex flex-col justify-center p-4 relative overflow-y-auto lg:overflow-hidden">
+                                {isGlitching && (
+                                    <div className="absolute inset-0 bg-[#050507]/95 z-20 flex flex-col items-center justify-center">
+                                        <div className="text-[10px] text-[#065f46] font-mono-tech tracking-widest uppercase animate-pulse">
+                                            RISCRITTURA MEMORIA IN CORSO...
+                                        </div>
+                                    </div>
+                                )}
+
+                                {isStoryUnlocked ? (
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center w-full max-w-6xl mx-auto h-full py-4">
+                                        {/* Left Column: Interactive Image Viewer */}
+                                        <div className="relative w-full h-[45vh] lg:h-[60vh] flex items-center justify-center overflow-hidden border border-neutral-900 bg-black/40 rounded-sm">
+                                            <img 
+                                                src={activeScene.path1} 
+                                                alt={activeScene.title} 
+                                                className={`absolute max-w-[95%] max-h-[95%] object-contain pointer-events-none transition-opacity duration-300 ${showDreamImage ? 'opacity-0' : 'opacity-100'}`}
+                                            />
+                                            <img 
+                                                src={activeScene.path2} 
+                                                alt={activeScene.title} 
+                                                className={`absolute max-w-[95%] max-h-[95%] object-contain pointer-events-none transition-opacity duration-300 ${showDreamImage ? 'opacity-100' : 'opacity-0'}`}
+                                            />
+                                        </div>
+
+                                        {/* Right Column: Decrypted Childhood Memory Story */}
+                                        <div className="flex flex-col gap-4 border border-[#065f46]/30 bg-[#08080b]/90 p-6 md:p-8 rounded-sm shadow-[0_0_30px_rgba(6,95,70,0.05)] border-l-4 border-l-[#065f46]">
+                                            <div className="flex items-center gap-2 border-b border-[#065f46]/20 pb-3">
+                                                <span className="w-2.5 h-2.5 rounded-full bg-[#065f46] animate-pulse"></span>
+                                                <h3 className="text-xs font-mono-tech text-[#065f46] tracking-widest uppercase">
+                                                    MEMORIA SINCRONIZZATA // STORIA DI GIOCO
+                                                </h3>
+                                            </div>
+                                            <p className="font-serif-editorial text-sm md:text-base leading-relaxed text-neutral-200 text-justify italic">
+                                                "{activeScene.story}"
+                                            </p>
+                                            <div className="text-[10px] font-mono-tech text-neutral-500 mt-2 uppercase tracking-wider">
+                                                Stato decrittazione: 100% COMPLETO // ID: 0x{activeScene.id}FF
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className={`relative w-full h-[60vh] flex items-center justify-center overflow-hidden ${isGlitching ? 'transaction-glitch' : ''}`}>
+                                        <img 
+                                            src={activeScene.path1} 
+                                            alt={activeScene.title} 
+                                            className={`absolute max-w-full max-h-full object-contain pointer-events-none transition-opacity duration-300 ${showDreamImage ? 'opacity-0' : 'opacity-100'}`}
+                                        />
+                                        <img 
+                                            src={activeScene.path2} 
+                                            alt={activeScene.title} 
+                                            className={`absolute max-w-full max-h-full object-contain pointer-events-none transition-opacity duration-300 ${showDreamImage ? 'opacity-100' : 'opacity-0'}`}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Bottom Fleeing Button area / Toggle Controls if Unlocked */}
+                            <div className="border-t border-[#121217] pt-4 flex flex-col items-center gap-2 relative h-36">
+                                {isStoryUnlocked ? (
+                                    <div className="absolute inset-x-0 top-0 flex flex-col items-center justify-center pt-2">
+                                        <span className="text-[10px] text-[#065f46] font-mono-tech tracking-wider uppercase">
+                                            MEMORIA RECUPERATA // NAVIGA TRA LE DUE VISIONI
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="absolute inset-x-0 top-0 flex flex-col items-center justify-center pt-2">
+                                        <span className="text-[10px] text-neutral-500 font-mono-tech tracking-wider uppercase">
+                                            {isHolding
+                                                ? (isOverButton ? "OSSERVAZIONE ATTIVA // SEGUI IL TASTO CON IL CURSORE!" : "COLLEGAMENTO PERSO // RECUPERA IL TASTO CON IL CURSORE!")
+                                                : "TIENI PREMUTO IL TASTO PER OSSERVARE IL SOGNO"
+                                            }
+                                        </span>
+                                        {/* Progress HUD */}
+                                        <div id="memory-progress-container" className="hidden w-64 bg-neutral-950 border border-neutral-900 h-2.5 rounded-full overflow-hidden mt-2 relative">
+                                            <div id="memory-progress-bar" className="bg-[#065f46] h-full w-0 transition-all duration-100"></div>
+                                        </div>
+                                        <div id="memory-progress-text" className="hidden text-[9px] font-mono-tech text-[#065f46] mt-1 uppercase tracking-wider">
+                                            Sincronizzazione Memoria: 0%
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                <div className="relative w-full h-full flex items-center justify-center overflow-visible">
+                                    {isStoryUnlocked ? (
+                                        <div className="flex gap-4 items-center">
+                                            <button 
+                                                onClick={() => setUnlockedViewMode('reality')}
+                                                className={`px-6 py-3 font-bold uppercase tracking-widest font-mono-tech text-xs md:text-sm transition-all border rounded-sm flex items-center select-none ${
+                                                    unlockedViewMode === 'reality'
+                                                        ? 'bg-neutral-900 border-[#065f46] text-[#065f46] shadow-[0_0_15px_rgba(6,95,70,0.15)]'
+                                                        : 'bg-black border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-500'
+                                                }`}
+                                            >
+                                                <span className={`w-2 h-2 rounded-full mr-2 bg-[#065f46] ${unlockedViewMode === 'reality' ? 'opacity-100' : 'opacity-30'}`}></span>
+                                                Realtà Domestica
+                                            </button>
+                                            <button 
+                                                onClick={() => setUnlockedViewMode('dream')}
+                                                className={`px-6 py-3 font-bold uppercase tracking-widest font-mono-tech text-xs md:text-sm transition-all border rounded-sm flex items-center select-none ${
+                                                    unlockedViewMode === 'dream'
+                                                        ? 'bg-neutral-900 border-[#065f46] text-[#065f46] shadow-[0_0_15px_rgba(6,95,70,0.15)]'
+                                                        : 'bg-black border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-500'
+                                                }`}
+                                            >
+                                                <span className={`w-2 h-2 rounded-full mr-2 bg-[#065f46] ${unlockedViewMode === 'dream' ? 'opacity-100' : 'opacity-30'}`}></span>
+                                                Visione Sogno
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button 
+                                            ref={buttonRef}
+                                            onMouseDown={handleStartHolding}
+                                            onTouchStart={handleStartHolding}
+                                            style={{
+                                                transition: isHolding ? 'none' : 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                                            }}
+                                            className={`absolute px-8 py-4 font-bold uppercase tracking-widest font-mono-tech text-xs md:text-sm transition-all border flex items-center justify-center select-none ${
+                                                isHolding
+                                                    ? (isOverButton
+                                                        ? 'bg-red-950/40 border-red-500 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.25)] cursor-crosshair'
+                                                        : 'bg-amber-950/40 border-amber-500 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.25)] cursor-crosshair')
+                                                    : 'bg-black border-neutral-800 text-white hover:border-neutral-500 cursor-pointer active:scale-95'
+                                            }`}
+                                        >
+                                            <span className={`w-2.5 h-2.5 rounded-full mr-2.5 ${
+                                                isHolding
+                                                    ? (isOverButton ? 'bg-red-500 animate-ping' : 'bg-amber-500 animate-pulse')
+                                                    : 'bg-emerald-500 animate-pulse'
+                                            }`}></span>
+                                            <span>
+                                                {isHolding
+                                                    ? (isOverButton ? "OSSERVAZIONE ATTIVA" : "RECUPERA IL TASTO")
+                                                    : "OSSERVA IL SOGNO"
+                                                }
+                                            </span>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                        </div>
+                    )}
+
+                    {/* Poetic Concept Modal */}
+                    {showConcept && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+                            <div className="max-w-2xl w-full border border-neutral-800 bg-[#0a0a0d] p-8 md:p-12 relative flex flex-col gap-6 shadow-2xl rounded-sm">
+                                
+                                {/* Close button corner */}
+                                <button 
+                                    onClick={() => setShowConcept(false)}
+                                    className="absolute top-4 right-4 text-neutral-500 hover:text-white text-xl font-mono-tech transition-colors"
+                                    aria-label="Chiudi modal"
+                                >
+                                    ✕
+                                </button>
+
+                                <div className="border-b border-neutral-900 pb-3">
+                                    <h2 className="text-xs font-mono-tech text-[#065f46] tracking-widest uppercase">
+                                        Concept del Progetto
+                                    </h2>
+                                </div>
+
+                                <div className="my-2 max-h-[60vh] overflow-y-auto pr-4 flex flex-col gap-4">
+                                    <p className="font-serif-editorial text-sm md:text-base leading-relaxed text-neutral-300 text-justify">
+                                        La guerra, che tutti noi vediamo prima scivolare e poi irrompere nella realtà, spezza il respiro e rende la veglia faticosa anche solo al pensiero. La consapevolezza di quello che accade per le vie del mondo oscura il risveglio e riempie il cuore di impossibilità e nostalgia. Nostalgia per un tempo passato, forse mai avuto, in cui tanti di noi credono risieda la propria epoca dell'oro. Per realizzare questo progetto, ho disposto dei soldatini di plastica all'interno di spazi domestici.
+                                    </p>
+                                    <p className="font-serif-editorial text-sm md:text-base leading-relaxed text-neutral-300 text-justify">
+                                        La casa è per molti il rifugio più sicuro, il luogo dove nascondersi dall'assedio dell'informazione, delle persone e del destino. Tuttavia, il mondo riserva spesso una sorte sgarbata, riprodotta di frequente perfino nel gioco e nella finzione. Non voglio essere frainteso: non sono qui per criticare o puntare il dito contro chi gioca o riproduce il conflitto nella finzione, voglio solo immortalare una visione. Per questo progetto, ho pensato di intrecciare due immaginari: quello reale dei soldatini immersi nell'abitazione e, in contrasto, un immaginario fantasioso di come quegli scatti prenderebbero vita. Quest'ultimo adotta un'estetica più realistica ma intrinsecamente surrealista, generata attraverso le vie del codice e dei dati dell'intelligenza artificiale.
+                                    </p>
+                                    <p className="font-serif-editorial text-sm md:text-base leading-relaxed text-neutral-300 text-justify">
+                                        Voglio ricondurre queste immagini alle primissime interpretazioni che si possono avere sulla guerra: quando, da esseri umani ancora troppo piccoli e immersi nella nostra epoca d'oro, sottovalutavamo il reale proteggendoci con l'illusione del racconto.
+                                    </p>
+                                </div>
+
+                                <div className="pt-2 border-t border-neutral-900 flex justify-end">
+                                    <button 
+                                        onClick={() => setShowConcept(false)}
+                                        className="px-6 py-2 border border-neutral-800 hover:border-neutral-500 text-xs font-mono-tech text-neutral-300 hover:text-white transition-all uppercase tracking-wider bg-[#050507]"
+                                    >
+                                        Chiudi
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {/* Footer */}
+                    <footer className="border-t border-[#121217] bg-black px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-4 text-[9px] tracking-widest font-mono-tech text-neutral-600 z-30 relative select-none">
+                        <p>© SANDPAY CORP. TUTTI I SOGNI RISERVATI.</p>
+                        <p>PROGETTO SOLDATINI DI PLASTICA // EMANUELE BACCIGALUPI</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        // Render React Application
+        const root = ReactDOM.createRoot(document.getElementById('app-root'));
+        root.render(<SandpayCatalog />);
+    </script>
+</body>
+
+</html>

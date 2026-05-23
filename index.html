@@ -268,7 +268,7 @@
                 { id: 'kaoss', label: 'Radio Kaoss' },
                 { id: 'cosmo', label: 'Memorie del Cosmo' },
                 { id: 'visual-ai', label: 'Visual & AI' },
-                { id: 'games', label: 'Games' },
+                { id: 'interactive', label: 'Interactive' },
                 { id: 'illustrations', label: 'Illustrazioni' },
                 { id: 'materials', label: 'Materiali' },
                 { id: 'portfolio', label: 'Zona Larga' },
@@ -341,7 +341,7 @@
                 { id: 'kaoss', label: 'Radio Kaoss' },
                 { id: 'cosmo', label: 'Memorie del Cosmo' },
                 { id: 'visual-ai', label: 'Visual & AI' },
-                { id: 'games', label: 'Games' },
+                { id: 'interactive', label: 'Interactive' },
                 { id: 'illustrations', label: 'Illustrazioni' },
                 { id: 'materials', label: 'Materiali' },
                 { id: 'portfolio', label: 'Zona Larga' },
@@ -482,8 +482,8 @@
                             <h3 className="text-[11px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-widest mt-6">Visual & AI</h3>
                         </div>
 
-                        {/* 4. Programmatore -> Games */}
-                        <div onClick={() => scrollToSection('games')} className="bg-neutral-950/40 border border-neutral-900/80 p-6 hover:border-red-900/80 hover:bg-neutral-900/20 transition-all duration-300 cursor-pointer group backdrop-blur-sm relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
+                        {/* 4. Programmatore -> Interactive */}
+                        <div onClick={() => scrollToSection('interactive')} className="bg-neutral-950/40 border border-neutral-900/80 p-6 hover:border-red-900/80 hover:bg-neutral-900/20 transition-all duration-300 cursor-pointer group backdrop-blur-sm relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left">
                             <span className="absolute top-4 right-4 text-[10px] font-mono text-neutral-700 group-hover:text-red-600/40 transition-colors">04 / IV</span>
                             <Icons.Code className="w-6 h-6 text-neutral-600 group-hover:text-red-500 transition-colors" />
                             <h3 className="text-[11px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-widest mt-6">Codice</h3>
@@ -1100,11 +1100,11 @@
 
 
 
-        const GamesSection = () => (
-            <section id="games" className="py-12 md:py-24 bg-black border-t border-neutral-900">
+        const InteractiveSection = () => (
+            <section id="interactive" className="py-12 md:py-24 bg-black border-t border-neutral-900">
                 <div className="max-w-7xl mx-auto px-6">
                     <h2 className="brand-font text-3xl md:text-5xl text-white mb-2 text-center">
-                        <span className="text-neutral-700">Interactive</span> Games
+                        Interactive
                     </h2>
 
                     <div className="flex justify-center mb-12 px-6">
@@ -1120,63 +1120,75 @@
                         </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {/* Eyes in the Sky - Gioco Dito */}
                         <a href="gioco-dito/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
-                            <div className="aspect-square bg-black relative overflow-hidden mb-4">
+                            <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
                                 <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
                                     <Icons.Gamepad />
                                 </div>
                                 <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={{ backgroundImage: "url('gioco-dito/bg.gif')" }}></div>
                             </div>
-                            <div className="px-4 pb-4">
-                                <h3 className="text-xl font-bold text-white mb-1">Eyes in the Sky</h3>
-                                <p className="text-neutral-500 text-xs font-mono uppercase">scappa dai bulbi oculari astroanuta! altriemnti ti prenderanno.</p>
+                            <div className="px-3 pb-3">
+                                <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Eyes in the Sky</h3>
+                                <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">scappa dai bulbi oculari astroanuta! altriemnti ti prenderanno.</p>
                             </div>
                         </a>
 
-
+                        {/* Sandpay - Guerre Passate */}
+                        <a href="fotografie/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:border-emerald-800/40 hover:bg-neutral-800 transition-all duration-300">
+                            <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
+                                <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-emerald-800 transition-colors">
+                                    <Icons.Gamepad />
+                                </div>
+                                <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={{ backgroundImage: "url('gioco-dito/bg.gif')", filter: "sepia(0.8) saturate(2) hue-rotate(100deg) brightness(0.6) contrast(1.2)" }}></div>
+                            </div>
+                            <div className="px-3 pb-3">
+                                <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Sandpay</h3>
+                                <p className="text-emerald-800 text-[10px] leading-tight font-mono uppercase font-semibold">Guerre passate</p>
+                            </div>
+                        </a>
 
                         {/* Simbolo - Nuovo Weeb Design */}
                         <a href="nuovo-web-design/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
-                            <div className="aspect-square bg-black relative overflow-hidden mb-4">
+                            <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
                                 <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
                                     <Icons.Gamepad />
                                 </div>
                                 <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={{ backgroundImage: "url('nuovo-web-design/player.gif/lv_0_20250613181641.gif')" }}></div>
                             </div>
-                            <div className="px-4 pb-4">
-                                <h3 className="text-xl font-bold text-white mb-1">Simbolo</h3>
-                                <p className="text-neutral-500 text-xs font-mono uppercase">muovi la testa e scappa dai simboli. muoviti e non inciampare nel mondo</p>
+                            <div className="px-3 pb-3">
+                                <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Simbolo</h3>
+                                <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">muovi la testa e scappa dai simboli. muoviti e non inciampare nel mondo</p>
                             </div>
                         </a>
 
                         {/* Lucidus - Sito da Convertire */}
                         <a href="sito-da-convertire/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
-                            <div className="aspect-square bg-black relative overflow-hidden mb-4">
+                            <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
                                 <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
                                     <Icons.Code />
                                 </div>
                                 <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={{ backgroundImage: "url('sito-da-convertire/copertina-2.gif')" }}></div>
                             </div>
-                            <div className="px-4 pb-4">
-                                <h3 className="text-xl font-bold text-white mb-1">Lucidus</h3>
-                                <p className="text-neutral-500 text-xs font-mono uppercase">un sito di lampade promosso da lucidus, converti i tuoi soldi in denti da latte.</p>
+                            <div className="px-3 pb-3">
+                                <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Lucidus</h3>
+                                <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">un sito di lampade promosso da lucidus, converti i tuoi soldi in denti da latte.</p>
                             </div>
                         </a>
 
                         {/* RaDiO KaOsS Live */}
                         <a href="RadioKaoSs/index.html" target="_blank" className="group block bg-neutral-900 border border-red-900/40 p-1 hover:bg-red-950/20 transition-all duration-300">
-                            <div className="aspect-square bg-black relative overflow-hidden mb-4">
+                            <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
                                 <div className="absolute inset-0 bg-red-900/20 flex items-center justify-center text-red-500 group-hover:text-red-400 transition-colors">
                                     <Icons.Radio />
                                 </div>
                                 <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={{ backgroundImage: "url('gioco-dito/bg.gif')", filter: "sepia(1) saturate(8) hue-rotate(-30deg)" }}></div>
                                 <div className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider animate-pulse">● LIVE</div>
                             </div>
-                            <div className="px-4 pb-4">
-                                <h3 className="text-xl font-bold text-red-500 mb-1">RaDiO KaOsS</h3>
-                                <p className="text-neutral-500 text-xs font-mono uppercase">RaDiO KaOsS live.</p>
+                            <div className="px-3 pb-3">
+                                <h3 className="text-sm font-bold text-red-500 mb-0.5 tracking-wide">RaDiO KaOsS</h3>
+                                <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">RaDiO KaOsS live.</p>
                             </div>
                         </a>
                     </div>
@@ -1503,7 +1515,7 @@
 
             useEffect(() => {
                 const handleScroll = () => {
-                    const sections = ['home', 'kaoss', 'cosmo', 'visual-ai', 'games', 'illustrations', 'materials', 'portfolio', 'bio', 'contact'];
+                    const sections = ['home', 'kaoss', 'cosmo', 'visual-ai', 'interactive', 'illustrations', 'materials', 'portfolio', 'bio', 'contact'];
                     
                     // Controllo immediato fondo pagina (Contatti)
                     const isBottom = (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100;
@@ -1551,7 +1563,7 @@
                     <CosmoSection />
                     <VisualAISection />
 
-                    <GamesSection />
+                    <InteractiveSection />
                     <IllustrationsSection />
                     <MaterialsSection />
                     <PortfolioSection />
