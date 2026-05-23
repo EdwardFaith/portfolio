@@ -1091,7 +1091,7 @@
                                     <div className="absolute inset-x-0 top-0 flex flex-col items-center justify-center pt-2">
                                         <span className="text-[10px] text-neutral-500 font-mono-tech tracking-wider uppercase">
                                             {isHolding
-                                                ? (isOverButton ? "OSSERVAZIONE ATTIVA // SEGUI IL TASTO CON IL CURSORE!" : "COLLEGAMENTO PERSO // RECUPERA IL TASTO CON IL CURSORE!")
+                                                ? (isOverButton ? "OSSERVAZIONE ATTIVA // SEGUI IL TASTO CON IL CURSORE!" : "SEGUI IL SOGNO // TIENITI VICINO AL TASTO!")
                                                 : "TIENI PREMUTO IL TASTO PER OSSERVARE IL SOGNO"
                                             }
                                         </span>
@@ -1143,18 +1143,18 @@
                                                 isHolding
                                                     ? (isOverButton
                                                         ? 'bg-red-950/40 border-red-500 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.25)] cursor-crosshair'
-                                                        : 'bg-amber-950/40 border-amber-500 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.25)] cursor-crosshair')
+                                                        : 'bg-neutral-900/60 border-neutral-500 text-white shadow-[0_0_12px_rgba(255,255,255,0.08)] cursor-crosshair')
                                                     : 'bg-black border-neutral-800 text-white hover:border-neutral-500 cursor-pointer active:scale-95'
                                             }`}
                                         >
                                             <span className={`w-2.5 h-2.5 rounded-full mr-2.5 ${
                                                 isHolding
-                                                    ? (isOverButton ? 'bg-red-500 animate-ping' : 'bg-amber-500 animate-pulse')
+                                                    ? (isOverButton ? 'bg-red-500 animate-ping' : 'bg-white animate-pulse')
                                                     : 'bg-emerald-500 animate-pulse'
                                             }`}></span>
                                             <span>
                                                 {isHolding
-                                                    ? (isOverButton ? "OSSERVAZIONE ATTIVA" : "RECUPERA IL TASTO")
+                                                    ? (isOverButton ? "OSSERVAZIONE ATTIVA" : "SEGUI IL SOGNO")
                                                     : "OSSERVA IL SOGNO"
                                                 }
                                             </span>
