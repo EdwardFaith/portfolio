@@ -901,6 +901,16 @@
             const isStoryUnlocked = unlockedLots.includes(activeScene.id);
             const showDreamImage = isStoryUnlocked ? (unlockedViewMode === 'dream') : (isHolding && isOverButton);
 
+            // ── Restart: reset all game progress ──
+            const handleRestart = () => {
+                setUnlockedLots([]);
+                setUnlockedViewMode('dream');
+                setActiveScene(SCENES_DATA[0]);
+                setIsViewerOpen(false);
+                setShowConcept(false);
+                handleStopHolding();
+            };
+
             return (
                 <div className="min-h-screen flex flex-col justify-between bg-[#050507]">
                     
@@ -918,8 +928,16 @@
                             </div>
                         </div>
 
-                        {/* Controls — Hand Tracking Toggle */}
-                        <div className="flex items-center gap-3">
+                        {/* Controls — Hand Tracking Toggle + Riavvia */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleRestart}
+                                className="flex items-center gap-1.5 px-3 py-1.5 border border-neutral-800 text-xs font-mono-tech uppercase tracking-wider transition-all text-neutral-400 bg-[#08080b] hover:border-neutral-500 hover:text-white"
+                                title="Riavvia il gioco e azzera i progressi"
+                            >
+                                <span style={{ fontSize: '13px' }}>↺</span>
+                                <span className="hidden sm:inline">Riavvia</span>
+                            </button>
                             <button
                                 onClick={() => setHandEnabled(v => !v)}
                                 className={`flex items-center gap-2 px-3 py-1.5 border text-xs font-mono-tech uppercase tracking-wider transition-all ${
