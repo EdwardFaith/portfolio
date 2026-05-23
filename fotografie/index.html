@@ -389,7 +389,7 @@
             const [isGlitching, setIsGlitching] = useState(false);
             const [showConcept, setShowConcept] = useState(false);
             const [unlockedLots, setUnlockedLots] = useState([]);
-            const [unlockedViewMode, setUnlockedViewMode] = useState('dream');
+            const [unlockedViewMode, setUnlockedViewMode] = useState({}); // { [sceneId]: 'dream' | 'reality' }
 
             // ── Hand Tracking State ──
             const [handEnabled, setHandEnabled] = useState(false);
@@ -430,7 +430,7 @@
             const handleCloseDream = () => {
                 setIsViewerOpen(false);
                 handleStopHolding();
-                setUnlockedViewMode('dream');
+                // keep view mode choice per scene — don't reset
             };
 
             const handleStartHolding = (e) => {
@@ -898,13 +898,14 @@
                 return () => clearTimeout(init);
             }, [handEnabled]);
 
+            const currentViewMode = unlockedViewMode[activeScene.id] || 'dream';
             const isStoryUnlocked = unlockedLots.includes(activeScene.id);
-            const showDreamImage = isStoryUnlocked ? (unlockedViewMode === 'dream') : (isHolding && isOverButton);
+            const showDreamImage = isStoryUnlocked ? (currentViewMode === 'dream') : (isHolding && isOverButton);
 
             // ── Restart: reset all game progress ──
             const handleRestart = () => {
                 setUnlockedLots([]);
-                setUnlockedViewMode('dream');
+                setUnlockedViewMode({});
                 setActiveScene(SCENES_DATA[0]);
                 setIsViewerOpen(false);
                 setShowConcept(false);
@@ -991,24 +992,46 @@
                                 Selezione Lotti // Clicca su una foto per aprirla ed esplorare il sogno
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 py-8 max-w-5xl mx-auto">
-                                {SCENES_DATA.map((scene) => (
-                                    <div 
-                                        key={scene.id}
-                                        onClick={() => handleOpenDream(scene)}
-                                        className="group cursor-pointer border border-neutral-800 rounded-md p-3 bg-[#0a0a0f] hover:border-[#065f46] hover:shadow-[0_0_25px_rgba(6,95,70,0.18)] transition-all duration-300 flex flex-col gap-4"
-                                    >
-                                        <div className="aspect-[4/3] bg-neutral-950 rounded-sm overflow-hidden relative border border-neutral-900">
-                                            <img 
-                                                src={scene.path1} 
-                                                alt={scene.title} 
-                                                className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-[1.04] transition-all duration-700 ease-out"
-                                            />
+                                {SCENES_DATA.map((scene) => {
+                                    const isUnlocked = unlockedLots.includes(scene.id);
+                                    return (
+                                        <div
+                                            key={scene.id}
+                                            onClick={() => handleOpenDream(scene)}
+                                            className="group cursor-pointer border border-neutral-800 rounded-md p-3 bg-[#0a0a0f] hover:border-[#065f46] hover:shadow-[0_0_25px_rgba(6,95,70,0.18)] transition-all duration-300 flex flex-col gap-4"
+                                        >
+                                            <div className="aspect-[4/3] bg-neutral-950 rounded-sm overflow-hidden relative border border-neutral-900">
+                                                {/* Show path chosen by user: 'reality'=path1, 'dream'=path2 (default) */}
+                                                {(() => {
+                                                    const chosenMode = unlockedViewMode[scene.id] || 'dream';
+                                                    const showDream = isUnlocked && chosenMode === 'dream';
+                                                    return (
+                                                        <>
+                                                            <img
+                                                                src={showDream ? scene.path2 : scene.path1}
+                                                                alt={scene.title}
+                                                                className="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-[1.04] transition-all duration-700 ease-out"
+                                                            />
+                                                            {isUnlocked && (
+                                                                <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/70 border border-[#065f46]/50 px-2 py-0.5 rounded-sm">
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#065f46] animate-pulse"></span>
+                                                                    <span className="text-[9px] font-mono-tech text-[#065f46] uppercase tracking-widest">
+                                                                        {chosenMode === 'dream' ? 'Sogno' : 'Realtà'}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    );
+                                                })()}
+                                            </div>
+
+                                            <div className="text-xs md:text-sm font-mono-tech text-neutral-300 group-hover:text-[#065f46] transition-colors text-center uppercase tracking-widest pb-1 font-semibold">
+                                                {scene.title}
+                                            </div>
                                         </div>
-                                        <div className="text-xs md:text-sm font-mono-tech text-neutral-300 group-hover:text-[#065f46] transition-colors text-center uppercase tracking-widest pb-1 font-semibold">
-                                            {scene.title}
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
+
                             </div>
                         </div>
                     </main>
@@ -1127,25 +1150,25 @@
                                     {isStoryUnlocked ? (
                                         <div className="flex gap-4 items-center">
                                             <button 
-                                                onClick={() => setUnlockedViewMode('reality')}
+                                                onClick={() => setUnlockedViewMode(prev => ({ ...prev, [activeScene.id]: 'reality' }))}
                                                 className={`px-6 py-3 font-bold uppercase tracking-widest font-mono-tech text-xs md:text-sm transition-all border rounded-sm flex items-center select-none ${
-                                                    unlockedViewMode === 'reality'
+                                                    currentViewMode === 'reality'
                                                         ? 'bg-neutral-900 border-[#065f46] text-[#065f46] shadow-[0_0_15px_rgba(6,95,70,0.15)]'
                                                         : 'bg-black border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-500'
                                                 }`}
                                             >
-                                                <span className={`w-2 h-2 rounded-full mr-2 bg-[#065f46] ${unlockedViewMode === 'reality' ? 'opacity-100' : 'opacity-30'}`}></span>
+                                                <span className={`w-2 h-2 rounded-full mr-2 bg-[#065f46] ${currentViewMode === 'reality' ? 'opacity-100' : 'opacity-30'}`}></span>
                                                 Realtà Domestica
                                             </button>
                                             <button 
-                                                onClick={() => setUnlockedViewMode('dream')}
+                                                onClick={() => setUnlockedViewMode(prev => ({ ...prev, [activeScene.id]: 'dream' }))}
                                                 className={`px-6 py-3 font-bold uppercase tracking-widest font-mono-tech text-xs md:text-sm transition-all border rounded-sm flex items-center select-none ${
-                                                    unlockedViewMode === 'dream'
+                                                    currentViewMode === 'dream'
                                                         ? 'bg-neutral-900 border-[#065f46] text-[#065f46] shadow-[0_0_15px_rgba(6,95,70,0.15)]'
                                                         : 'bg-black border-neutral-800 text-neutral-400 hover:text-white hover:border-neutral-500'
                                                 }`}
                                             >
-                                                <span className={`w-2 h-2 rounded-full mr-2 bg-[#065f46] ${unlockedViewMode === 'dream' ? 'opacity-100' : 'opacity-30'}`}></span>
+                                                <span className={`w-2 h-2 rounded-full mr-2 bg-[#065f46] ${currentViewMode === 'dream' ? 'opacity-100' : 'opacity-30'}`}></span>
                                                 Visione Sogno
                                             </button>
                                         </div>
@@ -1216,7 +1239,16 @@
                                     </p>
                                 </div>
 
-                                <div className="pt-2 border-t border-neutral-900 flex justify-end">
+                                <div className={`pt-2 border-t border-neutral-900 flex items-center ${!handEnabled ? 'justify-between' : 'justify-end'}`}>
+                                    {!handEnabled && (
+                                        <a 
+                                            href="presentazione.html" 
+                                            target="_blank"
+                                            className="text-xs font-mono-tech text-[#065f46] hover:text-[#0a966f] transition-colors uppercase tracking-wider underline ml-2"
+                                        >
+                                            Leggi il concept completo
+                                        </a>
+                                    )}
                                     <button 
                                         onClick={() => setShowConcept(false)}
                                         className="px-6 py-2 border border-neutral-800 hover:border-neutral-500 text-xs font-mono-tech text-neutral-300 hover:text-white transition-all uppercase tracking-wider bg-[#050507]"

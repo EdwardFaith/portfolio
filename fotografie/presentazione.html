@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guerre Passate — Emanuele Baccigalupi</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg:     #050507;
+    --bg2:    #09090e;
+    --green:  #065f46;
+    --dim:    rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.05);
+    --muted:  #4b4b5e;
+    --body:   #a1a1b5;
+    --white:  #f5f5f8;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    overflow: hidden;
+  }
+
+  /* ── DECK ── */
+  #deck { position: relative; width: 100%; height: 100%; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .4s ease;
+  }
+  .slide.active{ opacity: 1; pointer-events: all; }
+
+  /* dot grid */
+  .slide::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(rgba(255,255,255,.013) 1px, transparent 0);
+    background-size: 30px 30px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  /* ── CHROME ── */
+  #bar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 2px; background: var(--green);
+    transition: width .4s ease;
+    z-index: 200;
+  }
+  #tag-corner {
+    position: fixed; top: 22px; left: 28px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: .22em;
+    color: var(--muted); text-transform: uppercase;
+    z-index: 200;
+  }
+  #controls {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 18px;
+    background: rgba(5,5,7,.88);
+    border: 1px solid var(--border);
+    padding: 9px 22px;
+    backdrop-filter: blur(14px);
+    z-index: 200;
+  }
+  #controls button {
+    background: none;
+    border: 1px solid rgba(255,255,255,.07);
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 5px 14px; cursor: pointer;
+    transition: all .2s;
+  }
+  #controls button:hover { border-color: var(--green); color: var(--white); }
+  #ctr { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: .18em; min-width: 52px; text-align: center; }
+
+  /* ── SHARED TYPE ── */
+  .tag   { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: .28em; color: var(--green); text-transform: uppercase; }
+  .serif { font-family: 'Cinzel', serif; font-weight: 500; }
+  .mono  { font-family: 'Share Tech Mono', monospace; }
+  .rule  { width: 44px; height: 1px; background: var(--green); flex-shrink: 0; }
+  .body  { font-family: 'Montserrat', sans-serif; font-size: 14px; line-height: 2.1; color: var(--white); font-weight: 300; }
+
+  /* ── LAYOUTS ── */
+  .pad  { padding: 70px 80px; }
+  .wide { max-width: 1200px; width: 100%; margin: 0 auto; }
+  .cols { display: flex; gap: 72px; align-items: flex-start; }
+  .col-label { flex: 0 0 230px; }
+
+  /* ── COVER ── */
+  #s1 { background: #020204; align-items: flex-end; justify-content: flex-end; padding: 80px; }
+  #s1 .bg { position: absolute; inset: 0; background: url('1/1.jpg') center/cover; opacity: .13; filter: grayscale(.5) contrast(1.1); }
+  #s1 .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 50%, transparent 30%, rgba(2,2,4,.92) 100%); }
+  #s1 h1 { font-family: 'Cinzel', serif; font-size: clamp(56px,8.5vw,100px); font-weight: 600; line-height: 1; letter-spacing: -.02em; margin-bottom: 28px; }
+  #s1 .meta { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: .22em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+
+  /* ── CONCEPT SLIDES ── */
+  .s-concept { position: relative; }
+  .s-concept .num { font-family: 'Cinzel', serif; font-size: 160px; font-weight: 700; color: rgba(255,255,255,.02); line-height: 1; position: absolute; top: -70px; left: -40px; z-index: 0; pointer-events: none; }
+  .s-concept p { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 300; line-height: 2.3; color: #a1a1b5; text-align: left; position: relative; z-index: 1; }
+  .s-concept p strong { font-weight: 600; color: var(--white); }
+
+  /* ── SANDPAY DEVICE SLIDE ── */
+  .s-device { max-width: 1100px; width: 100%; }
+  .s-device .box { border: 1px solid var(--border); padding: 36px 44px; background: var(--bg2); }
+
+  /* ── PHOTO SLIDES ── */
+  .s-photo { flex-direction: row; padding: 0; align-items: stretch; width: 100%; height: 100%; }
+  .s-photo .img-wrap {
+    flex: 1; position: relative; overflow: hidden;
+    background: #030305;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .s-photo .img-wrap img {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    display: block;
+    transition: transform 7s ease;
+  }
+  .slide.active .s-photo .img-wrap img { transform: scale(1.025); }
+  .s-photo .img-wrap .img-label {
+    position: absolute; bottom: 16px; left: 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: .22em;
+    color: rgba(255,255,255,.3);
+    text-transform: uppercase;
+    background: rgba(5,5,7,.65);
+    padding: 3px 10px;
+    border: 1px solid rgba(255,255,255,.04);
+  }
+  .s-photo .sep { width: 1px; background: var(--border); flex-shrink: 0; }
+  .s-photo .sidebar {
+    flex: 0 0 340px;
+    background: var(--bg2);
+    display: flex; flex-direction: column;
+    justify-content: flex-end;
+    padding: 44px 40px;
+    gap: 18px;
+    border-left: 1px solid var(--border);
+  }
+  .s-photo .sidebar .lot { font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: .28em; color: var(--green); text-transform: uppercase; }
+  .s-photo .sidebar h3 { font-family: 'Cinzel', serif; font-size: 26px; font-weight: 500; line-height: 1.15; }
+  .s-photo .sidebar .story { font-size: 14px; line-height: 1.8; color: var(--white); font-style: italic; }
+
+  /* ── GRID SLIDES ── */
+  .s-grid .grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 5px; margin-top: 32px; }
+  .s-grid .cell { aspect-ratio: 4/3; overflow: hidden; border: 1px solid var(--border); background: #030305; }
+  .s-grid .cell img { width: 100%; height: 100%; object-fit: cover; opacity: .82; transition: opacity .3s; }
+  .s-grid .cell img:hover { opacity: 1; }
+
+  /* ── INTERACTIVE SLIDES ── */
+  .s-inter { max-width: 1100px; width: 100%; }
+  .s-inter .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 36px; }
+  .s-inter .card { border: 1px solid var(--border); padding: 32px; background: var(--bg2); }
+  .s-inter .card .num { font-family: 'Cinzel', serif; font-size: 52px; font-weight: 600; color: rgba(255,255,255,.07); line-height: 1; margin-bottom: 8px; }
+  .s-inter .card h4 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .1em; color: var(--white); margin-bottom: 12px; }
+  .s-inter .card p { font-size: 13px; line-height: 1.8; color: var(--body); }
+
+  /* DIAGRAM */
+  .diagram { display: flex; align-items: center; gap: 12px; margin-top: 40px; flex-wrap: wrap; justify-content: center; }
+  .d-node { border: 1px solid var(--border); padding: 16px 22px; background: var(--bg2); font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--body); text-align: center; min-width: 120px; }
+  .d-node .icon { font-size: 24px; display: block; margin-bottom: 8px; }
+  .d-arr { color: var(--green); font-size: 18px; }
+
+  /* PLACEHOLDER */
+  .s-placeholder { max-width: 800px; text-align: center; }
+  .placeholder-box { border: 1px dashed rgba(255,255,255,.1); padding: 64px; margin-top: 40px; }
+
+  /* CREDITS */
+  #s-end { background: #020204; }
+  #s-end .bg { position: absolute; inset: 0; background: url('1/8.jpg') center/cover; opacity: .07; filter: grayscale(.6); }
+</style>
+</head>
+<body>
+
+<div id="bar"></div>
+<div id="tag-corner">Guerre Passate · Emanuele Baccigalupi · 2025</div>
+
+<div id="deck">
+
+  <!-- ① COVER -->
+  <div class="slide active" id="s1">
+    <div class="bg"></div>
+    <div class="vignette"></div>
+    <div style="position:relative;z-index:2;">
+      <div class="meta" style="margin-bottom:36px;">Progetto di Fotografia Surrealista</div>
+      <h1>Guerre<br>Passate</h1>
+      <div class="rule" style="margin:0 0 24px;"></div>
+      <div class="meta">Emanuele Baccigalupi &nbsp;·&nbsp; Fotografia &amp; Intelligenza Artificiale</div>
+    </div>
+  </div>
+
+  <!-- ② CONCEPT 1 -->
+  <!-- ② CONCEPT 1 -->
+  <div class="slide" style="padding:80px;">
+    <div class="wide" style="display:flex; align-items:center; gap:100px; height:100%;">
+      <div style="flex:1; height:100%; display:flex; align-items:center; justify-content:flex-end;">
+        <img src="1/3.jpg" style="max-width:100%; max-height:75vh; object-fit:contain;">
+      </div>
+      <div style="flex:0 0 420px; position:relative;">
+        <div class="tag" style="margin-bottom:32px;">01 — Il Concept</div>
+        <div class="s-concept">
+          <div class="num">I</div>
+          <p>La guerra spezza il respiro e riempie il cuore di impossibilità e nostalgia. Nostalgia per un tempo passato, forse mai avuto, in cui crediamo risieda la nostra epoca dell'oro.<br><br>Per realizzare questo progetto, ho disposto dei soldatini di plastica all'interno di spazi domestici, cercando un cortocircuito tra il reale e la finzione bellica.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ CONCEPT 2 -->
+  <div class="slide" style="padding:80px;">
+    <div class="wide" style="display:flex; align-items:center; flex-direction:row-reverse; gap:100px; height:100%;">
+      <div style="flex:1; height:100%; display:flex; align-items:center; justify-content:flex-start;">
+        <img src="1/5.jpg" style="max-width:100%; max-height:75vh; object-fit:contain;">
+      </div>
+      <div style="flex:0 0 420px; position:relative;">
+        <div class="tag" style="margin-bottom:32px;">01 — Il Concept</div>
+        <div class="s-concept">
+          <div class="num">II</div>
+          <p>La casa è per molti il rifugio più sicuro. Tuttavia, il mondo riserva spesso una sorte sgarbata, riprodotta di frequente perfino nel gioco infantile. Non voglio criticare chi riproduce il conflitto nella finzione, voglio solo immortalare una visione.<br><br>Ho intrecciato due immaginari: i soldatini reali negli spazi domestici e, in contrasto, una visione surrealista generata dall'intelligenza artificiale, immaginando come quegli scatti prenderebbero vita.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ CONCEPT 3 -->
+  <div class="slide" style="padding:80px;">
+    <div class="wide" style="display:flex; align-items:center; gap:100px; height:100%;">
+      <div style="flex:1; height:100%; display:flex; align-items:center; justify-content:flex-end;">
+        <img src="1/10.jpeg" style="max-width:100%; max-height:75vh; object-fit:contain;">
+      </div>
+      <div style="flex:0 0 420px; position:relative;">
+        <div class="tag" style="margin-bottom:32px;">01 — Il Concept</div>
+        <div class="s-concept">
+          <div class="num">III</div>
+          <p>Voglio ricondurre queste immagini alle primissime interpretazioni sulla guerra: <br><br>quando, ancora troppo piccoli e immersi nella nostra epoca d'oro, sottovalutavamo il reale proteggendoci con l'illusione del racconto.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ COS'È SANDPAY -->
+  <div class="slide" style="padding:70px 80px;">
+    <div class="s-device wide">
+      <div class="tag" style="margin-bottom:28px;">02 — La Trovata Artistica</div>
+      <div class="cols" style="gap:60px; align-items:flex-start;">
+        <div class="col-label">
+          <div class="serif" style="font-size:clamp(32px,4vw,52px); font-weight:300; line-height:1.1; margin-bottom:16px;">SANDPAY™</div>
+          <div class="rule" style="margin-bottom:16px;"></div>
+          <div class="mono" style="font-size:10px; color:var(--muted); letter-spacing:.18em; text-transform:uppercase; line-height:1.7;">Dream Acquisition Corp.<br>— Fictional Entity</div>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:20px;">
+          <p class="body">
+            Sandpay non è il progetto: è il <strong style="color:var(--white);">dispositivo narrativo</strong> che lo contiene.
+            Una finta corporazione che si presenta come un'azienda capace di "acquisire i sogni" dei suoi clienti,
+            dando loro forma attraverso la tecnologia.
+          </p>
+          <p class="body">
+            Questo involucro fictizio permette di separare la narrazione dall'autore:
+            le storie raccontate da ogni foto diventano "lotti" di un catalogo,
+            le visioni AI diventano "acquisizioni" di stato mentale.
+            <strong style="color:var(--white);">Sandpay è il mezzo, non il messaggio.</strong>
+          </p>
+          <div style="display:flex; gap:16px; margin-top:8px;">
+            <div class="box" style="border:1px solid var(--border); padding:14px 20px; background:var(--bg2);">
+              <div class="tag" style="font-size:9px; margin-bottom:6px;">10 Lotti</div>
+              <div style="font-size:12px; color:var(--body);">Scene fotografate</div>
+            </div>
+            <div class="box" style="border:1px solid var(--border); padding:14px 20px; background:var(--bg2);">
+              <div class="tag" style="font-size:9px; margin-bottom:6px;">10 Visioni</div>
+              <div style="font-size:12px; color:var(--body);">Generazioni AI</div>
+            </div>
+            <div class="box" style="border:1px solid var(--border); padding:14px 20px; background:var(--bg2);">
+              <div class="tag" style="font-size:9px; margin-bottom:6px;">2 Mondi</div>
+              <div style="font-size:12px; color:var(--body);">Realtà e sogno</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑥ LA FOTOGRAFIA -->
+  <div class="slide" style="padding:70px 80px;">
+    <div class="wide">
+      <div class="tag" style="margin-bottom:28px;">03 — La Fotografia</div>
+      <div class="cols">
+        <div class="col-label" style="flex:0 0 260px;">
+          <div class="serif" style="font-size:clamp(28px,3.5vw,44px); font-weight:300; line-height:1.15; margin-bottom:16px;">Soldatini in spazi domestici</div>
+          <div class="rule" style="margin-bottom:16px;"></div>
+          <div class="mono" style="font-size:10px; color:var(--muted); letter-spacing:.15em; text-transform:uppercase; line-height:1.8;">Fotografia concettuale<br>Luce naturale</div>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:18px;">
+          <p class="body">La scelta di fotografare soldatini di plastica in ambienti domestici nasce dalla tensione tra due opposti: il <strong style="color:var(--white);">micro-mondo della finzione bellica</strong> e la quiete ordinaria della casa.</p>
+          <p class="body">I soldatini vengono disposti in relazione agli oggetti quotidiani — piani cucina, tavoli, scaffali — trasformandoli in scenari di guerra che esistono solo nella logica di chi li guarda, non in quella degli oggetti che li ospitano.</p>
+          <p class="body">Ogni scena è costruita: la luce, la posizione dei soldatini, la scelta del fondale. <strong style="color:var(--white);">Tutto è deliberato</strong>, niente è casuale.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑦–⑯ FOTO (1–10) -->
+
+  <!-- FOTO 1 -->
+  <div class="slide">
+    <div class="s-photo" style="width:100%;height:100%;display:flex;flex-direction:row;">
+      <div class="img-wrap" style="flex:1;"><img src="1/1.jpg" alt="Lui Osserva"><div class="img-label">Realtà Domestica</div></div>
+      <div class="sep"></div>
+      <div class="img-wrap" style="flex:1;background:#04040a;"><img src="2/1.png" alt="Lui Osserva AI"><div class="img-label">Visione del Sogno</div></div>
+      <div class="sep"></div>
+      <div class="sidebar">
+        <div class="lot">Lotto 01 &nbsp;·&nbsp; 04 / Serie</div>
+        <h3>Lui Osserva</h3>
+        <div class="rule"></div>
+        <p class="story">Mi sono svegliato in una camera piena di fumo; l'unica cosa che potevo fare era combattere. Un'enorme fotografia di un diabolico bambino vegliava su di noi e ci guardava come se fossimo giocattoli. Ma noi eravamo altro. Sono già morto mille volte, non ricordo più il volto di chi ero.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOTO 2 -->
+  <div class="slide">
+    <div class="s-photo" style="width:100%;height:100%;display:flex;flex-direction:row;">
+      <div class="img-wrap" style="flex:1;"><img src="1/2.jpg" alt="Freddo e Fuoco"><div class="img-label">Realtà Domestica</div></div>
+      <div class="sep"></div>
+      <div class="img-wrap" style="flex:1;background:#04040a;"><img src="2/2.png" alt="Freddo e Fuoco AI"><div class="img-label">Visione del Sogno</div></div>
+      <div class="sep"></div>
+      <div class="sidebar">
+        <div class="lot">Lotto 02 &nbsp;·&nbsp; 05 / Serie</div>
+        <h3>Freddo e Fuoco</h3>
+        <div class="rule"></div>
+        <p class="story">Il tavolo era freddo, le pareti congelate. Le sfere arancioni sul tavolo avevano inneggiato al nuovo scontro. Lontano, la mia città prendeva fuoco. Non riuscivo più a distinguere le mie mani dal mio fucile. Un odore di arancia bruciata.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOTO 3 -->
+  <div class="slide">
+    <div class="s-photo" style="width:100%;height:100%;display:flex;flex-direction:row;">
+      <div class="img-wrap" style="flex:1;"><img src="1/3.jpg" alt="Sbarco Stoviglie"><div class="img-label">Realtà Domestica</div></div>
+      <div class="sep"></div>
+      <div class="img-wrap" style="flex:1;background:#04040a;"><img src="2/3.png" alt="Sbarco Stoviglie AI"><div class="img-label">Visione del Sogno</div></div>
+      <div class="sep"></div>
+      <div class="sidebar">
+        <div class="lot">Lotto 03 &nbsp;·&nbsp; 06 / Serie</div>
+        <h3>Sbarco Stoviglie</h3>
+        <div class="rule"></div>
+        <p class="story">Questa guerra serve per spezzare la tirannia della "mano rugosa" che dal cielo lava le nostre case. Noi viviamo nelle stoviglie, e ogni giorno i nostri ricordi vengono cancellati. Vogliamo solo la stabilità.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOTO 4 -->
+  <div class="slide">
+    <div class="s-photo" style="width:100%;height:100%;display:flex;flex-direction:row;">
+      <div class="img-wrap" style="flex:1;"><img src="1/4.jpg" alt="La Foresta del Gallo"><div class="img-label">Realtà Domestica</div></div>
+      <div class="sep"></div>
+      <div class="img-wrap" style="flex:1;background:#04040a;"><img src="2/4.png" alt="La Foresta del Gallo AI"><div class="img-label">Visione del Sogno</div></div>
+      <div class="sep"></div>
+      <div class="sidebar">
+        <div class="lot">Lotto 04 &nbsp;·&nbsp; 07 / Serie</div>
+        <h3>La Foresta del Gallo</h3>
+        <div class="rule"></div>
+        <p class="story">Il teschio infuocato bruciava nella foresta del gallo; noi eravamo in attesa del verdetto. Qualcuno stava giocando con le nostre vite. Il teschio mi ha sussurrato parole d'amore, anche se non sappiamo cosa significhino.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOTO 5 -->
+  <div class="slide">
+    <div class="s-photo" style="width:100%;height:100%;display:flex;flex-direction:row;">
+      <div class="img-wrap" style="flex:1;"><img src="1/5.jpg" alt="Maschera Mangiasogni"><div class="img-label">Realtà Domestica</div></div>
+      <div class="sep"></div>
+      <div class="img-wrap" style="flex:1;background:#04040a;"><img src="2/5.png" alt="Maschera Mangiasogni AI"><div class="img-label">Visione del Sogno</div></div>
+      <div class="sep"></div>
+      <div class="sidebar">
+        <div class="lot">Lotto 05 &nbsp;·&nbsp; 08 / Serie</div>
+        <h3>Maschera Mangiasogni</h3>
+        <div class="rule"></div>
+        <p class="story">Siamo alla ricerca di una maschera. Sappiamo che saremo divorati, ma forse, nella prossima vita, potremmo raccontare a chi verrà cosa celano le fauci della maschera mangiasogni.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOTO 6 -->
+  <div class="slide">
+    <div class="s-photo" style="width:100%;height:100%;display:flex;flex-direction:row;">
+      <div class="img-wrap" style="flex:1;"><img src="1/6.jpg" alt="Paura del Lupo"><div class="img-label">Realtà Domestica</div></div>
+      <div class="sep"></div>
+      <div class="img-wrap" style="flex:1;background:#04040a;"><img src="2/6.png" alt="Paura del Lupo AI"><div class="img-label">Visione del Sogno</div></div>
+      <div class="sep"></div>
+      <div class="sidebar">
+        <div class="lot">Lotto 06 &nbsp;·&nbsp; 09 / Serie</div>
+        <h3>Paura del Lupo</h3>
+        <div class="rule"></div>
+        <p class="story">I nostri combattono per la salvezza della donna dal cappuccio rosso. I nostri avversari credono che il lupo abbia il diritto di sfamarsi, ma noi non ci crediamo. Anche se il lupo ha gli occhi tristi.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOTO 7 -->
+  <div class="slide">
+    <div class="s-photo" style="width:100%;height:100%;display:flex;flex-direction:row;">
+      <div class="img-wrap" style="flex:1;"><img src="1/7.jpg" alt="Ignoto tra la Nebbia"><div class="img-label">Realtà Domestica</div></div>
+      <div class="sep"></div>
+      <div class="img-wrap" style="flex:1;background:#04040a;"><img src="2/7.png" alt="Ignoto tra la Nebbia AI"><div class="img-label">Visione del Sogno</div></div>
+      <div class="sep"></div>
+      <div class="sidebar">
+        <div class="lot">Lotto 07 &nbsp;·&nbsp; 10 / Serie</div>
+        <h3>Ignoto tra la Nebbia</h3>
+        <div class="rule"></div>
+        <p class="story">La nostra spedizione deve entrare nell'ignoto di nebbia. Devo trovare il mio amico scomparso, e forse dietro questa nebbia ci sarà il mio futuro. Che la fantasia mi aiuti.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOTO 8 -->
+  <div class="slide">
+    <div class="s-photo" style="width:100%;height:100%;display:flex;flex-direction:row;">
+      <div class="img-wrap" style="flex:1;"><img src="1/8.jpg" alt="Assalto al Ponte"><div class="img-label">Realtà Domestica</div></div>
+      <div class="sep"></div>
+      <div class="img-wrap" style="flex:1;background:#04040a;"><img src="2/8.png" alt="Assalto al Ponte AI"><div class="img-label">Visione del Sogno</div></div>
+      <div class="sep"></div>
+      <div class="sidebar">
+        <div class="lot">Lotto 08 &nbsp;·&nbsp; 11 / Serie</div>
+        <h3>Assalto al Ponte</h3>
+        <div class="rule"></div>
+        <p class="story">La battaglia sul ponte è stata di logoramento. Le forze del colore rosso suonavano un allarme in tutte le isole del foglio. Forse i nostri sforzi non sono vani. Combatteremo per tutte le nostre vite concesse.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOTO 9 -->
+  <div class="slide">
+    <div class="s-photo" style="width:100%;height:100%;display:flex;flex-direction:row;">
+      <div class="img-wrap" style="flex:1;"><img src="1/9.png" alt="Fuga di Gas"><div class="img-label">Realtà Domestica</div></div>
+      <div class="sep"></div>
+      <div class="img-wrap" style="flex:1;background:#04040a;"><img src="2/9.png" alt="Fuga di Gas AI"><div class="img-label">Visione del Sogno</div></div>
+      <div class="sep"></div>
+      <div class="sidebar">
+        <div class="lot">Lotto 09 &nbsp;·&nbsp; 12 / Serie</div>
+        <h3>Fuga di Gas</h3>
+        <div class="rule"></div>
+        <p class="story">Abbiamo sfidato ogni probabilità: il fornello è stato conquistato. La mano rugosa ha sferrato uno schiaffo al Dio bambino. Finché staremo a guardia del fuoco proibito, il Dio bambino sarà in punizione.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOTO 10 -->
+  <div class="slide">
+    <div class="s-photo" style="width:100%;height:100%;display:flex;flex-direction:row;">
+      <div class="img-wrap" style="flex:1;"><img src="1/10.jpeg" alt="I Termopotere"><div class="img-label">Realtà Domestica</div></div>
+      <div class="sep"></div>
+      <div class="img-wrap" style="flex:1;background:#04040a;"><img src="2/10.png" alt="I Termopotere AI"><div class="img-label">Visione del Sogno</div></div>
+      <div class="sep"></div>
+      <div class="sidebar">
+        <div class="lot">Lotto 10 &nbsp;·&nbsp; 13 / Serie</div>
+        <h3>I Termopotere</h3>
+        <div class="rule"></div>
+        <p class="story">Abbiamo trovato il modo per rendere i nostri compagni forti e potenti. Da oggi non saremo semplici pedine, ma potremo difenderci dalle grinfie di chi gioca con le nostre vite.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑰ L'INSTALLAZIONE INTERATTIVA — INTRO -->
+  <div class="slide" style="padding:70px 80px;">
+    <div class="s-inter wide">
+      <div class="tag" style="margin-bottom:28px;">05 — L'Installazione Interattiva</div>
+      <div class="cols" style="align-items:flex-start; gap:60px;">
+        <div style="flex:0 0 300px;">
+          <div class="serif" style="font-size:clamp(28px,3.5vw,44px); font-weight:300; line-height:1.15; margin-bottom:16px;">Un sito web<br>come spazio<br>d'esperienza</div>
+          <div class="rule" style="margin-bottom:16px;"></div>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:18px;">
+          <p class="body">Le dieci scene del progetto vivono all'interno di un'<strong style="color:var(--white);">installazione web</strong>: un catalogo digitale dove ogni "lotto" è bloccato e dev'essere sbloccato dall'utente attraverso un'interazione fisica.</p>
+          <p class="body">Per accedere alla <em style="color:var(--white);">Visione del Sogno</em> di ogni foto, l'utente deve superare un <strong style="color:var(--white);">mini-gioco</strong> di inseguimento. Una volta sbloccata l'immagine, l'utente <strong style="color:var(--white);">rivive il ricordo del bambino</strong> che giocava in quel momento.</p>
+          <p class="body">La scena mostra la visione AI accanto alla fotografia reale, permettendo di scegliere quale delle due tenere come miniatura nella libreria.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑱ IL CURSORE DITO -->
+  <div class="slide" style="padding:70px 80px;">
+    <div class="s-inter wide">
+      <div class="tag" style="margin-bottom:28px;">06 — Il Cursore Dito</div>
+      <div class="cols" style="align-items:flex-start; gap:60px;">
+        <div style="flex:0 0 300px;">
+          <div class="serif" style="font-size:clamp(26px,3.2vw,40px); font-weight:300; line-height:1.2; margin-bottom:16px;">La webcam<br>come dispositivo<br>di input</div>
+          <div class="rule" style="margin-bottom:16px;"></div>
+          <div class="mono" style="font-size:10px; color:var(--muted); letter-spacing:.15em; text-transform:uppercase; line-height:1.8;">MediaPipe Hands<br>Index Finger Tracking<br>Dwell Click — 750ms</div>
+        </div>
+        <div style="flex:1;">
+          <p class="body" style="margin-bottom:24px;">L'installazione web supporta il controllo tramite <strong style="color:var(--white);">dito indice davanti alla webcam</strong>. Un cursore a anello segue il movimento del dito in tempo reale; se rimane fermo su un elemento interattivo per 0,75 secondi, si attiva un click.</p>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="border:1px solid var(--border); padding:16px 20px; background:var(--bg2); display:flex; gap:16px; align-items:flex-start;">
+              <span style="color:var(--green); font-size:18px; margin-top:2px;">●</span>
+              <div><strong style="font-size:13px; font-weight:500;">Navigazione gallery</strong><br><span style="font-size:12px; color:var(--body);">Il cursore dito scorre tra i lotti. Dwell di 0,75s apre la scena selezionata.</span></div>
+            </div>
+            <div style="border:1px solid var(--border); padding:16px 20px; background:var(--bg2); display:flex; gap:16px; align-items:flex-start;">
+              <span style="color:#ef4444; font-size:18px; margin-top:2px;">●</span>
+              <div><strong style="font-size:13px; font-weight:500;">Bottone Osserva il Sogno</strong><br><span style="font-size:12px; color:var(--body);">Il bottone fugge dal dito appena ci si avvicina. Per attivarlo bisogna inseguirlo nello spazio. L'anello diventa rosso quando si è abbastanza vicini.</span></div>
+            </div>
+            <div style="border:1px solid var(--border); padding:16px 20px; background:var(--bg2); display:flex; gap:16px; align-items:flex-start;">
+              <span style="color:var(--green); font-size:18px; margin-top:2px;">↑↓</span>
+              <div><strong style="font-size:13px; font-weight:500;">Scroll della pagina</strong><br><span style="font-size:12px; color:var(--body);">Portare il dito nella zona alta o bassa dello schermo scorre la pagina su o giù, con velocità proporzionale alla posizione.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑲ FLUSSO TECNOLOGICO -->
+  <div class="slide" style="padding:70px 80px;">
+    <div class="wide" style="text-align:center;">
+      <div class="tag" style="margin-bottom:28px;">06 — Il Cursore Dito · Schema</div>
+      <div class="serif" style="font-size:clamp(26px,3.2vw,40px); font-weight:300; line-height:1.2; margin-bottom:48px;">Come funziona il tracking</div>
+      <div class="diagram">
+        <div class="d-node"><span class="icon">📷</span>Webcam<br>320×240px</div>
+        <div class="d-arr">→</div>
+        <div class="d-node"><span class="icon">🤖</span>MediaPipe<br>Hands AI</div>
+        <div class="d-arr">→</div>
+        <div class="d-node"><span class="icon">☝️</span>Landmark 8<br>Dito Indice</div>
+        <div class="d-arr">→</div>
+        <div class="d-node"><span class="icon">🪞</span>Mirror X<br>Coords</div>
+        <div class="d-arr">→</div>
+        <div class="d-node"><span class="icon">⏱</span>Dwell<br>750ms</div>
+        <div class="d-arr">→</div>
+        <div class="d-node"><span class="icon">🖱</span>Click<br>Event</div>
+      </div>
+      <p class="body" style="max-width:700px; margin:40px auto 0; text-align:center;">Le coordinate del dito vengono specchiate sull'asse X per creare un effetto-specchio naturale. Il sistema riconosce la vicinanza al bottone fuggente tramite calcolo di distanza dal suo centro, con un raggio di tolleranza allargato per compensare la minore precisione del dito rispetto al mouse.</p>
+    </div>
+  </div>
+
+  <!-- ⑳ INSTALLAZIONE FISICA 1 -->
+  <div class="slide" style="padding:40px;">
+    <div class="wide" style="height:100%; display:flex; flex-direction:column;">
+      <div class="tag" style="margin-bottom:16px;">07 — L'Installazione Fisica</div>
+      <div style="flex:1; position:relative; border:1px solid var(--border); overflow:hidden; background:var(--bg2); padding:20px;">
+        <img src="installazione/1 (1).png" style="width:100%; height:100%; object-fit:contain;">
+      </div>
+    </div>
+  </div>
+
+  <!-- ㉑ INSTALLAZIONE FISICA 2 -->
+  <div class="slide" style="padding:40px;">
+    <div class="wide" style="height:100%; display:flex; flex-direction:column;">
+      <div class="tag" style="margin-bottom:16px;">07 — L'Installazione Fisica</div>
+      <div style="flex:1; position:relative; border:1px solid var(--border); overflow:hidden; background:var(--bg2); padding:20px;">
+        <img src="installazione/1 (2).png" style="width:100%; height:100%; object-fit:contain;">
+      </div>
+    </div>
+  </div>
+
+  <!-- ㉒ INSTALLAZIONE FISICA 3 -->
+  <div class="slide" style="padding:40px;">
+    <div class="wide" style="height:100%; display:flex; flex-direction:column;">
+      <div class="tag" style="margin-bottom:16px;">07 — L'Installazione Fisica</div>
+      <div style="flex:1; position:relative; border:1px solid var(--border); overflow:hidden; background:var(--bg2); padding:20px;">
+        <img src="installazione/1 (3).png" style="width:100%; height:100%; object-fit:contain;">
+      </div>
+    </div>
+  </div>
+
+  <!-- ㉑ CREDITS -->
+  <div class="slide" id="s-end">
+    <div class="bg"></div>
+    <div style="position:relative;z-index:2;text-align:center;max-width:600px;">
+      <div class="tag" style="margin-bottom:48px;">Fine</div>
+      <div class="serif" style="font-size:clamp(40px,7vw,88px); font-weight:300; line-height:.95; margin-bottom:28px;">Guerre<br>Passate</div>
+      <div class="rule" style="margin:0 auto 28px;"></div>
+      <div class="mono" style="font-size:11px; letter-spacing:.22em; color:var(--muted); text-transform:uppercase; line-height:2;">
+        Emanuele Baccigalupi &nbsp;·&nbsp; 2025<br>
+        Fotografia · Intelligenza Artificiale · Web Interattiva
+      </div>
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+<div id="controls">
+  <button onclick="window.close()" style="margin-right:20px; border-color:rgba(239, 68, 68, 0.4); color:rgba(239, 68, 68, 0.8);">× Torna a Sandpay</button>
+  <button onclick="go(-1)">◁ Indietro</button>
+  <div id="ctr">1 / 23</div>
+  <button onclick="go(1)">Avanti ▷</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total  = slides.length;
+  let cur = 0;
+
+  function go(dir) {
+    const next = Math.max(0, Math.min(cur + dir, total - 1));
+    if (next === cur) return;
+    slides[cur].classList.remove('active');
+    cur = next;
+    slides[cur].classList.add('active');
+    document.getElementById('ctr').textContent = `${cur + 1} / ${total}`;
+    document.getElementById('bar').style.width = `${((cur + 1) / total) * 100}%`;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); go(-1); }
+  });
+
+  let tx = 0;
+  document.addEventListener('touchstart', e => tx = e.touches[0].clientX, {passive:true});
+  document.addEventListener('touchend',   e => { const d = e.changedTouches[0].clientX - tx; if (Math.abs(d) > 50) go(d < 0 ? 1 : -1); });
+
+  // init bar
+  document.getElementById('bar').style.width = `${(1/total)*100}%`;
+</script>
+</body>
+</html>
