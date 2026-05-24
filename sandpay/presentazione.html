@@ -29,16 +29,24 @@
 
   /* ── RESPONSIVE DESIGN ── */
   @media (max-width: 768px) {
-    .slide { padding: 30px !important; }
-    #s1 { padding: 30px !important; align-items: center; justify-content: center; text-align: center; }
-    #s1 h1 { font-size: 48px !important; }
-    .wide { flex-direction: column !important; gap: 30px !important; justify-content: center !important; }
-    .wide > div { flex: none !important; width: 100%; max-width: 100% !important; }
-    .wide img { max-height: 35vh !important; }
-    .cols { flex-direction: column !important; gap: 30px !important; }
-    .s-inter .cards { grid-template-columns: 1fr; }
+    .slide { padding: 80px 20px 80px 20px !important; justify-content: flex-start !important; }
+    #s1 { padding: 20px !important; align-items: center; justify-content: center !important; text-align: center; }
+    #s1 h1 { font-size: 40px !important; }
+    .wide { flex-direction: column !important; gap: 24px !important; justify-content: flex-start !important; margin: 0 auto !important; }
+    .wide > div { flex: none !important; width: 100%; max-width: 100% !important; text-align: center; }
+    .wide img { max-height: 35vh !important; margin: 0 auto; display: block; }
+    .cols { flex-direction: column !important; gap: 24px !important; }
+    .s-inter .cards { grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+    .s-inter .card { padding: 20px; }
+    .s-device .box { padding: 20px; }
     .s-grid .grid { grid-template-columns: repeat(2, 1fr); }
-    .pad { padding: 30px !important; }
+    .pad { padding: 20px !important; }
+    .tag { text-align: center; margin-bottom: 16px !important; }
+    .s-concept p { font-size: 13px !important; line-height: 1.8 !important; text-align: center; }
+    .s-photo { flex-direction: column !important; justify-content: flex-start !important; }
+    .s-photo .img-wrap { width: 100% !important; height: 35vh !important; flex: none !important; }
+    .s-photo .sep { width: 100% !important; height: 2px !important; }
+    .s-photo .sidebar { flex: none !important; padding: 20px !important; }
   }
 
   /* ── DECK ── */
@@ -47,11 +55,14 @@
   .slide {
     position: absolute; inset: 0;
     display: flex; flex-direction: column;
-    justify-content: center; align-items: center;
+    align-items: center;
+    overflow-y: auto; overflow-x: hidden;
     opacity: 0;
     pointer-events: none;
     transition: opacity .4s ease;
   }
+  .slide > * { position: relative; z-index: 1; flex-shrink: 0; }
+  .wide, .s-inter, .s-device { margin-top: auto; margin-bottom: auto; }
   .slide.active{ opacity: 1; pointer-events: all; }
 
   /* dot grid */
@@ -105,9 +116,9 @@
   .col-label { flex: 0 0 230px; }
 
   /* ── COVER ── */
-  #s1 { background: #020204; align-items: flex-end; justify-content: flex-end; padding: 80px; }
+  #s1 { background: #020204; align-items: center; justify-content: center; padding: 80px; text-align: center; }
   #s1 .bg { position: absolute; inset: 0; background: url('1/1.jpg') center/cover; opacity: .13; filter: grayscale(.5) contrast(1.1); }
-  #s1 .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 50%, transparent 30%, rgba(2,2,4,.92) 100%); }
+  #s1 .vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(2,2,4,.92) 100%); }
   #s1 h1 { font-family: 'Cinzel', serif; font-size: clamp(56px,8.5vw,100px); font-weight: 600; line-height: 1; letter-spacing: -.02em; margin-bottom: 28px; }
   #s1 .meta { font-family: 'Share Tech Mono', monospace; font-size: 11px; letter-spacing: .22em; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
 
@@ -201,21 +212,21 @@
     <div style="position:relative;z-index:2;">
       <div class="meta" style="margin-bottom:36px;">Progetto di Fotografia Surrealista</div>
       <h1>Guerre<br>Passate</h1>
-      <div class="rule" style="margin:0 0 24px;"></div>
-      <div class="meta">Emanuele Baccigalupi &nbsp;·&nbsp; Fotografia &amp; Intelligenza Artificiale</div>
+      <div class="rule" style="margin:0 auto 24px;"></div>
+      <div class="meta">Emanuele Baccigalupi &nbsp;—&nbsp; Fotografia &amp; Intelligenza Artificiale</div>
     </div>
   </div>
 
   <!-- ② CONCEPT 1 -->
   <div class="slide" style="padding:80px;">
-    <div class="wide" style="display:flex; align-items:center; gap:100px; height:100%;">
-      <div style="flex:1; height:100%; display:flex; align-items:center; justify-content:flex-end;">
-        <img src="1/3.jpg" style="max-width:100%; max-height:75vh; object-fit:contain;">
+    <div class="wide" style="display:flex; align-items:center; gap:100px;">
+      <div style="flex:1; display:flex; align-items:center; justify-content:flex-end;">
+        <img src="1/3.jpg" style="max-width:100%; max-height:65vh; object-fit:contain;">
       </div>
       <div style="flex:0 0 420px; position:relative;">
         <div class="tag" style="margin-bottom:32px;">01 — Il Concept</div>
         <div class="s-concept">
-          <p>La guerra spezza il respiro e riempie il cuore di impossibilità e nostalgia. Nostalgia per un tempo passato, forse mai avuto, in cui crediamo risieda la nostra epoca dell'oro.<br><br>Per realizzare questo progetto, ho disposto dei soldatini di plastica all'interno di spazi domestici, cercando un cortocircuito tra il reale e la finzione bellica.</p>
+          <p>La guerra irrompe nella realtà spezzando il respiro. La consapevolezza di ciò che accade nel mondo ci riempie di impossibilità e nostalgia. Per questo progetto, ho disposto dei soldatini di plastica in spazi domestici.</p>
         </div>
       </div>
     </div>
@@ -223,14 +234,14 @@
 
   <!-- ③ CONCEPT 2 -->
   <div class="slide" style="padding:80px;">
-    <div class="wide" style="display:flex; align-items:center; flex-direction:row-reverse; gap:100px; height:100%;">
-      <div style="flex:1; height:100%; display:flex; align-items:center; justify-content:flex-start;">
-        <img src="1/5.jpg" style="max-width:100%; max-height:75vh; object-fit:contain;">
+    <div class="wide" style="display:flex; align-items:center; flex-direction:row-reverse; gap:100px;">
+      <div style="flex:1; display:flex; align-items:center; justify-content:flex-start;">
+        <img src="1/5.jpg" style="max-width:100%; max-height:65vh; object-fit:contain;">
       </div>
       <div style="flex:0 0 420px; position:relative;">
         <div class="tag" style="margin-bottom:32px;">01 — Il Concept</div>
         <div class="s-concept">
-          <p>La casa è per molti il rifugio più sicuro. Tuttavia, il mondo riserva spesso una sorte sgarbata, riprodotta di frequente perfino nel gioco infantile. Non voglio criticare chi riproduce il conflitto nella finzione, voglio solo immortalare una visione.<br><br>Ho intrecciato due immaginari: i soldatini reali negli spazi domestici e, in contrasto, una visione surrealista generata dall'intelligenza artificiale, immaginando come quegli scatti prenderebbero vita.</p>
+          <p>La casa è il nostro rifugio, ma il mondo riserva sorti spietate, banalizzate perfino nel gioco infantile. Ho intrecciato il reale dei soldatini domestici con il surreale generato dall'Intelligenza Artificiale, provando a dare vita a quegli scatti.</p>
         </div>
       </div>
     </div>
@@ -238,14 +249,14 @@
 
   <!-- ④ CONCEPT 3 -->
   <div class="slide" style="padding:80px;">
-    <div class="wide" style="display:flex; align-items:center; gap:100px; height:100%;">
-      <div style="flex:1; height:100%; display:flex; align-items:center; justify-content:flex-end;">
-        <img src="1/10.jpeg" style="max-width:100%; max-height:75vh; object-fit:contain;">
+    <div class="wide" style="display:flex; align-items:center; gap:100px;">
+      <div style="flex:1; display:flex; align-items:center; justify-content:flex-end;">
+        <img src="1/10.jpeg" style="max-width:100%; max-height:65vh; object-fit:contain;">
       </div>
       <div style="flex:0 0 420px; position:relative;">
         <div class="tag" style="margin-bottom:32px;">01 — Il Concept</div>
         <div class="s-concept">
-          <p>Voglio ricondurre queste immagini alle primissime interpretazioni sulla guerra: <br><br>quando, ancora troppo piccoli e immersi nella nostra epoca d'oro, sottovalutavamo il reale proteggendoci con l'illusione del racconto.</p>
+          <p>Queste immagini rimandano alle primissime interpretazioni della guerra: quando, ancora troppo piccoli, sottovalutavamo il reale proteggendoci con l'illusione del racconto.</p>
         </div>
       </div>
     </div>
@@ -263,15 +274,12 @@
         </div>
         <div style="flex:1; display:flex; flex-direction:column; gap:20px;">
           <p class="body">
-            Sandpay non è il progetto: è il <strong style="color:var(--white);">dispositivo narrativo</strong> che lo contiene.
-            Una finta corporazione che si presenta come un'azienda capace di "acquisire i sogni" dei suoi clienti,
-            dando loro forma attraverso la tecnologia.
+            Sandpay è il <strong style="color:var(--white);">dispositivo narrativo</strong> che contiene il progetto.
+            Una finta corporazione capace di "acquisire i sogni" dei clienti tramite la tecnologia.
           </p>
           <p class="body">
-            Questo involucro fictizio permette di separare la narrazione dall'autore:
-            le storie raccontate da ogni foto diventano "lotti" di un catalogo,
-            le visioni AI diventano "acquisizioni" di stato mentale.
-            <strong style="color:var(--white);">Sandpay è il mezzo, non il messaggio.</strong>
+            Questo involucro permette di separare la narrazione dall'autore:
+            le foto diventano "lotti" e le visioni AI "acquisizioni".
           </p>
           <div style="display:flex; gap:16px; margin-top:8px;">
             <div class="box" style="border:1px solid var(--border); padding:14px 20px; background:var(--bg2);">
@@ -287,25 +295,6 @@
               <div style="font-size:12px; color:var(--body);">Realtà e sogno</div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ⑥ LA FOTOGRAFIA -->
-  <div class="slide" style="padding:70px 80px;">
-    <div class="wide">
-      <div class="tag" style="margin-bottom:28px;">03 — La Fotografia</div>
-      <div class="cols">
-        <div class="col-label" style="flex:0 0 260px;">
-          <div class="serif" style="font-size:clamp(28px,3.5vw,44px); font-weight:300; line-height:1.15; margin-bottom:16px;">Soldatini in spazi domestici</div>
-          <div class="rule" style="margin-bottom:16px;"></div>
-          <div class="mono" style="font-size:10px; color:var(--muted); letter-spacing:.15em; text-transform:uppercase; line-height:1.8;">Fotografia concettuale<br>Luce naturale</div>
-        </div>
-        <div style="flex:1; display:flex; flex-direction:column; gap:18px;">
-          <p class="body">La scelta di fotografare soldatini di plastica in ambienti domestici nasce dalla tensione tra due opposti: il <strong style="color:var(--white);">micro-mondo della finzione bellica</strong> e la quiete ordinaria della casa.</p>
-          <p class="body">I soldatini vengono disposti in relazione agli oggetti quotidiani — piani cucina, tavoli, scaffali — trasformandoli in scenari di guerra che esistono solo nella logica di chi li guarda, non in quella degli oggetti che li ospitano.</p>
-          <p class="body">Ogni scena è costruita: la luce, la posizione dei soldatini, la scelta del fondale. <strong style="color:var(--white);">Tutto è deliberato</strong>, niente è casuale.</p>
         </div>
       </div>
     </div>
@@ -483,9 +472,8 @@
           <div class="rule" style="margin-bottom:16px;"></div>
         </div>
         <div style="flex:1; display:flex; flex-direction:column; gap:18px;">
-          <p class="body">Le dieci scene del progetto vivono all'interno di un'<strong style="color:var(--white);">installazione web</strong>: un catalogo digitale dove ogni "lotto" è bloccato e dev'essere sbloccato dall'utente attraverso un'interazione fisica.</p>
-          <p class="body">Per accedere alla <em style="color:var(--white);">Visione del Sogno</em> di ogni foto, l'utente deve superare un <strong style="color:var(--white);">mini-gioco</strong> di inseguimento. Una volta sbloccata l'immagine, l'utente <strong style="color:var(--white);">rivive il ricordo del bambino</strong> che giocava in quel momento.</p>
-          <p class="body">La scena mostra la visione AI accanto alla fotografia reale, permettendo di scegliere quale delle due tenere come miniatura nella libreria.</p>
+          <p class="body">Le scene vivono in un'<strong style="color:var(--white);">installazione web</strong> dove ogni "lotto" va sbloccato dall'utente. Per accedere alla Visione del Sogno devi superare un <strong style="color:var(--white);">mini-gioco</strong> di inseguimento.</p>
+          <p class="body">Una volta sbloccata l'immagine, <strong style="color:var(--white);">rivivi il ricordo del bambino</strong>. La scena mostra la visione AI accanto alla fotografia reale.</p>
         </div>
       </div>
     </div>
@@ -502,19 +490,13 @@
           <div class="mono" style="font-size:10px; color:var(--muted); letter-spacing:.15em; text-transform:uppercase; line-height:1.8;">MediaPipe Hands<br>Index Finger Tracking<br>Dwell Click — 750ms</div>
         </div>
         <div style="flex:1;">
-          <p class="body" style="margin-bottom:24px;">L'installazione web supporta il controllo tramite <strong style="color:var(--white);">dito indice davanti alla webcam</strong>. Un cursore a anello segue il movimento del dito in tempo reale; se rimane fermo su un elemento interattivo per 0,75 secondi, si attiva un click.</p>
+          <p class="body" style="margin-bottom:24px;">Il controllo avviene tramite <strong style="color:var(--white);">dito indice davanti alla webcam</strong>. Un cursore ad anello segue il movimento; se rimane fermo per 0,75 secondi, si attiva un click.</p>
           <div style="display:flex; flex-direction:column; gap:12px;">
-            <div style="border:1px solid var(--border); padding:16px 20px; background:var(--bg2); display:flex; gap:16px; align-items:flex-start;">
-              <span style="color:var(--green); font-size:18px; margin-top:2px;">●</span>
-              <div><strong style="font-size:13px; font-weight:500;">Navigazione gallery</strong><br><span style="font-size:12px; color:var(--body);">Il cursore dito scorre tra i lotti. Dwell di 0,75s apre la scena selezionata.</span></div>
+            <div style="border:1px solid var(--border); padding:16px 20px; background:var(--bg2);">
+              <strong style="font-size:13px; font-weight:500;">Navigazione & Click</strong><br><span style="font-size:12px; color:var(--body);">Dwell di 0,75s apre i lotti. Lo scroll si attiva spostando il dito in alto o in basso.</span>
             </div>
-            <div style="border:1px solid var(--border); padding:16px 20px; background:var(--bg2); display:flex; gap:16px; align-items:flex-start;">
-              <span style="color:#ef4444; font-size:18px; margin-top:2px;">●</span>
-              <div><strong style="font-size:13px; font-weight:500;">Bottone Osserva il Sogno</strong><br><span style="font-size:12px; color:var(--body);">Il bottone fugge dal dito appena ci si avvicina. Per attivarlo bisogna inseguirlo nello spazio. L'anello diventa rosso quando si è abbastanza vicini.</span></div>
-            </div>
-            <div style="border:1px solid var(--border); padding:16px 20px; background:var(--bg2); display:flex; gap:16px; align-items:flex-start;">
-              <span style="color:var(--green); font-size:18px; margin-top:2px;">↑↓</span>
-              <div><strong style="font-size:13px; font-weight:500;">Scroll della pagina</strong><br><span style="font-size:12px; color:var(--body);">Portare il dito nella zona alta o bassa dello schermo scorre la pagina su o giù, con velocità proporzionale alla posizione.</span></div>
+            <div style="border:1px solid var(--border); padding:16px 20px; background:var(--bg2);">
+              <strong style="font-size:13px; font-weight:500;">Bottone Osserva il Sogno</strong><br><span style="font-size:12px; color:var(--body);">Il bottone fugge: per attivarlo bisogna inseguirlo con il dito.</span>
             </div>
           </div>
         </div>

@@ -515,6 +515,21 @@
 
                     const isOver = mx >= rect.left && mx <= rect.right && my >= rect.top && my <= rect.bottom;
 
+                    // Track 5-second childhood memory synchronization (start immediately)
+                    if (isOver) {
+                        successfulHoldTimeRef.current += frameTime;
+                        if (successfulHoldTimeRef.current >= 5000) {
+                            // Sincronizzazione completata!
+                            handleStopHolding();
+                            setUnlockedLots(prev => {
+                                if (!prev.includes(activeScene.id)) {
+                                    return [...prev, activeScene.id];
+                                }
+                                return prev;
+                            });
+                        }
+                    }
+
                     // State machine logic: Still (2s) -> Flickering (0.5s) -> Chase (Accelerating)
                     if (elapsed < 2000) {
                         buttonStateRef.current = 'still';
@@ -582,21 +597,6 @@
 
                         px += vx * dt;
                         py += vy * dt;
-
-                        // Track 5-second childhood memory synchronization
-                        if (isOver) {
-                            successfulHoldTimeRef.current += frameTime;
-                            if (successfulHoldTimeRef.current >= 5000) {
-                                // Sincronizzazione completata!
-                                handleStopHolding();
-                                setUnlockedLots(prev => {
-                                    if (!prev.includes(activeScene.id)) {
-                                        return [...prev, activeScene.id];
-                                    }
-                                    return prev;
-                                });
-                            }
-                        }
                     }
 
                     // Viewport boundaries clamp (active only in chase state)
@@ -638,7 +638,7 @@
                     const progressText = document.getElementById('memory-progress-text');
 
                     if (progContainer && progressBar && progressText) {
-                        if (isHolding && buttonStateRef.current === 'chase') {
+                        if (isHolding) {
                             progContainer.classList.remove('hidden');
                             progressText.classList.remove('hidden');
                             progressBar.style.width = `${pct}%`;
