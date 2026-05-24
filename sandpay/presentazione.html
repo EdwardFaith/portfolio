@@ -27,6 +27,20 @@
     overflow: hidden;
   }
 
+  /* ── RESPONSIVE DESIGN ── */
+  @media (max-width: 768px) {
+    .slide { padding: 30px !important; }
+    #s1 { padding: 30px !important; align-items: center; justify-content: center; text-align: center; }
+    #s1 h1 { font-size: 48px !important; }
+    .wide { flex-direction: column !important; gap: 30px !important; justify-content: center !important; }
+    .wide > div { flex: none !important; width: 100%; max-width: 100% !important; }
+    .wide img { max-height: 35vh !important; }
+    .cols { flex-direction: column !important; gap: 30px !important; }
+    .s-inter .cards { grid-template-columns: 1fr; }
+    .s-grid .grid { grid-template-columns: repeat(2, 1fr); }
+    .pad { padding: 30px !important; }
+  }
+
   /* ── DECK ── */
   #deck { position: relative; width: 100%; height: 100%; }
 
@@ -65,28 +79,17 @@
     color: var(--muted); text-transform: uppercase;
     z-index: 200;
   }
-  #controls {
-    position: fixed; bottom: 28px; left: 50%;
-    transform: translateX(-50%);
-    display: flex; align-items: center; gap: 18px;
-    background: rgba(5,5,7,.88);
-    border: 1px solid var(--border);
-    padding: 9px 22px;
-    backdrop-filter: blur(14px);
-    z-index: 200;
-  }
-  #controls button {
-    background: none;
-    border: 1px solid rgba(255,255,255,.07);
-    color: var(--muted);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 11px; letter-spacing: .1em;
-    text-transform: uppercase;
-    padding: 5px 14px; cursor: pointer;
-    transition: all .2s;
-  }
-  #controls button:hover { border-color: var(--green); color: var(--white); }
-  #ctr { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: .18em; min-width: 52px; text-align: center; }
+
+  .nav-side { position: fixed; top: 0; bottom: 0; width: 15%; z-index: 90; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0); font-size: 40px; user-select: none; }
+  .nav-side:hover { background: rgba(255,255,255,0.02); color: rgba(255,255,255,0.3); }
+  .nav-left { left: 0; }
+  .nav-right { right: 0; }
+  
+  #controls-top { position: fixed; top: 24px; right: 24px; z-index: 100; }
+  #controls-top button { background: var(--bg2); color: var(--white); border: 1px solid var(--border); padding: 8px 16px; font-family: 'Share Tech Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: .15em; cursor: pointer; transition: all .2s; }
+  #controls-top button:hover { background: var(--white); color: var(--bg); }
+  
+  #ctr { font-family: 'Share Tech Mono', monospace; font-size: 11px; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); color: var(--muted); z-index: 100; pointer-events: none; }
 
   /* ── SHARED TYPE ── */
   .tag   { font-family: 'Share Tech Mono', monospace; font-size: 10px; letter-spacing: .28em; color: var(--green); text-transform: uppercase; }
@@ -110,7 +113,6 @@
 
   /* ── CONCEPT SLIDES ── */
   .s-concept { position: relative; }
-  .s-concept .num { font-family: 'Cinzel', serif; font-size: 160px; font-weight: 700; color: rgba(255,255,255,.02); line-height: 1; position: absolute; top: -70px; left: -40px; z-index: 0; pointer-events: none; }
   .s-concept p { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 300; line-height: 2.3; color: #a1a1b5; text-align: left; position: relative; z-index: 1; }
   .s-concept p strong { font-weight: 600; color: var(--white); }
 
@@ -205,7 +207,6 @@
   </div>
 
   <!-- ② CONCEPT 1 -->
-  <!-- ② CONCEPT 1 -->
   <div class="slide" style="padding:80px;">
     <div class="wide" style="display:flex; align-items:center; gap:100px; height:100%;">
       <div style="flex:1; height:100%; display:flex; align-items:center; justify-content:flex-end;">
@@ -214,7 +215,6 @@
       <div style="flex:0 0 420px; position:relative;">
         <div class="tag" style="margin-bottom:32px;">01 — Il Concept</div>
         <div class="s-concept">
-          <div class="num">I</div>
           <p>La guerra spezza il respiro e riempie il cuore di impossibilità e nostalgia. Nostalgia per un tempo passato, forse mai avuto, in cui crediamo risieda la nostra epoca dell'oro.<br><br>Per realizzare questo progetto, ho disposto dei soldatini di plastica all'interno di spazi domestici, cercando un cortocircuito tra il reale e la finzione bellica.</p>
         </div>
       </div>
@@ -230,7 +230,6 @@
       <div style="flex:0 0 420px; position:relative;">
         <div class="tag" style="margin-bottom:32px;">01 — Il Concept</div>
         <div class="s-concept">
-          <div class="num">II</div>
           <p>La casa è per molti il rifugio più sicuro. Tuttavia, il mondo riserva spesso una sorte sgarbata, riprodotta di frequente perfino nel gioco infantile. Non voglio criticare chi riproduce il conflitto nella finzione, voglio solo immortalare una visione.<br><br>Ho intrecciato due immaginari: i soldatini reali negli spazi domestici e, in contrasto, una visione surrealista generata dall'intelligenza artificiale, immaginando come quegli scatti prenderebbero vita.</p>
         </div>
       </div>
@@ -246,7 +245,6 @@
       <div style="flex:0 0 420px; position:relative;">
         <div class="tag" style="margin-bottom:32px;">01 — Il Concept</div>
         <div class="s-concept">
-          <div class="num">III</div>
           <p>Voglio ricondurre queste immagini alle primissime interpretazioni sulla guerra: <br><br>quando, ancora troppo piccoli e immersi nella nostra epoca d'oro, sottovalutavamo il reale proteggendoci con l'illusione del racconto.</p>
         </div>
       </div>
@@ -592,12 +590,14 @@
 
 </div><!-- /deck -->
 
-<div id="controls">
-  <button onclick="window.close()" style="margin-right:20px; border-color:rgba(239, 68, 68, 0.4); color:rgba(239, 68, 68, 0.8);">× Torna a Sandpay</button>
-  <button onclick="go(-1)">◁ Indietro</button>
-  <div id="ctr">1 / 23</div>
-  <button onclick="go(1)">Avanti ▷</button>
+<div class="nav-side nav-left" onclick="go(-1)">&#10094;</div>
+<div class="nav-side nav-right" onclick="go(1)">&#10095;</div>
+
+<div id="controls-top">
+  <button onclick="window.close()" style="border-color:rgba(239, 68, 68, 0.4); color:rgba(239, 68, 68, 0.8);">× Torna a Sandpay</button>
 </div>
+
+<div id="ctr">1 / 23</div>
 
 <script>
   const slides = Array.from(document.querySelectorAll('.slide'));
