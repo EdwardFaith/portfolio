@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucidus — Reindirizzamento</title>
+    <meta http-equiv="refresh" content="0; url=../lucidus/index.html">
+    <script>
+        window.location.href = "../lucidus/index.html";
+    </script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505;
+            color: #fff;
+            font-family: 'Cinzel', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            overflow: hidden;
+        }
+        .container {
+            max-width: 600px;
+            padding: 40px;
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid #1a1a1a;
+            border-radius: 4px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(139, 0, 0, 0.05);
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            font-size: 2.2rem;
+            color: #8b0000;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-shadow: 0 0 15px rgba(139, 0, 0, 0.6);
+            letter-spacing: 4px;
+            font-weight: 700;
+        }
+        p {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 25px;
+            font-family: 'Lato', sans-serif;
+            letter-spacing: 1px;
+        }
+        .spinner {
+            border: 3px solid rgba(139, 0, 0, 0.1);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border-left-color: #8b0000;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 25px auto;
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.2);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        a {
+            color: #ff3b30;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 59, 48, 0.3);
+            padding-bottom: 2px;
+            transition: all 0.3s ease;
+            font-family: 'Lato', sans-serif;
+            font-weight: bold;
+        }
+        a:hover {
+            color: #ff7b75;
+            border-bottom-color: #ff7b75;
+            text-shadow: 0 0 8px rgba(255, 123, 117, 0.5);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <h1>LUCIDUS</h1>
+        <p>Verrai reindirizzato al regno delle ombre tra pochi istanti...</p>
+        <p style="font-size: 0.85rem; margin-bottom: 0;">
+            Se il reindirizzamento non funziona, <a href="../lucidus/index.html">clicca qui per entrare</a>.
+        </p>
+    </div>
+</body>
+</html>
