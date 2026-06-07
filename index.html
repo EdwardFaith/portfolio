@@ -849,11 +849,30 @@
 
                             {/* Right Column: Video Extracts Interface */}
                             <div className="lg:col-span-7">
-                                <div className="mb-6"></div>
 
-                                {/* Main Video Area */}
+                                {/* Video di Presentazione */}
+                                <div className="mb-2">
+                                    <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white bg-red-600 px-2 py-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-white inline-block"></span>
+                                        Presentazione
+                                    </span>
+                                </div>
                                 <div className="mb-6 aspect-video w-full">
-                                    <VideoPlaceholder label="Filmato Principale: Edward Industries" extraClass="w-full h-full" videoId="4TXh-PrUi48" />
+                                    <VideoPlaceholder label="Occhio nel Cielo — Presentazione" extraClass="w-full h-full" videoId="EBcZQGBcPLE" />
+                                </div>
+
+                                {/* Video Sperimentale */}
+                                <div className="mb-2 flex items-center justify-between">
+                                    <span className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-300 border border-neutral-700 px-2 py-1">
+                                        Sperimentazione
+                                    </span>
+                                    <span className="text-[10px] text-neutral-500 font-mono uppercase tracking-widest flex items-center gap-1.5">
+                                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        Il primo film è in lavorazione
+                                    </span>
+                                </div>
+                                <div className="mb-6 aspect-video w-full">
+                                    <VideoPlaceholder label="Sperimentazione: Edward Industries" extraClass="w-full h-full" videoId="4TXh-PrUi48" />
                                 </div>
 
                                 {/* Clips Grid */}
