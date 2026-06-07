@@ -1116,7 +1116,32 @@
 
 
 
-        const InterattivoSection = () => (
+        const InterattivoSection = () => {
+            const lazyGifRef = (gifUrl, colorFilter) => {
+                const ref = React.useRef(null);
+                const [loaded, setLoaded] = React.useState(false);
+                React.useEffect(() => {
+                    const el = ref.current;
+                    if (!el) return;
+                    const obs = new IntersectionObserver(([entry]) => {
+                        if (entry.isIntersecting) {
+                            setLoaded(true);
+                            obs.disconnect();
+                        }
+                    }, { rootMargin: '100px' });
+                    obs.observe(el);
+                    return () => obs.disconnect();
+                }, []);
+                return { ref, style: loaded ? { backgroundImage: `url('${gifUrl}')`, ...(colorFilter ? { filter: colorFilter } : {}) } : {} };
+            };
+
+            const r1 = lazyGifRef('eyes-in-the-sky/bg.gif', 'sepia(1) saturate(8) hue-rotate(-30deg)');
+            const r2 = lazyGifRef('eyes-in-the-sky/bg.gif', 'sepia(0.8) saturate(2) hue-rotate(100deg) brightness(0.6) contrast(1.2)');
+            const r3 = lazyGifRef('lucidus/copertina-2.gif', null);
+            const r4 = lazyGifRef('simbolo/player.gif/lv_0_20250613181641.gif', null);
+            const r5 = lazyGifRef('eyes-in-the-sky/bg.gif', null);
+
+            return (
             <section id="interattivo" className="py-12 md:py-24 bg-black border-t border-neutral-900">
                 <div className="max-w-7xl mx-auto px-6">
                     <h2 className="brand-font text-3xl md:text-5xl text-white mb-2 text-center">
@@ -1143,7 +1168,7 @@
                                 <div className="absolute inset-0 bg-red-900/20 flex items-center justify-center text-red-500 group-hover:text-red-400 transition-colors">
                                     <Icons.Radio />
                                 </div>
-                                <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={{ backgroundImage: "url('eyes-in-the-sky/bg.gif')", filter: "sepia(1) saturate(8) hue-rotate(-30deg)" }}></div>
+                                <div ref={r1.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r1.style}></div>
                                 <div className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider animate-pulse">● LIVE</div>
                             </div>
                             <div className="px-3 pb-3">
@@ -1158,7 +1183,7 @@
                                 <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-emerald-800 transition-colors">
                                     <Icons.Gamepad />
                                 </div>
-                                <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={{ backgroundImage: "url('eyes-in-the-sky/bg.gif')", filter: "sepia(0.8) saturate(2) hue-rotate(100deg) brightness(0.6) contrast(1.2)" }}></div>
+                                <div ref={r2.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r2.style}></div>
                             </div>
                             <div className="px-3 pb-3">
                                 <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Sandpay</h3>
@@ -1166,13 +1191,13 @@
                             </div>
                         </a>
 
-                        {/* Lucidus - Sito da Convertire */}
+                        {/* Lucidus */}
                         <a href="lucidus/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
                             <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
                                 <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
                                     <Icons.Code />
                                 </div>
-                                <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={{ backgroundImage: "url('lucidus/copertina-2.gif')" }}></div>
+                                <div ref={r3.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r3.style}></div>
                             </div>
                             <div className="px-3 pb-3">
                                 <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Lucidus</h3>
@@ -1180,13 +1205,13 @@
                             </div>
                         </a>
 
-                        {/* Simbolo - Nuovo Weeb Design */}
+                        {/* Simbolo */}
                         <a href="simbolo/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
                             <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
                                 <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
                                     <Icons.Gamepad />
                                 </div>
-                                <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={{ backgroundImage: "url('simbolo/player.gif/lv_0_20250613181641.gif')" }}></div>
+                                <div ref={r4.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r4.style}></div>
                             </div>
                             <div className="px-3 pb-3">
                                 <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Simbolo</h3>
@@ -1194,13 +1219,13 @@
                             </div>
                         </a>
 
-                        {/* Eyes in the Sky - Gioco Dito */}
+                        {/* Eyes in the Sky */}
                         <a href="eyes-in-the-sky/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
                             <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
                                 <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
                                     <Icons.Gamepad />
                                 </div>
-                                <div className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={{ backgroundImage: "url('eyes-in-the-sky/bg.gif')" }}></div>
+                                <div ref={r5.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r5.style}></div>
                             </div>
                             <div className="px-3 pb-3">
                                 <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Eyes in the Sky</h3>
@@ -1211,7 +1236,8 @@
                     </div>
                 </div>
             </section>
-        );
+            );
+        };
 
         const MaterialsSection = () => (
             <section id="materials" className="py-12 md:py-24 bg-neutral-950 border-t border-neutral-900">
