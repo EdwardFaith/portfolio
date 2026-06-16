@@ -155,6 +155,25 @@
   @media (min-width: 769px) {
     .mobile-nav { display: none; }
   }
+
+  /* ── PRINT / PDF EXPORT ── */
+  @media print {
+    @page { size: A4 landscape; margin: 0; }
+    body, html { width: 100%; height: auto; margin: 0; padding: 0; background: #050507 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; overflow: visible !important; }
+    #presentation { position: static !important; width: 100% !important; height: auto !important; }
+    .slide {
+      position: relative !important; top: auto !important; left: auto !important;
+      width: 297mm !important; height: 210mm !important;
+      opacity: 1 !important; visibility: visible !important; display: flex !important;
+      page-break-after: always; break-after: page;
+      background: #050507 !important; overflow: hidden !important;
+    }
+    .slide::after { display: none !important; } /* hide bg dot grid to save memory/artifacts */
+    .nav-zone, .controls-top, .pagination, #progress, .mobile-nav { display: none !important; }
+    /* Force grids to behave */
+    .page { padding: 40px 60px !important; }
+    .split-img, .img-frame img { object-fit: contain !important; }
+  }
 </style>
 </head>
 <body>
