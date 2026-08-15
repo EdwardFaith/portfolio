@@ -61,8 +61,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Google Fonts -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
         rel="stylesheet">
 
     <style>
@@ -438,15 +437,15 @@
                     {/* Poetic Dedication Section */}
                     <div className="mb-12 max-w-xl mx-auto text-center px-4">
                         <p className="italic text-xs md:text-sm text-neutral-400 leading-relaxed font-light">
-                            "La fantasia è la fiaba della perduta gente, che si confonde nella freschezza ritrovata, spesso smarrita da vivi. Passeggio nel mondo, cittadino del cosmo: un passo, un solo cammino dell'umanità."
+                            "La fantasia è la fiaba della perduta gente, che si confonde nella freschezza ritrovata, spesso smarrita da vivi. Passeggio nel mondo, cittadino del cosmo: un passo, un solco, cammino dell'umanità."
                         </p>
                     </div>
 
                     {/* Quick Nav Grid - Ordered by Site Flow */}
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 w-full max-w-5xl mx-auto">
                         {/* 0. Radio Live Card */}
-                        <div 
-                            onClick={() => window.open('RadioKaoSs/index.html', '_blank')} 
+                        <div
+                            onClick={() => window.open('RadioKaoSs/index.html', '_blank')}
                             className="border p-6 hover:bg-red-950/20 hover:border-red-600 transition-all duration-300 cursor-pointer group backdrop-blur-sm relative overflow-hidden flex flex-col justify-between min-h-[140px] text-left"
                             style={{ backgroundColor: '#3b0a0a', color: '#cc8888', borderColor: '#5a1a1a' }}
                         >
@@ -1142,100 +1141,100 @@
             const r5 = lazyGifRef('eyes-in-the-sky/bg.gif', null);
 
             return (
-            <section id="interattivo" className="py-12 md:py-24 bg-black border-t border-neutral-900">
-                <div className="max-w-7xl mx-auto px-6">
-                    <h2 className="brand-font text-3xl md:text-5xl text-white mb-2 text-center">
-                        Interattivo
-                    </h2>
+                <section id="interattivo" className="py-12 md:py-24 bg-black border-t border-neutral-900">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <h2 className="brand-font text-3xl md:text-5xl text-white mb-2 text-center">
+                            Interattivo
+                        </h2>
 
-                    <div className="flex justify-center mb-12 px-6">
-                        <div className="inline-flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-full px-6 py-2 text-center">
-                            <div className="flex gap-2 text-red-500">
-                                <Icons.Monitor className="w-4 h-4" />
-                                <Icons.Camera className="w-4 h-4" />
-                                <Icons.Music className="w-4 h-4" />
+                        <div className="flex justify-center mb-12 px-6">
+                            <div className="inline-flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-full px-6 py-2 text-center">
+                                <div className="flex gap-2 text-red-500">
+                                    <Icons.Monitor className="w-4 h-4" />
+                                    <Icons.Camera className="w-4 h-4" />
+                                    <Icons.Music className="w-4 h-4" />
+                                </div>
+                                <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                                    Esperienza Audio & Webcam • Su mobile ruotare il dispositivo
+                                </span>
                             </div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-                                Esperienza Audio & Webcam • Su mobile ruotare il dispositivo
-                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {/* RaDiO KaOsS Live */}
+                            <a href="RadioKaoSs/index.html" target="_blank" className="group block bg-neutral-900 border border-red-900/40 p-1 hover:bg-red-950/20 transition-all duration-300">
+                                <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
+                                    <div className="absolute inset-0 bg-red-900/20 flex items-center justify-center text-red-500 group-hover:text-red-400 transition-colors">
+                                        <Icons.Radio />
+                                    </div>
+                                    <div ref={r1.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r1.style}></div>
+                                    <div className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider animate-pulse">● LIVE</div>
+                                </div>
+                                <div className="px-3 pb-3">
+                                    <h3 className="text-sm font-bold text-red-500 mb-0.5 tracking-wide">RaDiO KaOsS</h3>
+                                    <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">RaDiO KaOsS live.</p>
+                                </div>
+                            </a>
+
+                            {/* Sandpay - Guerre Passate */}
+                            <a href="sandpay/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:border-emerald-800/40 hover:bg-neutral-800 transition-all duration-300">
+                                <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
+                                    <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-emerald-800 transition-colors">
+                                        <Icons.Gamepad />
+                                    </div>
+                                    <div ref={r2.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r2.style}></div>
+                                </div>
+                                <div className="px-3 pb-3">
+                                    <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Sandpay</h3>
+                                    <p className="text-emerald-800 text-[10px] leading-tight font-mono uppercase font-semibold">Guerre passate</p>
+                                </div>
+                            </a>
+
+                            {/* Lucidus */}
+                            <a href="lucidus/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
+                                <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
+                                    <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
+                                        <Icons.Code />
+                                    </div>
+                                    <div ref={r3.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r3.style}></div>
+                                </div>
+                                <div className="px-3 pb-3">
+                                    <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Lucidus</h3>
+                                    <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">un sito di lampade promosso da lucidus, converti i tuoi soldi in denti da latte.</p>
+                                </div>
+                            </a>
+
+                            {/* Simbolo */}
+                            <a href="simbolo/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
+                                <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
+                                    <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
+                                        <Icons.Gamepad />
+                                    </div>
+                                    <div ref={r4.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r4.style}></div>
+                                </div>
+                                <div className="px-3 pb-3">
+                                    <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Simbolo</h3>
+                                    <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">muovi la testa e scappa dai simboli. muoviti e non inciampare nel mondo</p>
+                                </div>
+                            </a>
+
+                            {/* Eyes in the Sky */}
+                            <a href="eyes-in-the-sky/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
+                                <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
+                                    <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
+                                        <Icons.Gamepad />
+                                    </div>
+                                    <div ref={r5.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r5.style}></div>
+                                </div>
+                                <div className="px-3 pb-3">
+                                    <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Eyes in the Sky</h3>
+                                    <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">scappa dai bulbi oculari astroanuta! altriemnti ti prenderanno.</p>
+                                </div>
+                            </a>
+
                         </div>
                     </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        {/* RaDiO KaOsS Live */}
-                        <a href="RadioKaoSs/index.html" target="_blank" className="group block bg-neutral-900 border border-red-900/40 p-1 hover:bg-red-950/20 transition-all duration-300">
-                            <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
-                                <div className="absolute inset-0 bg-red-900/20 flex items-center justify-center text-red-500 group-hover:text-red-400 transition-colors">
-                                    <Icons.Radio />
-                                </div>
-                                <div ref={r1.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r1.style}></div>
-                                <div className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider animate-pulse">● LIVE</div>
-                            </div>
-                            <div className="px-3 pb-3">
-                                <h3 className="text-sm font-bold text-red-500 mb-0.5 tracking-wide">RaDiO KaOsS</h3>
-                                <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">RaDiO KaOsS live.</p>
-                            </div>
-                        </a>
-
-                        {/* Sandpay - Guerre Passate */}
-                        <a href="sandpay/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:border-emerald-800/40 hover:bg-neutral-800 transition-all duration-300">
-                            <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
-                                <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-emerald-800 transition-colors">
-                                    <Icons.Gamepad />
-                                </div>
-                                <div ref={r2.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r2.style}></div>
-                            </div>
-                            <div className="px-3 pb-3">
-                                <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Sandpay</h3>
-                                <p className="text-emerald-800 text-[10px] leading-tight font-mono uppercase font-semibold">Guerre passate</p>
-                            </div>
-                        </a>
-
-                        {/* Lucidus */}
-                        <a href="lucidus/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
-                            <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
-                                <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
-                                    <Icons.Code />
-                                </div>
-                                <div ref={r3.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r3.style}></div>
-                            </div>
-                            <div className="px-3 pb-3">
-                                <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Lucidus</h3>
-                                <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">un sito di lampade promosso da lucidus, converti i tuoi soldi in denti da latte.</p>
-                            </div>
-                        </a>
-
-                        {/* Simbolo */}
-                        <a href="simbolo/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
-                            <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
-                                <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
-                                    <Icons.Gamepad />
-                                </div>
-                                <div ref={r4.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r4.style}></div>
-                            </div>
-                            <div className="px-3 pb-3">
-                                <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Simbolo</h3>
-                                <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">muovi la testa e scappa dai simboli. muoviti e non inciampare nel mondo</p>
-                            </div>
-                        </a>
-
-                        {/* Eyes in the Sky */}
-                        <a href="eyes-in-the-sky/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
-                            <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
-                                <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
-                                    <Icons.Gamepad />
-                                </div>
-                                <div ref={r5.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r5.style}></div>
-                            </div>
-                            <div className="px-3 pb-3">
-                                <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Eyes in the Sky</h3>
-                                <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">scappa dai bulbi oculari astroanuta! altriemnti ti prenderanno.</p>
-                            </div>
-                        </a>
-
-                    </div>
-                </div>
-            </section>
+                </section>
             );
         };
 
@@ -1306,7 +1305,7 @@
                                 </div>
                                 <div>
                                     <h4 className="text-white font-bold text-sm">Destino Formicaio</h4>
-                                    <p className="text-neutral-500 text-xs">Singolo / AI Visual</p>
+                                    <p className="text-neutral-500 text-xs">Singolo</p>
                                 </div>
                             </a>
                             {/* Track New - Il Diabolico Volo */}
@@ -1490,6 +1489,18 @@
                                     </p>
                                 </div>
 
+                                {/* QR Code Section */}
+                                <div className="mb-8 flex flex-col items-start gap-3">
+                                    <span className="text-xs text-neutral-500 uppercase tracking-widest font-bold"></span>
+                                    <a href="https://www.ebmaker.it" target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-md w-24 h-24 hover:scale-105 transition-transform duration-300 shadow-lg shadow-red-900/20">
+                                        <img
+                                            src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.ebmaker.it"
+                                            alt="QR Code www.ebmaker.it"
+                                            className="w-full h-full object-contain"
+                                        />
+                                    </a>
+                                </div>
+
                                 {/* Exhibitions List */}
                                 <div className="space-y-4 border-t border-neutral-800 pt-8">
                                     <h3 className="text-white font-bold uppercase tracking-widest text-sm mb-4">Mostre & Partecipazioni</h3>
@@ -1559,7 +1570,7 @@
             useEffect(() => {
                 const handleScroll = () => {
                     const sections = ['home', 'kaoss', 'cosmo', 'visual-ai', 'interattivo', 'illustrations', 'materials', 'portfolio', 'bio', 'contact'];
-                    
+
                     // Controllo immediato fondo pagina (Contatti)
                     const isBottom = (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100;
                     if (isBottom) {
