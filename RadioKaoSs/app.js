@@ -85,20 +85,28 @@ const PUB_CONFIG = [
 
 // ─── Canzoni — integrate nella queue come gli altri canali ───────────────────
 const SONGS_CONFIG = [
-    { cartella: "canzoni", audio: "sarà.mp3", titolo: "Sarà", isSong: true },
-    { cartella: "canzoni", audio: "charles.mpeg", titolo: "Charles", isSong: true },
+    { cartella: "canzoni", audio: "Benvenuto sulla Terra.mp3", titolo: "Benvenuto Sulla Terra", isSong: true },
+    { cartella: "canzoni", audio: "La fantasia.mp3", titolo: "La Fantasia", isSong: true },
+    { cartella: "canzoni", audio: "Ughi bughi bughi.mp3", titolo: "Ughi Bughi Bughi", isSong: true },
+    { cartella: "canzoni", audio: "charles.mp3", titolo: "Charles", isSong: true },
     { cartella: "canzoni", audio: "corre il coniglio.mpeg", titolo: "Corre il Coniglio", isSong: true },
     { cartella: "canzoni", audio: "destino formicaio.MP3", titolo: "Destino Formicaio", isSong: true },
     { cartella: "canzoni", audio: "destino sgarbato.mpeg", titolo: "Destino Sgarbato", isSong: true },
+    { cartella: "canzoni", audio: "diabolicus.mp3", titolo: "Diabolicus", isSong: true },
     { cartella: "canzoni", audio: "dio.mpeg", titolo: "Dio", isSong: true },
     { cartella: "canzoni", audio: "dove il tramonto brucia.mpeg", titolo: "Dove il Tramonto Brucia", isSong: true },
     { cartella: "canzoni", audio: "e ritorna il giorno.mpeg", titolo: "E Ritorna il Giorno", isSong: true },
+    { cartella: "canzoni", audio: "fine del mondo.mp3", titolo: "Fine del Mondo", isSong: true },
     { cartella: "canzoni", audio: "icaro.mpeg", titolo: "Icaro", isSong: true },
     { cartella: "canzoni", audio: "la paura di finire.mpeg", titolo: "La Paura di Finire", isSong: true },
-    { cartella: "canzoni", audio: "non voglio.mpeg", titolo: "Non Voglio", isSong: true },
+    { cartella: "canzoni", audio: "margehrita.MP3", titolo: "Margherita", isSong: true },
     { cartella: "canzoni", audio: "mortem.MP3", titolo: "Mortem", isSong: true },
-    { cartella: "canzoni", audio: "La fantasia.mp3", titolo: "La Fantasia", isSong: true },
+    { cartella: "canzoni", audio: "napoleone.mpeg", titolo: "Napoleone", isSong: true },
+    { cartella: "canzoni", audio: "non voglio.mpeg", titolo: "Non Voglio", isSong: true },
+    { cartella: "canzoni", audio: "oggi non resto.mp3", titolo: "Oggi Non Resto", isSong: true },
+    { cartella: "canzoni", audio: "passami la cartapesta.mp3", titolo: "Passami la Cartapesta", isSong: true },
     { cartella: "canzoni", audio: "per un tempo futuro.mpeg", titolo: "Per un Tempo Futuro", isSong: true },
+    { cartella: "canzoni", audio: "sarà.mp3", titolo: "Sarà", isSong: true },
     { cartella: "canzoni", audio: "satan.MP3", titolo: "Satan", isSong: true },
     { cartella: "canzoni", audio: "sei sicura.MP3", titolo: "Sei Sicura", isSong: true },
 ];
@@ -788,8 +796,8 @@ function renderTick() {
         forceBeat = true;
     }
 
-    // Montaggio video — SOLO per i canali radio normali, NO per cartelle a video fisso o canzoni
-    if (!currentIsSong && !currentIsFixedBackground && forceBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
+    // Montaggio video — NO per cartelle a video fisso, gestito tramite array currentFolderImages
+    if (!currentIsFixedBackground && forceBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
         // Su Low-End teniamo solo 1 layer alla volta per risparmiare memoria
         const maxLayers = isLowEnd ? 1 : 2;
         while (guiElements.montageContainer.children.length >= maxLayers) {
