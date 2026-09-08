@@ -16,6 +16,15 @@
     <link rel="stylesheet" href="style.css">
     <!-- Configuration file -->
     <script src="config.js"></script>
+    <script>
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            const ws = document.getElementById('warning-screen');
+            if (ws) {
+                ws.innerHTML += '<div style="color:red; background:black; padding:10px; margin-top:20px; font-size:12px; font-family:monospace; z-index:9999; position:relative;">ERROR: ' + msg + '<br>Line: ' + lineNo + '</div>';
+            }
+            return false;
+        };
+    </script>
 </head>
 
 <body>
@@ -62,7 +71,10 @@
         <p>ATTENZIONE: QUESTA È UNA TRASMISSIONE RADIOFONICA<br><br>Il flusso visivo contiene scatti stroboscopici,
             glitch frammentari violenti e frequenze anomale. È caldamente consigliato concedere l'autorizzazione per la
             webcam. Vivi un'esperienza "entropica" completa.</p>
-        <button id="accept-btn">ACCETTA LE AVVERTENZE E SINTONIZZATI</button>
+        <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
+            <button id="accept-btn-total" class="accept-btn" style="flex: 1; min-width: 250px;">RADIO KAOSS</button>
+            <button id="accept-btn-songs" class="accept-btn" style="flex: 1; min-width: 250px;">SOLO CANZONI</button>
+        </div>
         <div class="crt-lines"></div>
         <div class="crt-overlay"></div>
     </div>
@@ -75,7 +87,7 @@
         <input type="range" id="audio-progress" min="0" max="100" value="0" step="0.1">
     </div>
 
-    <script type="module" src="app.js"></script>
+    <script src="app.js?v=2"></script>
 </body>
 
 </html>

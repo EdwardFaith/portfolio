@@ -178,7 +178,9 @@
             Eye: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>,
             Mic2: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 8-9.04 9.06a2.82 2.82 0 1 0 3.98 3.98l9.06-9.06" /><path d="m12 8 9.04 9.06a2.82 2.82 0 1 1-3.98 3.98l-9.06-9.06" /><line x1="12" x2="12" y1="8" y2="3" /><line x1="8" x2="8" y1="21" y2="17" /><line x1="16" x2="16" y1="21" y2="17" /><line x1="15" x2="15" y1="13" y2="13" /><line x1="9" x2="9" y1="13" y2="13" /></svg>,
             PenTool: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19 7-7 3 3-7 7-3-3z" /><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" /><path d="m2 2 7.586 7.586" /><circle cx="11" cy="11" r="2" /></svg>,
-            User: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+            User: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
+            Pause: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></svg>,
+            Square: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /></svg>
         };
 
         const VideoPlaceholder = ({ label, extraClass = "", url, videoId }) => {
@@ -1238,6 +1240,159 @@
             );
         };
 
+        const audioFiles = [
+            { title: "Benvenuto sulla Terra", url: "RadioKaoSs/canzoni/Benvenuto sulla Terra.mp3" },
+            { title: "La fantasia", url: "RadioKaoSs/canzoni/La fantasia.mp3" },
+            { title: "Ughi bughi bughi", url: "RadioKaoSs/canzoni/Ughi bughi bughi.mp3" },
+            { title: "Charles", url: "RadioKaoSs/canzoni/charles.mp3" },
+            { title: "Corre il coniglio", url: "RadioKaoSs/canzoni/corre il coniglio.mpeg" },
+            { title: "Destino formicaio", url: "RadioKaoSs/canzoni/destino formicaio.MP3" },
+            { title: "Destino sgarbato", url: "RadioKaoSs/canzoni/destino sgarbato.mpeg" },
+            { title: "Diabolicus", url: "RadioKaoSs/canzoni/diabolicus.mp3" },
+            { title: "Dio", url: "RadioKaoSs/canzoni/dio.mpeg" },
+            { title: "Dove il tramonto brucia", url: "RadioKaoSs/canzoni/dove il tramonto brucia.mpeg" },
+            { title: "E ritorna il giorno", url: "RadioKaoSs/canzoni/e ritorna il giorno.mpeg" },
+            { title: "Fine del mondo", url: "RadioKaoSs/canzoni/fine del mondo.mp3" },
+            { title: "Icaro", url: "RadioKaoSs/canzoni/icaro.mpeg" },
+            { title: "La paura di finire", url: "RadioKaoSs/canzoni/la paura di finire.mpeg" },
+            { title: "Margherita", url: "RadioKaoSs/canzoni/margehrita.MP3" },
+            { title: "Mortem", url: "RadioKaoSs/canzoni/mortem.MP3" },
+            { title: "Napoleone", url: "RadioKaoSs/canzoni/napoleone.mpeg" },
+            { title: "Non voglio", url: "RadioKaoSs/canzoni/non voglio.mpeg" },
+            { title: "Oggi non resto", url: "RadioKaoSs/canzoni/oggi non resto.mp3" },
+            { title: "Passami la cartapesta", url: "RadioKaoSs/canzoni/passami la cartapesta.mp3" },
+            { title: "Per un tempo futuro", url: "RadioKaoSs/canzoni/per un tempo futuro.mpeg" },
+            { title: "Sarà", url: "RadioKaoSs/canzoni/sarà.mp3" },
+            { title: "Satan", url: "RadioKaoSs/canzoni/satan.MP3" },
+            { title: "Sei sicura", url: "RadioKaoSs/canzoni/sei sicura.MP3" }
+        ];
+
+        const AudioTrack = ({ title, url }) => {
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [showPlayer, setShowPlayer] = useState(false);
+            const [currentTime, setCurrentTime] = useState(0);
+            const [duration, setDuration] = useState(0);
+            const audioRef = React.useRef(null);
+            const progressRef = React.useRef(null);
+
+            const togglePlay = () => {
+                if (!showPlayer) {
+                    setShowPlayer(true);
+                    if (audioRef.current) audioRef.current.play().catch(e => console.error(e));
+                } else {
+                    if (isPlaying) {
+                        audioRef.current.pause();
+                    } else {
+                        audioRef.current.play().catch(e => console.error(e));
+                    }
+                }
+            };
+
+            const handleStop = (e) => {
+                e.stopPropagation();
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    audioRef.current.currentTime = 0;
+                    setIsPlaying(false);
+                    setShowPlayer(false);
+                    setCurrentTime(0);
+                }
+            };
+
+            const formatTime = (time) => {
+                if (isNaN(time)) return "0:00";
+                const mins = Math.floor(time / 60);
+                const secs = Math.floor(time % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            const handleSeek = (e) => {
+                e.stopPropagation();
+                if (!audioRef.current || !progressRef.current) return;
+                const rect = progressRef.current.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                audioRef.current.currentTime = pos * audioRef.current.duration;
+            };
+
+            useEffect(() => {
+                const audio = audioRef.current;
+                if (!audio) return;
+                
+                const onPlay = () => setIsPlaying(true);
+                const onPause = () => setIsPlaying(false);
+                const onEnded = () => setIsPlaying(false);
+                const onTimeUpdate = () => setCurrentTime(audio.currentTime);
+                const onLoadedMetadata = () => setDuration(audio.duration);
+
+                audio.addEventListener('play', onPlay);
+                audio.addEventListener('pause', onPause);
+                audio.addEventListener('ended', onEnded);
+                audio.addEventListener('timeupdate', onTimeUpdate);
+                audio.addEventListener('loadedmetadata', onLoadedMetadata);
+
+                if (audio.readyState > 0) {
+                    setDuration(audio.duration);
+                }
+
+                return () => {
+                    audio.removeEventListener('play', onPlay);
+                    audio.removeEventListener('pause', onPause);
+                    audio.removeEventListener('ended', onEnded);
+                    audio.removeEventListener('timeupdate', onTimeUpdate);
+                    audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+                };
+            }, []);
+
+            return (
+                <div 
+                    className="flex flex-col bg-black border border-neutral-800 hover:border-white transition-colors cursor-pointer group p-4"
+                    onClick={!showPlayer ? togglePlay : undefined}
+                >
+                    <div className="flex items-center gap-4">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                            className="w-10 h-10 shrink-0 bg-neutral-900 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-full"
+                        >
+                            {isPlaying ? <Icons.Pause className="w-4 h-4 fill-current" /> : <Icons.Play className="w-4 h-4 fill-current" />}
+                        </button>
+                        <div className="flex-1 min-w-0">
+                            <h4 className="text-white font-bold text-sm truncate" title={title}>{title}</h4>
+                            <p className="text-neutral-500 text-xs truncate">Audio Track</p>
+                        </div>
+                        {showPlayer && (
+                            <button 
+                                onClick={handleStop}
+                                title="Stop"
+                                className="w-8 h-8 shrink-0 bg-neutral-900 flex items-center justify-center text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors rounded-full"
+                            >
+                                <Icons.Square className="w-3 h-3 fill-current" />
+                            </button>
+                        )}
+                    </div>
+                    
+                    {showPlayer && (
+                        <div className="mt-4 pt-4 border-t border-neutral-800 flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between text-[10px] font-mono text-neutral-500 px-1">
+                                <span>{formatTime(currentTime)}</span>
+                                <span>{formatTime(duration)}</span>
+                            </div>
+                            <div 
+                                ref={progressRef}
+                                className="w-full h-1.5 bg-neutral-900 hover:bg-neutral-800 transition-colors rounded-full overflow-hidden cursor-pointer relative"
+                                onClick={handleSeek}
+                            >
+                                <div 
+                                    className="absolute top-0 left-0 h-full bg-red-600 pointer-events-none" 
+                                    style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    )}
+                    <audio ref={audioRef} src={url} className="hidden" />
+                </div>
+            );
+        };
+
         const MaterialsSection = () => (
             <section id="materials" className="py-12 md:py-24 bg-neutral-950 border-t border-neutral-900">
                 <div className="max-w-7xl mx-auto px-6">
@@ -1288,97 +1443,9 @@
                             <span className="uppercase tracking-widest">Canzoni & Audio</span>
                         </h3>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {/* Track New */}
-                            <a href="https://youtu.be/d4vJcflAObA" target="_blank" className="flex items-center gap-4 bg-black border border-neutral-800 p-4 hover:border-white transition-colors cursor-pointer group">
-                                <div className="w-10 h-10 bg-neutral-900 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-full">
-                                    <Icons.Play className="w-4 h-4 fill-current" />
-                                </div>
-                                <div>
-                                    <h4 className="text-white font-bold text-sm">L'Arcangelo fa il punto</h4>
-                                    <p className="text-neutral-500 text-xs">Singolo</p>
-                                </div>
-                            </a>
-                            {/* Track New - Destino Formicaio */}
-                            <a href="https://youtu.be/Co5XU-01Lbo" target="_blank" className="flex items-center gap-4 bg-black border border-neutral-800 p-4 hover:border-white transition-colors cursor-pointer group">
-                                <div className="w-10 h-10 bg-neutral-900 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-full">
-                                    <Icons.Play className="w-4 h-4 fill-current" />
-                                </div>
-                                <div>
-                                    <h4 className="text-white font-bold text-sm">Destino Formicaio</h4>
-                                    <p className="text-neutral-500 text-xs">Singolo</p>
-                                </div>
-                            </a>
-                            {/* Track New - Il Diabolico Volo */}
-                            <a href="https://youtu.be/GRQcGyEBfSc" target="_blank" className="flex items-center gap-4 bg-black border border-neutral-800 p-4 hover:border-white transition-colors cursor-pointer group">
-                                <div className="w-10 h-10 bg-neutral-900 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-full">
-                                    <Icons.Play className="w-4 h-4 fill-current" />
-                                </div>
-                                <div>
-                                    <h4 className="text-white font-bold text-sm">Il Diabolico Volo</h4>
-                                    <p className="text-neutral-500 text-xs">Singolo</p>
-                                </div>
-                            </a>
-                            {/* Track New - Madama Morte */}
-                            <a href="https://youtu.be/axSwXwC497U" target="_blank" className="flex items-center gap-4 bg-black border border-neutral-800 p-4 hover:border-white transition-colors cursor-pointer group">
-                                <div className="w-10 h-10 bg-neutral-900 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-full">
-                                    <Icons.Play className="w-4 h-4 fill-current" />
-                                </div>
-                                <div>
-                                    <h4 className="text-white font-bold text-sm">Madama Morte</h4>
-                                    <p className="text-neutral-500 text-xs">Singolo</p>
-                                </div>
-                            </a>
-                            {/* Track 1 */}
-                            <a href="https://youtu.be/IPt1rt9_CxQ" target="_blank" className="flex items-center gap-4 bg-black border border-neutral-800 p-4 hover:border-white transition-colors cursor-pointer group">
-                                <div className="w-10 h-10 bg-neutral-900 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-full">
-                                    <Icons.Play className="w-4 h-4 fill-current" />
-                                </div>
-                                <div>
-                                    <h4 className="text-white font-bold text-sm">Si Vedrà</h4>
-                                    <p className="text-neutral-500 text-xs">Singolo</p>
-                                </div>
-                            </a>
-                            {/* Track 2 */}
-                            <a href="https://youtu.be/dFVqvY6WD6s" target="_blank" className="flex items-center gap-4 bg-black border border-neutral-800 p-4 hover:border-white transition-colors cursor-pointer group">
-                                <div className="w-10 h-10 bg-neutral-900 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-full">
-                                    <Icons.Play className="w-4 h-4 fill-current" />
-                                </div>
-                                <div>
-                                    <h4 className="text-white font-bold text-sm">Ritorna il Giorno</h4>
-                                    <p className="text-neutral-500 text-xs">Singolo</p>
-                                </div>
-                            </a>
-                            {/* Track 3 */}
-                            <a href="https://youtu.be/UQoNjRYS4AM" target="_blank" className="flex items-center gap-4 bg-black border border-neutral-800 p-4 hover:border-white transition-colors cursor-pointer group">
-                                <div className="w-10 h-10 bg-neutral-900 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-full">
-                                    <Icons.Play className="w-4 h-4 fill-current" />
-                                </div>
-                                <div>
-                                    <h4 className="text-white font-bold text-sm">Amica Mia</h4>
-                                    <p className="text-neutral-500 text-xs">Singolo</p>
-                                </div>
-                            </a>
-                            {/* Track 4 */}
-                            <a href="https://youtu.be/mq27HWA8LQM" target="_blank" className="flex items-center gap-4 bg-black border border-neutral-800 p-4 hover:border-white transition-colors cursor-pointer group">
-                                <div className="w-10 h-10 bg-neutral-900 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-full">
-                                    <Icons.Play className="w-4 h-4 fill-current" />
-                                </div>
-                                <div>
-                                    <h4 className="text-white font-bold text-sm">Destino Sgarbato</h4>
-                                    <p className="text-neutral-500 text-xs">Singolo</p>
-                                </div>
-                            </a>
-
-                            {/* Track 6 */}
-                            <a href="https://youtu.be/AtwjtnjC5WA" target="_blank" className="flex items-center gap-4 bg-black border border-neutral-800 p-4 hover:border-white transition-colors cursor-pointer group">
-                                <div className="w-10 h-10 bg-neutral-900 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-full">
-                                    <Icons.Play className="w-4 h-4 fill-current" />
-                                </div>
-                                <div>
-                                    <h4 className="text-white font-bold text-sm">Un Tempo Futuro</h4>
-                                    <p className="text-neutral-500 text-xs">Singolo</p>
-                                </div>
-                            </a>
+                            {audioFiles.map((track, idx) => (
+                                <AudioTrack key={idx} title={track.title} url={track.url} />
+                            ))}
                         </div>
                     </div>
 

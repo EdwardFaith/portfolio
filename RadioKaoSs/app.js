@@ -1,3 +1,11 @@
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    const ws = document.getElementById('warning-screen');
+    if (ws) {
+        ws.innerHTML += `<div style="color:red; background:black; padding:10px; margin-top:20px; font-size:12px; font-family:monospace;">ERROR: ${msg}<br>Line: ${lineNo}</div>`;
+    }
+    return false;
+};
+
 let queue = [];
 let currentIndex = 0;
 let currentFolderImages = [];
@@ -77,6 +85,7 @@ const PUB_CONFIG = [
 
 // ─── Canzoni — integrate nella queue come gli altri canali ───────────────────
 const SONGS_CONFIG = [
+    { cartella: "canzoni", audio: "sarà.mp3", titolo: "Sarà", isSong: true },
     { cartella: "canzoni", audio: "charles.mpeg", titolo: "Charles", isSong: true },
     { cartella: "canzoni", audio: "corre il coniglio.mpeg", titolo: "Corre il Coniglio", isSong: true },
     { cartella: "canzoni", audio: "destino formicaio.MP3", titolo: "Destino Formicaio", isSong: true },
@@ -109,7 +118,8 @@ const TG_CONFIG = [
 
 // ─── GUI ──────────────────────────────────────────────────────────────────────
 const guiElements = {
-    acceptBtn: document.getElementById('accept-btn'),
+    acceptBtnSongs: document.getElementById('accept-btn-songs'),
+    acceptBtnTotal: document.getElementById('accept-btn-total'),
     warningScreen: document.getElementById('warning-screen'),
     vhsContainer: document.getElementById('vhs-container'),
     audioElement: document.getElementById('main-audio'),
@@ -119,6 +129,7 @@ const guiElements = {
 };
 const ctx = guiElements.canvas.getContext('2d', { willReadFrequently: true });
 let beatCooldown = 0, currentLayout = 'single', layoutBeatsLeft = 0;
+let currentMode = 'total';
 
 // Tutte le immagini personali per lo sfondo delle canzoni
 const PERSONAL_IMAGES = typeof tueImmaginiCreate !== 'undefined' ? tueImmaginiCreate : [];
@@ -199,7 +210,27 @@ function buildShuffledQueue() {
     if (pool.length) lastEpisode = lastKey(pool[pool.length - 1]);
     return result;
 }
-function initQueue() { queue = buildShuffledQueue(); currentIndex = 0; }
+function buildSongsQueue() {
+    let pool = [...SONGS_CONFIG];
+    for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const result = [];
+    const folder01 = {
+        cartella: "cartella01", audio: "audio01.MP3",
+        immagini: ["audio01.mp4"], titolo: "Intermezzo Musica"
+    };
+    for (const ep of pool) {
+        result.push(folder01);
+        result.push(ep);
+    }
+    return result;
+}
+function initQueue(mode = 'total') { 
+    queue = mode === 'songs' ? buildSongsQueue() : buildShuffledQueue(); 
+    currentIndex = 0; 
+}
 
 // ─── Audio ────────────────────────────────────────────────────────────────────
 function initAudio() {
@@ -362,10 +393,19 @@ function playFolder(folder) {
     guiElements.audioElement.play().catch(e => console.error("Play failed:", e));
 
     if (currentIsSong) {
-        // Nessun montaggio video — solo una immagine statica di sfondo
-        currentFolderImages = [];
-        guiElements.montageContainer.innerHTML = '';
-        showSongBg();
+        if (currentMode === 'songs') {
+            hideSongBg();
+            currentFolderImages = [...PERSONAL_IMAGES];
+            if (currentFolderImages.length > 0) {
+                layoutBeatsLeft = 0;
+                guiElements.montageContainer.innerHTML = '';
+            }
+        } else {
+            // Nessun montaggio video — solo una immagine statica di sfondo
+            currentFolderImages = [];
+            guiElements.montageContainer.innerHTML = '';
+            showSongBg();
+        }
     } else {
         hideSongBg();
         // ─── GESTIONE MEDIA PERSISTENTI (TG DEL COSMO & GIF) ───
@@ -458,15 +498,23 @@ guiElements.audioElement.addEventListener('timeupdate', () => {
 });
 
 // ─── Avvio ────────────────────────────────────────────────────────────────────
-guiElements.acceptBtn.addEventListener('click', () => {
+const startGame = (mode) => {
+    currentMode = mode;
     guiElements.warningScreen.style.display = 'none';
     guiElements.vhsContainer.style.display = 'block';
-    initQueue();
+    initQueue(mode);
     initAudio();
     initTracking();
     playNext();
     buildMenu();
-});
+};
+
+if (guiElements.acceptBtnSongs) {
+    guiElements.acceptBtnSongs.addEventListener('click', () => startGame('songs'));
+}
+if (guiElements.acceptBtnTotal) {
+    guiElements.acceptBtnTotal.addEventListener('click', () => startGame('total'));
+}
 
 // ─── Webcam ───────────────────────────────────────────────────────────────────
 function initTracking() {
@@ -544,25 +592,27 @@ function buildMenu() {
     list.className = 'rk-list';
 
     // Tutti gli elementi in un'unica lista
-    // Prima: canali (cartella0 + 1-15) in ordine
-    const allChannels = [...RADIO_CONFIG].sort((a, b) => {
-        const n = x => parseInt(x.cartella.replace('cartella', '')) || 0;
-        return n(a) - n(b);
-    });
-    allChannels.forEach(cfg => {
-        const num = cfg.cartella.replace('cartella', '').padStart(2, '0');
-        const btn = makeItem(`${num}  ${cfg.titolo || cfg.cartella}`);
-        btn.dataset.ref = cfg.cartella;
-        btn.addEventListener('click', () => {
-            const idx = queue.findIndex(q => q.cartella === cfg.cartella && !q.isSong);
-            if (idx !== -1) currentIndex = idx; else queue.splice(currentIndex, 0, cfg);
-            guiElements.audioElement.pause();
-            guiElements.audioElement.currentTime = 0;
-            playNext();
-            menu.classList.remove('open');
+    if (currentMode === 'total') {
+        // Prima: canali (cartella0 + 1-15) in ordine
+        const allChannels = [...RADIO_CONFIG].sort((a, b) => {
+            const n = x => parseInt(x.cartella.replace('cartella', '')) || 0;
+            return n(a) - n(b);
         });
-        list.appendChild(btn);
-    });
+        allChannels.forEach(cfg => {
+            const num = cfg.cartella.replace('cartella', '').padStart(2, '0');
+            const btn = makeItem(`${num}  ${cfg.titolo || cfg.cartella}`);
+            btn.dataset.ref = cfg.cartella;
+            btn.addEventListener('click', () => {
+                const idx = queue.findIndex(q => q.cartella === cfg.cartella && !q.isSong);
+                if (idx !== -1) currentIndex = idx; else queue.splice(currentIndex, 0, cfg);
+                guiElements.audioElement.pause();
+                guiElements.audioElement.currentTime = 0;
+                playNext();
+                menu.classList.remove('open');
+            });
+            list.appendChild(btn);
+        });
+    }
 
     // Poi: canzoni in ordine alfabetico
     [...SONGS_CONFIG].sort((a, b) => a.titolo.localeCompare(b.titolo)).forEach(song => {
@@ -579,41 +629,43 @@ function buildMenu() {
         list.appendChild(btn);
     });
 
-    // Pubblicità
-    const sepPub = document.createElement('div');
-    sepPub.className = 'rk-separator';
-    list.appendChild(sepPub);
-    PUB_CONFIG.forEach(pub => {
-        const btn = makeItem(`  * ${pub.titolo}`);
-        btn.dataset.ref = pub.cartella;
-        btn.addEventListener('click', () => {
-            const folder02 = { cartella: "cartella02", audio: "audio02.MP3", immagini: ["audio02.mp4"], titolo: "Intermezzo Pubblicità" };
-            queue.splice(currentIndex, 0, folder02, pub);
-            guiElements.audioElement.pause();
-            guiElements.audioElement.currentTime = 0;
-            playNext();
-            menu.classList.remove('open');
+    if (currentMode === 'total') {
+        // Pubblicità
+        const sepPub = document.createElement('div');
+        sepPub.className = 'rk-separator';
+        list.appendChild(sepPub);
+        PUB_CONFIG.forEach(pub => {
+            const btn = makeItem(`  * ${pub.titolo}`);
+            btn.dataset.ref = pub.cartella;
+            btn.addEventListener('click', () => {
+                const folder02 = { cartella: "cartella02", audio: "audio02.MP3", immagini: ["audio02.mp4"], titolo: "Intermezzo Pubblicità" };
+                queue.splice(currentIndex, 0, folder02, pub);
+                guiElements.audioElement.pause();
+                guiElements.audioElement.currentTime = 0;
+                playNext();
+                menu.classList.remove('open');
+            });
+            list.appendChild(btn);
         });
-        list.appendChild(btn);
-    });
 
-    // TG del Cosmo
-    const sepTG = document.createElement('div');
-    sepTG.className = 'rk-separator';
-    list.appendChild(sepTG);
-    TG_CONFIG.forEach(tg => {
-        const btn = makeItem(`  > ${tg.titolo}`);
-        btn.dataset.ref = tg.cartella + '/' + tg.audio;
-        btn.addEventListener('click', () => {
-            const folder03 = { cartella: "cartella03", audio: "audio03.MP3", immagini: ["audio03.mp4"], titolo: "Memorie del Cosmo" };
-            queue.splice(currentIndex, 0, folder03, tg);
-            guiElements.audioElement.pause();
-            guiElements.audioElement.currentTime = 0;
-            playNext();
-            menu.classList.remove('open');
+        // TG del Cosmo
+        const sepTG = document.createElement('div');
+        sepTG.className = 'rk-separator';
+        list.appendChild(sepTG);
+        TG_CONFIG.forEach(tg => {
+            const btn = makeItem(`  > ${tg.titolo}`);
+            btn.dataset.ref = tg.cartella + '/' + tg.audio;
+            btn.addEventListener('click', () => {
+                const folder03 = { cartella: "cartella03", audio: "audio03.MP3", immagini: ["audio03.mp4"], titolo: "Memorie del Cosmo" };
+                queue.splice(currentIndex, 0, folder03, tg);
+                guiElements.audioElement.pause();
+                guiElements.audioElement.currentTime = 0;
+                playNext();
+                menu.classList.remove('open');
+            });
+            list.appendChild(btn);
         });
-        list.appendChild(btn);
-    });
+    }
 
     menu.appendChild(list);
 
