@@ -399,11 +399,18 @@
         const cX = ((minX + maxX) / 2) * SCALE_F;
         const cY = ((minY + maxY) / 2) * SCALE_F;
 
+        // Shuffle coords to avoid overlapping texts picking the same coordinate
+        for (let i = coords.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [coords[i], coords[j]] = [coords[j], coords[i]];
+        }
+
         const numNodes = Math.min(allChunks.length, 1100);
         for (let i = 0; i < numNodes; i++) {
-            const coord = coords[Math.floor(Math.random() * coords.length)];
-            const jX = (Math.random() - 0.5) * SCALE_F * 0.28;
-            const jY = (Math.random() - 0.5) * SCALE_F * 0.28;
+            const coord = coords[i % coords.length];
+            // Increase jitter significantly to avoid perfect overlaps
+            const jX = (Math.random() - 0.5) * SCALE_F * 1.5;
+            const jY = (Math.random() - 0.5) * SCALE_F * 1.5;
             const chunk = allChunks[i % allChunks.length];
             nodes.push({
                 id: i,
@@ -645,7 +652,7 @@
         filter.frequency.value = 350; // Bassa frequenza
         
         const gainNode = audioContext.createGain();
-        gainNode.gain.value = 0.2; // Rumore del mondo costante ma in background
+        gainNode.gain.value = 0.05; // Rumore del mondo molto più basso
         
         noiseSource.connect(filter);
         filter.connect(gainNode);
@@ -661,7 +668,7 @@
                 
                 const oscGain = audioContext.createGain();
                 oscGain.gain.setValueAtTime(0, audioContext.currentTime);
-                oscGain.gain.linearRampToValueAtTime(0.04, audioContext.currentTime + 0.3);
+                oscGain.gain.linearRampToValueAtTime(0.012, audioContext.currentTime + 0.3); // Volume radio abbassato
                 oscGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1.5);
                 
                 osc.connect(oscGain);
