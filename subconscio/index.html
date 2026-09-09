@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anche i conigli hanno le ali</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@300;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050505;
+            --white: #f0f0f0;
+            --red: #dc2626;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: var(--bg);
+            color: var(--white);
+            font-family: 'Courier Prime', monospace;
+            user-select: none;
+        }
+
+        /* ─── CRT / VHS overlays ─── */
+        .crt {
+            position: fixed; inset: 0;
+            background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.75) 100%);
+            pointer-events: none; z-index: 9990;
+        }
+        .scanlines {
+            position: fixed; inset: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0px, transparent 2px,
+                rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px
+            );
+            pointer-events: none; z-index: 9991;
+        }
+        .noise {
+            position: fixed; inset: 0;
+            opacity: 0.06;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 9989;
+            animation: noiseAnim 0.15s steps(1) infinite;
+        }
+        @keyframes noiseAnim {
+            0%   { transform: translate(0,0); }
+            25%  { transform: translate(-3px, 2px); }
+            50%  { transform: translate(2px, -1px); }
+            75%  { transform: translate(-1px, 3px); }
+            100% { transform: translate(0,0); }
+        }
+
+        /* ─── Mind Canvas ─── */
+        #mind-container {
+            position: relative; width: 100%; height: 100%;
+            cursor: grab; overflow: hidden;
+        }
+        #mind-container:active { cursor: grabbing; }
+
+        #canvas {
+            position: absolute; top: 0; left: 0;
+            transform-origin: 0 0;
+        }
+
+        #synapses {
+            position: absolute; top: 0; left: 0;
+            overflow: visible; pointer-events: none; z-index: 0;
+        }
+        .synapse-line {
+            stroke: rgba(200, 190, 190, 0.12);
+            stroke-width: 1; fill: none;
+        }
+        .synapse-line.active {
+            stroke: var(--red); stroke-width: 1.5;
+            filter: drop-shadow(0 0 3px var(--red));
+            animation: pulse 4s infinite;
+        }
+
+        /* ─── Nodes ─── */
+        .node {
+            position: absolute; width: 190px;
+            padding: 9px 11px;
+            background: rgba(5, 5, 5, 0.88);
+            border-left: 2px solid rgba(240,240,240,0.4);
+            z-index: 10;
+            font-size: 10.5px;
+            line-height: 1.5;
+            backdrop-filter: blur(3px);
+            transform: translate(var(--fx,0), var(--fy,0));
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+        .node:hover {
+            border-color: var(--red);
+            box-shadow: 0 0 14px rgba(220,38,38,0.3);
+            text-shadow: 1px 0 1px var(--red), -1px 0 1px #555;
+            z-index: 999;
+            transform: translate(var(--fx,0), var(--fy,0)) scale(1.08);
+        }
+        .node.glitch-anim {
+            animation: glitchSkew 0.25s ease both;
+            text-shadow: 2px 0 2px var(--red), -2px 0 2px #555;
+        }
+
+        /* ─── Rabbit SVG watermark (background) ─── */
+        #rabbit-bg {
+            position: fixed; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none; z-index: 1;
+            opacity: 0.04;
+        }
+        #rabbit-bg svg {
+            width: 65vmin; height: 65vmin;
+            fill: white;
+        }
+
+        /* ─── UI Overlay (title only) ─── */
+        #ui {
+            position: fixed; top: 24px; left: 24px;
+            z-index: 10000; pointer-events: none;
+        }
+        #ui h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.2rem, 3.5vw, 2.2rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            max-width: 80vw;
+            text-shadow: 2px 0 var(--red), -2px 0 #555;
+            animation: flicker 4s infinite;
+        }
+
+        /* ─── Back button (top-right, small) ─── */
+        #back-btn {
+            position: fixed;
+            top: 20px; right: 20px;
+            z-index: 10000;
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(5,5,5,0.85);
+            border: 1px solid rgba(240,240,240,0.12);
+            padding: 7px 14px;
+            cursor: pointer;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: rgba(240,240,240,0.5);
+            text-decoration: none;
+            transition: border-color 0.3s, color 0.3s;
+            backdrop-filter: blur(8px);
+        }
+        #back-btn:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+        #back-btn .rabbit-svg { fill: currentColor; transition: fill 0.3s; }
+
+        /* ─── Loading screen ─── */
+        #loader {
+            position: fixed; inset: 0;
+            background: var(--bg);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 99999;
+            gap: 20px;
+            transition: opacity 0.8s ease;
+        }
+        #loader.fade-out { opacity: 0; pointer-events: none; }
+        #loader .loader-rabbit {
+            animation: rabbitBounce 0.9s ease-in-out infinite;
+        }
+        #loader p {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: #444;
+        }
+        #loader .bar {
+            width: 200px; height: 1px;
+            background: #111;
+            position: relative; overflow: hidden;
+        }
+        #loader .bar::after {
+            content: '';
+            position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: var(--red);
+            animation: loadBar 1.5s ease forwards;
+        }
+
+        /* ─── Animations ─── */
+        @keyframes pulse {
+            0%, 100% { opacity: 0.25; }
+            50% { opacity: 1; }
+        }
+        @keyframes flicker {
+            0%  { opacity: 1; }
+            2%  { opacity: 0.75; transform: translateX(2px); }
+            4%  { opacity: 1; transform: translateX(0); }
+            20% { opacity: 1; }
+            21% { opacity: 0.1; }
+            22% { opacity: 1; }
+            80% { opacity: 1; }
+            82% { opacity: 0.6; text-shadow: -2px 0 var(--red), 2px 0 #555; }
+            83% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+        @keyframes glitchSkew {
+            0%   { transform: skew(0deg); }
+            20%  { transform: skew(-8deg); }
+            40%  { transform: skew(8deg); }
+            60%  { transform: skew(-4deg); }
+            80%  { transform: skew(4deg); }
+            100% { transform: skew(0deg); }
+        }
+        @keyframes rabbitBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes loadBar {
+            to { left: 0; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loading screen -->
+    <div id="loader">
+        <div class="loader-rabbit">
+            <svg viewBox="0 0 60 80" width="72" height="72" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="20" cy="18" rx="7" ry="18"/>
+                <ellipse cx="40" cy="18" rx="7" ry="18"/>
+                <ellipse cx="30" cy="42" rx="18" ry="16"/>
+                <ellipse cx="30" cy="65" rx="22" ry="15"/>
+                <ellipse cx="48" cy="72" rx="7" ry="5"/>
+            </svg>
+        </div>
+        <p>Anche i conigli hanno le ali in caricamento...</p>
+        <div class="bar"></div>
+    </div>
+
+    <!-- CRT Effects -->
+    <div class="crt"></div>
+    <div class="scanlines"></div>
+    <div class="noise"></div>
+
+    <!-- Mind Canvas -->
+    <div id="mind-container">
+        <svg id="synapses" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div id="canvas"></div>
+    </div>
+
+    <!-- UI: title only -->
+    <div id="ui">
+        <h1>ANCHE I CONIGLI HANNO LE ALI</h1>
+    </div>
+
+    <!-- Back button (top-right, small) -->
+    <a id="back-btn" href="../index.html">
+        <svg class="rabbit-svg" viewBox="0 0 60 80" width="12" height="12" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="20" cy="18" rx="7" ry="18"/>
+            <ellipse cx="40" cy="18" rx="7" ry="18"/>
+            <ellipse cx="30" cy="42" rx="18" ry="16"/>
+            <ellipse cx="30" cy="65" rx="22" ry="15"/>
+            <ellipse cx="48" cy="72" rx="7" ry="5"/>
+        </svg>
+        ← Torna
+    </a>
+
+    <!-- Include external full texts -->
+    <script src="testi.js"></script>
+
+    <script>
+    // ============================================================
+    //  Anche i conigli hanno le ali — Neural Rabbit Visualizer
+    //  Scrittura Creativa → Sagoma Coniglio
+    // ============================================================
+
+    // ── State ───────────────────────────────────────────────────
+    const canvas        = document.getElementById('canvas');
+    const mindContainer = document.getElementById('mind-container');
+    const synapsesSvg   = document.getElementById('synapses');
+
+    let autoPan     = true;
+    let autoPanVelX = 0.35;
+    let autoPanVelY = 0.2;
+    let scale       = 1;
+    let translateX  = window.innerWidth / 2;
+    let translateY  = window.innerHeight / 2;
+    let isDragging  = false;
+    let startDragX  = 0;
+    let startDragY  = 0;
+
+    const nodes        = [];
+    const nodeElements = [];
+    let orderedChunks  = [];
+    let audioContext   = null;
+
+    const RABBIT_PX  = 11000;
+    const SCALE_F    = RABBIT_PX / 800;
+    const NODE_W     = 190;
+    const RABBIT_VIS = 0.10;
+    const SVG_HALF   = RABBIT_PX * 1.5;
+
+    // ── Rabbit silhouette (from 🐇 emoji on hidden canvas) ─────
+    function getRabbitCoords() {
+        const c = document.createElement('canvas');
+        c.width = c.height = 800;
+        const ctx = c.getContext('2d');
+        ctx.font = '560px sans-serif';
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.fillText('🐇', 400, 400);
+
+        const img = ctx.getImageData(0, 0, 800, 800).data;
+        const coords = [];
+        const step = 7;
+
+        for (let y = 0; y < 800; y += step) {
+            for (let x = 0; x < 800; x += step) {
+                if (img[(y * 800 + x) * 4 + 3] > 120) {
+                    coords.push({ x, y });
+                    const l = x >= step    ? img[(y * 800 + x - step) * 4 + 3] : 0;
+                    const r = x < 800-step ? img[(y * 800 + x + step) * 4 + 3] : 0;
+                    const u = y >= step    ? img[((y-step)*800 + x) * 4 + 3]   : 0;
+                    const d = y < 800-step ? img[((y+step)*800 + x) * 4 + 3]   : 0;
+                    if (l < 120 || r < 120 || u < 120 || d < 120) {
+                        coords.push({ x, y });
+                        coords.push({ x, y });
+                    }
+                }
+            }
+        }
+        if (!coords.length) coords.push({ x: 400, y: 400 });
+        return coords;
+    }
+
+    // ── Text splitting ──────────────────────────────────────────
+    function splitText(text, max = 100) {
+        if (text.length <= max) return [text];
+        const parts = text.split(/(?<=[.!?…»])\s+/);
+        const chunks = []; let cur = '';
+        for (const p of parts) {
+            if (p.length > max) {
+                if (cur.trim()) { chunks.push(cur.trim()); cur = ''; }
+                const words = p.split(' '); let line = '';
+                for (const w of words) {
+                    if ((line + ' ' + w).trim().length > max) {
+                        if (line.trim()) chunks.push(line.trim());
+                        line = w;
+                    } else { line = (line + ' ' + w).trim(); }
+                }
+                if (line.trim()) chunks.push(line.trim());
+            } else if ((cur + ' ' + p).trim().length > max) {
+                if (cur.trim()) chunks.push(cur.trim());
+                cur = p;
+            } else { cur = (cur + ' ' + p).trim(); }
+        }
+        if (cur.trim()) chunks.push(cur.trim());
+        return chunks.length ? chunks : [text.substring(0, max)];
+    }
+
+    // ── Init ────────────────────────────────────────────────────
+    function init() {
+        let allChunks = [];
+        orderedChunks = [];
+        CREATIVE_TEXTS.forEach(t => {
+            splitText(t, 100).forEach(c => { 
+                if (c.trim().length > 3) {
+                    allChunks.push({ text: c.trim(), originalIndex: orderedChunks.length });
+                    orderedChunks.push(c.trim());
+                }
+            });
+        });
+
+        while (allChunks.length < 800) {
+            allChunks = allChunks.concat(allChunks.map(c => ({...c})));
+        }
+        for (let i = allChunks.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allChunks[i], allChunks[j]] = [allChunks[j], allChunks[i]];
+        }
+
+        const coords = getRabbitCoords();
+
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        coords.forEach(c => {
+            if (c.x < minX) minX = c.x; if (c.x > maxX) maxX = c.x;
+            if (c.y < minY) minY = c.y; if (c.y > maxY) maxY = c.y;
+        });
+        const cX = ((minX + maxX) / 2) * SCALE_F;
+        const cY = ((minY + maxY) / 2) * SCALE_F;
+
+        const numNodes = Math.min(allChunks.length, 1100);
+        for (let i = 0; i < numNodes; i++) {
+            const coord = coords[Math.floor(Math.random() * coords.length)];
+            const jX = (Math.random() - 0.5) * SCALE_F * 0.28;
+            const jY = (Math.random() - 0.5) * SCALE_F * 0.28;
+            const chunk = allChunks[i % allChunks.length];
+            nodes.push({
+                id: i,
+                text: chunk.text,
+                originalIndex: chunk.originalIndex,
+                x: coord.x * SCALE_F + jX - cX,
+                y: coord.y * SCALE_F + jY - cY,
+                fsX: 0.00012 + Math.random() * 0.0002,
+                fPhX: Math.random() * Math.PI * 2,
+                fPhY: Math.random() * Math.PI * 2,
+                fAX: 2.5 + Math.random() * 4,
+                fAY: 2.5 + Math.random() * 4,
+            });
+        }
+
+        renderNodes();
+        updateTransform();
+        setTimeout(drawSynapses, 600);
+        setupInteractions();
+        animate();
+
+        setTimeout(() => {
+            document.getElementById('loader').classList.add('fade-out');
+            setTimeout(() => {
+                const l = document.getElementById('loader');
+                if (l) l.remove();
+            }, 900);
+        }, 1600);
+    }
+
+    // ── Render ──────────────────────────────────────────────────
+    function renderNodes() {
+        canvas.innerHTML = '';
+        nodes.forEach((node, idx) => {
+            const el = document.createElement('div');
+            el.className = 'node';
+            el.style.left = `${node.x}px`;
+            el.style.top  = `${node.y}px`;
+            el.innerHTML = `<p>${node.text}</p>`;
+            canvas.appendChild(el);
+            nodeElements[idx] = el;
+
+            el.addEventListener('click', e => {
+                e.stopPropagation();
+                initAudio();
+                autoPan = false;
+                nodeElements.forEach(n => { if(n) { n.style.opacity='0.1'; n.style.zIndex='10'; } });
+                document.querySelectorAll('.neighbor-node').forEach(n => n.remove());
+
+                el.style.opacity = '1';
+                el.style.zIndex  = '1000';
+
+                const prevText = orderedChunks[node.originalIndex - 1];
+                const nextText = orderedChunks[node.originalIndex + 1];
+
+                if (prevText) {
+                    const prevEl = document.createElement('div');
+                    prevEl.className = 'node neighbor-node';
+                    prevEl.style.left = `${node.x}px`;
+                    prevEl.style.top  = `${node.y - 50}px`;
+                    prevEl.innerHTML = `<p>${prevText}</p>`;
+                    prevEl.style.opacity = '0.9';
+                    prevEl.style.zIndex = '999';
+                    canvas.appendChild(prevEl);
+                }
+                
+                if (nextText) {
+                    const nextEl = document.createElement('div');
+                    nextEl.className = 'node neighbor-node';
+                    nextEl.style.left = `${node.x}px`;
+                    nextEl.style.top  = `${node.y + 50}px`;
+                    nextEl.innerHTML = `<p>${nextText}</p>`;
+                    nextEl.style.opacity = '0.9';
+                    nextEl.style.zIndex = '999';
+                    canvas.appendChild(nextEl);
+                }
+
+                translateX = window.innerWidth  / 2 - node.x * scale;
+                translateY = window.innerHeight / 2 - node.y * scale;
+                updateTransform();
+            });
+
+            if (Math.random() > 0.96) {
+                setInterval(() => {
+                    el.classList.add('glitch-anim');
+                    setTimeout(() => el.classList.remove('glitch-anim'), 250);
+                }, 5000 + Math.random() * 12000);
+            }
+        });
+    }
+
+    // ── Synapses ────────────────────────────────────────────────
+    function drawSynapses() {
+        const sz = SVG_HALF * 2;
+        synapsesSvg.style.width = synapsesSvg.style.height = `${sz}px`;
+        const K = 3, ox = SVG_HALF + NODE_W / 2, oy = SVG_HALF + 40;
+        const drawn = new Set();
+
+        for (let i = 0; i < nodes.length; i++) {
+            const dists = [];
+            for (let j = 0; j < nodes.length; j++) {
+                if (i === j) continue;
+                const dx = nodes[j].x - nodes[i].x, dy = nodes[j].y - nodes[i].y;
+                dists.push({ j, d: dx*dx + dy*dy });
+            }
+            dists.sort((a,b) => a.d - b.d);
+            for (const { j } of dists.slice(0, K)) {
+                const key = i < j ? `${i}-${j}` : `${j}-${i}`;
+                if (drawn.has(key)) continue;
+                drawn.add(key);
+                const n1 = nodes[i], n2 = nodes[j];
+                const x1 = n1.x + ox, y1 = n1.y + oy, x2 = n2.x + ox, y2 = n2.y + oy;
+                const cx = (x1+x2)/2 + (Math.random()-0.5)*250;
+                const cy = (y1+y2)/2 + (Math.random()-0.5)*250;
+                const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+                path.setAttribute('d', `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`);
+                path.setAttribute('class', 'synapse-line' + (Math.random()>0.8?' active':''));
+                synapsesSvg.appendChild(path);
+            }
+        }
+    }
+
+    // ── Transform ───────────────────────────────────────────────
+    function updateTransform() {
+        const t = `translate(${translateX}px,${translateY}px) scale(${scale})`;
+        canvas.style.transform = t;
+        synapsesSvg.style.transform = t + ` translate(-${SVG_HALF}px,-${SVG_HALF}px)`;
+    }
+
+    // ── Interactions ─────────────────────────────────────────────
+    function setupInteractions() {
+        mindContainer.addEventListener('mousedown', e => {
+            isDragging = true;
+            startDragX = e.clientX - translateX;
+            startDragY = e.clientY - translateY;
+        });
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            translateX = e.clientX - startDragX;
+            translateY = e.clientY - startDragY;
+            updateTransform();
+        });
+        mindContainer.addEventListener('wheel', e => {
+            e.preventDefault();
+            const f = Math.exp((e.deltaY < 0 ? 1 : -1) * 0.055);
+            translateX = e.clientX - (e.clientX - translateX) * f;
+            translateY = e.clientY - (e.clientY - translateY) * f;
+            scale = Math.max(0.035, Math.min(scale * f, 5));
+            updateTransform();
+        }, { passive: false });
+        mindContainer.addEventListener('click', () => {
+                autoPan = true;
+                nodeElements.forEach(n => { if(n) { n.style.opacity='1'; n.style.zIndex='10'; } });
+                document.querySelectorAll('.neighbor-node').forEach(n => n.remove());
+                initAudio();
+        });
+
+        // Touch support
+        let lastTouchDist = 0;
+        mindContainer.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                startDragX = e.touches[0].clientX - translateX;
+                startDragY = e.touches[0].clientY - translateY;
+            } else if (e.touches.length === 2) {
+                isDragging = false;
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                lastTouchDist = Math.sqrt(dx*dx + dy*dy);
+            }
+        }, { passive: true });
+        mindContainer.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (e.touches.length === 1 && isDragging) {
+                translateX = e.touches[0].clientX - startDragX;
+                translateY = e.touches[0].clientY - startDragY;
+                updateTransform();
+            } else if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                const f = dist / lastTouchDist;
+                translateX = mx - (mx - translateX) * f;
+                translateY = my - (my - translateY) * f;
+                scale = Math.max(0.035, Math.min(scale * f, 5));
+                lastTouchDist = dist;
+                updateTransform();
+            }
+        }, { passive: false });
+        mindContainer.addEventListener('touchend', () => isDragging = false, { passive: true });
+    }
+
+    // ── Animation loop ──────────────────────────────────────────
+    function animate() {
+        if (autoPan && !isDragging && scale > RABBIT_VIS) {
+            if (Math.random() < 0.012) {
+                autoPanVelX += (Math.random() - 0.5) * 0.07;
+                autoPanVelY += (Math.random() - 0.5) * 0.07;
+                autoPanVelX = Math.max(-0.7, Math.min(0.7, autoPanVelX));
+                autoPanVelY = Math.max(-0.7, Math.min(0.7, autoPanVelY));
+            }
+            translateX -= autoPanVelX;
+            translateY -= autoPanVelY;
+            updateTransform();
+        }
+        const t = Date.now();
+        for (let i = 0; i < nodes.length; i++) {
+            const n = nodes[i], el = nodeElements[i];
+            if (!el) continue;
+            el.style.setProperty('--fx', Math.sin(t * n.fsX + n.fPhX) * n.fAX + 'px');
+            el.style.setProperty('--fy', Math.cos(t * n.fsX + n.fPhY) * n.fAY + 'px');
+        }
+        requestAnimationFrame(animate);
+    }
+
+    // ── Audio ───────────────────────────────────────────────────
+    function initAudio() {
+        if (audioContext) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        audioContext = new AudioContext();
+        
+        const bufferSize = audioContext.sampleRate * 2;
+        const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
+        }
+        
+        const noiseSource = audioContext.createBufferSource();
+        noiseSource.buffer = noiseBuffer;
+        noiseSource.loop = true;
+        
+        const filter = audioContext.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 350; // Bassa frequenza
+        
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = 0.2; // Rumore del mondo costante ma in background
+        
+        noiseSource.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        noiseSource.start();
+        
+        setInterval(() => {
+            if (Math.random() > 0.6) {
+                const osc = audioContext.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(80 + Math.random() * 200, audioContext.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40 + Math.random() * 50, audioContext.currentTime + 1.5);
+                
+                const oscGain = audioContext.createGain();
+                oscGain.gain.setValueAtTime(0, audioContext.currentTime);
+                oscGain.gain.linearRampToValueAtTime(0.04, audioContext.currentTime + 0.3);
+                oscGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1.5);
+                
+                osc.connect(oscGain);
+                oscGain.connect(audioContext.destination);
+                osc.start();
+                osc.stop(audioContext.currentTime + 1.5);
+            }
+        }, 3500);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

@@ -146,6 +146,46 @@
         .text-justify-custom {
             text-align: justify;
         }
+
+        /* ─── SUBCONSCIO disintegration ─── */
+        @keyframes subcParticleFloat {
+            0%   { transform: translate(0,0) rotate(0deg) scale(1);   opacity: 1; }
+            30%  { opacity: 0.9; }
+            100% { transform: translate(var(--tx), var(--ty)) rotate(var(--tr)) scale(var(--ts)); opacity: 0; }
+        }
+        @keyframes subcBgPulse {
+            0%   { background-color: #050505; }
+            40%  { background-color: #0a0005; }
+            80%  { background-color: #000000; }
+            100% { background-color: #000000; }
+        }
+        .subc-fragment {
+            position: fixed;
+            background: #fff;
+            z-index: 9998;
+            pointer-events: none;
+            border-radius: 1px;
+            animation: subcParticleFloat var(--dur) ease-in-out forwards;
+        }
+        .subc-rabbit-overlay {
+            position: fixed; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9997;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+        .subc-rabbit-overlay.visible { opacity: 1; }
+        .subc-rabbit-overlay span {
+            font-size: 35vmin;
+            animation: rabbitSpin 1.2s ease-in-out;
+            display: inline-block;
+        }
+        @keyframes rabbitSpin {
+            0%   { transform: scale(0.1) rotate(-20deg); opacity:0; }
+            60%  { transform: scale(1.08) rotate(5deg); opacity:1; }
+            100% { transform: scale(1) rotate(0deg); opacity:1; }
+        }
     </style>
 </head>
 
@@ -154,7 +194,71 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
+
+        // ── Subconscio disintegration ──────────────────────────────
+        function triggerSubconsciousEffect(callback) {
+            // Phase 1: fragment the page
+            const body = document.body;
+            const W = window.innerWidth, H = window.innerHeight;
+            const FRAGS = 180;
+
+            // Rabbit overlay
+            const rabbitOverlay = document.createElement('div');
+            rabbitOverlay.className = 'subc-rabbit-overlay';
+            rabbitOverlay.innerHTML = `<span>
+                <svg viewBox="0 0 60 80" width="1em" height="1em" fill="white" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="20" cy="18" rx="7" ry="18"/>
+                    <ellipse cx="40" cy="18" rx="7" ry="18"/>
+                    <ellipse cx="30" cy="42" rx="18" ry="16"/>
+                    <ellipse cx="30" cy="65" rx="22" ry="15"/>
+                    <ellipse cx="48" cy="72" rx="7" ry="5"/>
+                </svg>
+            </span>`;
+            body.appendChild(rabbitOverlay);
+
+            // Create white pixel fragments
+            for (let i = 0; i < FRAGS; i++) {
+                const el = document.createElement('div');
+                el.className = 'subc-fragment';
+                const x0 = Math.random() * W;
+                const y0 = Math.random() * H;
+                const size = 2 + Math.random() * 6;
+                el.style.cssText = `
+                    left: ${x0}px; top: ${y0}px;
+                    width: ${size}px; height: ${size}px;
+                    --tx: ${(Math.random()-0.5)*W*0.8}px;
+                    --ty: ${(Math.random()-0.5)*H*0.8}px;
+                    --tr: ${(Math.random()-0.5)*720}deg;
+                    --ts: ${0.1 + Math.random()*0.5};
+                    --dur: ${0.6 + Math.random()*1.0}s;
+                    animation-delay: ${Math.random()*0.3}s;
+                `;
+                body.appendChild(el);
+                setTimeout(() => { if(el.parentNode) el.parentNode.removeChild(el); }, 1500);
+            }
+
+            // Glitch the root element
+            const root = document.getElementById('root');
+            if (root) {
+                root.style.transition = 'filter 0.3s, opacity 0.5s';
+                root.style.filter = 'invert(1) hue-rotate(180deg) blur(2px)';
+                root.style.opacity = '0';
+            }
+
+            // Show rabbit
+            setTimeout(() => { rabbitOverlay.classList.add('visible'); }, 200);
+
+            // After animation → navigate
+            setTimeout(() => {
+                if (callback) callback();
+                // cleanup rabbit overlay
+                setTimeout(() => {
+                    if(rabbitOverlay.parentNode) rabbitOverlay.parentNode.removeChild(rabbitOverlay);
+                    if(root) { root.style.filter=''; root.style.opacity='1'; }
+                }, 400);
+            }, 900);
+        }
 
         // Icons components
         const Icons = {
@@ -269,7 +373,7 @@
                 { id: 'kaoss', label: 'Radio Kaoss' },
                 { id: 'cosmo', label: 'Memorie del Cosmo' },
                 { id: 'visual-ai', label: 'Visual & AI' },
-                { id: 'interattivo', label: 'Interattivo' },
+                { id: 'interattivo', label: 'Codice' },
                 { id: 'illustrations', label: 'Illustrazioni' },
                 { id: 'materials', label: 'Materiali' },
                 { id: 'portfolio', label: 'Zona Larga' },
@@ -342,7 +446,7 @@
                 { id: 'kaoss', label: 'Radio Kaoss' },
                 { id: 'cosmo', label: 'Memorie del Cosmo' },
                 { id: 'visual-ai', label: 'Visual & AI' },
-                { id: 'interattivo', label: 'Interattivo' },
+                { id: 'interattivo', label: 'Codice' },
                 { id: 'illustrations', label: 'Illustrazioni' },
                 { id: 'materials', label: 'Materiali' },
                 { id: 'portfolio', label: 'Zona Larga' },
@@ -412,7 +516,7 @@
                 <div className="max-w-5xl mx-auto px-6 text-center">
 
                     {/* Navigation Control Bar - Intermediate position */}
-                    <div className="flex flex-row items-center justify-center gap-2 sm:gap-4 mb-12 max-w-3xl mx-auto px-2 sm:px-4">
+                    <div className="flex flex-row flex-wrap items-center justify-center gap-2 sm:gap-4 mb-12 max-w-3xl mx-auto px-2 sm:px-4">
                         <button
                             onClick={scrollToBio}
                             className="px-3 py-2 sm:px-5 sm:py-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-white border border-neutral-800 hover:border-red-600 hover:bg-red-950/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 backdrop-blur-sm whitespace-nowrap"
@@ -433,6 +537,20 @@
                         >
                             <Icons.Mail className="w-3.5 h-3.5 text-neutral-500" />
                             <span>Contatti</span>
+                        </button>
+                        {/* SUBCONSCIO button */}
+                        <button
+                            onClick={() => triggerSubconsciousEffect(() => window.location.href = 'subconscio/index.html')}
+                            className="px-3 py-2 sm:px-5 sm:py-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-neutral-600 hover:text-white border border-neutral-800 hover:border-white/30 hover:bg-white/5 active:scale-95 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 backdrop-blur-sm whitespace-nowrap group"
+                        >
+                            <svg viewBox="0 0 60 80" width="14" height="14" fill="white" xmlns="http://www.w3.org/2000/svg" className="opacity-70 group-hover:opacity-100 transition-opacity">
+                                <ellipse cx="20" cy="18" rx="7" ry="18"/>
+                                <ellipse cx="40" cy="18" rx="7" ry="18"/>
+                                <ellipse cx="30" cy="42" rx="18" ry="16"/>
+                                <ellipse cx="30" cy="65" rx="22" ry="15"/>
+                                <ellipse cx="48" cy="72" rx="7" ry="5"/>
+                            </svg>
+                            <span>Subconscio</span>
                         </button>
                     </div>
 
@@ -541,7 +659,6 @@
 
         const IllustrationsSection = () => {
             const [selectedImage, setSelectedImage] = useState(null);
-            const [showConcept, setShowConcept] = useState(false);
 
             // Lightbox controls
             const [touchStart, setTouchStart] = useState(null);
@@ -625,12 +742,6 @@
                         <div className="flex flex-col md:flex-row justify-between items-end mb-12">
                             <div>
                                 <h2 className="brand-font text-3xl text-white mb-4">Archivio <span className="text-neutral-600">illustrazioni</span></h2>
-                                <button
-                                    onClick={() => setShowConcept(true)}
-                                    className="text-sm font-bold text-white border-b border-red-600 hover:text-red-500 transition-colors uppercase tracking-widest pb-1"
-                                >
-                                    Leggi il Concept: Tra Materia e Digitale
-                                </button>
                             </div>
                         </div>
 
@@ -653,32 +764,6 @@
                             ))}
                         </div>
                     </div>
-
-                    {/* Concept Modal */}
-                    {showConcept && (
-                        <div className="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md" onClick={() => setShowConcept(false)}>
-                            <div className="bg-neutral-900 border border-neutral-800 w-full max-w-4xl max-h-[80vh] overflow-y-auto p-8 md:p-12 relative shadow-2xl" onClick={e => e.stopPropagation()}>
-                                <button
-                                    onClick={() => setShowConcept(false)}
-                                    className="absolute top-6 right-6 text-neutral-400 hover:text-white"
-                                >
-                                    <Icons.X />
-                                </button>
-
-                                <h3 className="brand-font text-3xl text-white mb-2 border-b border-red-600 pb-4 inline-block">Illustrazioni: Concept</h3>
-                                <p className="text-red-600 font-mono text-xs uppercase tracking-[0.2em] mb-8">La Ricerca Artistica: Tra Materia e Digitale</p>
-
-                                <div className="prose prose-invert prose-lg text-neutral-300 space-y-8 font-sans">
-                                    <p>
-                                        La scelta del formato digitale per queste illustrazioni non è casuale. Ogni raffigurazione prende vita dal semplice tocco di un pollice sullo schermo di un telefono, per poi subire un processo di alterazione attraverso sovrimpressioni, stratificazioni e glitch grafici. Ho abbracciato questo medium per trasmettere un messaggio profondamente intimo, un ecosistema di simboli mutevoli che si trasformano in base allo sguardo del fruitore. L'intento è generare un senso di smarrimento, quella dispersione che deriva dall'impossibilità assoluta di contemplare un "originale" tangibile dell'opera.
-                                    </p>
-                                    <p>
-                                        Le figure, tracciate di mio pugno, si fondono a volte con elementi generati, altre volte vengono fagocitate da una furiosa sovrapposizione di livelli che ne decostruisce e camuffa il significato originario. In questa nostra contemporaneità, ritengo che siamo sottoposti a un'abissale stratificazione identitaria: frammenti lanciati al vento che danno origine a microcosmi individuali, destinati a svanire con la stessa rapidità con cui sono emersi. Un mondo infinito, situato dentro al mondo percepito, fuori dal visibile....
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {/* Lightbox Modal */}
                     {selectedImage && (
@@ -1125,7 +1210,29 @@
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+
+                            {/* Anche i conigli hanno le ali — Scrittura Creativa (primo) */}
+                            <div
+                                onClick={() => triggerSubconsciousEffect(() => window.location.href = 'subconscio/index.html')}
+                                className="group block bg-neutral-950 border border-white/10 p-1 hover:border-white/25 hover:bg-white/5 transition-all duration-400 cursor-pointer relative overflow-hidden"
+                            >
+                                <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5 flex items-center justify-center">
+                                    <svg viewBox="0 0 60 80" width="52" height="52" fill="white" xmlns="http://www.w3.org/2000/svg" className="opacity-20 group-hover:opacity-60 transition-opacity duration-500">
+                                        <ellipse cx="20" cy="18" rx="7" ry="18"/>
+                                        <ellipse cx="40" cy="18" rx="7" ry="18"/>
+                                        <ellipse cx="30" cy="42" rx="18" ry="16"/>
+                                        <ellipse cx="30" cy="65" rx="22" ry="15"/>
+                                        <ellipse cx="48" cy="72" rx="7" ry="5"/>
+                                    </svg>
+                                    <div className="absolute inset-0" style={{ background: 'radial-gradient(circle, transparent 30%, rgba(0,0,0,0.85) 100%)' }}></div>
+                                </div>
+                                <div className="px-3 pb-3">
+                                    <h3 className="text-sm font-bold text-white/50 group-hover:text-white mb-0.5 tracking-wide transition-colors">Subconscio</h3>
+                                    <p className="text-white/20 text-[10px] leading-tight font-mono uppercase">scopri la verità e il sogno.</p>
+                                </div>
+                            </div>
+
                             {/* RaDiO KaOsS Live */}
                             <a href="RadioKaoSs/index.html" target="_blank" className="group block bg-neutral-900 border border-red-900/40 p-1 hover:bg-red-950/20 transition-all duration-300">
                                 <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
@@ -1138,20 +1245,6 @@
                                 <div className="px-3 pb-3">
                                     <h3 className="text-sm font-bold text-red-500 mb-0.5 tracking-wide">RaDiO KaOsS</h3>
                                     <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">RaDiO KaOsS live.</p>
-                                </div>
-                            </a>
-
-                            {/* Sandpay - Guerre Passate */}
-                            <a href="sandpay/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:border-emerald-800/40 hover:bg-neutral-800 transition-all duration-300">
-                                <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
-                                    <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-emerald-800 transition-colors">
-                                        <Icons.Gamepad />
-                                    </div>
-                                    <div ref={r2.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r2.style}></div>
-                                </div>
-                                <div className="px-3 pb-3">
-                                    <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Sandpay</h3>
-                                    <p className="text-emerald-800 text-[10px] leading-tight font-mono uppercase font-semibold">Guerre passate</p>
                                 </div>
                             </a>
 
@@ -1169,6 +1262,20 @@
                                 </div>
                             </a>
 
+                            {/* Sandpay - Guerre Passate */}
+                            <a href="sandpay/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:border-emerald-800/40 hover:bg-neutral-800 transition-all duration-300">
+                                <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
+                                    <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-emerald-800 transition-colors">
+                                        <Icons.Gamepad />
+                                    </div>
+                                    <div ref={r2.ref} className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-60 transition-opacity" style={r2.style}></div>
+                                </div>
+                                <div className="px-3 pb-3">
+                                    <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Sandpay</h3>
+                                    <p className="text-emerald-800 text-[10px] leading-tight font-mono uppercase font-semibold">Guerre passate</p>
+                                </div>
+                            </a>
+
                             {/* Simbolo */}
                             <a href="simbolo/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
                                 <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
@@ -1183,7 +1290,7 @@
                                 </div>
                             </a>
 
-                            {/* Eyes in the Sky */}
+                            {/* Eyes in the Sky (ultimo) */}
                             <a href="eyes-in-the-sky/index.html" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:bg-neutral-800 transition-all duration-300">
                                 <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
                                     <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">

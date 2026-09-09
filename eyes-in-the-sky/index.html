@@ -411,6 +411,12 @@
             NEURALE.</p>
     </div>
 
+    <!-- PRELOADER -->
+    <div id="game-preloader" style="position:fixed; inset:0; background:black; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'VCR', monospace; color:white;">
+        <h2 style="animation: blink 1s infinite;">CARICAMENTO ASSET...</h2>
+        <p style="font-size: 0.8rem; opacity: 0.7;">Attendere prego</p>
+    </div>
+
     <!-- 1. START SCREEN -->
     <div id="start-screen" class="screen">
         <div class="start-content">
@@ -482,7 +488,13 @@
         }
 
         window.addEventListener('resize', checkOrientation);
-        window.addEventListener('load', checkOrientation);
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            checkOrientation();
+            // Nascondi preloader immediatamente per permettere lo streaming di audio/video (come Spotify)
+            const preloader = document.getElementById('game-preloader');
+            if (preloader) preloader.style.display = 'none';
+        });
 
 
         // --- HANDS SETUP ---

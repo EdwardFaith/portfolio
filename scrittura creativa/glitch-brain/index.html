@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anche i conigli hanno le ali - Glitch Mind</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts for modern/chaotic mix -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- VHS and CRT Effects Overlay -->
+    <div class="crt-overlay"></div>
+    <div class="scanlines"></div>
+    <div class="vhs-noise"></div>
+    <div class="vhs-glitch-layer" id="glitch-layer"></div>
+
+    <!-- The Infinite Mind Canvas -->
+    <div id="mind-container">
+        <!-- SVG for neural connections -->
+        <svg id="synapses" xmlns="http://www.w3.org/2000/svg"></svg>
+        <!-- Text nodes will be injected here -->
+        <div id="canvas"></div>
+    </div>
+
+    <!-- UI Overlay -->
+    <div id="ui">
+        <h1>ANCHE I CONIGLI HANNO LE ALI</h1>
+        <p class="subtitle"></p>
+        <div class="controls">
+            <span></span>
+        </div>
+    </div>
+
+    <!-- Data and Logic -->
+    <script src="book_data.js"></script>
+    <script src="main.js"></script>
+</body>
+
+</html>
