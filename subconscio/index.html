@@ -463,30 +463,16 @@
                 el.style.opacity = '1';
                 el.style.zIndex  = '1000';
 
-                const prevText = orderedChunks[node.originalIndex - 1];
-                const nextText = orderedChunks[node.originalIndex + 1];
+                const prevText = orderedChunks[node.originalIndex - 1] || "";
+                const nextText = orderedChunks[node.originalIndex + 1] || "";
 
-                if (prevText) {
-                    const prevEl = document.createElement('div');
-                    prevEl.className = 'node neighbor-node';
-                    prevEl.style.left = `${node.x}px`;
-                    prevEl.style.top  = `${node.y - 50}px`;
-                    prevEl.innerHTML = `<p>${prevText}</p>`;
-                    prevEl.style.opacity = '0.9';
-                    prevEl.style.zIndex = '999';
-                    canvas.appendChild(prevEl);
-                }
-                
-                if (nextText) {
-                    const nextEl = document.createElement('div');
-                    nextEl.className = 'node neighbor-node';
-                    nextEl.style.left = `${node.x}px`;
-                    nextEl.style.top  = `${node.y + 50}px`;
-                    nextEl.innerHTML = `<p>${nextText}</p>`;
-                    nextEl.style.opacity = '0.9';
-                    nextEl.style.zIndex = '999';
-                    canvas.appendChild(nextEl);
-                }
+                el.innerHTML = `
+                    ${prevText ? `<p style="opacity:0.5; font-size:0.9em; margin-bottom:8px;">${prevText}</p>` : ''}
+                    <p style="font-weight:bold; color:var(--red); font-size:1.1em;">${node.text}</p>
+                    ${nextText ? `<p style="opacity:0.5; font-size:0.9em; margin-top:8px;">${nextText}</p>` : ''}
+                `;
+                el.style.width = '380px';
+                el.style.boxShadow = '0 0 25px rgba(220,38,38,0.2)';
 
                 translateX = window.innerWidth  / 2 - node.x * scale;
                 translateY = window.innerHeight / 2 - node.y * scale;
@@ -564,8 +550,15 @@
         }, { passive: false });
         mindContainer.addEventListener('click', () => {
                 autoPan = true;
-                nodeElements.forEach(n => { if(n) { n.style.opacity='1'; n.style.zIndex='10'; } });
-                document.querySelectorAll('.neighbor-node').forEach(n => n.remove());
+                nodeElements.forEach((n, idx) => {
+                    if(n) {
+                        n.style.opacity = '1';
+                        n.style.zIndex = '10';
+                        n.style.width = '';
+                        n.style.boxShadow = '';
+                        n.innerHTML = `<p>${nodes[idx].text}</p>`;
+                    }
+                });
                 initAudio();
         });
 
