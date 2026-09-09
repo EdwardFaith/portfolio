@@ -50,11 +50,15 @@ function prefetchNextFolder(index) {
     // Precaricamento Audio
     const nextAudioUrl = next.audio ? `${next.cartella}/${next.audio}` : null;
     if (nextAudioUrl && !prefetchCache.has(nextAudioUrl)) {
+        // Disabilitato il prefetch audio totale per permettere lo streaming tipo Spotify
+        // senza intasare la rete. L'audio caricherà progressivamente al play.
+        /*
         const link = document.createElement('link');
         link.rel = 'prefetch';
         link.as = 'audio';
         link.href = nextAudioUrl;
         document.head.appendChild(link);
+        */
         prefetchCache.add(nextAudioUrl);
     }
 
