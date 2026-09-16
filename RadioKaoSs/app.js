@@ -89,7 +89,6 @@ const PUB_CONFIG = [
 
 // ─── Canzoni — integrate nella queue come gli altri canali ───────────────────
 const SONGS_CONFIG = [
-    { cartella: "canzoni", audio: "Benvenuto sulla Terra.mp3", titolo: "Benvenuto Sulla Terra", isSong: true },
     { cartella: "canzoni", audio: "La fantasia.mp3", titolo: "La Fantasia", isSong: true },
     { cartella: "canzoni", audio: "Ughi bughi bughi.mp3", titolo: "Ughi Bughi Bughi", isSong: true },
     { cartella: "canzoni", audio: "charles.mp3", titolo: "Charles", isSong: true },

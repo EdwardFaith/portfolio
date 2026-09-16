@@ -344,7 +344,7 @@
     }
 
     // ── Text splitting ──────────────────────────────────────────
-    function splitText(text, max = 100) {
+    function splitText(text, max = 250) {
         if (text.length <= max) return [text];
         const parts = text.split(/(?<=[.!?…»])\s+/);
         const chunks = []; let cur = '';
@@ -373,7 +373,7 @@
         let allChunks = [];
         orderedChunks = [];
         CREATIVE_TEXTS.forEach(t => {
-            splitText(t, 100).forEach(c => { 
+            splitText(t, 250).forEach(c => { 
                 if (c.trim().length > 3) {
                     allChunks.push({ text: c.trim(), originalIndex: orderedChunks.length });
                     orderedChunks.push(c.trim());
