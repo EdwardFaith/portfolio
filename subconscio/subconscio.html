@@ -90,9 +90,10 @@
             z-index: 10;
             font-size: 10.5px;
             line-height: 1.5;
-            backdrop-filter: blur(3px);
+            line-height: 1.5;
             transform: translate(var(--fx,0), var(--fy,0));
             transition: border-color 0.25s, box-shadow 0.25s;
+            will-change: transform;
         }
         .node:hover {
             border-color: var(--red);
@@ -153,7 +154,6 @@
             color: rgba(240,240,240,0.5);
             text-decoration: none;
             transition: border-color 0.3s, color 0.3s;
-            backdrop-filter: blur(8px);
         }
         #back-btn:hover {
             border-color: var(--red);
@@ -181,9 +181,12 @@
             letter-spacing: 5px;
             text-transform: uppercase;
             color: #444;
+            text-align: center;
+            padding: 0 20px;
+            line-height: 1.6;
         }
         #loader .bar {
-            width: 200px; height: 1px;
+            width: 200px; max-width: 80%; height: 1px;
             background: #111;
             position: relative; overflow: hidden;
         }
