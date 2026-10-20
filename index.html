@@ -539,7 +539,7 @@
         };
 
         const HeroSlideshow = () => {
-            // All YouTube video IDs from the portfolio
+            // ALL YouTube video IDs from the entire site
             const videoIds = [
                 // Radio Kaoss Ep.4
                 "4pKc-7TpGa4", "ST9RwbttmUM", "zbaqhWisKus",
@@ -549,24 +549,66 @@
                 "7Nyp5zsjTrs", "yHmR2vto5jY", "Xd2jEPdJ4EM",
                 // Radio Kaoss Ep.1
                 "IA8NHwhZ0mE", "3wkQ1VnV9MQ", "pCd0wSDidAk",
+                // Radio KaOsS full episodes
+                "2Jwhzy_S8os", "ixXZo5-G5jo", "Q5Rq2qlxAIA",
+                // Memorie del Cosmo
+                "J3xjF9M7McU", "kdEGkCbDpNo",
+                "3o0A7LNHBoI", "ljEb-Hk1RXM", "ewnP55nij-w",
                 // Visual & AI Art
                 "ydTiEnOoZOw", "L70t-wvYn1A", "mFIjhRp19f0",
+                // Cortometraggi / Cosmo
+                "OLdtHKF-bF0", "mBuTbn52NwU",
+                // Spot / Progetti
+                "pSX-55V5WDs", "gooO59AD_rs", "JssRfsHdp7E", "sTxUuiy72gg",
+                // Interattivo / Installazioni
+                "3wkQ1VnV9MQ", "idShNGihgTo", "HazCE6VEUZg",
+                // Zona Larga / Collaborazioni
+                "Jr15_es8qso", "1UVq6lwP8RY", "d4vJcflAObA",
+                "dKZavelqOng", "wfAFZMxOLRE",
             ];
 
-            const [current, setCurrent] = useState(0);
             const [fading, setFading] = useState(false);
-            // Keep track of two slots: A and B, swap them to avoid iframe reload flicker
-            const [slotA, setSlotA] = useState(0);   // index into videoIds
-            const [slotB, setSlotB] = useState(1);   // index into videoIds
-            const [activeSlot, setActiveSlot] = useState('A'); // which slot is visible
+            const [slotA, setSlotA] = useState(0);
+            const [slotB, setSlotB] = useState(1);
+            const [activeSlot, setActiveSlot] = useState('A');
+            // Fallback to GIF when offline or connection is too slow
+            const [useFallback, setUseFallback] = useState(!navigator.onLine);
+            const fallbackTimer = useRef(null);
 
+            // Listen to browser online/offline events
             useEffect(() => {
+                const goOffline = () => setUseFallback(true);
+                const goOnline  = () => setUseFallback(false);
+                window.addEventListener('offline', goOffline);
+                window.addEventListener('online',  goOnline);
+                return () => {
+                    window.removeEventListener('offline', goOffline);
+                    window.removeEventListener('online',  goOnline);
+                };
+            }, []);
+
+            // Slow-connection timeout: if after 5s the img probe fails → fallback
+            useEffect(() => {
+                if (useFallback) return;
+                const probe = new Image();
+                probe.src = `https://img.youtube.com/vi/${videoIds[0]}/default.jpg?_=${Date.now()}`;
+                fallbackTimer.current = setTimeout(() => {
+                    // still not loaded → slow/no internet
+                    if (!probe.complete || probe.naturalWidth === 0) setUseFallback(true);
+                }, 5000);
+                probe.onload  = () => clearTimeout(fallbackTimer.current);
+                probe.onerror = () => { clearTimeout(fallbackTimer.current); setUseFallback(true); };
+                return () => clearTimeout(fallbackTimer.current);
+            }, []);
+
+            // Cycling interval (only when online)
+            useEffect(() => {
+                if (useFallback) return;
                 const interval = setInterval(() => {
                     setFading(true);
                     setTimeout(() => {
                         setActiveSlot(prev => {
                             if (prev === 'A') {
-                                // slot B is now visible, preload next into slot A
                                 setSlotA(s => (s + 2) % videoIds.length);
                                 return 'B';
                             } else {
@@ -578,9 +620,8 @@
                     }, 800);
                 }, 10000);
                 return () => clearInterval(interval);
-            }, []);
+            }, [useFallback]);
 
-            // YouTube embed params: autoplay, muted, no controls, no branding, loop
             const embedUrl = (id) =>
                 `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&loop=1&playlist=${id}&disablekb=1&iv_load_policy=3`;
 
@@ -590,7 +631,6 @@
                 width: '100%',
                 height: '100%',
                 border: 'none',
-                // scale up so the black YouTube bars are off-screen
                 transform: 'scale(1.18)',
                 opacity: isActive ? (fading ? 0 : 0.55) : 0,
                 transition: 'opacity 0.8s ease-in-out',
@@ -600,27 +640,53 @@
 
             return (
                 <div className="absolute inset-0 z-0 overflow-hidden">
-                    {/* Slot A */}
-                    <iframe
-                        key={`A-${slotA}`}
-                        src={embedUrl(videoIds[slotA])}
-                        allow="autoplay; encrypted-media"
-                        allowFullScreen={false}
-                        style={iframeStyle(activeSlot === 'A')}
-                        title="bg-a"
-                    />
-                    {/* Slot B */}
-                    <iframe
-                        key={`B-${slotB}`}
-                        src={embedUrl(videoIds[slotB])}
-                        allow="autoplay; encrypted-media"
-                        allowFullScreen={false}
-                        style={iframeStyle(activeSlot === 'B')}
-                        title="bg-b"
-                    />
-                    {/* Transparent click-blocker so YouTube controls can't be clicked */}
-                    <div className="absolute inset-0 z-[5]" style={{ pointerEvents: 'all', background: 'transparent' }} />
-                    {/* Gradient overlay */}
+                    {useFallback ? (
+                        /* ── GIF fallback (no internet / slow connection) ── */
+                        <img
+                            src="giff-presentazione/bg.gif"
+                            alt="Intro background"
+                            className="w-full h-full object-cover object-center opacity-50 filter grayscale contrast-125"
+                        />
+                    ) : (
+                        <>
+                            {/* Slot A */}
+                            <iframe
+                                key={`A-${slotA}`}
+                                src={embedUrl(videoIds[slotA])}
+                                allow="autoplay; encrypted-media"
+                                allowFullScreen={false}
+                                style={iframeStyle(activeSlot === 'A')}
+                                title="bg-a"
+                            />
+                            {/* Slot B */}
+                            <iframe
+                                key={`B-${slotB}`}
+                                src={embedUrl(videoIds[slotB])}
+                                allow="autoplay; encrypted-media"
+                                allowFullScreen={false}
+                                tabIndex={-1}
+                                style={iframeStyle(activeSlot === 'B')}
+                                title="bg-b"
+                            />
+                            {/* Full-cover blocker: prevents ANY interaction with the iframes */}
+                            <div
+                                className="absolute inset-0 z-[5]"
+                                style={{
+                                    pointerEvents: 'all',
+                                    userSelect: 'none',
+                                    WebkitUserSelect: 'none',
+                                    cursor: 'default',
+                                    touchAction: 'none',
+                                    background: 'transparent',
+                                }}
+                                onContextMenu={e => e.preventDefault()}
+                                onClick={e => e.preventDefault()}
+                                onMouseDown={e => e.preventDefault()}
+                                onTouchStart={e => e.preventDefault()}
+                            />
+                        </>
+                    )}
+                    {/* Gradient overlay — always on top */}
                     <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black z-10" />
                 </div>
             );
