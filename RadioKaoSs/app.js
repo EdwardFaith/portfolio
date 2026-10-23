@@ -454,6 +454,9 @@ function playFolder(folder) {
             });
         }
         guiElements.montageContainer.innerHTML = '';
+        if (!currentIsFixedBackground && currentFolderImages.length > 0) {
+            spawnMontageLayer(false);
+        }
     }
     refreshMenuHighlight();
 
@@ -799,119 +802,7 @@ function renderTick() {
 
     // Montaggio video — NO per cartelle a video fisso, gestito tramite array currentFolderImages
     if (!currentIsFixedBackground && forceBeat && beatCooldown <= 0 && currentFolderImages.length > 0) {
-        // Su Low-End teniamo solo 1 layer alla volta per risparmiare memoria
-        const maxLayers = isLowEnd ? 1 : 2;
-        while (guiElements.montageContainer.children.length >= maxLayers) {
-            const first = guiElements.montageContainer.firstChild;
-            // Memory Cleanup: svuota src dei video/immagini prima di rimuovere
-            first.querySelectorAll('video, img').forEach(media => {
-                media.src = "";
-                media.load?.();
-                media.remove();
-            });
-            first.remove();
-        }
-        const layer = document.createElement('div');
-        let blend = isCrazyCartella1 ? 'hard-light' : 'normal';
-        layer.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;mix-blend-mode:${blend};`;
-        if (layoutBeatsLeft <= 0) {
-            const s = ['single', 'single', 'single', 'splitV', 'splitH', 'grid4'];
-            currentLayout = s[Math.floor(Math.random() * s.length)];
-            layoutBeatsLeft = 2 + Math.floor(Math.random() * 4);
-        }
-        layoutBeatsLeft--;
-        layer.className = `layout-${currentLayout}`;
-        const mult = currentLayout === 'splitV' || currentLayout === 'splitH' ? 2 : currentLayout === 'grid4' ? 4 : 1;
-        for (let i = 0; i < mult; i++) {
-            const useCamera = Math.random() > 0.95;
-            let imgSrc = '';
-            if (!useCamera) {
-                let pool = currentFolderImages;
-                if (isCrazyCartella1) {
-                    let cTime = guiElements.audioElement.currentTime;
-                    let storyKeywords = [];
-                    let extraGifs = [];
-                    // La fase apocalittica deve entrare molto prima! Scaliamo tutta la cronologia.
-                    if (cTime < 97) {
-                        storyKeywords = ["ape", "monkey", "chimpanzee", "jungle", "primitive"];
-                    } else if (cTime < 107) {
-                        storyKeywords = ["tribe", "indigenous", "spear", "hunter", "warriors"];
-                    } else if (cTime < 120) {
-                        storyKeywords = ["roman", "gladiator", "sword", "knight", "battle", "blood", "iron"];
-                    } else if (cTime < 140) {
-                        storyKeywords = ["trench", "ww1", "rifle", "factory", "commerce", "industry", "guns"];
-                    } else {
-                        // Da 140 secondi (2 min 20s) fino alla fine, dominio apocalittico (guerra e trump)
-                        storyKeywords = ["dictator", "trump", "putin", "army", "nuclear", "war", "massacre", "destruction", "weapons"];
-                        // Inseriamo le GIF nucleari aggiunte dall'utente e le facciamo apparire spessissimo
-                        extraGifs = [
-                            "cartella1/atomic-bomb.gif", 
-                            "cartella1/bombaatomi_nuxp91ui.gif", 
-                            "cartella1/explosion-explode.gif", 
-                            "cartella1/nbWJan.gif"
-                        ];
-                    }
-                    // Limitiamo il fetching a 8 varianti (random=1..8) per non distruggere la rete
-                    pool = storyKeywords.map(k => `https://loremflickr.com/800/600/${k}?random=${Math.floor(Math.random() * 8)}`);
-                    if (extraGifs.length > 0) {
-                        // Diamo un peso enorme alle gif nella selezione randomica e aggiungiamo più varianti
-                        pool = pool.concat(extraGifs, extraGifs, extraGifs, extraGifs);
-                    }
-                }
-                
-                imgSrc = pool[Math.floor(Math.random() * pool.length)];
-                
-                // Aggiungiamo r= solo se non è già il pool di cartella1 generato qui sopra
-                if (!isCrazyCartella1 && imgSrc?.startsWith('http') && !imgSrc.includes('.gif')) {
-                    imgSrc += (imgSrc.includes('?') ? '&' : '?') + 'r=' + Math.random().toString(36).substring(7) + Date.now();
-                }
-            }
-            let el;
-            if (useCamera) {
-                el = document.createElement('canvas');
-                el.width = guiElements.camVideo.videoWidth || innerWidth;
-                el.height = guiElements.camVideo.videoHeight || innerHeight;
-                const cx = el.getContext('2d');
-                cx.translate(el.width, 0); cx.scale(-1, 1);
-                cx.drawImage(guiElements.camVideo, 0, 0, el.width, el.height);
-            } else if (imgSrc?.toLowerCase().endsWith('.mp4') || imgSrc?.toLowerCase().endsWith('.webm')) {
-                // Su Low-End evitiamo di caricare video nel montaggio per non saturare la RAM
-                if (isLowEnd) continue;
-                el = document.createElement('video');
-                el.onerror = () => el.remove();
-                Object.assign(el, { src: imgSrc, autoplay: true, loop: true, muted: true, playsInline: true });
-            } else {
-                el = document.createElement('img');
-                el.onerror = () => el.remove();
-                el.src = imgSrc;
-            }
-            // Opacità e Filtri Speciali
-            let targetOpacity = 0.65;
-            let currentContrast = 110 + Math.floor(Math.random() * 80);
-            let filterStr = `contrast(${currentContrast}%) grayscale(100%)`;
-            
-            if (currentFolderData?.cartella === 'pub-lucidus') {
-                targetOpacity = 0.85; // Più visibile per Lucidus
-                currentContrast = 100; // Nessun contrasto forzato
-                filterStr = `contrast(${currentContrast}%) grayscale(100%)`;
-            } else if (isCrazyCartella1) {
-                targetOpacity = 0.6 + Math.random() * 0.25; 
-                currentContrast = 130 + Math.random() * 100;
-                let redShift = `sepia(${50 + Math.random() * 50}%) hue-rotate(-20deg)`;
-                filterStr = `contrast(${currentContrast}%) grayscale(${40 + Math.random() * 40}%) ${redShift} brightness(${70 + Math.random() * 50}%)`;
-            } else {
-                const folderNum = parseInt(currentFolderData?.cartella.replace('cartella', ''));
-                if (folderNum >= 2 && folderNum <= 15) targetOpacity = 0.35;
-                if (currentIsTG) targetOpacity = 0.22;
-                filterStr = `contrast(${currentContrast}%) grayscale(100%)`;
-            }
-
-            el.className = 'montage-base-img';
-            el.style.cssText = `transition:transform 12s ease-out;transform:scale(1.05);filter:${filterStr};opacity:${targetOpacity};`;
-            layer.appendChild(el);
-            setTimeout(() => { if (el) el.style.transform = 'scale(1.15)'; }, 50);
-        }
-        guiElements.montageContainer.appendChild(layer);
+        spawnMontageLayer(isCrazyCartella1);
 
         // Cooldown: Su mobile (Low-End) raddoppiamo i tempi d'attesa per evitare lag estremo da DOM reflow
         if (isCrazyCartella1) {
@@ -926,6 +817,136 @@ function renderTick() {
     if (beatCooldown > 0) beatCooldown--;
 }
 requestAnimationFrame(renderTick);
+
+function spawnMontageLayer(isCrazy = false) {
+    if (currentIsFixedBackground || !currentFolderImages || currentFolderImages.length === 0) return;
+    
+    // Su Low-End teniamo solo 1 layer alla volta per risparmiare memoria
+    const maxLayers = isLowEnd ? 1 : 2;
+    while (guiElements.montageContainer.children.length >= maxLayers) {
+        const first = guiElements.montageContainer.firstChild;
+        // Memory Cleanup: svuota src dei video/immagini prima di rimuovere
+        first.querySelectorAll('video, img').forEach(media => {
+            media.src = "";
+            media.load?.();
+            media.remove();
+        });
+        first.remove();
+    }
+    const layer = document.createElement('div');
+    let blend = isCrazy ? 'hard-light' : 'normal';
+    layer.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;mix-blend-mode:${blend};`;
+    if (layoutBeatsLeft <= 0) {
+        const s = ['single', 'single', 'single', 'splitV', 'splitH', 'grid4'];
+        currentLayout = s[Math.floor(Math.random() * s.length)];
+        layoutBeatsLeft = 2 + Math.floor(Math.random() * 4);
+    }
+    layoutBeatsLeft--;
+    layer.className = `layout-${currentLayout}`;
+    const mult = currentLayout === 'splitV' || currentLayout === 'splitH' ? 2 : currentLayout === 'grid4' ? 4 : 1;
+    for (let i = 0; i < mult; i++) {
+        const useCamera = Math.random() > 0.95;
+        let imgSrc = '';
+        if (!useCamera) {
+            let pool = currentFolderImages;
+            if (isCrazy) {
+                let cTime = guiElements.audioElement.currentTime;
+                let storyKeywords = [];
+                let extraGifs = [];
+                // La fase apocalittica deve entrare molto prima! Scaliamo tutta la cronologia.
+                if (cTime < 97) {
+                    storyKeywords = ["ape", "monkey", "chimpanzee", "jungle", "primitive"];
+                } else if (cTime < 107) {
+                    storyKeywords = ["tribe", "indigenous", "spear", "hunter", "warriors"];
+                } else if (cTime < 120) {
+                    storyKeywords = ["roman", "gladiator", "sword", "knight", "battle", "blood", "iron"];
+                } else if (cTime < 140) {
+                    storyKeywords = ["trench", "ww1", "rifle", "factory", "commerce", "industry", "guns"];
+                } else {
+                    // Da 140 secondi (2 min 20s) fino alla fine, dominio apocalittico (guerra e trump)
+                    storyKeywords = ["dictator", "trump", "putin", "army", "nuclear", "war", "massacre", "destruction", "weapons"];
+                    // Inseriamo le GIF nucleari aggiunte dall'utente e le facciamo apparire spessissimo
+                    extraGifs = [
+                        "cartella1/atomic-bomb.gif", 
+                        "cartella1/bombaatomi_nuxp91ui.gif", 
+                        "cartella1/explosion-explode.gif", 
+                        "cartella1/nbWJan.gif"
+                    ];
+                }
+                // Generazione procedurale affidabile per l'evoluzione storica di cartella1
+                pool = storyKeywords.map(k => `https://picsum.photos/seed/${encodeURIComponent(k)}_${Math.floor(Math.random() * 8)}/800/600`);
+                if (extraGifs.length > 0) {
+                    // Diamo un peso enorme alle gif nella selezione randomica e aggiungiamo più varianti
+                    pool = pool.concat(extraGifs, extraGifs, extraGifs, extraGifs);
+                }
+            }
+            
+            imgSrc = pool[Math.floor(Math.random() * pool.length)];
+            
+            // Aggiungiamo r= solo se non è già il pool con seed o gif
+            if (!isCrazy && imgSrc?.startsWith('http') && !imgSrc.includes('.gif') && !imgSrc.includes('/seed/')) {
+                imgSrc += (imgSrc.includes('?') ? '&' : '?') + 'r=' + Math.random().toString(36).substring(7) + Date.now();
+            }
+        }
+        let el;
+        if (useCamera) {
+            el = document.createElement('canvas');
+            el.width = guiElements.camVideo.videoWidth || innerWidth;
+            el.height = guiElements.camVideo.videoHeight || innerHeight;
+            const cx = el.getContext('2d');
+            cx.translate(el.width, 0); cx.scale(-1, 1);
+            cx.drawImage(guiElements.camVideo, 0, 0, el.width, el.height);
+        } else if (imgSrc?.toLowerCase().endsWith('.mp4') || imgSrc?.toLowerCase().endsWith('.webm')) {
+            // Su Low-End evitiamo di caricare video nel montaggio per non saturare la RAM
+            if (isLowEnd) continue;
+            el = document.createElement('video');
+            el.onerror = () => el.remove();
+            Object.assign(el, { src: imgSrc, autoplay: true, loop: true, muted: true, playsInline: true });
+        } else {
+            el = document.createElement('img');
+            el.onerror = () => {
+                if (!el.dataset.fallback) {
+                    el.dataset.fallback = 'true';
+                    const fallbackPool = typeof PERSONAL_IMAGES !== 'undefined' && PERSONAL_IMAGES.length > 0
+                        ? PERSONAL_IMAGES
+                        : ['cartella1/atomic-bomb.gif', 'cartella1/explosion-explode.gif'];
+                    if (fallbackPool.length > 0) {
+                        el.src = fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
+                        return;
+                    }
+                }
+                el.remove();
+            };
+            el.src = imgSrc;
+        }
+        // Opacità e Filtri Speciali
+        let targetOpacity = 0.65;
+        let currentContrast = 110 + Math.floor(Math.random() * 80);
+        let filterStr = `contrast(${currentContrast}%) grayscale(100%)`;
+        
+        if (currentFolderData?.cartella === 'pub-lucidus') {
+            targetOpacity = 0.85; // Più visibile per Lucidus
+            currentContrast = 100; // Nessun contrasto forzato
+            filterStr = `contrast(${currentContrast}%) grayscale(100%)`;
+        } else if (isCrazy) {
+            targetOpacity = 0.6 + Math.random() * 0.25; 
+            currentContrast = 130 + Math.random() * 100;
+            let redShift = `sepia(${50 + Math.random() * 50}%) hue-rotate(-20deg)`;
+            filterStr = `contrast(${currentContrast}%) grayscale(${40 + Math.random() * 40}%) ${redShift} brightness(${70 + Math.random() * 50}%)`;
+        } else {
+            const folderNum = parseInt(currentFolderData?.cartella.replace('cartella', ''));
+            if (folderNum >= 2 && folderNum <= 15) targetOpacity = 0.35;
+            if (currentIsTG) targetOpacity = 0.22;
+            filterStr = `contrast(${currentContrast}%) grayscale(100%)`;
+        }
+
+        el.className = 'montage-base-img';
+        el.style.cssText = `transition:transform 12s ease-out;transform:scale(1.05);filter:${filterStr};opacity:${targetOpacity};`;
+        layer.appendChild(el);
+        setTimeout(() => { if (el) el.style.transform = 'scale(1.15)'; }, 50);
+    }
+    guiElements.montageContainer.appendChild(layer);
+}
 
 // ─── UI INTERACTIONS: AUTO-HIDE CURSOR & PROGRESS BAR ───
 const progressContainer = document.getElementById('audio-progress-container');
