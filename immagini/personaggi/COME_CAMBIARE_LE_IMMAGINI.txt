@@ -1,0 +1,26 @@
+====================================================================
+COME PERSONALIZZARE LE IMMAGINI DEI PERSONAGGI
+====================================================================
+
+In questa cartella puoi inserire o sostituire quando vuoi le immagini
+di TUTTI i personaggi (NPC) che compaiono nei dialoghi del museo!
+Tutte le immagini vengono automaticamente mostrate in bianco e nero
+ad alto contrasto noir all'interno delle cornici CRT con scanlines.
+
+1.  pinguino.png        -> Il Pinguino Barista (hub iniziale e bar del museo)
+2.  clown.png           -> Il Bambino Pagliaccio (sezione tendone / biografia)
+3.  donna_scrivania.png -> La Donna alla Scrivania (ufficio dismesso "chi sono")
+4.  donna_fuma.png      -> La Donna che Fuma (stanza contatti, davanti alla tv)
+5.  guida.png           -> L'Omino del Lavoro (magazzino / archivio materiali)
+6.  coniglio.png        -> La Bancarella dei CD (Radio Kaoss)
+7.  robot.png           -> Il Computer Terminale Edward Industries (Memorie del Cosmo)
+8.  ragno.png           -> Il Ragno che tesse circuiti (stanza Codice)
+9.  cilindro.png        -> Te Lo Inculco Io / Uomo col Cilindro (stanza Illustrazioni)
+10. bigliettaia.png     -> La Bigliettaia dietro al vetro (stanza Visual & AI)
+11. lumaca.png          -> La Lumaca Barista (sezione Zona Larga)
+
+Consiglio sulle dimensioni:
+- Rapporto d'aspetto verticale consigliato (3:4 o 4:5, es. 600x800 o 900x1200 pixel).
+- Anche se carichi foto a colori, il gioco le converte automaticamente
+  in un bianco e nero analogico cinematografico in stile CRT.
+====================================================================

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Emanuele Baccigalupi — Il Museo (Gioco)</title>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="immagini/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="immagini/favicon.png">
+
+    <meta name="description"
+        content="Il portfolio di Emanuele Baccigalupi come un museo da attraversare a piedi: un corridoio, nove sale, un coniglio bianco e monitor a tubo catodico. Carrara, 2001.">
+    <meta name="keywords"
+        content="Emanuele Baccigalupi, Portfolio, Digital Artist, Creative Developer, videoarte, Memorie del Cosmo, Radio Kaoss, Carrara, Accademia di Belle Arti">
+    <meta name="author" content="Emanuele Baccigalupi">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#07080a">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Emanuele Baccigalupi — Il Museo">
+    <meta property="og:description"
+        content="Un corridoio, nove stanze, un coniglio bianco. Le opere sono accese dentro ai monitor.">
+    <meta property="og:image" content="immagini/favicon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="museo/museo.css?v=3">
+    <!-- il foglio che si apre in fondo a Radio Kaoss -->
+    <link rel="stylesheet" href="museo/foglio.css">
+</head>
+
+<body>
+
+    <!-- ── il mondo: uno solo canvas, WebGL2 ──────────────────── -->
+    <canvas id="stage" aria-label="Il museo, visto di lato" role="img"></canvas>
+
+    <!-- ── il velo VHS: sopra tutto, sempre acceso ────────────── -->
+    <div id="vhs" aria-hidden="true">
+        <i class="scan"></i>
+        <i class="chroma"></i>
+        <i class="grain"></i>
+        <i class="track"></i>
+    </div>
+
+    <!-- ── l'interfaccia: poca, e in un angolo ────────────────── -->
+    <div id="hud">
+        <div id="roomHud">
+            <div id="roomNum"></div>
+            <div id="roomTitle"></div>
+        </div>
+        <div id="foglioPagesHud" class="hud-pages" title="Fogli accumulati per il Ragno" style="display:none;" onclick="if(window.MUSEO && window.MUSEO.GAME && window.MUSEO.GAME.spawnAtInterattivo) window.MUSEO.GAME.spawnAtInterattivo();">
+            <span class="icon">📄</span> <span id="foglioPagesCount" class="count"></span> <span id="foglioPagesLabel" class="label"></span>
+        </div>
+        <div id="tools">
+            <button id="back" type="button" title="torna al sito classico" aria-label="torna al sito classico" onclick="window.location.href='index.html'">↩</button>
+            <button id="radio" type="button" title="radio (R)" aria-label="radio kaoss">◉</button>
+            <button id="menu" type="button" title="questionario (Q)" aria-label="questionario">≡</button>
+        </div>
+        <div id="radioName"></div>
+    </div>
+
+    <div id="prompt" aria-live="polite"></div>
+    <div id="hint">A / D cammina · SPAZIO salta · SHIFT corre · E guarda o legge · ESC esce · R radio · Q mappa</div>
+    <div id="toast" aria-live="polite"></div>
+
+    <!-- ── l'ospite parla qui ─────────────────────────────────── -->
+    <div id="dialog" role="dialog" aria-live="polite">
+        <div id="dialogWho">L'OSPITE</div>
+        <!-- chi parla e ha una faccia la porta con sé: satan, nella
+             stanza exit, è l'uomo rosso appeso alla sedia -->
+        <div id="dialogFace" aria-hidden="true"><img id="dialogPhoto" alt=""></div>
+        <p id="dialogText"></p>
+        <span class="k" id="dialogKeys">E · avanti &nbsp; ESC · basta</span>
+    </div>
+
+    <!-- ── i comandi per il pollice ───────────────────────────── -->
+    <div id="touch">
+        <div class="pad">
+            <button type="button" data-k="left" aria-label="sinistra">←</button>
+            <button type="button" data-k="right" aria-label="destra">→</button>
+        </div>
+        <button type="button" data-k="jump" class="jump" aria-label="salta">↑</button>
+        <button type="button" data-k="act" class="act" aria-label="guarda">E</button>
+    </div>
+
+    <!-- ── nero di passaggio, fra una sala e l'altra ──────────── -->
+    <div id="veil" aria-hidden="true"></div>
+
+    <!-- ── il pannello: quello che c'è dentro al monitor ──────── -->
+    <div id="panel" role="dialog" aria-modal="true">
+        <div class="crt">
+            <div class="crt-glass"></div>
+            <div id="panelBody" class="card"></div>
+            <div class="crt-curve"></div>
+        </div>
+    </div>
+
+    <!-- ── il questionario: dentro a un altro monitor ─────────── -->
+    <div id="quiz" role="dialog" aria-modal="true">
+        <div class="crt crt-quiz">
+            <div class="crt-glass"></div>
+            <div id="quizBody"></div>
+            <div class="crt-curve"></div>
+        </div>
+    </div>
+
+    <!-- ── quello che vedono i motori di ricerca ──────────────── -->
+    <div id="seo" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">
+        <h2>Emanuele Baccigalupi — opere</h2>
+        <ul>
+            <li>Radio Kaoss — Il Pozzo, Il Sottosuolo, Il Diavolo, La Guerra dei Conigli, ventuno canzoni</li>
+            <li>Memorie del Cosmo — cortometraggio sperimentale, anno 3013 dopo Tix</li>
+            <li>Visual &amp; AI — video generati: Tele KaOsS, Nadia, Il Pagliaccio, Destino Formicaio, Satan</li>
+            <li>Interattivo / Codec — <a href="subconscio/subconscio.html">Subconscio</a>,
+                <a href="RadioKaoSs/index.html">Radio Kaoss</a>,
+                <a href="lucidus/index.html">Lucidus</a>,
+                <a href="sandpay/index.html">Sandpay</a>,
+                <a href="simbolo/index.html">Simbolo</a>,
+                <a href="eyes-in-the-sky/index.html">Eyes in the Sky</a></li>
+            <li>Illustrazioni — dodici disegni, serie «Proteggi ciò che era»</li>
+            <li>Archivio materiali — cortometraggi, canzoni, pubblicità e sponsor</li>
+            <li>Zona Larga — rubrica e collaborazioni</li>
+            <li>Chi sono — bio, mostre e contatti</li>
+            <li><a href="index.html">Il portfolio classico</a></li>
+        </ul>
+    </div>
+
+    <!-- ── il motore: contenuti, lingue, shader, stanze, regia ── -->
+    <script src="museo/lang.js?v=5"></script>
+    <script src="museo/auth.js?v=1"></script>
+    <script src="museo/data.js?v=7"></script>
+    <script src="museo/panel.js?v=5"></script>
+    <script src="museo/quiz.js"></script>
+    <script src="museo/radio.js"></script>
+
+    <script src="museo/gl.js"></script>
+    <script src="museo/fx.js"></script>
+    <script src="museo/scene.js"></script>
+    <script src="museo/player.js"></script>
+    <!-- la strada delle memorie: la città, il robot spento, il razzo, la nave -->
+    <script src="museo/cosmo.js?v=1"></script>
+    <script src="museo/world.js?v=8"></script>
+    <!-- la sala d'armi e la camera del bambino sono state sostituite da
+         cosmo.js: restano nel repository, ma non si caricano più -->
+    <script src="museo/audio.js?v=5"></script>
+
+    <!-- ── MONDO DEL FOGLIO: il gioco dentro la porta del corridoio ── -->
+    <script src="subconscio/testi.js"></script>
+    <script src="museo/foglio-text.js"></script>
+    <script src="museo/foglio-audio.js"></script>
+    <script src="museo/foglio-stanze.js"></script>
+    <script src="museo/foglio-actors.js?v=2"></script>
+    <script src="museo/foglio.js"></script>
+
+    <!-- ── IL SOTTERRANEO: due piani sotto il corridoio ── -->
+    <script src="museo/sotterraneo.js?v=3"></script>
+
+    <!-- ── IL BERE: la botola, il pinguino, e la stanza che non c'è ── -->
+    <script src="museo/disco.js?v=2"></script>
+    <script src="museo/bar.js?v=3"></script>
+    <script src="museo/soffitta.js?v=2"></script>
+
+    <!-- ── la memoria 1 non sta più qui dentro: è cosmo/index.html,
+         e ci si arriva dal primo portello del razzo ── -->
+
+    <script src="museo/main.js?v=8"></script>
+    <script>
+        // Il museo si accende subito senza schermata iniziale di scelta
+        window.addEventListener("load", function () {
+            if (window.MUSEO && window.MUSEO.GAME && window.MUSEO.GAME.init) {
+                try {
+                    window.MUSEO.GAME.init();
+                    if (window.MUSEO.GAME.begin) {
+                        window.MUSEO.GAME.begin();
+                    }
+                }
+                catch (err) { console.error("[museo]", err); }
+            }
+        });
+    </script>
+</body>
+
+</html>

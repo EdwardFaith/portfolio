@@ -1,0 +1,93 @@
+IL SITO, TUTTO IN UNA CARTELLA
+================================================================
+
+Questa cartella e' una copia completa del sito: pagine, museo,
+immagini, video, canzoni. Se la carichi su un server funziona
+cosi' com'e': non c'e' niente da compilare, niente da installare.
+
+Questa copia sta in:  C:\Users\emanu\Desktop\net ART\GIOCO
+
+
+1. COME VEDERLO ADESSO
+----------------------------------------------------------------
+Doppio click su  AVVIA.bat
+Si apre il browser su http://127.0.0.1:8080/ e vedi il sito.
+Lascia aperta la finestra nera: e' il server. CTRL+C per chiudere.
+
+Perche' non basta aprire index.html? Perche' da file:// il browser
+blocca video e suoni presi dai sottoprogetti. Con AVVIA.bat e'
+come se il sito fosse online.
+
+
+2. COME UNIRLO AL TUO SITO
+----------------------------------------------------------------
+Carica il CONTENUTO di questa cartella nella radice del tuo sito
+(FTP o pannello dell'hosting): index.html va in /index.html,
+museo/ in /museo/, e cosi' via. Tutti i percorsi sono relativi,
+quindi funziona anche dentro a una sottocartella
+(es. tuosito.it/portfolio/) purche' la struttura resti identica.
+
+Se il tuo sito ha gia' una sua index.html, non sovrascriverla:
+rinomina questa in museo.html e metti il link dove preferisci.
+
+
+3. COSA C'E' DENTRO
+----------------------------------------------------------------
+index.html            la pagina d'ingresso (portfolio)
+museo.html            il museo da camminare, giocabile
+gioco.html            la stessa cosa, con un altro giro di memoria
+                      (due porte per lo stesso motore)
+museo/                il motore del museo: js, css, dati, testi
+  museo/data.js       le opere, le sale, le guide (le voci degli hub)
+  museo/world.js      come il corridoio viene costruito, metro per metro
+  museo/main.js       il giro: input, camera, audio, salvataggio
+  museo/bar.js        il bere: le domande del pinguino, il velo, i
+                      venti secondi, il risveglio al banco
+  museo/disco.js      la discoteca che il bere apre: sagome nere che
+                      ballano, pinguini dj, occhi rossi, bottiglie di
+                      latte materno, e il glitch sopra a tutto
+immagini/             favicon e immagini comuni
+RadioKaoSs/           canzoni, pubblicita', tg del cosmo
+lucidus/ sandpay/ simbolo/ eyes-in-the-sky/ subconscio/
+                      i progetti interattivi, ognuno autonomo
+illustrazioni/        i dodici disegni
+giff-presentazione/   le gif
+galleria/ scrittura creativa/   le altre sezioni
+CNAME robots.txt sitemap.xml   roba da hosting / GitHub Pages
+
+serve.js AVVIA.bat    server locale per l'anteprima
+_bartest.html         la prova automatica del bere: fa tutto da sola e
+                      scrive l'esito nel titolo della scheda
+cestino/              le cose messe da parte: dump delle prove, script
+                      usa-e-getta, inventari vecchi. Vedi cestino/LEGGIMI.md
+
+
+4. COSA VIENE DA INTERNET
+----------------------------------------------------------------
+Non e' nella cartella e non puo' esserlo:
+  - i caratteri Space Grotesk (fonts.googleapis.com)
+  - gli iframe di YouTube (anteprime e video)
+  - nei vecchi progetti: React/Babel/Tailwind da unpkg e jsdelivr,
+    e MediaPipe per le mani (eyes-in-the-sky)
+Offline il sito si apre lo stesso, ma senza caratteri, senza
+anteprime YouTube e con i vecchi progetti vuoti.
+
+
+5. QUANDO CAMBI QUALCOSA
+----------------------------------------------------------------
+Si lavora dentro a QUESTA cartella: e' il sito intero, e quello che
+vedi in AVVIA.bat e' esattamente quello che finisce online.
+
+Il portfolio originale (quello con git, in ...\sito emanuele\
+portfolio\) resta com'e': se vuoi riportarci le modifiche, copia
+a mano i file che hai toccato.
+
+Se invece preferisci lavorare nel portfolio e poi rifare questa
+copia da zero: gli attrezzi (make-folder.js, links.js) stanno nel
+portfolio, in _dev/tools/, non qui dentro. Da qui si possono
+chiamare cosi':
+  node "..\sito emanuele\portfolio\_dev\tools\make-folder.js" "C:\Users\emanu\Desktop\net ART\GIOCO"
+Controllo dei file citati (e di quelli che mancano davvero):
+  node "..\sito emanuele\portfolio\_dev\tools\links.js" "C:\Users\emanu\Desktop\net ART\GIOCO"
+
+================================================================

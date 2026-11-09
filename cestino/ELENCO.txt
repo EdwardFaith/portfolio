@@ -1,0 +1,31 @@
+INVENTARIO DELLA CARTELLA
+================================================================
+generato:  30/10/2026, 14:06:32
+cartella:  C:\Users\emanu\Desktop\net ART\GIOCO
+totale:    312 file · 725.2 MB
+
+  eyes-in-the-sky/           11 file   110.0 MB
+  galleria/                   8 file     0.1 MB
+  giff-presentazione/         2 file     6.1 MB
+  illustrazioni/             13 file    12.5 MB
+  immagini/                   8 file     0.9 MB
+  lucidus/                   27 file    58.2 MB
+  museo/                     14 file     0.5 MB
+  RadioKaoSs/               135 file   388.1 MB
+  sandpay/                   25 file    45.8 MB
+  scrittura creativa/        33 file     2.0 MB
+  simbolo/                   20 file    99.9 MB
+  sito-da-convertire/         1 file     0.0 MB
+  subconscio/                 5 file     0.8 MB
+  AVVIA.bat                   1 file     0.0 MB
+  CNAME                       1 file     0.0 MB
+  index-classico.html         1 file     0.1 MB
+  index-galleria.html         1 file     0.0 MB
+  index-old.html              1 file     0.0 MB
+  index.html                  1 file     0.0 MB
+  LEGGIMI.txt                 1 file     0.0 MB
+  robots.txt                  1 file     0.0 MB
+  serve.js                    1 file     0.0 MB
+  sitemap.xml                 1 file     0.0 MB
+
+================================================================

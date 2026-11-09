@@ -1,0 +1,19 @@
+# OS Junk
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp
+
+# IDE / System Generated
+.vscode/
+.idea/
+.gemini/
+.system_generated/
+scratch/
+*.log
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -1,0 +1,3863 @@
+<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>SPEDIZIONE · MEMORIE DEL COSMO</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;overflow:hidden;background:#050607;font-family:ui-monospace,"Courier New",monospace;color:#cfd3d6;-webkit-user-select:none;user-select:none}
+#cv{display:block;touch-action:none}
+#crt{position:fixed;inset:0;pointer-events:none;z-index:10;background:repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0,rgba(0,0,0,.13) 1px,transparent 1px,transparent 3px)}
+#crt::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(0,0,0,.4) 100%);box-shadow:inset 0 0 120px rgba(0,0,0,.45)}
+#hint{position:fixed;left:0;right:0;bottom:8px;text-align:center;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5a6166;z-index:11;text-shadow:0 0 6px #000}
+#ver{position:fixed;left:10px;bottom:26px;z-index:20;font:700 9px ui-monospace,monospace;letter-spacing:.18em;color:#4a5257;pointer-events:none;text-shadow:0 0 6px #000}
+#back{position:fixed;top:12px;right:12px;z-index:20;font:700 11px ui-monospace,monospace;letter-spacing:.14em;color:#8a9298;text-decoration:none;background:#0a0c0e;border:1px solid #22282c;padding:8px 12px}#back:hover{color:#e8b44a;border-color:#e8b44a}
+</style></head><body>
+<canvas id="cv"></canvas><div id="crt"></div>
+<a id="back" href="../museo.html?stanza=cosmo">&larr; MEMORIE DEL COSMO</a>
+<div id="ver">MEMORIE DEL COSMO · MISSIONE 1 · TIX-9</div>
+<div id="hint">A/D muovi · SPAZIO salta · W/S scale · mouse mira · click spara · 1/2/3 armi (Q) · F occhio · E prendi · R ricomincia</div>
+<script>"use strict";
+(function(){
+/* ============================================================
+   MEMORIE DEL COSMO — LE OTTO SPEDIZIONI
+   La mappa e' una citta' grande: si scorre a destra e a sinistra
+   ma anche in su e in giu' (tetti, strada, fogne). Il coniglio e'
+   quello del museo. Le armi sono quelle scelte in sala d'armi.
+   Si prende la cassetta, e da quel momento il cielo ha un occhio:
+   il tempo della memoria comincia a scendere, e l'Occhio ti cerca dal cielo.
+   Torni al furgone prima che ti veda, o diventi margherita.
+   ============================================================ */
+/* ============================================================
+   LE OTTO MISSIONI — una cassetta, un gioco.
+   La pagina è una sola, ma non è la stessa partita: il numero in
+   fondo all'indirizzo (cosmo/index.html?m=3) decide quale cassetta
+   stai cercando. Cassetta N = gioco N = tgN.MP3: la radio che suona
+   qui dentro è quella della cassetta, e la stazione è la stessa di
+   RadioKaoSs (tg del cosmo). Più il numero sale, più il tempo
+   scende, più la strada si riempie e meno tempo hai prima che
+   l'Occhio ti veda.
+   ============================================================ */
+var QM=/[?&](?:m|g)=(\d+)/.exec(location.search||"");
+var IS_ENDLESS = /[?&](?:endless|infinito)=1/.test(location.search||"") || (QM && QM[1] === "0");
+var MEM = IS_ENDLESS ? 0 : parseInt(QM?QM[1]:"1",10);
+if(!IS_ENDLESS && !(MEM>=1&&MEM<=8)) MEM=1;
+/* i posti: la strada sta a 1580, i tetti fra 940 e 1250, le fogne a
+   2280. La cassetta cambia piano ogni volta, il furgone resta in
+   strada ma non sempre dallo stesso lato. */
+var MISSIONS=[
+  {n:1,it:"MEMORIE DEL COSMO",nome:"TIX-9",timer:46,hp:5,foes:1,
+   cass:{x:4780,y:2280},exit:{x:300,y:1580},notes:["e01","e02","e03"],where:"e' in fondo alle fogne"},
+  {n:2,it:"IL SOTTOSUOLO",nome:"TIX-8",timer:44,hp:5,foes:1.2,
+   cass:{x:3100,y:1000},exit:{x:5650,y:1580},notes:["e04","e05","e06"],where:"e' su un tetto, oltre le voragini"},
+  {n:3,it:"IL DIAVOLO",nome:"TIX-7",timer:42,hp:4,foes:1.4,
+   cass:{x:3400,y:1580},exit:{x:360,y:1580},notes:["e07","e08","e09"],where:"e' in mezzo alla strada, sotto la luna rotta"},
+  {n:4,it:"LA GUERRA DEI CONIGLI",nome:"TIX-6",timer:40,hp:4,foes:1.6,
+   cass:{x:6500,y:940},exit:{x:400,y:1580},notes:["e10","e11","e12"],where:"e' sul tetto piu' alto, nella zona di fallout"},
+  {n:5,it:"IL SEGNALE",nome:"TIX-5",timer:38,hp:3,foes:1.8,
+   cass:{x:1600,y:2280},exit:{x:7350,y:1580},notes:["e13","e14","e15"],where:"e' nelle fogne radioattive, tra i fanghi tossici"},
+  {n:6,it:"LA DANZA",nome:"TIX-4",timer:36,hp:3,foes:2.0,
+   cass:{x:4400,y:1220},exit:{x:350,y:1580},notes:["e16","e17","e18"],where:"e' sul tetto di mezzo, dove si ballava"},
+  {n:7,it:"L'OCCHIO NEL CIELO",nome:"TIX-3",timer:35,hp:3,foes:2.2,
+   cass:{x:8350,y:1580},exit:{x:400,y:1580},notes:["e19","e20","e21"],where:"e' in strada, oltre le macerie atomiche"},
+  {n:8,it:"DOPO TIX",nome:"TIX-2",timer:34,hp:2,foes:2.4,
+   cass:{x:1100,y:1080},exit:{x:9150,y:1580},notes:["e22","e23","e24"],where:"e' sul primo bastione, alle soglie del cratere finale"}
+];
+var MZ_ENDLESS = {
+  n: 0,
+  it: "IL GIOCO ETERNO",
+  nome: "TIX-INFINITY",
+  timer: 99999,
+  hp: 6,
+  foes: 2.0,
+  cass: { x: -9999, y: -9999 },
+  exit: { x: -9999, y: -9999 },
+  notes: [],
+  where: "resisti alle ondate della corruzione"
+};
+var MZ = IS_ENDLESS ? MZ_ENDLESS : MISSIONS[MEM-1];
+document.title = IS_ENDLESS ? "IL GIOCO ETERNO · ONDATE INFINITE · MEMORIE DEL COSMO" : ("MISSIONE "+MEM+" · "+MZ.it+" · MEMORIE DEL COSMO");
+function returnToCosmo(){
+  var dest="../museo.html?stanza=cosmo";
+  location.href=dest;
+}
+(function(){
+  var b=document.getElementById("back");
+  if(b && document.referrer && document.referrer.indexOf("museo.html")>=0) b.href="../museo.html?stanza=cosmo";
+})();
+(function(){
+  var v=document.getElementById("ver");
+  if(v)v.textContent="MEMORIE DEL COSMO · MISSIONE "+MEM+" · "+MZ.nome;
+  var h=document.getElementById("hint");
+  if(h)h.textContent="A/D muovi · SPAZIO salta · W/S scale · mouse mira · click spara · 1/2/3 armi (Q) · "+
+    "F occhio (stasi 10s) · E prendi · M radio · R ricomincia";
+})();
+/* ---- la radio della cassetta: tg N.MP3, quella e non un'altra ---
+   Parte al primo tasto (i browser non lasciano suonare da soli), si
+   spegne con M, e resta la stessa per tutta la partita: è la colonna
+   sonora della memoria, non un jingle. */
+
+/* ============================================================
+   AUDIO ENGINE PROCEDURALE COMPLETO — SFX ARMI, IMPATTI, PASSI,
+   MORTE, AMBIENTE & GLITCH POST-ATOMICO
+   ============================================================ */
+var SFX = (function(){
+  var ctx = null;
+  var masterGain = null, compressor = null, sfxGain = null, ambGain = null;
+  var droneOsc1 = null, droneOsc2 = null, droneGain = null;
+  var muted = false;
+
+  function init(){
+    if (ctx) return;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ctx = new AC();
+
+      // Master Dynamics Compressor prevents any digital distortion while giving punchy loudness
+      compressor = ctx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-12, ctx.currentTime);
+      compressor.knee.setValueAtTime(6, ctx.currentTime);
+      compressor.ratio.setValueAtTime(5, ctx.currentTime);
+      compressor.attack.setValueAtTime(0.003, ctx.currentTime);
+      compressor.release.setValueAtTime(0.12, ctx.currentTime);
+      compressor.connect(ctx.destination);
+
+      masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0.96, ctx.currentTime);
+      masterGain.connect(compressor);
+
+      sfxGain = ctx.createGain();
+      sfxGain.gain.setValueAtTime(1.0, ctx.currentTime);
+      sfxGain.connect(masterGain);
+
+      ambGain = ctx.createGain();
+      ambGain.gain.setValueAtTime(0.48, ctx.currentTime);
+      ambGain.connect(masterGain);
+
+      initAmbience();
+    } catch(e) {}
+  }
+
+  function resume(){
+    if (!ctx) init();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(function(){});
+    }
+  }
+
+  function initAmbience(){
+    if (!ctx || droneOsc1) return;
+    try {
+      // 1. Post-atomic cinematic drone (sub-oscillatori caldi e profondi, zero fruscii o scricchiolii)
+      droneOsc1 = ctx.createOscillator();
+      droneOsc2 = ctx.createOscillator();
+      droneOsc1.type = 'sawtooth';
+      droneOsc2.type = 'triangle';
+      droneOsc1.frequency.setValueAtTime(48, ctx.currentTime);
+      droneOsc2.frequency.setValueAtTime(51.5, ctx.currentTime);
+
+      var droneFilter = ctx.createBiquadFilter();
+      droneFilter.type = 'lowpass';
+      var dFreq = (IS_ENDLESS || (typeof G !== 'undefined' && G.endless)) ? 130 : (85 + MEM * 14);
+      droneFilter.frequency.setValueAtTime(dFreq, ctx.currentTime);
+
+      droneGain = ctx.createGain();
+      droneGain.gain.setValueAtTime(0.16, ctx.currentTime);
+
+      droneOsc1.connect(droneFilter);
+      droneOsc2.connect(droneFilter);
+      droneFilter.connect(droneGain);
+      droneGain.connect(ambGain);
+
+      droneOsc1.start();
+      droneOsc2.start();
+
+      // 2. Dystopian Tekno Groove: SOLO per le missioni standard 1-8;
+      // Nel Gioco Eterno / Modalita' Infinita NIENTE MUSICA (solo tg0.mpeg + sound ambientale spari)
+      if (!IS_ENDLESS && (!G || !G.endless)) {
+        initTekno();
+      }
+    } catch(e) {}
+  }
+
+  /* ---- DYSTOPIAN TEKNO ENGINE (HOTLINE MIAMI STYLE) ----
+     128 BPM, 4-on-the-floor electro kick, offbeat hat,
+     pumping 16th-note sawtooth synth bass, and dark dystopian chords.
+     Attivo SOLO nelle missioni 1-8. In Modalità Infinita è disattivato. */
+  var teknoTimer = null;
+  var teknoStep = 0;
+  var teknoGain = null;
+
+  function initTekno(){
+    if (IS_ENDLESS || (typeof G !== 'undefined' && G.endless)) return; // No musica tekno nel Gioco Eterno
+    if (!ctx || teknoGain) return;
+    try {
+      teknoGain = ctx.createGain();
+      teknoGain.gain.setValueAtTime(0.16, ctx.currentTime);
+      teknoGain.connect(masterGain);
+      startTeknoLoop();
+    } catch(e) {}
+  }
+
+  function startTeknoLoop(){
+    if (IS_ENDLESS || (typeof G !== 'undefined' && G.endless)) return;
+    if (teknoTimer) clearInterval(teknoTimer);
+    var stepDuration = (60 / 128) / 4; // 16th note a 128 BPM (~117ms)
+    var intervalMs = Math.round(stepDuration * 1000);
+
+    var bassFreqs = [
+      73.42, 73.42, 73.42, 87.31, // D2, D2, D2, F2
+      73.42, 73.42, 110.0, 98.0,  // D2, D2, A2, G2
+      58.27, 58.27, 58.27, 65.41, // Bb1, Bb1, Bb1, C2
+      65.41, 65.41, 73.42, 87.31  // C2, C2, D2, F2
+    ];
+
+    teknoTimer = setInterval(function(){
+      if (muted || !ctx || ctx.state !== 'running') return;
+      var t = ctx.currentTime;
+      var step16 = teknoStep % 16;
+      var step32 = teknoStep % 32;
+
+      // 1. Kick (4-on-the-floor: beats 0, 4, 8, 12)
+      if (step16 % 4 === 0) {
+        playTeknoKick(t);
+      }
+
+      // 2. Offbeat Hi-hat (steps 2, 6, 10, 14)
+      if (step16 % 4 === 2) {
+        playTeknoHat(t, 0.22);
+      } else if (step16 % 2 === 1) {
+        playTeknoHat(t, 0.07);
+      }
+
+      // 3. Pumping 16th Synth Bass
+      var noteIdx = Math.floor(teknoStep / 2) % bassFreqs.length;
+      var noteFreq = bassFreqs[noteIdx];
+      var bassVol = (step16 % 4 === 0) ? 0.22 : 0.38;
+      playTeknoBass(t, noteFreq, stepDuration * 0.9, bassVol);
+
+      // 4. Dark Dystopian Synth Chord Stabs (su cambi di battuta)
+      if (step16 === 0) {
+        var chordRoot = (step32 < 16) ? 146.83 : 116.54;
+        playTeknoChord(t, chordRoot);
+      }
+
+      teknoStep = (teknoStep + 1) % 64;
+    }, intervalMs);
+  }
+
+  function playTeknoKick(t){
+    try {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(140, t);
+      osc.frequency.exponentialRampToValueAtTime(42, t + 0.08);
+      gain.gain.setValueAtTime(0.65, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
+      osc.connect(gain);
+      gain.connect(teknoGain);
+      osc.start(t);
+      osc.stop(t + 0.12);
+    } catch(e) {}
+  }
+
+  function playTeknoHat(t, vol){
+    try {
+      var bufLen = Math.floor(ctx.sampleRate * 0.035);
+      var buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+      var d = buf.getChannelData(0);
+      for(var i = 0; i < bufLen; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufLen * 0.22));
+      var src = ctx.createBufferSource();
+      src.buffer = buf;
+      var filter = ctx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(6500, t);
+      var gain = ctx.createGain();
+      gain.gain.setValueAtTime(vol || 0.16, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(teknoGain);
+      src.start(t);
+    } catch(e) {}
+  }
+
+  function playTeknoBass(t, freq, dur, vol){
+    try {
+      var osc = ctx.createOscillator();
+      var filter = ctx.createBiquadFilter();
+      var gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, t);
+
+      filter.type = 'lowpass';
+      filter.Q.setValueAtTime(4.2, t);
+      filter.frequency.setValueAtTime(freq * 6.5, t);
+      filter.frequency.exponentialRampToValueAtTime(freq * 1.8, t + dur);
+
+      gain.gain.setValueAtTime(vol || 0.32, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(teknoGain);
+      osc.start(t);
+      osc.stop(t + dur + 0.01);
+    } catch(e) {}
+  }
+
+  function playTeknoChord(t, rootFreq){
+    try {
+      [rootFreq, rootFreq * 1.1892, rootFreq * 1.4983].forEach(function(f){
+        var osc = ctx.createOscillator();
+        var filter = ctx.createBiquadFilter();
+        var gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(f, t);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1100, t);
+        filter.frequency.exponentialRampToValueAtTime(350, t + 0.7);
+        gain.gain.setValueAtTime(0.12, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.75);
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(teknoGain);
+        osc.start(t);
+        osc.stop(t + 0.78);
+      });
+    } catch(e) {}
+  }
+
+  /* ---- SHOOTING SFX ---- */
+  function shoot(wType){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      if (wType === 'pistol') {
+        // 1. Kick thump (deep low punch)
+        var kick = ctx.createOscillator();
+        var kGain = ctx.createGain();
+        kick.type = 'sine';
+        kick.frequency.setValueAtTime(820, t);
+        kick.frequency.exponentialRampToValueAtTime(50, t + 0.12);
+        kGain.gain.setValueAtTime(0.65, t);
+        kGain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+        kick.connect(kGain);
+        kGain.connect(sfxGain);
+        kick.start(t);
+        kick.stop(t + 0.15);
+
+        // 2. High metallic gunshot crack (noise burst)
+        var bufLen = Math.floor(ctx.sampleRate * 0.07);
+        var buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+        var data = buf.getChannelData(0);
+        for (var i = 0; i < bufLen; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufLen * 0.25));
+        var snap = ctx.createBufferSource();
+        snap.buffer = buf;
+
+        var fSnap = ctx.createBiquadFilter();
+        fSnap.type = 'highpass';
+        fSnap.frequency.setValueAtTime(1100, t);
+
+        var sGain = ctx.createGain();
+        sGain.gain.setValueAtTime(0.55, t);
+        snap.connect(fSnap);
+        fSnap.connect(sGain);
+        sGain.connect(sfxGain);
+        snap.start(t);
+
+        // 3. Shell mechanical snap
+        var shell = ctx.createOscillator();
+        var shGain = ctx.createGain();
+        shell.type = 'square';
+        shell.frequency.setValueAtTime(1400, t + 0.02);
+        shell.frequency.exponentialRampToValueAtTime(400, t + 0.07);
+        shGain.gain.setValueAtTime(0.18, t + 0.02);
+        shGain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+        shell.connect(shGain);
+        shGain.connect(sfxGain);
+        shell.start(t + 0.02);
+        shell.stop(t + 0.09);
+
+      } else if (wType === 'smg') {
+        // Fast, rapid-fire staccato machine gun
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(680, t);
+        osc.frequency.exponentialRampToValueAtTime(80, t + 0.06);
+        gain.gain.setValueAtTime(0.50, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.065);
+        osc.connect(gain);
+        gain.connect(sfxGain);
+        osc.start(t);
+        osc.stop(t + 0.07);
+
+        // Metallic bolt snap
+        var snap2 = ctx.createBufferSource();
+        var buf2 = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.035), ctx.sampleRate);
+        var d2 = buf2.getChannelData(0);
+        for (var j = 0; j < d2.length; j++) d2[j] = (Math.random() * 2 - 1) * Math.exp(-j / (d2.length * 0.2));
+        snap2.buffer = buf2;
+        var sGain2 = ctx.createGain();
+        sGain2.gain.setValueAtTime(0.40, t);
+        snap2.connect(sGain2);
+        sGain2.connect(sfxGain);
+        snap2.start(t);
+
+      } else if (wType === 'flame') {
+        // Roaring flame burst
+        var fLen = Math.floor(ctx.sampleRate * 0.10);
+        var fBuf = ctx.createBuffer(1, fLen, ctx.sampleRate);
+        var fData = fBuf.getChannelData(0);
+        for (var k = 0; k < fLen; k++) fData[k] = (Math.random() * 2 - 1);
+        var fSource = ctx.createBufferSource();
+        fSource.buffer = fBuf;
+
+        var fFilter = ctx.createBiquadFilter();
+        fFilter.type = 'lowpass';
+        fFilter.frequency.setValueAtTime(480, t);
+        fFilter.frequency.exponentialRampToValueAtTime(220, t + 0.09);
+
+        var fGain = ctx.createGain();
+        fGain.gain.setValueAtTime(0.38, t);
+        fGain.gain.exponentialRampToValueAtTime(0.01, t + 0.095);
+
+        fSource.connect(fFilter);
+        fFilter.connect(fGain);
+        fGain.connect(sfxGain);
+        fSource.start(t);
+
+        // Low bass roar
+        var roar = ctx.createOscillator();
+        var rGain = ctx.createGain();
+        roar.type = 'sawtooth';
+        roar.frequency.setValueAtTime(65, t);
+        rGain.gain.setValueAtTime(0.25, t);
+        rGain.gain.exponentialRampToValueAtTime(0.01, t + 0.09);
+        roar.connect(rGain);
+        rGain.connect(sfxGain);
+        roar.start(t);
+        roar.stop(t + 0.10);
+
+      } else if (wType === 'sword') {
+        // Blade swoosh
+        var sOsc = ctx.createOscillator();
+        var sGain = ctx.createGain();
+        sOsc.type = 'sine';
+        sOsc.frequency.setValueAtTime(260, t);
+        sOsc.frequency.exponentialRampToValueAtTime(920, t + 0.09);
+        sOsc.frequency.exponentialRampToValueAtTime(280, t + 0.18);
+        sGain.gain.setValueAtTime(0.42, t);
+        sGain.gain.exponentialRampToValueAtTime(0.001, t + 0.20);
+        sOsc.connect(sGain);
+        sGain.connect(sfxGain);
+        sOsc.start(t);
+        sOsc.stop(t + 0.21);
+
+        // Metallic shimmer ring
+        var ring = ctx.createOscillator();
+        var ringGain = ctx.createGain();
+        ring.type = 'triangle';
+        ring.frequency.setValueAtTime(1420, t);
+        ring.frequency.exponentialRampToValueAtTime(980, t + 0.15);
+        ringGain.gain.setValueAtTime(0.18, t);
+        ringGain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+        ring.connect(ringGain);
+        ringGain.connect(sfxGain);
+        ring.start(t);
+        ring.stop(t + 0.17);
+      }
+    } catch(e) {}
+  }
+
+  function enemyShoot(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      var o = ctx.createOscillator();
+      var g = ctx.createGain();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(1100, t);
+      o.frequency.exponentialRampToValueAtTime(180, t + 0.08);
+      g.gain.setValueAtTime(0.28, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+      o.connect(g);
+      g.connect(sfxGain);
+      o.start(t);
+      o.stop(t + 0.10);
+    } catch(e) {}
+  }
+
+  function hit(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(280, t);
+      osc.frequency.exponentialRampToValueAtTime(55, t + 0.10);
+      gain.gain.setValueAtTime(0.35, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
+      osc.connect(gain);
+      gain.connect(sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.12);
+    } catch(e) {}
+  }
+
+  function enemyDie(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      // 1. Sub boom
+      var bOsc = ctx.createOscillator();
+      var bGain = ctx.createGain();
+      bOsc.type = 'sine';
+      bOsc.frequency.setValueAtTime(90, t);
+      bOsc.frequency.exponentialRampToValueAtTime(25, t + 0.35);
+      bGain.gain.setValueAtTime(0.60, t);
+      bGain.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+      bOsc.connect(bGain);
+      bGain.connect(sfxGain);
+      bOsc.start(t);
+      bOsc.stop(t + 0.40);
+
+      // 2. Glitch destruction pitch dive
+      var gOsc = ctx.createOscillator();
+      var gGain = ctx.createGain();
+      gOsc.type = 'sawtooth';
+      gOsc.frequency.setValueAtTime(450, t);
+      gOsc.frequency.exponentialRampToValueAtTime(40, t + 0.25);
+      gGain.gain.setValueAtTime(0.32, t);
+      gGain.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+      gOsc.connect(gGain);
+      gGain.connect(sfxGain);
+      gOsc.start(t);
+      gOsc.stop(t + 0.30);
+    } catch(e) {}
+  }
+
+  function hurt(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(170, t);
+      osc.frequency.exponentialRampToValueAtTime(35, t + 0.24);
+      gain.gain.setValueAtTime(0.55, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.26);
+      osc.connect(gain);
+      gain.connect(sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.27);
+    } catch(e) {}
+  }
+
+  function jump(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(170, t);
+      osc.frequency.exponentialRampToValueAtTime(480, t + 0.12);
+      gain.gain.setValueAtTime(0.28, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+      osc.connect(gain);
+      gain.connect(sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.14);
+    } catch(e) {}
+  }
+
+  function land(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(95, t);
+      osc.frequency.exponentialRampToValueAtTime(38, t + 0.08);
+      gain.gain.setValueAtTime(0.22, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+      osc.connect(gain);
+      gain.connect(sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.10);
+    } catch(e) {}
+  }
+
+  function step(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(110 + Math.random() * 40, t);
+      osc.frequency.exponentialRampToValueAtTime(40, t + 0.04);
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+      osc.connect(gain);
+      gain.connect(sfxGain);
+      osc.start(t);
+      osc.stop(t + 0.05);
+    } catch(e) {}
+  }
+
+  function pickup(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      // 3 crystalline arpeggio notes
+      [659.25, 830.61, 987.77, 1318.51].forEach(function(freq, idx){
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(freq, t + idx * 0.08);
+        g.gain.setValueAtTime(0.26, t + idx * 0.08);
+        g.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.08 + 0.45);
+        o.connect(g);
+        g.connect(sfxGain);
+        o.start(t + idx * 0.08);
+        o.stop(t + idx * 0.08 + 0.46);
+      });
+    } catch(e) {}
+  }
+
+  function cassette(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      // 1. Mechanical cassette deck latch click
+      [0, 0.06].forEach(function(dt){
+        var c = ctx.createOscillator();
+        var cg = ctx.createGain();
+        c.type = 'square';
+        c.frequency.setValueAtTime(1200, t + dt);
+        c.frequency.exponentialRampToValueAtTime(200, t + dt + 0.03);
+        cg.gain.setValueAtTime(0.35, t + dt);
+        cg.gain.exponentialRampToValueAtTime(0.001, t + dt + 0.035);
+        c.connect(cg);
+        cg.connect(sfxGain);
+        c.start(t + dt);
+        c.stop(t + dt + 0.04);
+      });
+      // 2. Triumphant cybernetic chord swell
+      [330, 415, 493, 659].forEach(function(f){
+        var so = ctx.createOscillator();
+        var sg = ctx.createGain();
+        so.type = 'triangle';
+        so.frequency.setValueAtTime(f, t + 0.12);
+        sg.gain.setValueAtTime(0.28, t + 0.12);
+        sg.gain.exponentialRampToValueAtTime(0.001, t + 0.85);
+        so.connect(sg);
+        sg.connect(sfxGain);
+        so.start(t + 0.12);
+        so.stop(t + 0.88);
+      });
+    } catch(e) {}
+  }
+
+  function eyeAlert(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      var o = ctx.createOscillator();
+      var g = ctx.createGain();
+      var f = ctx.createBiquadFilter();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(120, t);
+      o.frequency.linearRampToValueAtTime(260, t + 0.7);
+      o.frequency.linearRampToValueAtTime(130, t + 1.4);
+      f.type = 'lowpass';
+      f.frequency.setValueAtTime(550, t);
+      f.frequency.linearRampToValueAtTime(1200, t + 0.7);
+      f.frequency.linearRampToValueAtTime(350, t + 1.4);
+      g.gain.setValueAtTime(0.55, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+      o.connect(f);
+      f.connect(g);
+      g.connect(sfxGain);
+      o.start(t);
+      o.stop(t + 1.5);
+    } catch(e) {}
+  }
+
+  function eyePulse(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      var o = ctx.createOscillator();
+      var g = ctx.createGain();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(420, t);
+      o.frequency.exponentialRampToValueAtTime(210, t + 0.22);
+      g.gain.setValueAtTime(0.35, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+      o.connect(g);
+      g.connect(sfxGain);
+      o.start(t);
+      o.stop(t + 0.25);
+    } catch(e) {}
+  }
+
+  function daisy(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      // Dissonant descending tritone psychedelic doom
+      [440, 311.13, 220, 155.56].forEach(function(freq, i){
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(freq, t + i * 0.22);
+        g.gain.setValueAtTime(0.40, t + i * 0.22);
+        g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.22 + 1.2);
+        o.connect(g);
+        g.connect(sfxGain);
+        o.start(t + i * 0.22);
+        o.stop(t + i * 0.22 + 1.25);
+      });
+    } catch(e) {}
+  }
+
+  function win(){
+    resume();
+    if (!ctx) return;
+    try {
+      var t = ctx.currentTime;
+      [523.25, 659.25, 783.99, 1046.50].forEach(function(freq, i){
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        o.type = 'triangle';
+        o.frequency.setValueAtTime(freq, t + i * 0.10);
+        g.gain.setValueAtTime(0.32, t + i * 0.10);
+        g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.10 + 0.7);
+        o.connect(g);
+        g.connect(sfxGain);
+        o.start(t + i * 0.10);
+        o.stop(t + i * 0.10 + 0.75);
+      });
+    } catch(e) {}
+  }
+
+  function timeFreeze(){
+    if (!ctx) resume();
+    try {
+      var t = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(260, t);
+      osc.frequency.exponentialRampToValueAtTime(28, t + 0.85);
+
+      var filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1600, t);
+      filter.frequency.exponentialRampToValueAtTime(80, t + 0.9);
+
+      gain.gain.setValueAtTime(0.75, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.95);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+      osc.start(t);
+      osc.stop(t + 1.0);
+
+      [880, 1320, 1760].forEach(function(f, idx){
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(f, t);
+        g.gain.setValueAtTime(0.18 / (idx + 1), t + idx * 0.04);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+        o.connect(g);
+        g.connect(masterGain);
+        o.start(t + idx * 0.04);
+        o.stop(t + 1.3);
+      });
+    } catch(e) {}
+  }
+
+  function timeResume(){
+    if (!ctx) resume();
+    try {
+      var t = ctx.currentTime;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(45, t);
+      osc.frequency.exponentialRampToValueAtTime(360, t + 0.16);
+      osc.frequency.exponentialRampToValueAtTime(55, t + 0.48);
+
+      gain.gain.setValueAtTime(0.85, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.52);
+
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(t);
+      osc.stop(t + 0.55);
+
+      var o2 = ctx.createOscillator();
+      var g2 = ctx.createGain();
+      o2.type = 'sawtooth';
+      o2.frequency.setValueAtTime(1400, t);
+      o2.frequency.exponentialRampToValueAtTime(260, t + 0.25);
+      g2.gain.setValueAtTime(0.24, t);
+      g2.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+      o2.connect(g2);
+      g2.connect(masterGain);
+      o2.start(t);
+      o2.stop(t + 0.3);
+    } catch(e) {}
+  }
+
+  function toggleMute(){
+    muted = !muted;
+    if (masterGain && ctx) {
+      masterGain.gain.setValueAtTime(muted ? 0 : 0.96, ctx.currentTime);
+    }
+    if (teknoGain && ctx) {
+      teknoGain.gain.setValueAtTime(muted ? 0 : 0.16, ctx.currentTime);
+    }
+    return !muted;
+  }
+
+  return {
+    init: init,
+    resume: resume,
+    shoot: shoot,
+    enemyShoot: enemyShoot,
+    hit: hit,
+    enemyDie: enemyDie,
+    hurt: hurt,
+    jump: jump,
+    land: land,
+    step: step,
+    pickup: pickup,
+    cassette: cassette,
+    eyeAlert: eyeAlert,
+    eyePulse: eyePulse,
+    daisy: daisy,
+    win: win,
+    timeFreeze: timeFreeze,
+    timeResume: timeResume,
+    toggleMute: toggleMute,
+    isMuted: function(){ return muted; }
+  };
+})();
+
+var AUD=null,AUD_ON=false,AUD_ERR=false;
+function audioBoot(){
+  if(AUD)return AUD;
+  try{
+    var src = (MEM === 0 || IS_ENDLESS) ? "../RadioKaoSs/tg%20del%20cosmo/tg0.mpeg" : ("../RadioKaoSs/tg%20del%20cosmo/tg"+MEM+".MP3");
+    AUD=new Audio(src);
+    AUD.loop=true;AUD.volume=0.40;AUD.preload="auto";
+    AUD.onerror=function(){
+      if((MEM === 0 || IS_ENDLESS) && AUD.src.indexOf(".mpeg") >= 0){
+        AUD.src = "../RadioKaoSs/tg%20del%20cosmo/tg0.MP3";
+        var p = AUD.play();
+        if(p && p.catch) p.catch(function(){});
+      } else {
+        AUD_ERR=true;AUD_ON=false;
+      }
+    };
+  }catch(e){AUD_ERR=true;AUD=null;}
+  return AUD;
+}
+function audioPlay(){
+  var a=audioBoot(),p;
+  if(!a)return;
+  try{
+    p=a.play();
+    if(p&&p.catch)p.catch(function(){AUD_ON=false;});
+    AUD_ON=true;
+  }catch(e){AUD_ON=false;}
+}
+function audioToggle(){
+  var a=audioBoot();
+  if(!a)return;
+  var trackName = (MEM === 0 || IS_ENDLESS) ? "tg0.mpeg" : ("tg"+MEM+".MP3");
+  if(AUD_ON){try{a.pause();}catch(e){}AUD_ON=false;toast("radio spenta · " + trackName + " in pausa",2.4);return;}
+  audioPlay();
+  toast(AUD_ON?("radio accesa · " + trackName):("nastro " + trackName + " non parte"),2.4);
+}
+(function(){
+  function once(){
+    if(typeof SFX!=="undefined")SFX.resume();
+    audioPlay();
+  }
+  ["pointerdown","mousedown","keydown","touchstart","click","focus"].forEach(function(ev){
+    window.addEventListener(ev, function(){ if(typeof SFX!=="undefined")SFX.resume(); once(); }, { passive: true });
+  });addEventListener("touchstart",once);
+})();
+
+var cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+var VW=1024,VH=600,scale=1,offX=0,offY=0;
+function resize(){
+  cv.width=innerWidth;cv.height=innerHeight;
+  scale=Math.min(cv.width/VW,cv.height/VH);
+  offX=(cv.width-VW*scale)/2;offY=(cv.height-VH*scale)/2;
+}
+addEventListener("resize",resize);resize();
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function lerp(a,b,k){return a+(b-a)*k}
+function rgba(c,a){if(!c||c.charAt(0)!=="#")return c;var n=parseInt(c.slice(1),16);return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+a+")"}
+function rnd(i){var v=Math.sin(i*127.1+311.7)*43758.5453;return v-Math.floor(v)}
+function txt(s,x,y,sz,col,al,w){ctx.font=(w||700)+" "+sz+"px ui-monospace,monospace";ctx.fillStyle=col;ctx.textAlign=al||"left";ctx.textBaseline="alphabetic";ctx.fillText(s,x,y)}
+/* ---- tastiera e mouse -------------------------------------- */
+var keys={},mouse={x:VW/2,y:VH/2,down:false};
+function kn(e){var k=e.key.toLowerCase();if(k===" ")k="space";return k}
+addEventListener("keydown",function(e){
+  if(typeof SFX!=="undefined") SFX.resume();
+  var k=kn(e);keys[k]=true;
+  if(["space","arrowup","arrowdown","arrowleft","arrowright"].indexOf(k)>=0)e.preventDefault();
+  if(k==="1"&&SLOTS.length>0)WI=0;
+  if(k==="2"&&SLOTS.length>1)WI=1;
+  if(k==="3"&&SLOTS.length>2)WI=2;
+  if(k==="4"&&SLOTS.length>3)WI=3;
+  if(k==="5"&&SLOTS.length>4)WI=4;
+  if(k==="q")WI=(WI+1)%SLOTS.length;
+  if(k==="f"&&SLOTS.indexOf("eye")>=0)triggerEyeTimeFreeze();
+  if(k==="m")audioToggle();
+  if(k==="escape"||k==="esc") returnToCosmo();
+  if(k==="r"&&G&&G.ended&&G.daisy>0) reset();
+  if(G&&G.win>0.7){ returnToCosmo(); return; }
+});
+addEventListener("keyup",function(e){keys[kn(e)]=false;});
+function tw(e){return {x:(e.clientX-offX)/scale,y:(e.clientY-offY)/scale}}
+addEventListener("mousemove",function(e){var p=tw(e);mouse.x=p.x;mouse.y=p.y;});
+addEventListener("mousedown",function(e){if(typeof SFX!=="undefined") SFX.resume();if(e.button===0)mouse.down=true;if(G&&G.win>0.7){returnToCosmo();return;}if(G&&G.ended&&G.daisy>0)reset();});
+addEventListener("mouseup",function(e){if(e.button===0)mouse.down=false;});
+addEventListener("blur",function(){mouse.down=false;keys={};});
+function hitKey(a,b){return !!keys[a]||!!keys[b]}
+/* ---- memoria: le armi che scendono dal muro (e L'Occhio dono di B-E-P-E) ---- */
+var COSMO_LANG = (typeof localStorage !== "undefined" && localStorage.getItem("cosmo_lang")) || "it";
+function T(it, en) { return COSMO_LANG === "en" ? en : it; }
+
+function syncAuthUserSave() {
+  try {
+    var uRaw = localStorage.getItem("cosmo_auth_user");
+    if (!uRaw) return;
+    var u = JSON.parse(uRaw);
+    if (!u || !u.id) return;
+    var curSave = {};
+    try { curSave = JSON.parse(localStorage.getItem("cosmo_save_" + u.id) || "{}") || {}; } catch(e){}
+    curSave.arsenal = JSON.parse(localStorage.getItem("cosmo_arsenal_v1") || "{}");
+    curSave.memorie = JSON.parse(localStorage.getItem("cosmo_memorie_v1") || "{}");
+    curSave.foglio = JSON.parse(localStorage.getItem("foglio_collected_pages") || "[]");
+    curSave.lang = localStorage.getItem("cosmo_lang") || "it";
+    curSave.name = u.name;
+    curSave.updatedAt = Date.now();
+    localStorage.setItem("cosmo_save_" + u.id, JSON.stringify(curSave));
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: "COSMO_SYNC_SAVE", userId: u.id, user: u, save: curSave }, "*");
+    }
+  } catch(e) {}
+}
+
+var SAVE_M="cosmo_memorie_v1",SAVE_A="cosmo_arsenal_v1";
+function loadJ(k){try{var r=localStorage.getItem(k);return r?JSON.parse(r):{}}catch(e){return {}}}
+function saveJ(k,o){
+  try{localStorage.setItem(k,JSON.stringify(o));}catch(e){}
+  syncAuthUserSave();
+}
+var WDEF={
+  pistol:{id:"pistol",name:T("LA PISTOLA","THE PISTOL"),cd:0.22,spd:1500,dmg:34,spread:0.012,n:1,col:"#ffd88a",life:0.95,recoil:64,hype:T("nove colpi e un fischio","nine shots and a whistle")},
+  smg:{id:"smg",name:T("IL MITRA","THE SMG"),cd:0.075,spd:1320,dmg:13,spread:0.085,n:1,col:"#ffc46a",life:0.8,recoil:34,hype:T("caricatore storto","crooked magazine")},
+  flame:{id:"flame",name:T("IL LANCIAFIAMME","THE FLAMETHROWER"),cd:0.038,spd:470,dmg:2.6,spread:0.19,n:1,col:"#ff9a3c",life:0.40,recoil:12,flame:true,hype:T("due bombole e un tubo","two tanks and a pipe")},
+  sword:{id:"sword",name:T("LA SPADA","THE SWORD"),cd:0.36,dmg:74,range:132,col:"#dfe7ec",melee:true,recoil:0,hype:T("lama opaca, filo mai usato","matte blade, unused edge")},
+  eye:{id:"eye",name:T("L'OCCHIO","THE EYE"),cd:0.4,timeFreeze:true,recharge:22,duration:10.0,col:"#c084fc",hype:T("il regalo di B-E-P-E: blocca il tempo per 10s","B-E-P-E's gift: freezes time for 10s")}
+};
+var ARS=loadJ(SAVE_A),SLOTS=[],WI=0;
+(function(){
+  var sel=(ARS&&ARS.sel)||[],i,id;
+  for(i=0;i<sel.length;i++){id=sel[i];if(WDEF[id]&&SLOTS.indexOf(id)<0)SLOTS.push(id);}
+  if(!SLOTS.length&&ARS&&ARS.weapons){for(id in ARS.weapons){if(WDEF[id]&&SLOTS.length<2)SLOTS.push(id);}}
+  if(!SLOTS.length)SLOTS.push("pistol");
+  // Se il giocatore ha completato tutte le 8 memorie o ha l'arma eye nell'arsenale, è disponibile
+  var mUnlocked = (loadJ(SAVE_M).memorieSbloccate || 0);
+  if ((mUnlocked >= 8 || (ARS && ARS.weapons && ARS.weapons.eye)) && SLOTS.indexOf("eye") < 0) {
+    SLOTS.push("eye");
+  }
+})();
+function curW(){return WDEF[SLOTS[WI]]||WDEF.pistol}
+/* ============================================================
+   LA MAPPA — DINAMICA ED ESTESA (minigioco dopo minigioco si estende
+   e diventa sempre piu' post-atomica e devastata dalle radiazioni).
+   Quote: tetti (≈940-1250) · strada (1580) · fogne (2280)
+   ============================================================ */
+var W = IS_ENDLESS ? 9800 : (5200 + (MEM - 1) * 600), H = 2400, GY = 1580, SY = 2280;
+var SOL = [], LAD = [], DECO = [], ROOFS = [];
+function box(x, y, w, h, k) { var s = { x: x, y: y, w: w, h: h, k: k || "stone" }; SOL.push(s); return s; }
+function ladder(x, y0, y1) { LAD.push({ x: x, y0: y0, y1: y1 }); }
+
+/* --- Voragini e strada generati dinamicamente fino a W --- */
+var PITS = [];
+box(-40, GY, 1540, 120, "street");
+PITS.push([1500, 1700]);
+box(1700, GY, 1600, 120, "street");
+PITS.push([3300, 3520]);
+
+if (W <= 5200) {
+  box(3520, GY, W - 3520 + 80, 120, "street");
+} else {
+  box(3520, GY, 5150 - 3520, 120, "street");
+  PITS.push([5150, 5370]);
+  if (W <= 6800) {
+    box(5370, GY, W - 5370 + 80, 120, "street");
+  } else {
+    box(5370, GY, 6800 - 5370, 120, "street");
+    PITS.push([6800, 7040]);
+    if (W <= 8400) {
+      box(7040, GY, W - 7040 + 80, 120, "street");
+    } else {
+      box(7040, GY, 8400 - 7040, 120, "street");
+      PITS.push([8400, 8660]);
+      box(8660, GY, W - 8660 + 80, 120, "street");
+    }
+  }
+}
+
+/* il fondo delle fogne: tutta la larghezza estesa */
+box(-40, SY, W + 120, 180, "sewer");
+
+/* i tetti base ed estesi lungo tutta la mappa */
+(function(){
+  var R = [
+    [300, 1240, 620], [1060, 1080, 520], [1920, 1230, 600],
+    [2720, 1000, 500], [3720, 1250, 460], [4320, 940, 600],
+    [5100, 1180, 560], [5820, 960, 580], [6550, 1220, 520],
+    [7250, 1020, 600], [8000, 1240, 540], [8700, 950, 500]
+  ], i, r;
+  for (i = 0; i < R.length; i++) {
+    r = R[i];
+    if (r[0] + r[2] <= W - 40) {
+      ROOFS.push({ x: r[0], y: r[1], w: r[2] });
+      box(r[0], r[1], r[2], 26, "roof");
+      ladder(r[0] + Math.floor(r[2] * 0.5), GY, r[1]);
+    }
+  }
+})();
+
+/* casse, rottami e macerie post-atomiche */
+box(2580, 1510, 190, 70, "crate");
+box(1180, 1010, 70, 70, "crate");
+box(4560, 880, 70, 60, "crate");
+box(3620, 1520, 150, 60, "crate");
+
+// Fusti radioattivi, macerie e fanghi tossici post-atomici
+(function(){
+  // Barili radioattivi
+  var barrels = [2380, 4120, 5740, 7500, 8920];
+  for (var i = 0; i < barrels.length; i++) {
+    if (barrels[i] < W - 100) {
+      box(barrels[i], GY - 42, 42, 42, "barrel");
+      box(barrels[i] + 480, SY - 42, 42, 42, "barrel");
+    }
+  }
+  // Macerie di cemento e travi collassate
+  var rubbles = [1380, 3180, 4920, 6680, 8280];
+  for (var j = 0; j < rubbles.length; j++) {
+    if (rubbles[j] < W - 120) {
+      box(rubbles[j], GY - 28, 90, 28, "rubble");
+    }
+  }
+  // Pozze di fango tossico radioattivo sul fondo delle fogne (sotto le voragini)
+  for (var k = 0; k < PITS.length; k++) {
+    var p = PITS[k];
+    box(p[0] + 15, SY - 12, (p[1] - p[0]) - 30, 24, "toxic");
+  }
+})();
+
+/* scale verticali tra fogne e strada */
+ladder(1000, SY, GY);
+ladder(3120, SY, GY);
+ladder(4900, SY, GY);
+if (W > 6000) ladder(6600, SY, GY);
+if (W > 7800) ladder(8300, SY, GY);
+
+/* le facciate dietro: silhouette industriali e palazzi sventrati fino a W */
+(function(){
+  var decoCount = Math.ceil((W + 600) / 190), i;
+  for (i = 0; i < decoCount; i++) {
+    var bx = -200 + i * 190, bw = 110 + Math.floor(rnd(i * 1.7) * 90);
+    var bh = 170 + Math.floor(rnd(i * 3.1) * 240);
+    DECO.push({ x: bx, w: bw, h: bh, seed: i, top: GY - bh });
+  }
+})();
+var EXIT = { x: MZ.exit.x, y: MZ.exit.y }, CASS = { x: MZ.cass.x, y: MZ.cass.y, taken: false };
+var SPAWN = [
+  { t: "daisy", x: 980, y: GY }, { t: "daisy", x: 2180, y: GY }, { t: "soldier", x: 2520, y: GY },
+  { t: "daisy", x: 3860, y: GY }, { t: "soldier", x: 4020, y: 1250 }, { t: "daisy", x: 3480, y: GY },
+  { t: "daisy", x: 2500, y: SY }, { t: "daisy", x: 4300, y: SY }, { t: "soldier", x: 4700, y: SY },
+  { t: "drone", x: 1500, y: 1300 }, { t: "drone", x: 3000, y: 1120 }, { t: "drone", x: 4100, y: 1140 }
+];
+/* Pattuglie e comparse distribuite anche sulla mappa estesa */
+(function(){
+  if (W > 5200) {
+    for (var sx = 5400; sx < W - 220; sx += 640) {
+      SPAWN.push({ t: (sx % 1280 === 0) ? "soldier" : "daisy", x: sx, y: GY });
+      SPAWN.push({ t: (sx % 1100 === 0) ? "drone" : "soldier", x: sx + 220, y: SY });
+      if (sx + 360 < W) SPAWN.push({ t: "drone", x: sx + 360, y: 1120 });
+    }
+  }
+  if (MZ.foes <= 1) return;
+  var i, add = [], want = Math.round((MZ.foes - 1) * 6);
+  for (i = 0; i < SPAWN.length && add.length < want; i++) {
+    if (i % 2) continue;
+    add.push({
+      t: SPAWN[i].t === "daisy" ? "soldier" : "drone",
+      x: clamp(SPAWN[i].x + 150, 60, W - 60),
+      y: SPAWN[i].y
+    });
+  }
+  SPAWN = SPAWN.concat(add);
+})();
+var NOTE_DEF = [
+  {
+    "id": "e01",
+    "x": 1144,
+    "y": 1050,
+    "l": "07/12/2033 · DEPOSIZIONE DEL GENERALE DELL'IDEA",
+    "q": "«0007/12/2033 d.C… 07/12/2033 d.TX… deposizione del generale dell'idea… in diretta su ...»",
+    "b": "0007/12/2033 d.C… 07/12/2033 d.TX… deposizione del generale dell'idea… in diretta su ogni TV terrestre\n\nGenerale dell'idea: Il cosmo è uno spazio solitario se visto da troppo lontano, ma se osservato da vicino, appare come un formicaio che, circondando la sua regina, si muove incessantemente, proteggendo la mente che lo governa. Tutti sanno però che, morta una regina, se ne fa un'altra.La vita, pur rara, ha proliferato per circa 13,7 miliardi di anni, fin dall'inizio del tutto. E, sebbene possa sembrare dettata dal caos e dal caso, in realtà è solo l'ambiguo modo con cui la regina si preserva in eterno.Gli uomini, abitanti della Terra, hanno potuto, grazie alla Edward-Industries, conoscere le impervie vie della conoscenza solo da dieci anni. Interpretate spesso come qualcosa di complicato, le vie della comprensione sono state svelate dal nostro leader Edward White.Ora Primo Ministro e comandante della Flotta dell'Occhio nel Cielo, epiteto che egli stesso ha scelto; Edward White ha la possibilità di affrontare Dio… avete sentito bene.La sua utilità nella cura di malattie degenerative e nella soluzione ai problemi più comuni di una specie in via di sviluppo, come la fame, la sete, la criminalità, l'assenza di felicità e altre ormai risolte nefandezze umane, ha spinto il consiglio provvisorio a-o-n-c (Anti-Occhio nel Cielo) a sciogliersi.\n\nEdward White assume da oggi il controllo sull'umanità e, sebbene possa sembrare il delirio di un visionario, questa realtà è la soluzione migliore per la pace e la stabilità. L'Occhio nel Cielo ha dimostrato di tenere fede alle sue promesse e, pur utopiche, ha svelato anche a duemilatrentatré anni dalla venuta di Cristo che Gesù, scusate il gioco di parole, è esistito. Il suo vero nome è Parvax, detto il TX della vita.Considerato da noi e da altre specie aliene una santità, Parvax ha giurato fedeltà alla causa terrestre. Inoltre, il sommo Parvax aggiunge che al centro del cosmo regna l'indiscusso Dio.Per chiunque abbia dormito negli ultimi dieci anni dentro una grotta, non è una bufala: Dio non solo esiste, ma è un nostro nemico.Uomini! Io, come uomo, ho visto i miracoli della vita… la fame e la sete sono lontani ricordi, la produzione di massa è diventata inutile, l'inquinamento ora è solo uno sgradevole ricordo, la nostra Terra non è mai stata così pulita e sicura; anche la morte sembra dolce come il sogno.Siamo in guerra, è vero, ma contro un Dio che non ci ha mai regalato il dono della pace… che Dio ci salvi, anzi, mi scuso per il luogo comune... che l'Occhio ci illumini il sentiero verso l'epoca dell'oro."
+  },
+  {
+    "id": "e02",
+    "x": 3016,
+    "y": 2250,
+    "l": "CONTROLLO GLOBALE · IL CONSIGLIO A-O-N-C",
+    "q": "«Madama Morte, detta la Vedova: Quindi? Scacco matto? Oppure hai un'altra delle tue pe...»",
+    "b": "Madama Morte, detta la Vedova: Quindi? Scacco matto? Oppure hai un'altra delle tue perle di saggezza che dimostrano che ho torto?\n\nL'Occhio nel Cielo: Tu credi che il mio giustificarmi faccia bene a me o a te? Sai già la risposta.\n\nMadama Morte, detta la Vedova: …Amore, domani hai promesso di presentarti per la raccolta di fondi per il “Cabafoi Fnord”."
+  },
+  {
+    "id": "e03",
+    "x": 4368,
+    "y": 1540,
+    "l": "DIARIO DEI RICORDI · EDWARD WHITE 2054 d.TX",
+    "q": "«C22:Stia zitta! Lei non immagina a cosa sta andando incontro… Voi apostoli siete solt...»",
+    "b": "C22:Stia zitta! Lei non immagina a cosa sta andando incontro… Voi apostoli siete soltanto immagine, siete figura! Non si dilunghi, signora, con la sua superiorità! Di supremi ce n'è solo uno, ed è Dio!Da quando l'occhio nel cielo ha preso piede, non riusciamo più a fortificare la capsula. Senza la tecnologia di Dio, è tutto perduto! Lei deve smettere di parlare a vanvera, la situazione è grave. La nostra lingua è stata cancellata! Ora parliamo tutti, in tutti i regni, il fottuto terrestre!Le nostre donne non sono più fertili! I nostri ingegneri vengono decimati!Sembra che tutto questo sia esploso dal niente, per il niente, e presumiamo ci siano dei traditori.Ora mi dica, Parvax è invischiato con questa merda! Ha già confermato prima; voglio solo che lo ridica per metterlo negli atti.\n\nMadama Morte, detta la Vedova:Va bene! Il mio Edward, tanto fra poco sarà qui... sta arrivando, e giuro su Dio che vedere la tua faccia di cazzo consumarsi in un gelido e sublime urlo di dolore sarà una cosa così eccitante da farmi strusciare sul tuo corpo mutilato.Sai cosa è in grado di fare l'emissario della vita? Sai chi cazzo è Edward!\n\nMadama Morte, detta la Vedova:..."
+  },
+  {
+    "id": "e04",
+    "x": 1276,
+    "y": 1050,
+    "l": "DIALOGO CON LA VEDOVA · IL SILENZIO DEL COSMO",
+    "q": "«\"Io sono io, io cosa sono... sto analizzando in tempo reale il filmato e non ci riesc...»",
+    "b": "\"Io sono io, io cosa sono... sto analizzando in tempo reale il filmato e non ci riesco a credere. Come è possibile? Io non credevo di poter portare verso un alieno tanto rispetto... non credo di poter più lavorare, mi serve una pausa da questa merda, anzi, vaffanculo... forse è davvero il momento di schierarmi una volta nella vita...Per l'occhio nel cielo, per l'epoca d'oro che forse ci aspetta... lui sa quello che sto pensando, se lo senti voglio dirti che credo in te... finisco il video e lo passerò ai soldati dell'occhio, magari così potrò dimostrarmi utile...\"\n\nL'emissario della vita si manifesta tra le stelle. Le sue forme geometriche si fondono con il colore dell'universo. Sembra un'enorme sfera fatta di caos, ma non è perfetta. Al centro di questa strana geometria, il simbolo del cerchio e delle linee brucia di fiamme rosse. Nel mezzo di questo, un occhio sbatte le palpebre.\n\nParvax TX della vita:Mie adorate creature... come di consueto chiedo il vostro sostegno. L'occhio nel cielo sta brillando. Mi scuso per aver tolto la fertilità ad alcune delle mie creazioni e mi scuso se il vostro cervello è stato manipolato... però non pensate che io vi debba delle spiegazioni. È arrivato il momento che mio fratello smetta di eliminare per non far proliferare. Mi rivolgo a te, Dio, non sei stanco della solitudine? Della tua paranoia? La tua onniscienza ha fallito, non ha previsto questo momento. Sei certo di riuscire a cavartela, illuso? Per questa volta non sarò più schiavo delle tue farneticazioni da vecchia leggenda. Io e l'occhio nel cielo stiamo arrivando e non siamo soli.La causa della vita contro l'annientamento è un tema che da miliardi di anni voglio affrontare.E dal momento che la morte ora segue la vita, è arrivato il tempo che tutte voi, mie creature, vi schieriate: o con la vita o per la schiavitù!"
+  },
+  {
+    "id": "e05",
+    "x": 3364,
+    "y": 2250,
+    "l": "LA FORMA DEL REALE · MANIFESTAZIONI",
+    "q": "«L'occhio nel cielo:L'ho già fatto innumerevoli volte!... semplicemente... davvero vog...»",
+    "b": "L'occhio nel cielo:L'ho già fatto innumerevoli volte!... semplicemente... davvero voglio preservare la vita. Sembra una \"cazzata\", ma se Dio fa quello che fa, c'è un motivo.\n\nMadama Morte, detta la Vedova:...\n\nL'occhio nel cielo:Voi vi sentite tutti completi! Grandiosi e finiti! Ma io e Dio sappiamo che oltre alla capsula e oltre ai piani, c'è un enorme elefante nella stanza! Se io usassi tutte le mie tecnologie per sfidare l'assoluto, distruggerei la vita! La capsula serve proprio a questo... mantiene le cose pulite e sterili, pur se il caos regna sovrano per le strade dello spazio, troppo caos inevitabilmente renderebbe tutto talmente denso da ricreare quella grande esplosione che ha generato casa mia... Non posso dirti altro, Dio lo tiene segreto e ha ragione... ci siamo sfidati innumerevoli volte… e lui lo sa! Abbiamo già parlato e ci siamo già confrontati..."
+  },
+  {
+    "id": "e06",
+    "x": 4872,
+    "y": 1540,
+    "l": "L'ASCOLTO DELLA PIOGGIA · I VAGABONDI",
+    "q": "«Bep-e White: Non mi chiamare Beppe! Non è che, ora che hai perso i tuoi poteri, puoi ...»",
+    "b": "Bep-e White: Non mi chiamare Beppe! Non è che, ora che hai perso i tuoi poteri, puoi essere così scontroso. Ci sei solo tu, ti prego…\n\nPlacidus TX della distruzione: Piccolo…\n\nBep-e White: Non mi toccare… odio essere toccato."
+  },
+  {
+    "id": "e07",
+    "x": 1408,
+    "y": 1050,
+    "l": "CAMMINARE LUNGO I SENTIERI · LA TELA",
+    "q": "«Generale del sogno: Signorino, ti stai facendo grande… è ora di smettere di sognare, ...»",
+    "b": "Generale del sogno: Signorino, ti stai facendo grande… è ora di smettere di sognare, ma se proprio vuoi… io sto cercando di sistemare le cose… Vieni con me! Non stare con quel putrido vecchio e quella strega, io posso darti qualcosa… Se vieni con me, vedrai con i tuoi occhi la capsula dove, tredici anni fa, regnava Dio!\n\nGenerale del sogno: Bello? Si, è bellissimo!\n\nBep-e White: No… non posso lasciare solo Placi… e poi devo prendere le medicine…"
+  },
+  {
+    "id": "e08",
+    "x": 3712,
+    "y": 2250,
+    "l": "IL PRIMO CONTATTO · PARVAX IL TX DELLA VITA",
+    "q": "«David Bowie: The Man Who Sold the WorldOh no, non ioNon ho mai perso il controlloSei ...»",
+    "b": "David Bowie: The Man Who Sold the WorldOh no, non ioNon ho mai perso il controlloSei faccia a facciaCon l’uomo che vendette il mondo\n\nVideo-diario di bordo: Generale del Sogno… Nome: Charles Faith… Anno 07/12/3013\n\nNella capsula ci sono fughe d'ossigeno. Soldato sta ispezionando pianeti dove poter creare insediamenti. I sopravvissuti sono malati e tutto sembra perduto, ma con un po' di fortuna, se troviamo una luna non contaminata dalle radiazioni d'Upronia, potremmo creare spazi vivibili con le tecnologie di Edward-Industries. Non c'è da perdere la speranza…Dannata vita, dannata voglia di farla finita…Gli apostoli indeboliti stanno cercando di accedere alla posizione del piccolo Bep-e. Come sono stupidi, ce l'hanno sotto il naso. Senza la luce di Dio e i suoi ingegneri, le creature sotto il suo eclissato controllo sono costrette a ripartire quasi da zero. Menomale che Placidus ha perso le sue abilità e grazie al cielo Madama Morte non può usare le sue manie da puttana.Sono diventato, grazie alla flotta del megalomane, abbastanza potente da gestire questa situazione… grazie alle sue tecnologie vivo da troppo tempo, ogni giorno sento il suono di quella pineta dove mi sbronzavo che mi chiama e mi sussurra: \"Liberati da questa infame astinenza.\" L'alcol mi chiama, ma devo restare lucido. Non posso cedere alla bottiglia di nuovo. Lo devo fare per loro."
+  },
+  {
+    "id": "e09",
+    "x": 5376,
+    "y": 1540,
+    "l": "LA GUERRA CONTRO DIO · EDWARDIAN INDUSTRIES",
+    "q": "«Alan Parsons Project: The Raven  Con mio stupore,Lì si ergeva un corvo,La cui ombra p...»",
+    "b": "Alan Parsons Project: The Raven\n\nCon mio stupore,Lì si ergeva un corvo,La cui ombra pendeva sopra la mia porta.Poi, nel silenzio,Pronunciò la sola parolaChe ascolterò per sempre:\"Mai più.\"Così disse il corvo: \"Mai più.\"\n\nComputer di bordo della flotta degli apostoli. Nome programma: ems-212? 07/12/3013"
+  },
+  {
+    "id": "e10",
+    "x": 1540,
+    "y": 1050,
+    "l": "I CERCHI DI LUCE · IL RAGGIO VERDE",
+    "q": "«Il Corvo: Cercate intrusi a bordo! \"Ems-212?\" Cerca intrusi a bordo...  Generale del ...»",
+    "b": "Il Corvo: Cercate intrusi a bordo! \"Ems-212?\" Cerca intrusi a bordo...\n\nGenerale del Sogno: Corvo, non ti piacerà... il Generale del Sogno è fuori dalla porta del ponte principale.\n\nLa Colpa, 4° Apostolo: Ah, beh... allora lo fermeranno prima che arrivi."
+  },
+  {
+    "id": "e11",
+    "x": 4060,
+    "y": 2250,
+    "l": "AVANZATA DEI MECHA · LE COLONIE DI UR",
+    "q": "«Il Corvo: Soldato! Sei ingrassato...  Generale del Sogno: Che cosa volete dalle mie c...»",
+    "b": "Il Corvo: Soldato! Sei ingrassato...\n\nGenerale del Sogno: Che cosa volete dalle mie colonie... anzi, faccio prima a uccidervi tanto voi zecche...\n\nIl Padre: Sempre il solito irriverente... sai chi era così?"
+  },
+  {
+    "id": "e12",
+    "x": 5880,
+    "y": 1540,
+    "l": "L'ASCESA AL COMANDO · LA FLOTTA DELL'OCCHIO",
+    "q": "«La Colpa: Ti giuro che non è una bugia, noi apostoli dovresti saperlo... non diciamo ...»",
+    "b": "La Colpa: Ti giuro che non è una bugia, noi apostoli dovresti saperlo... non diciamo bugie...\n\nGenerale del Sogno: Armatura, dona a queste stupide e superbe merde uno di quegli incubi che distruggono la vita e la rendono immagine...\n\nAi suoi comandi, Generale del Sogno."
+  },
+  {
+    "id": "e13",
+    "x": 1672,
+    "y": 1050,
+    "l": "LE MARGHERITE GIALLE · LA LEGGE DEL RITMO",
+    "q": "«Di tenere duro... e di stare con i piedi!  ... Un colosso! Attenti al colosso!Kart Fu...»",
+    "b": "Di tenere duro... e di stare con i piedi!\n\n... Un colosso! Attenti al colosso!Kart Furz: Attenti! Scende una donna d'acciaio... e dei nostri! Il sogno! Il sogno! Ci salverà...!\n\nCaporale... non ci posso credere..."
+  },
+  {
+    "id": "e14",
+    "x": 4408,
+    "y": 2250,
+    "l": "TELE KAOSS IN DIRETTA · ZONA LARGA",
+    "q": "«Bep-e White: Non mi toccare... però sì, devo dire che i miei studi...  Placidus TX de...»",
+    "b": "Bep-e White: Non mi toccare... però sì, devo dire che i miei studi...\n\nPlacidus TX della distruzione: Allora, Vedova... te la sei vista brutta. Un tempo li facevi fuori tutti, ma senza Dio e Edward...\n\nMadama Morte la Vedova: Stai zitto, \"draghetto\" da quattro soldi. Anche tu sei decrepito. L'unico qui che può tenere testa a una vera sfida è il mio piccolo... vieni qui..."
+  },
+  {
+    "id": "e15",
+    "x": 6384,
+    "y": 1540,
+    "l": "FREQUENZE INTERROTTE · IL SEGNALE",
+    "q": "«Bep-e White: Ma tu un tempo eri parte di Dio.  Madama Morte la Vedova: Quante domande...»",
+    "b": "Bep-e White: Ma tu un tempo eri parte di Dio.\n\nMadama Morte la Vedova: Quante domande su Parvax! Senti Bep-e, tutto si sistemerà, devi solo attendere. Io ora sto lavorando per non farti trovare da quei bifolchi degli apostoli.Placidus, pur il suo caratteraccio, sta facendo un lavoro esemplare con te. Siamo tutti dalla tua parte.E tu non smetti di fare domande... vorrei darti risposte, ma non le ho nemmeno io!\n\nBep-e White: Ecco, era quello che volevo sentire. Siete degli ignoranti, il generale del sogno!"
+  },
+  {
+    "id": "e16",
+    "x": 1804,
+    "y": 1050,
+    "l": "IL BALLO DELLA CARNE · DISSOLUZIONE",
+    "q": "«Il pensiero del cosmo si manifesta sempre più forte. L'Eterno sta dichiarando guerra ...»",
+    "b": "Il pensiero del cosmo si manifesta sempre più forte. L'Eterno sta dichiarando guerra senza nemmeno saperlo.Io vedo le rughe di Dio, io sento che anche l'assoluto sta invecchiando.La cosa mi riempie di solitudine.La vita deve essere preservata e conoscendo bene i piani di Dio, non posso permettere che si calpesti il bisogno d'eternità.\n\nQuesto maledetto bisogno di giustificare ogni cosa, questa maledetta voglia di unicità.Non me ne frega un cazzo dell'unicità: io bramo solo l'eternità.\n\nVedo la Terra, casa di un me passato, ribadire e sussurrare nelle pieghe della sua solitudine il bisogno di un leader giusto.Finalmente anche l'ultimo uomo è in grado di cogliere la mia volontà, ma come dice Parvax, devo stare attento. Per essere sempre giusto non posso corrompermi d'ego.Troppo o tentato e troppe volte ho fallito.Cervello, non mi abbandonare adesso. Quanti ricordi ho cancellato? Io ho avuto una madre? Io sono stato un uomo autentico? Tutti ricordi cancellati per arrivare a questa guerra. Una guerra..."
+  },
+  {
+    "id": "e17",
+    "x": 4756,
+    "y": 2250,
+    "l": "SOTTO LA LUNA ROTTA · I TETTI DI TIX",
+    "q": "«Edward White, l'occhio nel cielo:Non serve, Sfraz, a Parvax piace sempre scherzare.  ...»",
+    "b": "Edward White, l'occhio nel cielo:Non serve, Sfraz, a Parvax piace sempre scherzare.\n\nParvax TX della vita:Doveri finito? È arrivato Placidus, mio fratello... te ne ho parlato, per favore, non è comprensivo...\n\nEdward White, l'occhio nel cielo:Non lo chiamerò drago."
+  },
+  {
+    "id": "e18",
+    "x": 6888,
+    "y": 1540,
+    "l": "L'OCCHIO SOSPESO · L'ATTESA",
+    "q": "«Pensieri di Parvax TX della vita:(Maledetto manipolatore! È vero, non mi piace come p...»",
+    "b": "Pensieri di Parvax TX della vita:(Maledetto manipolatore! È vero, non mi piace come piano, ma effettivamente pur le sue manie di grandezza è un buon modo per evadere l'onniscenza!)Perché deve essere per forza tuo figlio? Perché non un corpo qualunque? E soprattutto, per Dio, Edward, con che tecnologie faresti tutto ciò?\n\nEdward White, l'occhio nel cielo:Perché, Parvax, fra qualche anno riuscirò a leggere i pensieri di questa galassia. Le tecnologie che insieme inventeremo saranno talmente perfette da fare risplendere un buco nero. Per l'altra domanda, la risposta è semplice: voglio che abbia i poteri di suo padre.\n\nPensieri di Parvax TX della vita:Perché proprio la Morte e non me? (Per Dio, ora sembro quasi geloso... sarò mica geloso? Forse sì, ma che importa, è una domanda legittima... esci dalla mia testa.)"
+  },
+  {
+    "id": "e19",
+    "x": 1936,
+    "y": 1050,
+    "l": "IL VISUAL DI SATAN · LE FIAMME DEL SEGNALE",
+    "q": "«Placidus TX della distruzione: Non me ne frega un cazzo!... La parola giusta è “cazzo...»",
+    "b": "Placidus TX della distruzione: Non me ne frega un cazzo!... La parola giusta è “cazzo”, vero, madama?\n\nGenerale del sogno: Parlate una lingua che non è la vostra. Avete perso per ora ogni battaglia. Qui davanti ho la morte che non uccide e una sottospecie di Dio che l'unica cosa che sa fare è insultare. Dimmi un po', Placidus, tu non saresti un distruttore di mondi? Tutto incredibile, ma cosa c'è di speciale se lo facciamo anche noi?\n\nPlacidus TX della distruzione:..."
+  },
+  {
+    "id": "e20",
+    "x": 5104,
+    "y": 2250,
+    "l": "RESOCONTO DI UN TEMPO · IL QUADRO CLINICO",
+    "q": "«Edward White, detto l'Occhio nel Cielo: Ah, già. Comunque, suvvia amici, per favore a...»",
+    "b": "Edward White, detto l'Occhio nel Cielo: Ah, già. Comunque, suvvia amici, per favore accettate un'offerta. I miei generali accompagneranno, per un giro della mia nave madre, il sommo TX della distruzione. Mi scuso per il generale del sogno, ha la bocca veloce come il suo pensiero. Ma vi assicuro che è uno degli strateghi migliori che ho. Ha vinto da solo la battaglia terrestre a UR...\n\nPlacidus TX della distruzione: Quella testa di cazzo è il misero stronzo che ha sconfitto l'apostolo Padre?\n\nGenerale del sogno: Sì... le vostre difese e strategie sono paragonabili a idiozie pensate da un bambino che batte il piede. Io sono un “misero stronzo”, può darsi, ma voi tutti state indietreggiando. Essere “celestiali” che pregano un Dio silente, affinché domani o dopodomani l'Occhio nel Cielo non decida di mandare in rovina questo universo. Siete spaventati e l'unica..."
+  },
+  {
+    "id": "e21",
+    "x": 7392,
+    "y": 1540,
+    "l": "IL SOGNO DELLA REGINA · LE MENTI CONNESSE",
+    "q": "«Pensieri di Madama Morte: In maniera simbolica...  Edward White, detto l'Occhio nel C...»",
+    "b": "Pensieri di Madama Morte: In maniera simbolica...\n\nEdward White, detto l'Occhio nel Cielo: Ah sì? Scusa, continua.\n\nPensieri di Madama Morte: (Ma guarda che sorriso da pezzo di merda.) Tu sei un ingegnere efficace, però stai barando. Il tuo leggere la mente ti rende sicuro. Ti senti il migliore e imbattibile, ed effettivamente lo sei. Nessuno nell'universo legge la mente. Non ho mai capito come mai... Sai, esistono tecnologie in grado di cambiare il tuo cervello, manipolarlo per ridurti a schiavo. Si possono controllare i pensieri, ma non leggerli. Tu, Edward White, possiedi un dono unico. Una domanda? (È impassibile, non cambia mai espressione. Quel maledetto sorrisetto.) Dentro di te si cela un sogno oppure un incubo?"
+  },
+  {
+    "id": "e22",
+    "x": 2068,
+    "y": 1050,
+    "l": "MADAMA MORTE · IL CONTO DEI CADUTI",
+    "q": "«Comunicazione Soldato semplice Ridon: Signora! Signora! Sono saliti a bordo tre uomin...»",
+    "b": "Comunicazione Soldato semplice Ridon: Signora! Signora! Sono saliti a bordo tre uomini sulla nave “Peg-Anduf”. Rumori di spari. Sono qui sul ponte… esplosione.\n\nComunicazione Colonnello Virustros: Signora! La nave militare “Per-D23” è stata abbattuta... Signora, la nave “Singhiozzo” si è diretta spontaneamente nella stella.\n\nMadama Morte: Generale Staion! Mi ricevi?"
+  },
+  {
+    "id": "e23",
+    "x": 5452,
+    "y": 2250,
+    "l": "DOPO TIX · LE MACCHINE SILENZIOSE",
+    "q": "«Armatura del Divenire: Parlo con la Morte, giusto?  Madama Morte: Figlio di puttana! ...»",
+    "b": "Armatura del Divenire: Parlo con la Morte, giusto?\n\nMadama Morte: Figlio di puttana!\n\nArmatura del Divenire: Lo so che voi apostoli non morite così facilmente. Dopo il mal di testa, vienimi a trovare. Abbiamo tante cose da dirci."
+  },
+  {
+    "id": "e24",
+    "x": 7896,
+    "y": 1540,
+    "l": "L'ULTIMO SEGNALE · LA MEMORIA RICOMPOSTA",
+    "q": "«Placiuds TX della Distruzione: Tu non torni più. Hai perso tutto. Anastasia, tu non p...»",
+    "b": "Placiuds TX della Distruzione: Tu non torni più. Hai perso tutto. Anastasia, tu non puoi tornare. La perdita di una madre è una cosa che Bep-e non può ancora affrontare.\n\nMadama Morte la Vedova: ...Tu sei troppo legato al piccolo! È mio figlio, mio e di Edward, non tuo e nemmeno di quel mezzo uomo sognante! Io posso...\n\nPlaciuds TX della Distruzione: Tu non puoi un cazzo, stronza! Edward ti ha portato via la tua identità, il tuo potenziale. Tu non torni più come gli altri apostoli!"
+  }
+];
+/* le pagine autentiche da 'eye in the sky coretto.odt' che questa memoria si porta dietro */
+NOTE_DEF = NOTE_DEF.filter(function(n) { return MZ.notes.indexOf(n.id) >= 0; });
+/* ============================================================
+   STATO
+   ============================================================ */
+var P={x:470,y:GY,vx:0,vy:0,dir:1,phase:0,speed:0,state:"idle",ground:true,
+  onLadder:false,invuln:0,blink:0,earA:0,earV:0,ear2A:0,ear2V:0,tailA:0,tailV:0,
+  bodyY:0,bodyV:0,cd:0,swing:0,recoil:0,aim:0,muzzle:0,w:46,h:92,scale:1,build:1,line:3,dead:false};
+var camx=0,camy=0,time=0,dt=0;
+var bul=[],eb=[],parts=[],ents=[],notes=[],notesTaken={},stars=[];
+var G={intro:1.6,cass:false,eyeOn:false,eyeT:0,eyeMax:MZ.timer,eyeBlink:0,hp:MZ.hp,maxhp:MZ.hp,
+  over:0,win:0,daisy:0,daisyT:0,msg:"",msgT:0,shake:0,flash:0,seen:0,fade:0,ended:false,eyeX:470,eyeY:120};
+function toast(s,tm){G.msg=s;G.msgT=tm||3.2}
+(function(){var i;for(i=0;i<160;i++)stars.push({x:rnd(i*2.3)*W,y:rnd(i*5.1)*GY,r:.6+rnd(i*7.7)*1.5,s:.3+rnd(i*3.3)*.9});})();
+/* ---- collisioni -------------------------------------------- */
+function hitsAt(x,y,w,h){
+  var bx=x-w/2,by=y-h,i,s;
+  for(i=0;i<SOL.length;i++){
+    s=SOL[i];
+    if(bx<s.x+s.w&&bx+w>s.x&&by<s.y+s.h&&by+h>s.y)return s;
+  }
+  return null;
+}
+function ladderAt(x,y){
+  var i,l;
+  for(i=0;i<LAD.length;i++){
+    l=LAD[i];
+    if(Math.abs(x-l.x)<36&&y<=l.y0+14&&y>=l.y1-14)return l;
+  }
+  return null;
+}
+function groundBelow(x,y){
+  var i,s,best=null;
+  for(i=0;i<SOL.length;i++){
+    s=SOL[i];
+    if(x>s.x-4&&x<s.x+s.w+4&&s.y>=y-6&&(!best||s.y<best.y))best=s;
+  }
+  return best;
+}
+/* ---- si riparte -------------------------------------------- */
+
+function spawnEndlessWave(wave){
+  ents.length = 0;
+  // NEMICI TANTI, SEMPRE DI PIÙ E FRENETICI!
+  var count = 18 + (wave - 1) * 8;
+  G.waveTotal = count;
+  var hpMult = 1.0 + Math.min(2.5, (wave - 1) * 0.16);
+  var spdMult = 1.0 + Math.min(1.4, (wave - 1) * 0.10);
+
+  // Distanza minima di sicurezza assoluta: compaiono sempre lontani dal giocatore (>1800px)
+  var safeDist = 1800;
+
+  for(var i = 0; i < count; i++){
+    var t = (i % 3 === 0) ? "drone" : (i % 3 === 1) ? "soldier" : "daisy";
+    var rx;
+
+    var canLeft = (P.x - safeDist) > 300;
+    var canRight = (P.x + safeDist) < (W - 300);
+
+    var spawnLeft = false;
+    if (canLeft && canRight) {
+      spawnLeft = (i % 2 === 1);
+    } else if (canLeft) {
+      spawnLeft = true;
+    } else {
+      spawnLeft = false;
+    }
+
+    if (spawnLeft) {
+      var minX = 160;
+      var maxX = Math.max(minX + 50, P.x - safeDist);
+      rx = minX + Math.random() * (maxX - minX);
+    } else {
+      var minX2 = Math.min(W - 300, P.x + safeDist);
+      var maxX2 = W - 160;
+      rx = minX2 + Math.random() * (maxX2 - minX2);
+    }
+
+    rx = clamp(rx, 100, W - 100);
+
+    var ry;
+    if (t === "drone") {
+      ry = 550 + Math.random() * 850;
+    } else {
+      var candidateY = Math.random() < 0.45 ? 950 : Math.random() < 0.75 ? GY : SY;
+      var gSol = groundBelow(rx, candidateY);
+      ry = gSol ? gSol.y : GY;
+    }
+    var baseHp = (t === "daisy" ? 46 : t === "soldier" ? 58 : 40) * hpMult;
+    ents.push({
+      t: t,
+      x: rx,
+      y: ry,
+      bx: rx,
+      by: ry,
+      hp: baseHp,
+      max: baseHp,
+      dead: false,
+      fire: 4.5 + Math.random() * 3.0, // Ampia pausa iniziale: devono correre attraverso la citta'
+      ph: Math.random() * 6.28,
+      hit: 0,
+      vx: 0,
+      dir: (rx < P.x ? 1 : -1),
+      bob: 0
+    });
+  }
+}
+
+function nextEndlessWave(){
+  G.wave++;
+  G.waveKills = 0;
+  var count = 18 + (G.wave - 1) * 8;
+  G.waveTotal = count;
+  G.corruption = Math.min(100, 5 + (G.wave - 1) * 8);
+  G.hp = Math.min(G.maxhp, G.hp + 3);
+  G.shake = 12;
+  G.flash = 0.9;
+  toast(T("ONDATA ","WAVE ") + G.wave + T(" · CORRUZIONE: "," · CORRUPTION: ") + G.corruption + T("% · ORDA NEMICA: ","% · ENEMY HORDE: ") + count, 4.2);
+  if(typeof SFX!=="undefined") SFX.win();
+  spawnEndlessWave(G.wave);
+}
+
+function reset(){
+  P.x=470;P.y=GY;P.vx=0;P.vy=0;P.dir=1;P.state="idle";P.ground=true;P.onLadder=false;
+  P.invuln=0;P.cd=0;P.swing=0;P.recoil=0;P.dead=false;P.phase=0;P.speed=0;
+  bul.length=0;eb.length=0;parts.length=0;notesTaken={};
+  CASS.taken=false;
+  G.maxhp=MZ.hp;G.eyeMax=MZ.timer;
+  G.cass=false;G.eyeOn=false;G.eyeT=0;G.hp=G.maxhp;G.over=0;G.win=0;G.daisy=0;G.daisyT=0;G.ended=false;
+  G.eyeX=P.x;G.eyeY=120;
+  G.fade=0;G.shake=0;G.flash=0;
+  G.intro = IS_ENDLESS ? 2.5 : 1.6;
+  G.timeFrozen=false;G.freezeTimer=0;G.eyeCooldown=0;
+  if(IS_ENDLESS){
+    G.endless = true;
+    G.wave = 1;
+    G.waveKills = 0;
+    G.waveTotal = 18;
+    G.corruption = 5;
+    toast(T("« LUI TI VEDE, TI LEGGE LA MENTE »", "« HE SEES YOU, HE READS YOUR MIND »"), 4.5);
+    spawnEndlessWave(G.wave);
+  } else {
+    ents.length=0;
+    (function(){
+      var i,d;
+      for(i=0;i<SPAWN.length;i++){
+        d=SPAWN[i];
+        ents.push({t:d.t,x:d.x,y:d.y,bx:d.x,by:d.y,hp:d.t==="daisy"?46:d.t==="soldier"?58:40,
+          max:d.t==="daisy"?46:d.t==="soldier"?58:40,dead:false,fire:1+rnd(i*2.1)*1.4,
+          ph:rnd(i*3.3)*6.3,hit:0,vx:0,dir:-1,bob:0});
+      }
+    })();
+  }
+  notes.length=0;
+  (function(){var i;for(i=0;i<NOTE_DEF.length;i++)notes.push({id:NOTE_DEF[i].id,x:NOTE_DEF[i].x,y:NOTE_DEF[i].y,l:NOTE_DEF[i].l,q:NOTE_DEF[i].q,got:false});})();
+  camx=clamp(P.x-VW/2,0,W-VW);camy=clamp(P.y-VH*0.6,0,H-VH);
+}
+/* ============================================================
+   IL CONIGLIO IN MOVIMENTO — gravita', scale, coyote time
+   ============================================================ */
+var coyote=0;
+function updatePlayer(){
+  var walk=430,run=690,acc=3600;
+  if(P.dead)return;
+  var want=(hitKey("d","arrowright")?1:0)-(hitKey("a","arrowleft")?1:0);
+  var up=hitKey("w","arrowup"),down=hitKey("s","arrowdown");
+  var lad=ladderAt(P.x,P.y);
+  P.invuln=Math.max(0,P.invuln-dt);
+  P.cd=Math.max(0,P.cd-dt);
+  P.swing=Math.max(0,P.swing-dt);
+  P.recoil=Math.max(0,P.recoil-dt*4);
+  P.muzzle=Math.max(0,P.muzzle-dt);
+  P.blink-=dt;
+  if(P.blink<-0.4&&Math.random()<dt*0.4)P.blink=0.14;
+  /* --- la scala --- */
+  if(P.onLadder&&!lad)P.onLadder=false;
+  if(P.onLadder){
+    P.x=lerp(P.x,lad.x,0.35);
+    P.vy=up?-300:down?300:0;
+    P.y+=P.vy*dt;
+    if(P.y<=lad.y1&&!down){P.y=lad.y1;P.onLadder=false;P.vy=0;P.ground=true;}
+    else if(P.y>=lad.y0&&!up){P.y=lad.y0;P.onLadder=false;P.vy=0;P.ground=true;}
+    if(hitKey("space")){P.onLadder=false;P.vy=-520;P.ground=false;if(typeof SFX!=="undefined")SFX.jump();}
+    P.phase+=dt*3;P.state="climb";P.speed=0;P.vx=0;
+    return;
+  }
+  if(lad&&(up||down)){P.onLadder=true;return;}
+  /* --- passo --- */
+  if(want!==0){P.vx+=want*acc*dt;P.dir=want;}
+  else P.vx-=P.vx*Math.min(1,13*dt);
+  var lim=keys["shift"]?run:walk;
+  P.vx=clamp(P.vx,-lim,lim);
+  var nx=P.x+P.vx*dt,s=hitsAt(nx,P.y,P.w,P.h);
+  if(s){nx=P.vx>0?s.x-P.w/2-0.2:s.x+s.w+P.w/2+0.2;P.vx=0;}
+  P.x=clamp(nx,26,W-26);
+  /* --- salto --- */
+  if(P.ground)coyote=0.11;else coyote=Math.max(0,coyote-dt);
+  if(hitKey("space")&&coyote>0){P.vy=-880;P.ground=false;coyote=0;if(typeof SFX!=="undefined")SFX.jump();}
+  P.vy=Math.min(P.vy+2150*dt,1600);
+  var ny=P.y+P.vy*dt,sy=hitsAt(P.x,ny,P.w,P.h);
+  var wasGround = P.ground;
+  P.ground=false;
+  if(sy){
+    if(P.vy>0){
+      ny=sy.y;P.ground=true;
+      if(!wasGround && P.vy > 280 && typeof SFX!=="undefined") SFX.land();
+    }
+    else{ny=sy.y+sy.h+P.h;P.vy=0;}
+  }
+  if(ny>H-30){
+    if(!wasGround && P.vy > 280 && typeof SFX!=="undefined") SFX.land();
+    ny=H-30;P.ground=true;
+  }
+  P.y=ny;
+  /* passi */
+  if(P.ground && Math.abs(P.vx) > 35){
+    P.stepT = (P.stepT || 0) + dt;
+    if(P.stepT > (keys["shift"] ? 0.22 : 0.34)){
+      P.stepT = 0;
+      if(typeof SFX!=="undefined") SFX.step();
+    }
+  } else {
+    P.stepT = 0.16;
+  }
+  /* --- pericolo radiazioni e fanghi tossici --- */
+  var inToxic = false;
+  for (var tsi = 0; tsi < SOL.length; tsi++) {
+    var tsol = SOL[tsi];
+    if (tsol.k === "toxic" && P.x >= tsol.x && P.x <= tsol.x + tsol.w && P.y >= tsol.y - 12 && P.y <= tsol.y + tsol.h + 20) {
+      inToxic = true;
+      break;
+    }
+  }
+  if (inToxic) {
+    P.toxicContact = (P.toxicContact || 0) + dt;
+    if (P.toxicContact > 0.85) {
+      P.toxicContact = 0;
+      hurtP(1);
+      toast("RADIAZIONE CRITICA · FANGHI TOSSICI", 1.8);
+    }
+  } else {
+    P.toxicContact = 0;
+  }
+  /* --- lo stato del corpo --- */
+  P.speed=Math.abs(P.vx);
+  if(!P.ground)P.state="jump";
+  else if(P.speed>500)P.state="run";
+  else if(P.speed>14)P.state="walk";
+  else P.state="idle";
+  P.phase+=(Math.min(P.speed,700)/70)*dt*7.5;
+  if(P.speed<14)P.phase+=dt*0.7;
+  var bounce=(P.state==="walk"||P.state==="run")?Math.sin(P.phase*2)*0.16:0;
+  var targetEar=-0.4*P.dir*(P.speed/690)+bounce*0.5;
+  P.earV+=(targetEar-P.earA)*46*dt;P.earV*=Math.pow(0.02,dt);P.earA+=P.earV*dt;
+  P.ear2V+=(targetEar*1.35-P.ear2A)*38*dt-P.earV*0.3;P.ear2V*=Math.pow(0.02,dt);P.ear2A+=P.ear2V*dt;
+  P.tailV+=(-P.dir*0.25*(0.3+P.speed/690)-P.tailA)*30*dt;P.tailV*=Math.pow(0.05,dt);P.tailA+=P.tailV*dt;
+  var tb=Math.abs(Math.sin(P.phase*2))*(P.speed>14?4:0);
+  P.bodyV+=(tb-P.bodyY)*90*dt;P.bodyV*=Math.pow(0.01,dt);P.bodyY+=P.bodyV*dt;
+}
+function aimAngle(){
+  var ex=P.x-camx,ey=P.y-56-camy;
+  return Math.atan2(mouse.y-ey,mouse.x-ex);
+}
+/* ============================================================
+   LE ARMI — sparano davvero, ognuna a modo suo
+   ============================================================ */
+/* ============================================================
+   L'OCCHIO DEL TEMPO — IL DONO DI B-E-P-E
+   Ferma il tempo per 10 secondi. Il mondo e i nemici si congelano.
+   I proiettili sparati restano sospesi a mezz'aria davanti ai bersagli.
+   Al riavvio del tempo il danno accumulato si scatena simultaneamente!
+   ============================================================ */
+function triggerEyeTimeFreeze(){
+  if (G.timeFrozen) {
+    unfreezeTime();
+    return;
+  }
+  if ((G.eyeCooldown || 0) > 0) {
+    toast(T("L'OCCHIO SI STA RICARICANDO · ", "THE EYE IS RECHARGING · ") + Math.ceil(G.eyeCooldown) + "s", 1.8);
+    return;
+  }
+  G.timeFrozen = true;
+  G.freezeTimer = 10.0;
+  G.eyeCooldown = 22.0;
+  G.shake = 9;
+  G.flash = 0.8;
+  if(typeof SFX !== "undefined") SFX.timeFreeze();
+  toast(T("L'OCCHIO ATTIVATO · TEMPO FERMO PER 10s · SPARA AI NEMICI", "THE EYE ACTIVATED · TIME FROZEN FOR 10s · SHOOT ENEMIES"), 3.2);
+}
+
+function unfreezeTime(){
+  if (!G.timeFrozen) return;
+  G.timeFrozen = false;
+  G.freezeTimer = 0;
+  G.shake = 12;
+  G.flash = 0.9;
+  if(typeof SFX !== "undefined") SFX.timeResume();
+  toast(T("TEMPO RIPARTITO · IL DANNO SI SCATENA!", "TIME RESUMED · DAMAGE UNLEASHED!"), 2.4);
+
+  // Applica eventuale danno da spada sferrato durante la stasi
+  for(var i = 0; i < ents.length; i++){
+    var e = ents[i];
+    if (e.dead) continue;
+    if (e.frozenDmg && e.frozenDmg > 0) {
+      hurtEnemy(e, e.frozenDmg, e.x, e.y - 35);
+      e.frozenDmg = 0;
+    }
+  }
+}
+
+function baseAng(){
+  var a=aimAngle();
+  P.dir=Math.cos(a)>=0?1:-1;
+  return a;
+}
+function fire(){
+  if(P.cd>0||P.dead||G.ended||G.daisy>0)return;
+  var w=curW(),a=baseAng(),i,sp;
+  if(w.id==="eye"||w.timeFreeze){
+    P.cd=0.4;
+    triggerEyeTimeFreeze();
+    return;
+  }
+  if(w.melee){
+    P.swing=0.26;P.cd=w.cd;
+    if(typeof SFX!=="undefined")SFX.shoot("sword");
+    for(i=0;i<ents.length;i++){
+      var e=ents[i];
+      if(e.dead)continue;
+      var dx=e.x-P.x,dy=(e.y-(e.t==="drone"?34:48))-(P.y-56);
+      var d=Math.sqrt(dx*dx+dy*dy);
+      if(d<w.range){
+        var da=Math.atan2(dy,dx)-a;
+        while(da>Math.PI)da-=6.283;while(da<-Math.PI)da+=6.283;
+        if(Math.abs(da)<1.15){
+          if(G.timeFrozen){
+            e.frozenDmg = (e.frozenDmg || 0) + w.dmg;
+            for(var spk=0; spk<6; spk++){
+              parts.push({x:e.x+(Math.random()-0.5)*30,y:e.y-40+(Math.random()-0.5)*30,
+                vx:(Math.random()-0.5)*50,vy:(Math.random()-0.5)*50,life:0.9,max:0.9,col:"#c084fc",r:2.2});
+            }
+          } else {
+            hurtEnemy(e,w.dmg,d.x||P.x,d.y||P.y);
+          }
+        }
+      }
+    }
+    for(i=0;i<12;i++)parts.push({x:P.x+Math.cos(a)*40,y:P.y-56+Math.sin(a)*40,
+      vx:Math.cos(a)*(160+Math.random()*260)+(Math.random()-0.5)*120,
+      vy:Math.sin(a)*(160+Math.random()*260)+(Math.random()-0.5)*120,
+      life:0.26,max:0.26,col:G.timeFrozen?"#c084fc":"#dfe7ec",r:1.5});
+    G.shake=Math.min(7,G.shake+2.4);
+    return;
+  }
+  P.cd=w.cd;P.recoil=1;P.muzzle=0.07;
+  if(typeof SFX!=="undefined")SFX.shoot(w.id);
+  for(i=0;i<(w.n||1);i++){
+    sp=a+(Math.random()-0.5)*w.spread*2;
+    var bx=P.x+Math.cos(sp)*36, by=P.y-56+Math.sin(sp)*36;
+    if(G.timeFrozen){
+      bul.push({x:bx+Math.cos(sp)*18,y:by+Math.sin(sp)*18,
+        vx:Math.cos(sp)*w.spd,vy:Math.sin(sp)*w.spd,dmg:w.dmg,life:w.life,
+        col:w.col,flame:!!w.flame,r:w.flame?12:3.0,frozen:true});
+      for(var pr=0;pr<4;pr++)parts.push({x:bx,y:by,vx:(Math.random()-0.5)*30,vy:(Math.random()-0.5)*30,life:0.8,max:0.8,col:"#c084fc",r:2.2});
+    } else {
+      bul.push({x:bx,y:by,vx:Math.cos(sp)*w.spd,vy:Math.sin(sp)*w.spd,dmg:w.dmg,life:w.life,
+        col:w.col,flame:!!w.flame,r:w.flame?11:2.6});
+    }
+  }
+  if(!w.flame){
+    for(i=0;i<5;i++)parts.push({x:P.x+Math.cos(a)*38,y:P.y-56+Math.sin(a)*38,
+      vx:Math.cos(a)*(140+Math.random()*190)+(Math.random()-0.5)*90,
+      vy:Math.sin(a)*(140+Math.random()*190)+(Math.random()-0.5)*90,
+      life:0.2,max:0.2,col:G.timeFrozen?"#c084fc":"#ffd88a",r:1.5});
+  }
+  G.shake=Math.min(6,G.shake+(w.recoil||0)*0.03+0.6);
+}
+function updateBullets(){
+  var i,j,b,e,dx,dy,gone;
+  for(i=bul.length-1;i>=0;i--){
+    b=bul[i];
+    if(b.frozen){
+      if(!G.timeFrozen){
+        b.frozen=false;
+      } else {
+        continue;
+      }
+    }
+    b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
+    if(b.flame){
+      b.vx*=Math.pow(0.05,dt);b.vy=b.vy*Math.pow(0.05,dt)-120*dt;
+      if(Math.random()<dt*40)parts.push({x:b.x,y:b.y,vx:(Math.random()-0.5)*40,vy:-40-Math.random()*60,life:0.4,max:0.4,col:"#ff9a3c",r:Math.random()*7+3});
+    }
+    if(b.life<=0||b.x<-60||b.x>W+60||b.y<-60||b.y>H+60){bul.splice(i,1);continue;}
+    if(!b.flame&&hitsAt(b.x,b.y,7,7)){
+      for(j=0;j<5;j++)parts.push({x:b.x,y:b.y,vx:(Math.random()-0.5)*260,vy:(Math.random()-0.5)*260,life:0.24,max:0.24,col:b.col,r:1.6});
+      bul.splice(i,1);continue;
+    }
+    gone=false;
+    for(j=0;j<ents.length;j++){
+      e=ents[j];
+      if(e.dead)continue;
+      dx=b.x-e.x;dy=b.y-(e.y-(e.t==="drone"?34:48));
+      if(dx*dx+dy*dy<42*42){hurtEnemy(e,b.dmg,b.x,b.y);bul.splice(i,1);gone=true;break;}
+    }
+  }
+  for(i=eb.length-1;i>=0;i--){
+    b=eb[i];
+    if(G.timeFrozen){
+      continue;
+    }
+    b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
+    if(b.life<=0){eb.splice(i,1);continue;}
+    if(hitsAt(b.x,b.y,7,7)){
+      for(j=0;j<3;j++)parts.push({x:b.x,y:b.y,vx:(Math.random()-0.5)*160,vy:(Math.random()-0.5)*160,life:0.2,max:0.2,col:"#ff5a5a",r:1.4});
+      eb.splice(i,1);continue;
+    }
+    dx=b.x-P.x;dy=b.y-(P.y-52);
+    if(dx*dx+dy*dy<34*34){eb.splice(i,1);hurtP(1);}
+  }
+}
+function hurtEnemy(e,dmg,fx,fy){
+  e.hp-=dmg;e.hit=0.16;
+  if(typeof SFX!=="undefined")SFX.hit();
+  var n=e.t==="drone"?6:5,i;
+  for(i=0;i<n;i++)parts.push({x:fx||e.x,y:fy||(e.y-46),vx:(Math.random()-0.5)*320,vy:(Math.random()-0.5)*320,life:0.34,max:0.34,col:e.t==="daisy"?"#f5f3e6":"#ff6a4a",r:2+Math.random()*2.4});
+  if(e.hp<=0&&!e.dead){
+    e.dead=true;
+    if(typeof SFX!=="undefined")SFX.enemyDie();
+    if(G.endless){
+      G.waveKills = (G.waveKills || 0) + 1;
+      if(G.waveKills >= G.waveTotal){
+        nextEndlessWave();
+      }
+    }
+    for(i=0;i<18;i++)parts.push({x:e.x,y:e.y-(e.t==="drone"?34:44),vx:(Math.random()-0.5)*420,vy:(Math.random()-0.5)*420,life:0.7,max:0.7,col:e.t==="daisy"?"#f7f4e4":"#ff7a4a",r:2+Math.random()*3});
+    G.shake=Math.min(8,G.shake+3);
+  }
+}
+function hurtP(n){
+  if(P.invuln>0||P.dead||G.win>0)return;
+  G.hp-=n;P.invuln=0.9;G.shake=Math.min(10,G.shake+3.4);G.flash=Math.max(G.flash,0.42);
+  if(typeof SFX!=="undefined")SFX.hurt();
+  if(G.hp<=0){G.hp=0;startDaisy("TI HANNO PRESO");}
+}
+/* ============================================================
+   LORO — margherite, soldati, droni (Inseguimento Frenetico)
+   ============================================================ */
+function shootAt(e,spd){
+  if(typeof SFX!=="undefined")SFX.enemyShoot();
+  var oy=e.t==="drone"?34:44;
+  var dx=P.x-e.x,dy=(P.y-52)-(e.y-oy),a=Math.atan2(dy,dx)+(Math.random()-0.5)*0.17;
+  eb.push({x:e.x+Math.cos(a)*22,y:e.y-oy+Math.sin(a)*22,
+    vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,life:3.2,col:"#ff5a5a"});
+  for(var i=0;i<3;i++)parts.push({x:e.x+Math.cos(a)*22,y:e.y-oy+Math.sin(a)*22,
+    vx:Math.cos(a)*90+(Math.random()-0.5)*90,vy:Math.sin(a)*90+(Math.random()-0.5)*90,
+    life:0.18,max:0.18,col:"#ffb37a",r:1.6});
+}
+function findLadderForEnemy(ex, ey, needUp){
+  var best = null, bestDist = 1e9;
+  for(var i = 0; i < LAD.length; i++){
+    var l = LAD[i];
+    // l.y0 e' la base in basso (numero maggiore), l.y1 e' la cima in alto (numero minore)
+    if(needUp){
+      if(l.y1 < ey - 20 && ey >= l.y1 - 35 && ey <= l.y0 + 35){
+        var dist = Math.abs(ex - l.x);
+        if(dist < bestDist){
+          bestDist = dist;
+          best = l;
+        }
+      }
+    } else {
+      if(l.y0 > ey + 20 && ey >= l.y1 - 35 && ey <= l.y0 + 35){
+        var dist2 = Math.abs(ex - l.x);
+        if(dist2 < bestDist){
+          bestDist = dist2;
+          best = l;
+        }
+      }
+    }
+  }
+  return best;
+}
+
+function updateWalkingEnemy(e, moveSpeed, climbSpeed, dt){
+  var dx = P.x - e.x;
+  var dy = P.y - e.y;
+  var needVertical = Math.abs(dy) > 70;
+
+  if(e.onLadder){
+    var lad = e.ladderObj;
+    if(!lad || Math.abs(e.x - lad.x) > 50){
+      e.onLadder = false;
+      e.ladderObj = null;
+    } else {
+      var goingUp = (P.y < e.y);
+      e.x = lerp(e.x, lad.x, Math.min(1, 14 * dt));
+      e.y += (goingUp ? -1 : 1) * climbSpeed * dt;
+      e.by = e.y;
+      e.dir = dx >= 0 ? 1 : -1;
+
+      if(goingUp && e.y <= lad.y1 + 4){
+        e.y = lad.y1;
+        e.by = e.y;
+        e.onLadder = false;
+        e.ladderObj = null;
+      } else if(!goingUp && e.y >= lad.y0 - 4){
+        e.y = lad.y0;
+        e.by = e.y;
+        e.onLadder = false;
+        e.ladderObj = null;
+      } else if(Math.abs(P.y - e.y) < 25){
+        e.onLadder = false;
+        e.ladderObj = null;
+      }
+      return;
+    }
+  }
+
+  if(needVertical){
+    var wantUp = (dy < 0);
+    var ladFound = findLadderForEnemy(e.x, e.y, wantUp);
+    if(ladFound){
+      if(Math.abs(e.x - ladFound.x) < 26){
+        e.onLadder = true;
+        e.ladderObj = ladFound;
+        e.x = ladFound.x;
+      } else {
+        e.dir = (ladFound.x > e.x) ? 1 : -1;
+        e.x += e.dir * moveSpeed * dt;
+      }
+    } else {
+      e.dir = dx >= 0 ? 1 : -1;
+      e.x += e.dir * moveSpeed * dt;
+    }
+  } else {
+    e.dir = dx >= 0 ? 1 : -1;
+    e.x += e.dir * moveSpeed * dt;
+  }
+
+  if(!e.onLadder){
+    var gSol = groundBelow(e.x, e.y - 12);
+    if(gSol){
+      if(e.y < gSol.y){
+        e.y = Math.min(gSol.y, e.y + 820 * dt);
+      } else if(e.y > gSol.y + 4){
+        e.y = gSol.y;
+      }
+      e.by = e.y;
+    } else {
+      e.y = Math.min(SY, e.y + 880 * dt);
+      e.by = e.y;
+    }
+  }
+
+  e.x = clamp(e.x, 30, W - 30);
+}
+
+function updateEnemies(){
+  if(G.timeFrozen) return; // Nemici congelati nel tempo!
+  var i,e,dx,dy,d,act;
+  var isEndless = IS_ENDLESS || (typeof G !== 'undefined' && G.endless);
+  var waveLvl = (typeof G !== 'undefined' && G.wave) || 1;
+
+  for(i=0;i<ents.length;i++){
+    e=ents[i];
+    e.ph+=dt;e.hit=Math.max(0,e.hit-dt);
+    if(e.dead)continue;
+    dx=P.x-e.x;dy=P.y-e.y;d=Math.sqrt(dx*dx+dy*dy);
+
+    // TUTTI I NEMICI USANO LE SCALE E INSEGUONO IL GIOCATORE IN TUTTE LE MODALITÀ!
+    // In Gioco Infinito: allerta globale continua.
+    // Nelle Missioni 1-8: i nemici si attivano appena il giocatore si avvicina (<850px),
+    // se subiscono colpi, se l'Occhio è attivo, o se sono già su una scala.
+    if(isEndless){
+      act = !P.dead && G.daisy <= 0;
+    } else {
+      if(!P.dead && G.daisy <= 0){
+        if(e.onLadder || e.hit > 0 || G.eyeOn || d < 850){
+          e.alerted = true;
+        } else if(d > 1400){
+          e.alerted = false;
+        }
+        act = !!e.alerted;
+      } else {
+        act = false;
+      }
+    }
+
+    if(e.t==="daisy"){
+      if(act){
+        var daisySpd = isEndless ? (200 + Math.min(160, waveLvl * 14)) : 135;
+        var daisyClimb = isEndless ? (180 + Math.min(130, waveLvl * 10)) : 140;
+        updateWalkingEnemy(e, daisySpd, daisyClimb, dt);
+      } else if(!isEndless) {
+        e.x += Math.sin(e.ph * 0.7) * 26 * dt;
+        e.x = clamp(e.x, e.bx - 120, e.bx + 120);
+        e.y = e.by + Math.sin(e.ph * 3.2) * 2.5;
+      }
+      if(d < 56 && Math.abs(dy) < 80) hurtP(1);
+    } else if(e.t==="soldier"){
+      e.fire -= dt;
+      if(act){
+        var sldSpd = isEndless ? (135 + Math.min(130, waveLvl * 10)) : 110;
+        var sldClimb = isEndless ? (145 + Math.min(120, waveLvl * 9)) : 125;
+        updateWalkingEnemy(e, sldSpd, sldClimb, dt);
+
+        var fireDist = isEndless ? 1400 : 850;
+        if(!e.onLadder && e.fire <= 0 && Math.abs(dx) < fireDist && Math.abs(dy) < 320){
+          e.fire = (isEndless ? (1.0 + rnd(i*1.1)*0.6) : (1.9 + rnd(i*1.3)*0.9)) / (1 + (isEndless ? waveLvl * 0.06 : 0));
+          shootAt(e, isEndless ? 350 : 300);
+        }
+      } else if(!isEndless){
+        e.dir = dx >= 0 ? 1 : -1;
+      }
+    } else {
+      // Droni (volano in 2D inseguendo il giocatore tra i vari livelli)
+      if(act){
+        var drSpd = isEndless ? (150 + Math.min(160, waveLvl * 12)) : 100;
+        var ang = Math.atan2(dy - 40, dx);
+        e.x += Math.cos(ang) * drSpd * dt;
+        e.y += Math.sin(ang) * drSpd * dt;
+        e.x = clamp(e.x, 30, W - 30);
+        e.dir = dx >= 0 ? 1 : -1;
+        e.fire -= dt;
+        if(e.fire <= 0 && d < (isEndless ? 950 : 660)){
+          e.fire = (isEndless ? (1.2 + rnd(i*2.2)*0.8) : (2.3 + rnd(i*3.7)*1.0)) / (1 + (isEndless ? waveLvl * 0.05 : 0));
+          shootAt(e, isEndless ? 320 : 260);
+        }
+        if(d < 52) hurtP(1);
+      } else if(!isEndless) {
+        e.x += Math.sin(e.ph * 0.8) * 30 * dt;
+        e.y = e.by + Math.sin(e.ph * 1.6) * 18;
+      }
+    }
+  }
+}
+/* ============================================================
+   COSE DA PRENDERE — note, cassetta, furgone
+   ============================================================ */
+function takeNote(n){
+  n.got=true;
+  if(typeof SFX!=="undefined")SFX.pickup();
+  var a=loadJ(SAVE_A);
+  a.pages=a.pages||{};a.pages[n.id]=(a.pages[n.id]||0)+1;
+  a.seen=a.seen||{};a.seen[n.id]=true;
+  /* la nota si porta dietro quello che c'è scritto: etichetta, frase e
+     il foglio intero. Il museo non ha la strada sotto mano, e senza
+     questo nel computer di bordo resterebbe solo un numero. */
+  a.noteText=a.noteText||{};
+  a.noteText[n.id]={l:n.l,q:n.q,b:n.b||""};
+  saveJ(SAVE_A,a);
+  toast(T("PAGINA DEL LIBRO · ", "BOOK PAGE · ") + n.l + T(" — ricopiata nel computer di bordo", " — copied to onboard computer"), 4.6);
+  G.flash=0.3;
+  for(var i=0;i<22;i++)parts.push({x:n.x,y:n.y-14,vx:(Math.random()-0.5)*230,vy:-Math.random()*260,life:0.9,max:0.9,col:"#e8dcc0",r:2+Math.random()*2});
+}
+function winMission(){
+  if(G.win>0||G.daisy>0)return;
+  G.win=0.0001;G.eyeOn=false;G.flash=0.7;
+  if(typeof SFX!=="undefined")SFX.win();
+  var k=String(MEM);
+  var a=loadJ(SAVE_A);
+  a.missions=a.missions||{};a.missions[k]=true;
+  a.videos=a.videos||{};a.videos[k]=true;
+  saveJ(SAVE_A,a);
+  var m=loadJ(SAVE_M);
+  m.memorieSbloccate=Math.max(MEM,m.memorieSbloccate||0);
+  saveJ(SAVE_M,m);
+}
+function startDaisy(reason){
+  if(G.daisy>0||G.win>0)return;
+  G.daisy=0.0001;G.daisyT=0;P.dead=true;P.vx=0;P.vy=0;
+  G.reason=reason||T("TI HANNO PRESO", "THEY GOT YOU");G.shake=12;G.flash=0.9;G.eyeOn=false;
+  if(typeof SFX!=="undefined")SFX.daisy();
+}
+function updatePickups(){
+  var i,n;
+  for(i=0;i<notes.length;i++){
+    n=notes[i];
+    if(n.got)continue;
+    if(Math.abs(P.x-n.x)<62&&Math.abs(P.y-n.y)<100)takeNote(n);
+  }
+  if(!CASS.taken&&Math.abs(P.x-CASS.x)<86&&Math.abs(P.y-CASS.y)<110){
+    CASS.taken=true;G.cass=true;G.eyeOn=true;G.eyeT=MZ.timer;
+    G.flash=0.85;G.shake=9;
+    if(typeof SFX!=="undefined"){ SFX.cassette(); SFX.eyeAlert(); }
+    toast(T("LA CASSETTA E' TUA — TORNA AL FURGONE PRIMA CHE L'OCCHIO TI VEDA · ", "THE TAPE IS YOURS — RETURN TO THE VAN BEFORE THE EYE SEES YOU · ") + fmt(MZ.timer), 5);
+  }
+  if(G.cass&&G.eyeOn&&Math.abs(P.x-EXIT.x)<115&&Math.abs(P.y-EXIT.y)<150)winMission();
+}
+function updateEye(){
+  /* L'occhio nel cielo segue dolcemente il giocatore attraverso la mappa */
+  G.eyeX=lerp(G.eyeX,P.x,Math.min(1,dt*2.2));
+  G.eyeY=lerp(G.eyeY,120+Math.sin(time*1.5)*14,Math.min(1,dt*2.0));
+  if(!G.eyeOn)return;
+  G.eyeT-=dt;
+  if(G.eyeT<=10){
+    G.eyeBlink-=dt;
+    if(G.eyeBlink<-0.5&&Math.random()<dt*3){
+      G.eyeBlink=0.16;
+      if(typeof SFX!=="undefined") SFX.eyePulse();
+    }
+  }
+  if(G.eyeT<=0){G.eyeT=0;G.eyeOn=false;startDaisy("L'OCCHIO TI HA VISTO");}
+}
+function updateParts(){
+  var i,p;
+  for(i=parts.length-1;i>=0;i--){
+    p=parts[i];
+    p.x+=p.vx*dt;p.y+=p.vy*dt;
+    p.vy+=900*dt;p.vx*=Math.pow(0.4,dt);
+    p.life-=dt;
+    if(p.life<=0)parts.splice(i,1);
+  }
+}
+/* ============================================================
+   DISEGNO — prima il cielo, poi le tre quote
+   ============================================================ */
+function camTarget(){
+  return {x:clamp(P.x-VW/2+(mouse.x-VW/2)*0.13,0,W-VW),y:clamp(P.y-VH*0.6,0,H-VH)};
+}
+function updateCam(){
+  var t=camTarget();
+  camx=lerp(camx,t.x,Math.min(1,dt*7));
+  camy=lerp(camy,t.y,Math.min(1,dt*6));
+}
+function skyline(par,baseY,hs,col,windows){
+  var i,d,x,y,h,wy,wx;
+  for(i=0;i<DECO.length;i++){
+    d=DECO[i];
+    x=d.x-camx*par;
+    if(x>VW+240||x+d.w<-240)continue;
+    y=baseY-camy*par*0.55;
+    h=d.h*hs;
+    ctx.fillStyle=col;
+    ctx.fillRect(x,y-h,d.w,h);
+    ctx.fillStyle="rgba(255,255,255,0.035)";
+    ctx.fillRect(x,y-h,d.w,1.5);
+    if(windows){
+      for(wy=0;wy<Math.floor(h/46);wy++){
+        for(wx=0;wx<Math.floor(d.w/26);wx++){
+          if(rnd(d.seed*7.1+wy*3.3+wx*1.7)<0.62)continue;
+          ctx.fillStyle=rnd(d.seed+wy+wx)<0.5?"rgba(255,204,132,0.5)":"rgba(160,214,236,0.35)";
+          ctx.fillRect(x+9+wx*26,y-h+16+wy*46,7,11);
+        }
+      }
+    }
+  }
+}
+
+
+/* ============================================================
+   8 TEMI VISIVI E POST-ATOMICI UNICI — UNA TRASFORMAZIONE RADICALE
+   OGNI MINIGIOCO (M1 -> M8).
+   ============================================================ */
+var THEMES = [
+  {
+    name: "NOTTE INDUSTRIALE (TIX-9)",
+    skyTop: "#060e14", skyMid: "#0b1c24", skyBot: "#03070a",
+    street: "#111b20", streetEdge: "#1e2e36", streetLines: "rgba(180,210,225,0.25)",
+    sewerFloor: "#07120f", sewerWater: "rgba(90,210,180,0.25)", sewerWall: "#0a1512",
+    roof: "#15242b", roofEdge: "#243944", roofWallTop: "#11242d", roofWallBot: "#09141a",
+    moonGlow: "rgba(220,205,170,0.32)", moonCore: "#f6edd9",
+    lampPost: "#132229", lampCone: "rgba(255,206,132,0.22)", lampBulb: "rgba(255,236,196,0.9)",
+    falloutCol: "rgba(216,206,188,", falloutCount: 35, falloutSpeed: 1.0,
+    fogCol: "#0c1f28", fogAlpha: 0.08,
+    sil1: "#071015", sil2: "#0b1820", sil3: "#10222a"
+  },
+  {
+    name: "ACCIAIO E SMOG ACIDO (TIX-8)",
+    skyTop: "#121b16", skyMid: "#1c281e", skyBot: "#0c130d",
+    street: "#161f19", streetEdge: "#26352c", streetLines: "rgba(200,215,170,0.22)",
+    sewerFloor: "#0d1a12", sewerWater: "rgba(120,220,140,0.30)", sewerWall: "#0e1a14",
+    roof: "#1a2b20", roofEdge: "#2d4234", roofWallTop: "#15261c", roofWallBot: "#0b150f",
+    moonGlow: "rgba(215,220,150,0.32)", moonCore: "#eee8ce",
+    lampPost: "#17261d", lampCone: "rgba(215,245,160,0.24)", lampBulb: "rgba(235,255,190,0.9)",
+    falloutCol: "rgba(190,210,175,", falloutCount: 50, falloutSpeed: 1.15,
+    fogCol: "#142419", fogAlpha: 0.11,
+    sil1: "#0b140e", sil2: "#122017", sil3: "#1a2c20"
+  },
+  {
+    name: "DESOLAZIONE DI ZOLFO (TIX-7)",
+    skyTop: "#1e1806", skyMid: "#2e240a", skyBot: "#120e03",
+    street: "#201a0a", streetEdge: "#382d12", streetLines: "rgba(235,205,90,0.32)",
+    sewerFloor: "#171305", sewerWater: "rgba(235,200,60,0.38)", sewerWall: "#181406",
+    roof: "#28200b", roofEdge: "#423614", roofWallTop: "#241c08", roofWallBot: "#130f03",
+    moonGlow: "rgba(240,210,70,0.42)", moonCore: "#fae88a",
+    lampPost: "#2b220a", lampCone: "rgba(255,220,90,0.30)", lampBulb: "rgba(255,240,140,0.95)",
+    falloutCol: "rgba(235,210,95,", falloutCount: 75, falloutSpeed: 1.3,
+    fogCol: "#282008", fogAlpha: 0.14,
+    sil1: "#141003", sil2: "#221a06", sil3: "#30260a"
+  },
+  {
+    name: "TEMPESTA DI FALLOUT CHIMICO (TIX-6)",
+    skyTop: "#2a1005", skyMid: "#3e1708", skyBot: "#180902",
+    street: "#1c0c05", streetEdge: "#35170a", streetLines: "rgba(255,150,70,0.38)",
+    sewerFloor: "#1a0803", sewerWater: "rgba(255,120,40,0.42)", sewerWall: "#1c0903",
+    roof: "#2a1208", roofEdge: "#451e0e", roofWallTop: "#261006", roofWallBot: "#140702",
+    moonGlow: "rgba(255,140,60,0.45)", moonCore: "#fcd0a2",
+    lampPost: "#291206", lampCone: "rgba(255,130,50,0.34)", lampBulb: "rgba(255,180,100,0.95)",
+    falloutCol: "rgba(255,130,60,", falloutCount: 100, falloutSpeed: 1.45,
+    fogCol: "#321406", fogAlpha: 0.17,
+    sil1: "#180902", sil2: "#2a1005", sil3: "#3d1708"
+  },
+  {
+    name: "ZONA ZERO RADIAZIONI VIRIDIAN (TIX-5)",
+    skyTop: "#051c0e", skyMid: "#0a2e17", skyBot: "#021208",
+    street: "#0a1e12", streetEdge: "#143621", streetLines: "rgba(90,250,150,0.42)",
+    sewerFloor: "#05180c", sewerWater: "rgba(74,222,128,0.55)", sewerWall: "#061a0e",
+    roof: "#0e2918", roofEdge: "#194528", roofWallTop: "#0c2415", roofWallBot: "#05130a",
+    moonGlow: "rgba(90,245,140,0.48)", moonCore: "#a7f3d0",
+    lampPost: "#0b2616", lampCone: "rgba(80,245,140,0.34)", lampBulb: "rgba(180,255,210,0.95)",
+    falloutCol: "rgba(90,245,145,", falloutCount: 125, falloutSpeed: 1.6,
+    fogCol: "#0c2c17", fogAlpha: 0.19,
+    sil1: "#04150a", sil2: "#092412", sil3: "#10381d"
+  },
+  {
+    name: "CREPUSCOLO IRRADIATO (TIX-4)",
+    skyTop: "#160724", skyMid: "#240c3a", skyBot: "#0d0315",
+    street: "#170a24", streetEdge: "#2a133f", streetLines: "rgba(200,120,255,0.42)",
+    sewerFloor: "#12051d", sewerWater: "rgba(180,90,255,0.50)", sewerWall: "#150622",
+    roof: "#200e33", roofEdge: "#381957", roofWallTop: "#1c0c2d", roofWallBot: "#0e0517",
+    moonGlow: "rgba(195,110,255,0.48)", moonCore: "#e9d5ff",
+    lampPost: "#210c34", lampCone: "rgba(190,100,255,0.32)", lampBulb: "rgba(235,190,255,0.95)",
+    falloutCol: "rgba(195,115,255,", falloutCount: 145, falloutSpeed: 1.75,
+    fogCol: "#220c38", fogAlpha: 0.21,
+    sil1: "#0f0419", sil2: "#1c082e", sil3: "#2b0d45"
+  },
+  {
+    name: "TEMPESTA APOCALITTICA CREMISI (TIX-3)",
+    skyTop: "#280406", skyMid: "#3e080b", skyBot: "#160203",
+    street: "#1c0406", streetEdge: "#36090c", streetLines: "rgba(255,90,100,0.45)",
+    sewerFloor: "#160204", sewerWater: "rgba(255,50,60,0.55)", sewerWall: "#190305",
+    roof: "#280709", roofEdge: "#480e12", roofWallTop: "#240608", roofWallBot: "#120203",
+    moonGlow: "rgba(255,80,90,0.52)", moonCore: "#fca5a5",
+    lampPost: "#280507", lampCone: "rgba(255,70,80,0.35)", lampBulb: "rgba(255,150,160,0.95)",
+    falloutCol: "rgba(255,75,85,", falloutCount: 170, falloutSpeed: 1.9,
+    fogCol: "#330609", fogAlpha: 0.23,
+    sil1: "#140203", sil2: "#260507", sil3: "#3c080b"
+  },
+  {
+    name: "ECLISSI DEL VUOTO POST-ATOMICO (TIX-2)",
+    skyTop: "#0f0106", skyMid: "#1a010b", skyBot: "#060002",
+    street: "#120107", streetEdge: "#24030f", streetLines: "rgba(255,60,130,0.50)",
+    sewerFloor: "#0d0005", sewerWater: "rgba(244,63,94,0.60)", sewerWall: "#0f0006",
+    roof: "#1a020b", roofEdge: "#320416", roofWallTop: "#17010a", roofWallBot: "#0a0004",
+    moonGlow: "rgba(255,40,110,0.60)", moonCore: "#fda4af",
+    lampPost: "#1c020c", lampCone: "rgba(255,40,100,0.38)", lampBulb: "rgba(255,120,180,0.98)",
+    falloutCol: "rgba(255,45,115,", falloutCount: 200, falloutSpeed: 2.1,
+    fogCol: "#1e020e", fogAlpha: 0.25,
+    sil1: "#0b0004", sil2: "#160109", sil3: "#250210"
+  }
+];
+var curTheme = THEMES[IS_ENDLESS ? 7 : Math.max(0, Math.min(7, MEM - 1))];
+
+
+/* ============================================================
+   ESTETICA PROGRESSIVA: HORROR POST-APOCALITTICO & PSYCHEDELIC GLITCH
+   (M1 -> M8: dalle macerie fredde dell'inizio fino al collasso
+   allucinatorio, con occhi cosmici, vene biomeccaniche e glitch VHS.
+   Nel Gioco Eterno la distorsione aumenta ondata dopo ondata)
+   ============================================================ */
+function getEffectiveVisualMem(){
+  if (IS_ENDLESS || (typeof G !== 'undefined' && G.endless)) {
+    return Math.min(8, 5 + Math.floor(((G.wave || 1) - 1) * 0.8));
+  }
+  return MEM;
+}
+
+function drawCosmicEyesInSky(){
+  var effMem = getEffectiveVisualMem();
+  if(effMem < 5) return;
+  var eyes = [
+    { x: VW * 0.22, y: 130, sz: 38, speed: 1.2, off: 0 },
+    { x: VW * 0.82, y: 175, sz: 48, speed: 0.9, off: 2.1 },
+    { x: VW * 0.52, y: 95, sz: 58, speed: 1.5, off: 4.3 }
+  ];
+  var count = (effMem === 5) ? 1 : (effMem === 6) ? 2 : 3;
+
+  for(var i = 0; i < count; i++){
+    var e = eyes[i];
+    var ex = ((e.x - camx * 0.08) % (VW + 200) + (VW + 200)) % (VW + 200) - 100;
+    var ey = e.y - camy * 0.06;
+    if(ey > VH * 0.65) continue;
+
+    ctx.save();
+    ctx.translate(ex, ey);
+
+    // Eyelid blink animation
+    var blink = Math.sin(time * e.speed + e.off);
+    var open = Math.max(0.08, Math.abs(blink));
+
+    var irisCols = [
+      "rgba(74, 222, 128, ",  // M5: acid green
+      "rgba(192, 132, 252, ", // M6: electric violet
+      "rgba(244, 63, 94, ",   // M7: crimson red
+      "rgba(255, 45, 115, "   // M8: hyper void
+    ];
+    var irisCol = irisCols[Math.min(3, Math.max(0, effMem - 5))];
+
+    var glow = ctx.createRadialGradient(0, 0, 2, 0, 0, e.sz * 1.8);
+    glow.addColorStop(0, irisCol + "0.35)");
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(-e.sz * 2, -e.sz * 2, e.sz * 4, e.sz * 4);
+
+    // Eye contour
+    ctx.fillStyle = "#08060a";
+    ctx.beginPath();
+    ctx.moveTo(-e.sz, 0);
+    ctx.quadraticCurveTo(0, -e.sz * 0.65 * open, e.sz, 0);
+    ctx.quadraticCurveTo(0, e.sz * 0.65 * open, -e.sz, 0);
+    ctx.fill();
+
+    // Horror twitching veins
+    ctx.strokeStyle = irisCol + "0.45)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-e.sz * 0.85, 0); ctx.lineTo(-e.sz * 0.35, Math.sin(time * 2 + i) * 3);
+    ctx.moveTo(e.sz * 0.85, 0); ctx.lineTo(e.sz * 0.35, -Math.sin(time * 2 + i) * 3);
+    ctx.stroke();
+
+    // Glowing Iris & Slit Pupil
+    if(open > 0.2){
+      ctx.fillStyle = irisCol + "0.85)";
+      ctx.beginPath();
+      ctx.arc(0, 0, e.sz * 0.35 * open, 0, 6.28);
+      ctx.fill();
+
+      ctx.fillStyle = "#000000";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, e.sz * 0.09, e.sz * 0.32 * open, 0, 0, 6.28);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+}
+
+function drawPsychedelicAurora(){
+  var effMem = getEffectiveVisualMem();
+  if(effMem < 6) return;
+  ctx.save();
+  var waves = (effMem >= 8) ? 4 : (effMem === 7) ? 3 : 2;
+  for(var w = 0; w < waves; w++){
+    var yBase = 60 + w * 45;
+    ctx.beginPath();
+    ctx.moveTo(0, yBase);
+    for(var x = 0; x <= VW; x += 30){
+      var y = yBase + Math.sin(x * 0.008 + time * 1.8 + w * 1.5) * 22 + Math.cos(x * 0.015 - time * 1.2) * 14;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(VW, 0);
+    ctx.lineTo(0, 0);
+    var aCols = [
+      "rgba(168, 85, 247, 0.12)",
+      "rgba(236, 72, 153, 0.14)",
+      "rgba(56, 189, 248, 0.15)",
+      "rgba(244, 63, 94, 0.16)"
+    ];
+    ctx.fillStyle = aCols[(w + effMem) % aCols.length];
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawHorrorTendrils(s){
+  var effMem = getEffectiveVisualMem();
+  if(effMem < 5) return;
+  var x = s.x - camx, y = s.y - camy, w = s.w, h = s.h;
+  if(x > VW + 100 || x + w < -100 || y > VH + 100 || y + h < -100) return;
+  ctx.save();
+  var tendrilCols = [
+    "rgba(74, 222, 128, 0.45)",  // M5: bio green
+    "rgba(192, 132, 252, 0.50)", // M6: psycho violet
+    "rgba(244, 63, 94, 0.55)",   // M7: crimson blood
+    "rgba(255, 45, 115, 0.65)"   // M8: hyper void
+  ];
+  var col = tendrilCols[Math.min(3, Math.max(0, effMem - 5))];
+  ctx.strokeStyle = col;
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  var step = 85;
+  for(var tx = 0; tx < w; tx += step){
+    var px = x + tx;
+    var wave = Math.sin(time * 2.5 + tx * 0.05) * 6;
+    ctx.moveTo(px, y);
+    ctx.quadraticCurveTo(px + 15, y - 18 + wave, px + 30, y - 2);
+    if((tx / step) % 2 === 0){
+      ctx.fillStyle = col;
+      ctx.fillRect(px + 12, y - 14 + wave, 3, 3);
+    }
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawPsychedelicGlitchPass(){
+  var effMem = getEffectiveVisualMem();
+  var glitchIntensity = (IS_ENDLESS || (typeof G !== 'undefined' && G.endless)) 
+    ? Math.min(1.0, 0.25 + ((G.wave || 1) - 1) * 0.12) 
+    : (effMem - 1) / 7.0;
+  var t = time;
+
+  // 1. Horror Pulsing Vignette
+  var vigColors = [
+    "rgba(0,0,0,0.38)",               // M1
+    "rgba(10,30,15,0.44)",            // M2 (acid)
+    "rgba(35,25,5,0.48)",             // M3 (sulfur)
+    "rgba(45,15,5,0.54)",             // M4 (fallout orange)
+    "rgba(5,45,20,0.60)",             // M5 (bio viridian)
+    "rgba(40,5,65,0.66)",             // M6 (psychedelic violet)
+    "rgba(65,4,12,0.72)",             // M7 (crimson nightmare)
+    "rgba(55,0,35,0.80)"              // M8 (cosmic void)
+  ];
+  var vigCol = vigColors[Math.min(7, Math.max(0, effMem - 1))];
+  var pulse = 1.0 + 0.07 * Math.sin(t * 3.5);
+  var vg = ctx.createRadialGradient(VW/2, VH/2, 180 * pulse, VW/2, VH/2, 620);
+  vg.addColorStop(0, "rgba(0,0,0,0)");
+  vg.addColorStop(1, vigCol);
+  ctx.fillStyle = vg;
+  ctx.fillRect(0, 0, VW, VH);
+
+  // 2. CRT Scanlines (scaling with effMem)
+  var scanAlpha = 0.025 + glitchIntensity * 0.085;
+  ctx.fillStyle = "rgba(0,0,0," + scanAlpha + ")";
+  var scanStep = (effMem >= 5) ? 3 : 4;
+  for(var sy = 0; sy < VH; sy += scanStep){
+    ctx.fillRect(0, sy, VW, 1);
+  }
+
+  // 3. Chromatic Aberration & VHS Horizontal Slice Tears (M3 -> M8)
+  if(effMem >= 3){
+    var glitchChance = 0.08 + glitchIntensity * 0.38 + (P.invuln > 0 ? 0.35 : 0);
+    if(Math.random() < glitchChance){
+      var numSlices = Math.floor(1 + Math.random() * (effMem * 1.3));
+      for(var s = 0; s < numSlices; s++){
+        var sliceY = Math.random() * (VH - 35);
+        var sliceH = Math.random() * (10 + effMem * 6) + 4;
+        var offset = (Math.random() - 0.5) * (8 + glitchIntensity * 32);
+
+        ctx.save();
+        ctx.globalCompositeOperation = (effMem >= 6) ? "difference" : "screen";
+        var rCol = (effMem % 2 === 0) ? "rgba(255,0,90,0.18)" : "rgba(0,255,210,0.18)";
+        ctx.fillStyle = rCol;
+        ctx.fillRect(offset, sliceY, VW, sliceH);
+        ctx.restore();
+
+        // High frequency static displacement line
+        ctx.fillStyle = (Math.random() < 0.5) ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.25)";
+        ctx.fillRect(0, sliceY, VW, 1.5);
+      }
+    }
+  }
+
+  // 4. Floating Glitch Artifact Blocks & Corrupted Data Matrices (M4 -> M8)
+  if(effMem >= 4){
+    var blockCount = Math.floor((effMem - 3) * 2.8);
+    for(var b = 0; b < blockCount; b++){
+      if(Math.random() < 0.38){
+        var bx = Math.random() * VW;
+        var by = Math.random() * VH;
+        var bw = 8 + Math.random() * 42;
+        var bh = 3 + Math.random() * 10;
+        var bColors = ["rgba(255,40,120,0.45)", "rgba(50,255,180,0.45)", "rgba(255,220,50,0.45)", "rgba(180,50,255,0.45)"];
+        ctx.fillStyle = bColors[Math.floor(Math.random() * bColors.length)];
+        ctx.fillRect(bx, by, bw, bh);
+      }
+    }
+  }
+
+  // 5. Inverted Flash Frames & Reality Warps (M7 -> M8)
+  if(effMem >= 7 && Math.random() < 0.025){
+    ctx.save();
+    ctx.globalCompositeOperation = "difference";
+    ctx.fillStyle = "rgba(255,255,255,0.40)";
+    ctx.fillRect(0, 0, VW, VH);
+    ctx.restore();
+  }
+}
+
+function drawSky(){
+  var st = curTheme;
+  var g = ctx.createLinearGradient(0, 0, 0, VH);
+  g.addColorStop(0, st.skyTop);
+  g.addColorStop(0.42, st.skyMid);
+  g.addColorStop(1, st.skyBot);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, VW, VH);
+
+  var i, s, sx, sy;
+  for (i = 0; i < stars.length; i++) {
+    s = stars[i];
+    sx = ((s.x - camx * 0.12) % VW + VW) % VW;
+    sy = ((s.y - camy * 0.12) % VH + VH) % VH;
+    ctx.globalAlpha = 0.22 + 0.5 * Math.abs(Math.sin(time * s.s + i));
+    ctx.fillStyle = "#cfe0ea";
+    ctx.fillRect(sx, sy, s.r, s.r);
+  }
+  ctx.globalAlpha = 1;
+
+  /* Sole / Luna rotta post-atomica */
+  var sxp = VW * 0.74 - camx * 0.05, syp = 150 - camy * 0.06;
+  var sg = ctx.createRadialGradient(sxp, syp, 4, sxp, syp, 190);
+  sg.addColorStop(0, st.moonGlow);
+  sg.addColorStop(0.55, "rgba(0,0,0,0.05)");
+  sg.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = sg;
+  ctx.fillRect(sxp - 200, syp - 200, 400, 400);
+  ctx.fillStyle = st.moonCore;
+  ctx.beginPath();
+  ctx.arc(sxp, syp, 23, 0, 6.3);
+  ctx.fill();
+
+  /* Spaccatura nella luna */
+  ctx.strokeStyle = st.skyTop;
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.moveTo(sxp - 26, syp - 10); ctx.lineTo(sxp - 4, syp + 2);
+  ctx.lineTo(sxp + 6, syp - 6); ctx.lineTo(sxp + 24, syp + 12);
+  ctx.stroke();
+
+  /* Occhi cosmici & Aurore psichedeliche */
+  drawCosmicEyesInSky();
+  drawPsychedelicAurora();
+
+  /* Silhouette palazzi in lontananza con palette del tema */
+  skyline(0.13, VH * 0.80, 0.52, st.sil1, false);
+  skyline(0.30, VH * 0.92, 0.72, st.sil2, true);
+  skyline(0.58, VH * 1.04, 0.95, st.sil3, true);
+
+  /* Nebbia tossica bassa */
+  ctx.globalAlpha = st.fogAlpha;
+  ctx.fillStyle = st.fogCol;
+  for (i = 0; i < 3; i++) ctx.fillRect(0, VH * 0.55 + i * 74 + Math.sin(time * 0.35 + i) * 9, VW, 46);
+  ctx.globalAlpha = 1;
+
+  /* Cavi penzolanti */
+  ctx.strokeStyle = "rgba(5,9,11,0.85)"; ctx.lineWidth = 2;
+  for (i = 0; i < 4; i++) {
+    var cx0 = ((i * 320 - camx * 0.28) % (VW + 320) + (VW + 320)) % (VW + 320) - 160;
+    var cy0 = 36 - camy * 0.16 + i * 20;
+    if (cy0 > VH * 0.72) continue;
+    ctx.beginPath(); ctx.moveTo(cx0, cy0);
+    ctx.quadraticCurveTo(cx0 + 150, cy0 + 130 + (i % 2) * 40, cx0 + 320, cy0 - 18); ctx.stroke();
+  }
+
+  /* Fallout atomico: cenere e particelle radioattive fluttuanti */
+  for (i = 0; i < st.falloutCount; i++) {
+    var ax = ((i * 137.7 + time * (16 * st.falloutSpeed)) % (VW + 120) + (VW + 120)) % (VW + 120) - 60;
+    var ay = ((i * 97.3 + time * (28 * st.falloutSpeed) - camy * 0.2) % (VH + 60) + (VH + 60)) % (VH + 60) - 30;
+    var aAlpha = 0.25 + 0.40 * Math.abs(Math.sin(time * 2 + i));
+    ctx.fillStyle = st.falloutCol + aAlpha + ")";
+    ctx.fillRect(ax, ay, 1.8 + (i % 3) * 0.6, 1.8 + (i % 3) * 0.6);
+  }
+}
+/* ---- le tre quote ------------------------------------------ */
+function drawStreet(s){
+  var x=s.x-camx,y=s.y-camy,w=s.w,h=s.h;
+  if(y>VH||y+h<0)return;
+  var st = curTheme;
+  ctx.fillStyle=st.street;ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=st.streetEdge;ctx.fillRect(x,y,w,10);
+  ctx.fillStyle=st.streetLines;ctx.fillRect(x,y,w,3);
+  /* asfalto granuloso, scorre col mondo */
+  var i;
+  ctx.fillStyle="rgba(120,148,160,0.10)";
+  for(i=0;i<w/34;i++){
+    var gx=x+i*34,gi=Math.floor((s.x+i*34)/34);
+    if(gi%2)continue;
+    ctx.fillRect(gx,y+22+((gi*37)%60),12,2);
+  }
+  ctx.fillStyle="rgba(0,0,0,0.5)";
+  for(i=0;i<w/120;i++)ctx.fillRect(x+i*120+40,y-1,52,3);
+  /* la faccia di sotto: la strada e' spessa, non un foglio */
+  ctx.fillStyle="#070d0f";ctx.fillRect(x,y+h,w,VH);
+  ctx.fillStyle="rgba(120,148,160,0.06)";
+  var ry;
+  for(ry=y+h+18;ry<VH;ry+=26)ctx.fillRect(x,ry,w,1);
+  ctx.fillStyle="#050a0c";ctx.fillRect(x,y+h-5,w,5);
+  ctx.fillStyle="rgba(120,148,160,0.14)";ctx.fillRect(x,y+h,w,1.5);
+  /* i lampioni al sodio: la strada respirata dalla v1 */
+  var li,lx,top;
+  for(li=0;li<Math.ceil(w/420);li++){
+    lx=x+150+li*420;
+    if(lx<x-40||lx>x+w+40)continue;
+    top=y-262;
+    ctx.fillStyle="#132229";ctx.fillRect(lx-2,top,5,262);
+    ctx.fillStyle="#1c3038";ctx.fillRect(lx-15,top-4,32,6);
+    ctx.globalCompositeOperation="lighter";
+    var cone=ctx.createLinearGradient(0,top,0,y);
+    cone.addColorStop(0,"rgba(255,206,132,0.22)");
+    cone.addColorStop(.55,"rgba(255,186,100,0.09)");
+    cone.addColorStop(1,"rgba(255,160,60,0)");
+    ctx.fillStyle=cone;
+    ctx.beginPath();ctx.moveTo(lx-11,top);ctx.lineTo(lx+13,top);
+    ctx.lineTo(lx+96,y+40);ctx.lineTo(lx-92,y+40);ctx.closePath();ctx.fill();
+    var bulb=ctx.createRadialGradient(lx+1,top+2,1,lx+1,top+2,44);
+    bulb.addColorStop(0,"rgba(255,236,196,0.85)");
+    bulb.addColorStop(1,"rgba(255,170,70,0)");
+    ctx.fillStyle=bulb;ctx.beginPath();ctx.arc(lx+1,top+2,44,0,6.3);ctx.fill();
+    ctx.globalCompositeOperation="source-over";
+    ctx.fillStyle="rgba(255,226,170,0.9)";ctx.fillRect(lx-4,top+1,10,4);
+  }
+}
+function drawSewerFloor(s){
+  var x=s.x-camx,y=s.y-camy,w=s.w;
+  if(y>VH+60||y+180<0)return;
+  var st = curTheme;
+  ctx.fillStyle=st.sewerFloor;ctx.fillRect(x,y,w,180);
+  var wg=ctx.createLinearGradient(0,y-16,0,y+16);
+  wg.addColorStop(0,"rgba(111,240,208,0.20)");wg.addColorStop(1,"rgba(111,240,208,0)");
+  ctx.fillStyle=wg;ctx.fillRect(x,y-16,w,32);
+  ctx.fillStyle="rgba(111,240,208,0.10)";
+  var i;
+  for(i=0;i<w/70;i++){
+    var wx=x+i*70+Math.sin(time*1.4+i)*12;
+    ctx.fillRect(wx,y-6+Math.sin(time*2+i)*2,46,2);
+  }
+  ctx.fillStyle="#12241f";ctx.fillRect(x,y,w,8);
+  ctx.fillStyle="rgba(143,224,204,0.25)";ctx.fillRect(x,y,w,1.5);
+}
+function drawRoof(s){
+  var x=s.x-camx,y=s.y-camy,w=s.w;
+  if(y>VH||y+30<0)return;
+  var st = curTheme;
+  var wallH=GY-s.y-26;
+  if(wallH>0){
+    var wg=ctx.createLinearGradient(0,y+26,0,y+26+wallH);
+    wg.addColorStop(0,st.roofWallTop);wg.addColorStop(1,st.roofWallBot);
+    ctx.fillStyle=wg;ctx.fillRect(x,y+26,w,wallH);
+  }
+  ctx.fillStyle=st.roof;ctx.fillRect(x,y,w,26);
+  ctx.fillStyle="#263a44";ctx.fillRect(x,y,w,4);
+  ctx.fillStyle="rgba(255,255,255,0.10)";ctx.fillRect(x,y,w,1.4);
+  ctx.fillStyle="#0a1216";ctx.fillRect(x,y+24,w,3);
+  /* ringhiera bassa */
+  ctx.strokeStyle="rgba(140,176,190,0.35)";ctx.lineWidth=1.4;
+  var i;
+  for(i=0;i<w/46;i++){
+    var px=x+14+i*46;
+    ctx.beginPath();ctx.moveTo(px,y);ctx.lineTo(px,y-16);ctx.stroke();
+  }
+  ctx.beginPath();ctx.moveTo(x+14,y-16);ctx.lineTo(x+14+Math.floor(w/46)*46,y-16);ctx.stroke();
+}
+function drawCrate(s){
+  var x=s.x-camx,y=s.y-camy,w=s.w,h=s.h;
+  if(y>VH||y+h<0)return;
+  ctx.fillStyle="#1b2b2a";ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle="rgba(232,180,74,0.35)";ctx.lineWidth=2;ctx.strokeRect(x+3,y+3,w-6,h-6);
+  ctx.fillStyle="rgba(232,180,74,0.16)";ctx.fillRect(x+3,y+3,w-6,3);
+}
+function drawBarrel(s){
+  var x=s.x-camx,y=s.y-camy,w=s.w,h=s.h;
+  if(y>VH||y+h<0||x>VW+40||x+w<-40)return;
+  ctx.fillStyle="#172216";ctx.fillRect(x,y,w,h);
+  ctx.fillStyle="#273824";ctx.fillRect(x,y+6,w,4);ctx.fillRect(x,y+h-10,w,4);
+  ctx.fillStyle="rgba(212,232,58,0.78)";ctx.fillRect(x+2,y+h/2-6,w-4,12);
+  ctx.fillStyle="#121a11";ctx.font="bold 10px monospace";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText("☣",x+w/2,y+h/2);
+  ctx.fillStyle="rgba(111,240,140,"+(0.14+0.12*Math.sin(time*3+s.x))+")";ctx.fillRect(x+w/4,y-8,w/2,8);
+}
+function drawRubble(s){
+  var x=s.x-camx,y=s.y-camy,w=s.w,h=s.h;
+  if(y>VH||y+h<0||x>VW+40||x+w<-40)return;
+  ctx.fillStyle="#1b2428";ctx.fillRect(x,y,w,h);
+  ctx.fillStyle="#28343a";ctx.fillRect(x,y,w,4);
+  ctx.strokeStyle="rgba(0,0,0,0.55)";ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(x+4,y+2);ctx.lineTo(x+w/3,y+h-4);ctx.lineTo(x+w*0.7,y+6);ctx.lineTo(x+w-4,y+h/2);ctx.stroke();
+  ctx.strokeStyle="rgba(160,80,50,0.65)";ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(x+6,y);ctx.lineTo(x-4,y-12);ctx.moveTo(x+w-8,y);ctx.lineTo(x+w+6,y-14);ctx.stroke();
+}
+function drawToxicPool(s){
+  var x=s.x-camx,y=s.y-camy,w=s.w,h=s.h;
+  if(y>VH||y+h<0||x>VW+40||x+w<-40)return;
+  var tg=ctx.createLinearGradient(0,y,0,y+h);
+  tg.addColorStop(0,"rgba(74,222,128,0.88)");tg.addColorStop(1,"rgba(16,70,40,0.95)");
+  ctx.fillStyle=tg;ctx.fillRect(x,y,w,h);
+  ctx.fillStyle="rgba(210,255,180,0.65)";
+  var i;
+  for(i=0;i<w/30;i++){
+    var bx=x+i*30+Math.sin(time*2.5+i)*8;
+    var br=2+Math.abs(Math.sin(time*3+i*1.7))*2.5;
+    ctx.beginPath();ctx.arc(bx,y+2,br,0,6.28);ctx.fill();
+  }
+}
+function drawStructures(){
+  var i,s;
+  for(i=0;i<SOL.length;i++){
+    s=SOL[i];
+    if(s.k==="street")drawStreet(s);
+    else if(s.k==="sewer")drawSewerFloor(s);
+    else if(s.k==="roof")drawRoof(s);
+    else if(s.k==="barrel")drawBarrel(s);
+    else if(s.k==="rubble")drawRubble(s);
+    else if(s.k==="toxic")drawToxicPool(s);
+    else drawCrate(s);
+    drawHorrorTendrils(s);
+  }
+}
+function drawLadders(){
+  var i,l,x,y0,y1;
+  for(i=0;i<LAD.length;i++){
+    l=LAD[i];
+    x=l.x-camx;
+    if(x<-40||x>VW+40)continue;
+    y0=l.y0-camy;y1=l.y1-camy;
+    if(Math.min(y0,y1)>VH||Math.max(y0,y1)<0)continue;
+    ctx.strokeStyle="rgba(196,214,222,0.55)";ctx.lineWidth=2.6;
+    ctx.beginPath();ctx.moveTo(x-9,y0);ctx.lineTo(x-9,y1);ctx.moveTo(x+9,y0);ctx.lineTo(x+9,y1);ctx.stroke();
+    ctx.lineWidth=1.8;
+    for(var k=0;k<=Math.abs(y0-y1)/26;k++){
+      var ry=y0+(y1-y0)*(k/Math.max(1,Math.abs(y0-y1)/26));
+      ctx.beginPath();ctx.moveTo(x-9,ry);ctx.lineTo(x+9,ry);ctx.stroke();
+    }
+    ctx.fillStyle="rgba(232,180,74,0.22)";ctx.fillRect(x-11,Math.min(y0,y1),22,3);
+  }
+}
+/* ---- le cose da prendere ----------------------------------- */
+function drawNotes(){
+  var i,n,x,y,k;
+  for(i=0;i<notes.length;i++){
+    n=notes[i];
+    if(n.got)continue;
+    x=n.x-camx;y=n.y-camy;
+    if(x<-80||x>VW+80||y<-80||y>VH+80)continue;
+    var fl=Math.sin(time*2+i)*5;
+    ctx.save();
+    ctx.translate(x,y-34+fl);
+    var gl=ctx.createRadialGradient(0,0,2,0,0,54);
+    gl.addColorStop(0,"rgba(232,220,192,0.35)");gl.addColorStop(1,"rgba(232,220,192,0)");
+    ctx.fillStyle=gl;ctx.beginPath();ctx.arc(0,0,54,0,6.3);ctx.fill();
+    ctx.rotate(Math.sin(time*1.3+i)*0.08);
+    ctx.fillStyle="#e8dcc0";ctx.fillRect(-11,-15,22,30);
+    ctx.fillStyle="rgba(60,52,40,0.55)";
+    for(k=0;k<5;k++)ctx.fillRect(-7,-9+k*5.4,14,1.2);
+    ctx.fillStyle="rgba(197,142,142,0.8)";ctx.fillRect(-7,16,14,4);
+    ctx.restore();
+    ctx.globalAlpha=0.55+0.35*Math.sin(time*3+i);
+    txt("NOTA",x,y-58,9,"#e8dcc0","center");
+    ctx.globalAlpha=1;
+  }
+}
+function drawCassette(){
+  if(CASS.taken)return;
+  var x=CASS.x-camx,y=CASS.y-camy;
+  if(x<-140||x>VW+140||y<-160||y>VH+160)return;
+  var fl=Math.sin(time*1.7)*4;
+  ctx.save();
+  ctx.translate(x,y-30+fl);
+  var gl=ctx.createRadialGradient(0,0,4,0,0,110);
+  gl.addColorStop(0,"rgba(232,180,74,0.35)");gl.addColorStop(1,"rgba(232,180,74,0)");
+  ctx.fillStyle=gl;ctx.beginPath();ctx.arc(0,0,110,0,6.3);ctx.fill();
+  ctx.rotate(-0.08);
+  ctx.fillStyle="#12191d";ctx.fillRect(-42,-26,84,52);
+  ctx.strokeStyle="rgba(232,180,74,0.75)";ctx.lineWidth=2;ctx.strokeRect(-40,-24,80,48);
+  ctx.fillStyle="#0a1013";ctx.fillRect(-30,-12,60,30);
+  ctx.fillStyle="rgba(232,220,192,0.9)";
+  ctx.beginPath();ctx.arc(-13,3,7,0,6.3);ctx.fill();
+  ctx.beginPath();ctx.arc(13,3,7,0,6.3);ctx.fill();
+  ctx.fillStyle="#0a1013";
+  ctx.beginPath();ctx.arc(-13,3,3,0,6.3);ctx.fill();
+  ctx.beginPath();ctx.arc(13,3,3,0,6.3);ctx.fill();
+  ctx.fillStyle="#e8dcc0";ctx.fillRect(-38,-22,76,9);
+  txt("MEMORIE DEL COSMO",0,-15,6.4,"#12191d","center");
+  ctx.restore();
+  ctx.globalAlpha=0.6+0.3*Math.sin(time*3);
+  txt("LA CASSETTA",x,y-78,10,"#e8b44a","center");
+  ctx.globalAlpha=1;
+}
+function drawExit(){
+  var x=EXIT.x-camx,y=EXIT.y-camy,on=G.cass;
+  if(x<-360||x>VW+360)return;
+  /* l'ombra sotto il furgone */
+  ctx.fillStyle="rgba(0,0,0,0.5)";
+  ctx.beginPath();ctx.ellipse(x,y,124,12,0,0,6.3);ctx.fill();
+  /* il corpo */
+  var bg=ctx.createLinearGradient(0,y-116,0,y);
+  bg.addColorStop(0,"#22343d");bg.addColorStop(.55,"#16262e");bg.addColorStop(1,"#0c1519");
+  ctx.fillStyle=bg;
+  ctx.fillRect(x-116,y-116,232,116);
+  ctx.fillStyle="#0d181d";ctx.fillRect(x-116,y-116,232,12);
+  ctx.fillStyle="rgba(255,255,255,0.06)";ctx.fillRect(x-116,y-116,232,2);
+  /* il finestrino e il portellone */
+  ctx.fillStyle="#081115";ctx.fillRect(x-92,y-98,74,44);
+  ctx.strokeStyle="rgba(140,176,190,0.35)";ctx.lineWidth=2;ctx.strokeRect(x-92,y-98,74,44);
+  ctx.fillStyle="#081115";ctx.fillRect(x+6,y-98,86,74);
+  ctx.fillStyle="rgba(232,180,74,0.10)";ctx.fillRect(x+6,y-98,86,74);
+  /* la scritta sul fianco */
+  ctx.save();
+  ctx.fillStyle=on?"rgba(232,180,74,0.95)":"rgba(200,214,222,0.55)";
+  txt("MEMORIE",x+49,y-58,13,on?"#e8b44a":"#a8b6be","center");
+  txt("DEL COSMO",x+49,y-42,9,on?"#e8dcc0":"#7d8b93","center");
+  ctx.restore();
+  /* ruote */
+  ctx.fillStyle="#050a0c";
+  ctx.beginPath();ctx.arc(x-72,y-2,19,0,6.3);ctx.fill();
+  ctx.beginPath();ctx.arc(x+70,y-2,19,0,6.3);ctx.fill();
+  ctx.fillStyle="#1b2a31";
+  ctx.beginPath();ctx.arc(x-72,y-2,8,0,6.3);ctx.fill();
+  ctx.beginPath();ctx.arc(x+70,y-2,8,0,6.3);ctx.fill();
+  /* i fari: due coni di luce */
+  var i;
+  for(i=0;i<2;i++){
+    var hx=x-104+i*208;
+    var lg=ctx.createRadialGradient(hx,y-86,3,hx,y-86,110);
+    lg.addColorStop(0,on?"rgba(255,232,170,0.85)":"rgba(214,232,240,0.45)");
+    lg.addColorStop(1,"rgba(255,232,170,0)");
+    ctx.fillStyle=lg;ctx.beginPath();ctx.arc(hx,y-86,110,0,6.3);ctx.fill();
+    ctx.fillStyle=on?"#fff0c0":"#cfe0e8";
+    ctx.fillRect(hx-11,y-92,22,12);
+  }
+  /* il lampeggiante sul tetto */
+  var bl=0.5+0.5*Math.sin(time*(on?7:2.2));
+  ctx.fillStyle="rgba(232,180,74,"+(0.35+0.55*bl)+")";
+  ctx.fillRect(x-18,y-126,36,10);
+  var bg2=ctx.createRadialGradient(x,y-122,2,x,y-122,74);
+  bg2.addColorStop(0,"rgba(232,180,74,"+(0.28+0.35*bl)+")");
+  bg2.addColorStop(1,"rgba(232,180,74,0)");
+  ctx.fillStyle=bg2;ctx.beginPath();ctx.arc(x,y-122,74,0,6.3);ctx.fill();
+  ctx.globalAlpha=0.85+0.15*Math.sin(time*2.4);
+  txt(on?"CONSEGNA QUI":"IL FURGONE",x,y-140,11,on?"#e8b44a":"#9aa8b0","center");
+  ctx.globalAlpha=1;
+  if(on){
+    ctx.strokeStyle="rgba(232,180,74,"+(0.25+0.25*Math.sin(time*4))+")";
+    ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(x,y-40,118+Math.sin(time*3)*7,0,6.3);ctx.stroke();
+  }
+}
+/* ---- le voragini: dove la strada si apre ------------------- */
+var PITS=[[1500,1700],[3300,3520]];
+function drawPits(){
+  var i,k;
+  for(i=0;i<PITS.length;i++){
+    var x0=PITS[i][0]-camx,x1=PITS[i][1]-camx,w=x1-x0;
+    if(x1<-40||x0>VW+40)continue;
+    var yTop=GY-camy,yBot=SY-camy;
+    if(yTop>VH||yBot<0)continue;
+    var g=ctx.createLinearGradient(0,yTop,0,yBot);
+    g.addColorStop(0,"#04090b");g.addColorStop(.75,"#061210");g.addColorStop(1,"#0b241f");
+    ctx.fillStyle=g;ctx.fillRect(x0,yTop,w,yBot-yTop);
+    /* i mattoni del pozzo */
+    ctx.strokeStyle="rgba(90,140,126,0.14)";ctx.lineWidth=1;
+    for(k=yTop+18;k<yBot;k+=22){
+      ctx.beginPath();ctx.moveTo(x0,k);ctx.lineTo(x1,k);ctx.stroke();
+    }
+    /* il bordo: la strada che si spezza */
+    ctx.fillStyle="#22343d";ctx.fillRect(x0-10,yTop-4,10,7);ctx.fillRect(x1,yTop-4,10,7);
+    ctx.fillStyle="rgba(232,180,74,0.35)";
+    ctx.fillRect(x0-10,yTop-4,10,2);ctx.fillRect(x1,yTop-4,10,2);
+    /* il chiarore che sale dalle fogne */
+    var gg=ctx.createLinearGradient(0,yBot-150,0,yBot);
+    gg.addColorStop(0,"rgba(111,240,208,0)");
+    gg.addColorStop(1,"rgba(111,240,208,0.18)");
+    ctx.fillStyle=gg;ctx.fillRect(x0,yBot-150,w,150);
+  }
+}
+/* ============================================================
+   IL CONIGLIO — lo stesso disegno del museo (museo/player.js)
+   ============================================================ */
+function legDraw(hx,hy,fx,fy,knee,thick,color){
+  var mx=(hx+fx)/2,my=(hy+fy)/2;
+  var dx=fx-hx,dy=fy-hy,len=Math.sqrt(dx*dx+dy*dy)||1;
+  var kx=mx+(-dy/len)*knee,ky=my+(dx/len)*knee;
+  ctx.strokeStyle=color;ctx.lineWidth=thick;ctx.lineCap="round";
+  ctx.beginPath();ctx.moveTo(hx,hy);ctx.quadraticCurveTo(kx,ky,fx,fy);ctx.stroke();
+}
+function drawRabbit(){
+  var s=P.build||1;
+  var run=P.state==="run",walk=P.state==="walk";
+  var stride=(run?42:walk?26:0)*Math.min(1,P.speed/240);
+  var bob=Math.sin(P.phase*2)*(walk?2.4:run?5:0)*s;
+  var breathe=Math.sin(time*1.6)*1.2;
+  var sit=P.bodyY;
+  ctx.save();
+  ctx.translate(P.x-camx,P.y-camy);
+  if(P.invuln>0&&Math.floor(time*22)%2===0)ctx.globalAlpha=0.5;
+  var sw=P.w*(1.05-(P.ground?0:0.3));
+  var sh=ctx.createRadialGradient(0,0,1,0,0,sw);
+  sh.addColorStop(0,"rgba(0,0,0,0.55)");sh.addColorStop(.6,"rgba(0,0,0,0.22)");sh.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=sh;ctx.beginPath();ctx.ellipse(0,0,sw,9*s,0,0,6.3);ctx.fill();
+  ctx.scale(P.dir,1);
+  ctx.translate(0,-sit+bob);
+  var fur="#dcd5c6",furDark="#a89f8e",furDeep="#6d6557";
+  var bodyH=56*s,bodyW=40*s;
+  var hipY=-bodyH*0.42;
+  var headX=20*s,headY=-bodyH-16*s;
+  var g=P.phase*2,farOff=Math.PI;
+  var f1x=-18*s+Math.cos(g+farOff)*stride*0.55;
+  var f1y=-Math.max(0,Math.sin(g+farOff))*(walk?10:16)*s;
+  var f2x=headX-4*s+Math.cos(g+farOff+Math.PI)*stride*0.45;
+  var f2y=-Math.max(0,Math.sin(g+farOff+Math.PI))*(walk?8:12)*s;
+  if(!P.ground){f1x=-16*s;f1y=-20*s;f2x=headX-8*s;f2y=-14*s;}
+  legDraw(-10*s,hipY,f1x,f1y,8*s,9*s*P.line/3,furDeep);
+  legDraw(headX-6*s,hipY+6*s,f2x,f2y,5*s,6*s*P.line/3,furDeep);
+  ctx.save();
+  ctx.translate(-bodyW*0.92,hipY-6*s);
+  ctx.rotate(P.tailA);
+  ctx.fillStyle="#f0ebdd";ctx.beginPath();ctx.arc(-3*s,0,7.5*s,0,6.3);ctx.fill();
+  ctx.fillStyle="rgba(255,255,255,0.35)";ctx.beginPath();ctx.arc(-5*s,-2*s,3.4*s,0,6.3);ctx.fill();
+  ctx.restore();
+  ctx.beginPath();
+  ctx.moveTo(-bodyW*0.78,hipY+10*s);
+  ctx.bezierCurveTo(-bodyW*1.05,hipY-bodyH*0.5,-bodyW*0.35,-bodyH-4*s,headX*0.35,-bodyH-2*s);
+  ctx.bezierCurveTo(headX*0.95,-bodyH+2*s,headX*0.92,hipY-2*s,bodyW*0.55,hipY+12*s);
+  ctx.bezierCurveTo(bodyW*0.3,-2*s+breathe,-bodyW*0.3,2*s+breathe,-bodyW*0.78,hipY+10*s);
+  ctx.closePath();
+  var bg=ctx.createLinearGradient(-bodyW,-bodyH,bodyW,0);
+  bg.addColorStop(0,"#f2ede0");bg.addColorStop(.45,fur);bg.addColorStop(1,furDark);
+  ctx.fillStyle=bg;ctx.fill();
+  ctx.strokeStyle="rgba(255,255,255,0.26)";ctx.lineWidth=1.1;
+  var i;
+  for(i=0;i<4;i++){
+    ctx.beginPath();
+    ctx.moveTo(-bodyW*0.5+i*8*s,-bodyH*0.75+i*4);
+    ctx.quadraticCurveTo(-bodyW*0.3+i*8*s,-bodyH*0.92,-bodyW*0.1+i*8*s,-bodyH*0.72);
+    ctx.stroke();
+  }
+  ctx.strokeStyle="rgba(255,255,255,0.20)";ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(-bodyW*0.82,hipY+2*s);
+  ctx.bezierCurveTo(-bodyW*0.98,hipY-bodyH*0.4,-bodyW*0.4,-bodyH,-headX*0.2,-bodyH-2*s);
+  ctx.stroke();
+  /* ---- zampe vicine ---- */
+  var n1x=headX-8*s+Math.cos(g)*stride*0.5;
+  var n1y=-Math.max(0,Math.sin(g))*(walk?12:18)*s;
+  var n2x=headX-2*s+Math.cos(g+Math.PI)*stride*0.4;
+  var n2y=-Math.max(0,Math.sin(g+Math.PI))*(walk?10:14)*s;
+  if(!P.ground){n1x=headX-14*s;n1y=-16*s;n2x=headX-2*s;n2y=-10*s;}
+  legDraw(-12*s,hipY+4*s,n1x,n1y,9*s,9*s*P.line/3,fur);
+  legDraw(headX-6*s,hipY+10*s,n2x,n2y,5*s,7*s*P.line/3,fur);
+  ctx.fillStyle=fur;
+  ctx.beginPath();ctx.ellipse(n1x+3*s,n1y-2*s,11*s,4.4*s,0,0,6.3);ctx.fill();
+  ctx.beginPath();ctx.ellipse(n2x+2*s,n2y-1.5*s,8*s,3.6*s,0,0,6.3);ctx.fill();
+  /* ---- le orecchie: due molle ---- */
+  function ear(angle,len,wdt,col,alpha){
+    ctx.save();
+    ctx.translate(headX-2*s,headY-8*s);
+    ctx.rotate(angle);
+    ctx.globalAlpha=alpha==null?1:alpha;
+    ctx.beginPath();
+    ctx.moveTo(-wdt*0.5,0);
+    ctx.bezierCurveTo(-wdt*0.9,-len*0.55,-wdt*0.2,-len,wdt*0.1,-len);
+    ctx.bezierCurveTo(wdt*0.7,-len*0.95,wdt*0.85,-len*0.45,wdt*0.5,0);
+    ctx.closePath();
+    var eg=ctx.createLinearGradient(0,0,0,-len);
+    eg.addColorStop(0,col);eg.addColorStop(1,"#f6f2e6");
+    ctx.fillStyle=eg;ctx.fill();
+    ctx.fillStyle="rgba(214,150,150,0.42)";
+    ctx.beginPath();ctx.ellipse(0,-len*0.52,wdt*0.22,len*0.4,0,0,6.3);ctx.fill();
+    ctx.restore();
+  }
+  ear(P.ear2A-0.16,62*s,15*s,furDark,0.95);
+  ear(P.earA+0.10,68*s,17*s,fur);
+  /* ---- la testa ---- */
+  ctx.save();
+  ctx.translate(headX,headY);
+  ctx.fillStyle=fur;
+  ctx.beginPath();ctx.ellipse(0,0,20*s,18*s,-0.12,0,6.3);ctx.fill();
+  ctx.beginPath();ctx.ellipse(13*s,6*s,11*s,8.4*s,0.16,0,6.3);
+  ctx.fillStyle="#f4efe3";ctx.fill();
+  ctx.fillStyle="#c58e8e";
+  ctx.beginPath();ctx.ellipse(22*s,3.4*s,2.6*s,2*s,0.2,0,6.3);ctx.fill();
+  var blink=P.blink>0?0.12:1;
+  ctx.fillStyle="#0b0b0c";
+  ctx.beginPath();ctx.ellipse(6.5*s,-3.5*s,3.4*s,4.2*s*blink,0,0,6.3);ctx.fill();
+  if(blink>0.5){
+    ctx.fillStyle="rgba(255,255,255,0.85)";
+    ctx.beginPath();ctx.arc(7.6*s,-5.2*s,1.1*s,0,6.3);ctx.fill();
+  }
+  ctx.strokeStyle="rgba(255,255,255,0.28)";ctx.lineWidth=0.7;
+  for(var w2=0;w2<3;w2++){
+    ctx.beginPath();
+    ctx.moveTo(21*s,4*s);
+    ctx.quadraticCurveTo(33*s,(0+w2*5)*s,40*s,(-4+w2*6)*s);
+    ctx.stroke();
+  }
+  ctx.restore();
+  /* ---- l'arma in mano ---- */
+  var aw=aimAngle();
+  var la=Math.atan2(Math.sin(aw),Math.cos(aw)*(P.dir||1));
+  ctx.save();
+  ctx.translate(headX*0.55,-bodyH*0.62);
+  ctx.rotate(la);
+  drawWeapon(s);
+  ctx.restore();
+  /* ---- l'alone ---- */
+  ctx.save();
+  ctx.globalCompositeOperation="lighter";
+  var rg2=ctx.createRadialGradient(headX,headY,2,headX,headY,42*s);
+  rg2.addColorStop(0,"rgba(255,245,225,0.07)");rg2.addColorStop(1,"rgba(255,245,225,0)");
+  ctx.fillStyle=rg2;ctx.beginPath();ctx.arc(headX,headY,42*s,0,6.3);ctx.fill();
+  ctx.restore();
+  ctx.restore();
+}
+/* le quattro armi, viste di lato, in mano al coniglio */
+function drawWeapon(s){
+  var w=curW(),rec=P.recoil*7*s;
+  ctx.translate(-rec,0);
+  if(w.id==="pistol"){
+    ctx.fillStyle="#1b2226";ctx.fillRect(4*s,-4*s,26*s,9*s);
+    ctx.fillStyle="#2b363c";ctx.fillRect(28*s,-2.6*s,9*s,5*s);
+    ctx.fillStyle="#151b1f";ctx.fillRect(8*s,4*s,8*s,12*s);
+    ctx.fillStyle="rgba(232,180,74,0.75)";ctx.fillRect(14*s,-3.4*s,6*s,2*s);
+  }else if(w.id==="smg"){
+    ctx.fillStyle="#1b2226";ctx.fillRect(0,-5*s,42*s,11*s);
+    ctx.fillStyle="#2b363c";ctx.fillRect(42*s,-3*s,12*s,6*s);
+    ctx.fillStyle="#151b1f";
+    ctx.save();ctx.translate(16*s,6*s);ctx.rotate(0.22);ctx.fillRect(0,0,9*s,18*s);ctx.restore();
+    ctx.fillStyle="#151b1f";ctx.fillRect(-12*s,-3*s,14*s,6*s);
+    ctx.fillStyle="rgba(232,180,74,0.7)";ctx.fillRect(24*s,-4.4*s,10*s,2*s);
+  }else if(w.id==="flame"){
+    ctx.fillStyle="#2a1c14";ctx.beginPath();ctx.arc(-6*s,2*s,9*s,0,6.3);ctx.fill();
+    ctx.fillStyle="#1b2226";ctx.fillRect(0,-4.5*s,34*s,9*s);
+    ctx.fillStyle="#2b363c";ctx.fillRect(34*s,-2.5*s,11*s,5*s);
+    ctx.fillStyle="rgba(255,154,60,0.9)";
+    ctx.beginPath();ctx.arc(46*s,0,2.4*s+Math.sin(time*22)*1.4*s,0,6.3);ctx.fill();
+  }else if(w.id==="eye"||w.timeFreeze){
+    /* ============================================================
+       L'OCCHIO TEMPORALE IN MANO AL CONIGLIO (NON È UNA SPADA!)
+       Un bulbo oculare cosmico e cibernetico che fluttua sulle zampe,
+       circondato da anelli giroscopici di stasi e fulmini temporali.
+       ============================================================ */
+    var ex=28*s, ey=Math.sin(time*5)*3.2*s;
+    ctx.save();
+
+    // 1. Manicotto cibernetico impugnato dal coniglio
+    ctx.fillStyle="#0f172a";
+    ctx.fillRect(0,-4*s,14*s,8*s);
+    ctx.fillStyle="#e8b44a";
+    ctx.fillRect(12*s,-3.5*s,4*s,7*s);
+    ctx.fillStyle="#334155";
+    ctx.beginPath();ctx.arc(16*s,0,5.5*s,-1.57,1.57);ctx.fill();
+
+    // 2. Alone di curvatura temporale
+    var auraRad = (G.timeFrozen ? 42 : 28)*s;
+    var aG=ctx.createRadialGradient(ex,ey,2*s,ex,ey,auraRad);
+    aG.addColorStop(0,G.timeFrozen?"rgba(192,132,252,0.85)":"rgba(168,85,247,0.5)");
+    aG.addColorStop(0.5,G.timeFrozen?"rgba(56,189,248,0.4)":"rgba(147,51,234,0.18)");
+    aG.addColorStop(1,"rgba(147,51,234,0)");
+    ctx.fillStyle=aG;
+    ctx.beginPath();ctx.arc(ex,ey,auraRad,0,6.28);ctx.fill();
+
+    // 3. Anelli giroscopici rotanti di stasi temporale
+    var rRot1 = time * 2.4, rRot2 = -time * 3.1;
+    ctx.strokeStyle="rgba(192,132,252,0.85)";ctx.lineWidth=1.8*s;
+    ctx.beginPath();ctx.ellipse(ex,ey,22*s,9*s,rRot1,0,6.28);ctx.stroke();
+    ctx.strokeStyle="rgba(56,189,248,0.75)";ctx.lineWidth=1.4*s;
+    ctx.beginPath();ctx.ellipse(ex,ey,17*s,22*s,rRot2,0,6.28);ctx.stroke();
+
+    // Nodi di energia sui perimetri orbitali
+    var nx1 = ex + Math.cos(rRot1)*22*s, ny1 = ey + Math.sin(rRot1)*9*s;
+    ctx.fillStyle="#c084fc";ctx.beginPath();ctx.arc(nx1,ny1,2.4*s,0,6.28);ctx.fill();
+    var nx2 = ex + Math.cos(rRot2)*17*s, ny2 = ey + Math.sin(rRot2)*22*s;
+    ctx.fillStyle="#38bdf8";ctx.beginPath();ctx.arc(nx2,ny2,2*s,0,6.28);ctx.fill();
+
+    // 4. Bulbo Oculare (Sclera)
+    var eyeG=ctx.createRadialGradient(ex-3*s,ey-2*s,1,ex,ey,15*s);
+    eyeG.addColorStop(0,"#ffffff");
+    eyeG.addColorStop(0.65,"#f1f5f9");
+    eyeG.addColorStop(1,G.timeFrozen?"#d8b4fe":"#cbd5e1");
+    ctx.fillStyle=eyeG;
+    ctx.beginPath();ctx.ellipse(ex,ey,14*s,11*s,0,0,6.28);ctx.fill();
+    ctx.strokeStyle=G.timeFrozen?"#c084fc":"#475569";ctx.lineWidth=1.4*s;ctx.stroke();
+
+    // 5. Vene di crono-energia pulsanti
+    ctx.strokeStyle=G.timeFrozen?"rgba(192,132,252,0.75)":"rgba(244,63,94,0.6)";
+    ctx.lineWidth=0.9*s;
+    ctx.beginPath();
+    ctx.moveTo(ex-12*s,ey-3*s);ctx.lineTo(ex-4*s,ey-1*s);
+    ctx.moveTo(ex-11*s,ey+4*s);ctx.lineTo(ex-3*s,ey+2*s);
+    ctx.stroke();
+
+    // 6. Iride Luminosa (fissa lungo la linea di puntamento del mouse)
+    var ix = ex + 4.5*s, iy = ey;
+    var irisG=ctx.createRadialGradient(ix,iy,1,ix,iy,7.5*s);
+    irisG.addColorStop(0,G.timeFrozen?"#ffffff":"#c084fc");
+    irisG.addColorStop(0.45,G.timeFrozen?"#a855f7":"#38bdf8");
+    irisG.addColorStop(0.85,"#4338ca");
+    irisG.addColorStop(1,"#0f172a");
+    ctx.fillStyle=irisG;
+    ctx.beginPath();ctx.arc(ix,iy,7*s,0,6.28);ctx.fill();
+
+    // 7. Pupilla
+    var pupRad = (G.timeFrozen ? 3.8 : 3.0)*s;
+    ctx.fillStyle="#020617";
+    ctx.beginPath();ctx.arc(ix+0.8*s,iy,pupRad,0,6.28);ctx.fill();
+
+    // 8. Riflesso bianco lucido
+    ctx.fillStyle="#ffffff";
+    ctx.beginPath();ctx.arc(ix-0.8*s,iy-2.4*s,1.4*s,0,6.28);ctx.fill();
+
+    // 9. Scariche di fulmini temporali quando il tempo è congelato
+    if(G.timeFrozen){
+      ctx.strokeStyle="rgba(56,189,248,0.9)";ctx.lineWidth=1.2*s;
+      for(var l=0;l<4;l++){
+        var la = l*1.57 + time*12;
+        var lx1 = ex + Math.cos(la)*14*s, ly1 = ey + Math.sin(la)*11*s;
+        var lx2 = ex + Math.cos(la)*26*s + (Math.random()-0.5)*8*s;
+        var ly2 = ey + Math.sin(la)*26*s + (Math.random()-0.5)*8*s;
+        ctx.beginPath();ctx.moveTo(lx1,ly1);ctx.lineTo(lx2,ly2);ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }else{
+    ctx.fillStyle="#20272b";ctx.fillRect(-2*s,-2.6*s,22*s,5.2*s);
+    ctx.fillStyle="#333d43";ctx.fillRect(18*s,-10*s,5*s,20*s);
+    var bgr=ctx.createLinearGradient(22*s,0,110*s,0);
+    bgr.addColorStop(0,"#cfd8dd");bgr.addColorStop(.5,"#eef4f7");bgr.addColorStop(1,"#9fb0b8");
+    ctx.fillStyle=bgr;
+    ctx.beginPath();
+    ctx.moveTo(22*s,-2.4*s);ctx.lineTo(104*s,-1.2*s);ctx.lineTo(112*s,0);
+    ctx.lineTo(104*s,1.2*s);ctx.lineTo(22*s,2.4*s);ctx.closePath();ctx.fill();
+  }
+  if(P.muzzle>0){
+    var w2=curW();
+    if(w2.id==="eye"||w2.timeFreeze){
+      ctx.save();
+      ctx.strokeStyle="rgba(192,132,252,0.95)";
+      ctx.lineWidth=3*s;
+      ctx.beginPath();ctx.arc(28*s,0,32*s,0,6.28);ctx.stroke();
+      ctx.restore();
+    } else {
+      var tip=w2.id==="sword"?112*s:w2.id==="flame"?50*s:52*s;
+      var mg=ctx.createRadialGradient(tip,0,1,tip,0,26*s);
+      mg.addColorStop(0,"rgba(255,244,214,0.95)");
+      mg.addColorStop(.4,"rgba(255,190,90,0.55)");
+      mg.addColorStop(1,"rgba(255,160,60,0)");
+      ctx.fillStyle=mg;ctx.beginPath();ctx.arc(tip,0,26*s,0,6.3);ctx.fill();
+    }
+  }
+  if(P.swing>0&&w.id==="sword"){
+    var k=1-P.swing/0.26;
+    ctx.strokeStyle="rgba(240,248,252,"+(0.75*(1-k))+")";
+    ctx.lineWidth=7*s;
+    ctx.beginPath();ctx.arc(10*s,0,96*s,-1.1+k*1.6,0.35+k*1.6);ctx.stroke();
+  }
+}
+/* ============================================================
+   LORO, DISEGNATI — margherite, soldati, droni-occhio
+   ============================================================ */
+function drawDaisy(e){
+  var x=e.x-camx,y=e.y-camy;
+  if(x<-90||x>VW+90||y<-140||y>VH+140)return;
+  var sway=Math.sin(e.ph*2.4)*0.13,i;
+  ctx.save();
+  ctx.translate(x,y);
+  if(e.onLadder){
+    ctx.strokeStyle=e.hit>0?"#ffc0c0":"#4ade80";ctx.lineWidth=4;ctx.lineCap="round";
+    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,-60);ctx.stroke();
+  } else {
+    ctx.strokeStyle=e.hit>0?"#ffc0c0":"#3f6b52";ctx.lineWidth=4;ctx.lineCap="round";
+    ctx.beginPath();ctx.moveTo(0,0);ctx.quadraticCurveTo(sway*40,-30,sway*18,-60);ctx.stroke();
+  }
+  ctx.fillStyle=e.hit>0?"#ffb3b3":"#2f5540";
+  ctx.save();ctx.translate(sway*24,-34);ctx.rotate(0.5);ctx.beginPath();ctx.ellipse(0,0,13,5,0,0,6.3);ctx.fill();ctx.restore();
+  ctx.save();ctx.translate(sway*20,-22);ctx.rotate(-2.4);ctx.beginPath();ctx.ellipse(0,0,11,4.4,0,0,6.3);ctx.fill();ctx.restore();
+  ctx.save();
+  ctx.translate(sway*14,-66);
+  ctx.rotate(sway*0.6);
+  for(i=0;i<12;i++){
+    ctx.save();ctx.rotate(i/12*6.283);
+    var pg=ctx.createLinearGradient(0,0,0,-26);
+    pg.addColorStop(0,"rgba(255,255,252,0.95)");
+    pg.addColorStop(1,"rgba(226,224,208,0.55)");
+    ctx.fillStyle=e.hit>0?"#ffe0e0":pg;
+    ctx.beginPath();ctx.ellipse(0,-19,6.5,14,0,0,6.3);ctx.fill();
+    ctx.restore();
+  }
+  ctx.fillStyle=e.hit>0?"#ffd0d0":"#e8b44a";
+  ctx.beginPath();ctx.arc(0,0,13,0,6.3);ctx.fill();
+  ctx.fillStyle="rgba(0,0,0,0.35)";ctx.beginPath();ctx.arc(0,0,9,0,6.3);ctx.fill();
+  var dx=P.x-e.x,dy=(P.y-52)-e.y;
+  var dl=Math.sqrt(dx*dx+dy*dy)||1;
+  ctx.fillStyle="#0a0a0a";
+  ctx.beginPath();ctx.arc(dx/dl*4.4,dy/dl*4.4,5.2,0,6.3);ctx.fill();
+  ctx.fillStyle="rgba(255,255,255,0.8)";
+  ctx.beginPath();ctx.arc(dx/dl*4.4-1.6,dy/dl*4.4-1.8,1.4,0,6.3);ctx.fill();
+  ctx.restore();
+  ctx.restore();
+}
+function drawSoldier(e){
+  var x=e.x-camx,y=e.y-camy;
+  if(x<-90||x>VW+90||y<-160||y>VH+160)return;
+  var fl=e.hit>0;
+  var body=fl?"#5a2a2a":"#16232b",rim=fl?"#ffd0d0":"#2f4a58";
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.scale(e.dir,1);
+  ctx.fillStyle="rgba(0,0,0,0.35)";
+  ctx.beginPath();ctx.ellipse(0,0,26,7,0,0,6.3);ctx.fill();
+  ctx.fillStyle=body;
+  if(e.onLadder){
+    var step=Math.sin(e.ph*9)*8;
+    ctx.fillRect(-16,-34-step,10,34);
+    ctx.fillRect(4,-34+step,10,34);
+    ctx.beginPath();
+    ctx.moveTo(-22,-34);ctx.lineTo(-16,-86);ctx.lineTo(14,-86);ctx.lineTo(22,-34);
+    ctx.lineTo(8,-30);ctx.lineTo(-8,-30);ctx.closePath();
+    ctx.fillStyle=body;ctx.fill();
+    ctx.strokeStyle=rim;ctx.lineWidth=1.4;ctx.stroke();
+    ctx.fillStyle="#0e181d";
+    ctx.fillRect(-18,-86+step*0.5,7,24);
+    ctx.fillRect(11,-86-step*0.5,7,24);
+  } else {
+    ctx.fillRect(-16,-34,10,34);
+    ctx.fillRect(4,-34,10,34);
+    ctx.beginPath();
+    ctx.moveTo(-22,-34);ctx.lineTo(-16,-86);ctx.lineTo(14,-86);ctx.lineTo(22,-34);
+    ctx.lineTo(8,-30);ctx.lineTo(-8,-30);ctx.closePath();
+    ctx.fillStyle=body;ctx.fill();
+    ctx.strokeStyle=rim;ctx.lineWidth=1.4;ctx.stroke();
+  }
+  ctx.fillStyle="#0e181d";
+  ctx.beginPath();ctx.arc(2,-98,16,Math.PI,0);ctx.fill();
+  ctx.fillRect(-14,-99,32,5);
+  ctx.beginPath();ctx.ellipse(2,-88,13,13,0,0,6.3);ctx.fill();
+  ctx.fillStyle="rgba(255,90,90,0.95)";
+  ctx.fillRect(2,-90,7,2.6);
+  ctx.fillRect(-7,-90,7,2.6);
+  if(!e.onLadder){
+    ctx.fillStyle="#0b1216";
+    ctx.fillRect(-6,-74,60,5);
+    ctx.fillRect(44,-76,16,3);
+    ctx.fillRect(-2,-70,8,12);
+    ctx.fillStyle="rgba(232,180,74,0.5)";ctx.fillRect(24,-75,10,1.6);
+  }
+  ctx.restore();
+}
+function drawDrone(e){
+  var x=e.x-camx,y=e.y-camy;
+  if(x<-90||x>VW+90||y<-140||y>VH+140)return;
+  var fl=e.hit>0,i,a,px,py;
+  ctx.save();
+  ctx.translate(x,y-34);
+  var gl=ctx.createRadialGradient(0,0,2,0,0,52);
+  gl.addColorStop(0,"rgba(255,110,90,0.28)");gl.addColorStop(1,"rgba(255,110,90,0)");
+  ctx.fillStyle=gl;ctx.beginPath();ctx.arc(0,0,52,0,6.3);ctx.fill();
+  ctx.strokeStyle="rgba(190,214,224,0.5)";ctx.lineWidth=2;
+  for(i=0;i<4;i++){
+    a=i/4*6.283+Math.PI/4;
+    px=Math.cos(a)*26;py=Math.sin(a)*13;
+    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(px,py);ctx.stroke();
+    ctx.beginPath();ctx.ellipse(px,py,10,3,0,0,6.3);ctx.stroke();
+  }
+  var bg=ctx.createLinearGradient(0,-18,0,18);
+  bg.addColorStop(0,fl?"#7a3030":"#22343d");
+  bg.addColorStop(1,"#0c1519");
+  ctx.fillStyle=bg;
+  ctx.beginPath();ctx.arc(0,0,18,0,6.3);ctx.fill();
+  ctx.strokeStyle="rgba(200,224,232,0.35)";ctx.lineWidth=1.4;
+  ctx.beginPath();ctx.arc(0,0,18,0,6.3);ctx.stroke();
+  var dx=P.x-e.x,dy=(P.y-52)-(e.y-34);
+  var dl=Math.sqrt(dx*dx+dy*dy)||1;
+  ctx.fillStyle="#0a0e10";ctx.beginPath();ctx.arc(0,0,11,0,6.3);ctx.fill();
+  var eg=ctx.createRadialGradient(dx/dl*3,dy/dl*3,1,dx/dl*3,dy/dl*3,9);
+  eg.addColorStop(0,"#ffd8b0");eg.addColorStop(.5,"#ff6a4a");eg.addColorStop(1,"#601008");
+  ctx.fillStyle=eg;
+  ctx.beginPath();ctx.arc(dx/dl*3,dy/dl*3,8,0,6.3);ctx.fill();
+  ctx.fillStyle="#08080a";
+  ctx.beginPath();ctx.arc(dx/dl*4,dy/dl*4,3.4,0,6.3);ctx.fill();
+  ctx.restore();
+}
+function drawEnemies(){
+  var i,e,x,y;
+  for(i=0;i<ents.length;i++){
+    e=ents[i];
+    if(e.dead)continue;
+    if(e.t==="daisy")drawDaisy(e);
+    else if(e.t==="soldier")drawSoldier(e);
+    else drawDrone(e);
+    if(e.hp<e.max){
+      x=e.x-camx;y=e.y-camy-(e.t==="drone"?62:e.t==="daisy"?96:126);
+      ctx.fillStyle="rgba(0,0,0,0.6)";ctx.fillRect(x-22,y,44,4);
+      ctx.fillStyle=e.t==="daisy"?"#f2efd8":"#ff7a4a";
+      ctx.fillRect(x-22,y,44*(e.hp/e.max),4);
+    }
+  }
+}
+function drawBullets(){
+  var i,b,x,y,fg,rg;
+  for(i=0;i<bul.length;i++){
+    b=bul[i];x=b.x-camx;y=b.y-camy;
+    if(x<-40||x>VW+40||y<-40||y>VH+40)continue;
+    if(b.frozen){
+      ctx.save();
+      var fPulse = 0.5 + 0.5 * Math.sin(time * 10 + i * 1.5);
+      ctx.strokeStyle = "rgba(192, 132, 252, " + (0.55 + 0.35 * fPulse) + ")";
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.arc(x, y, 7 + fPulse * 2.5, 0, 6.28);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.45)";
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + b.vx * 0.05, y + b.vy * 0.05);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(x, y, b.r * 1.2, 0, 6.28);
+      ctx.fill();
+
+      var chroG = ctx.createRadialGradient(x, y, 1, x, y, 12);
+      chroG.addColorStop(0, "rgba(192, 132, 252, 0.8)");
+      chroG.addColorStop(1, "rgba(192, 132, 252, 0)");
+      ctx.fillStyle = chroG;
+      ctx.beginPath();
+      ctx.arc(x, y, 12, 0, 6.28);
+      ctx.fill();
+      ctx.restore();
+    }else if(b.flame){
+      fg=ctx.createRadialGradient(x,y,1,x,y,b.r*2.2);
+      fg.addColorStop(0,"rgba(255,240,190,0.9)");
+      fg.addColorStop(.4,"rgba(255,150,60,0.55)");
+      fg.addColorStop(1,"rgba(255,80,20,0)");
+      ctx.fillStyle=fg;ctx.beginPath();ctx.arc(x,y,b.r*2.2,0,6.3);ctx.fill();
+    }else{
+      ctx.strokeStyle=rgba(b.col,0.7);ctx.lineWidth=2.4;
+      ctx.beginPath();ctx.moveTo(x-b.vx*0.016,y-b.vy*0.016);ctx.lineTo(x,y);ctx.stroke();
+      ctx.fillStyle="#fff6dd";ctx.beginPath();ctx.arc(x,y,b.r,0,6.3);ctx.fill();
+    }
+  }
+  for(i=0;i<eb.length;i++){
+    b=eb[i];x=b.x-camx;y=b.y-camy;
+    if(x<-40||x>VW+40||y<-40||y>VH+40)continue;
+    if(G.timeFrozen){
+      ctx.save();
+      ctx.strokeStyle = "rgba(192, 132, 252, 0.65)";
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.arc(x, y, 9, 0, 6.28);
+      ctx.stroke();
+      ctx.fillStyle = "#ff8888";
+      ctx.beginPath();
+      ctx.arc(x, y, 2.5, 0, 6.28);
+      ctx.fill();
+      ctx.restore();
+      continue;
+    }
+    rg=ctx.createRadialGradient(x,y,1,x,y,14);
+    rg.addColorStop(0,"rgba(255,220,200,0.95)");
+    rg.addColorStop(.45,"rgba(255,90,90,0.7)");
+    rg.addColorStop(1,"rgba(255,60,60,0)");
+    ctx.fillStyle=rg;ctx.beginPath();ctx.arc(x,y,14,0,6.3);ctx.fill();
+    ctx.fillStyle="#ffe6e0";ctx.beginPath();ctx.arc(x,y,2.6,0,6.3);ctx.fill();
+  }
+}
+function drawParts(){
+  var i,p,x,y;
+  for(i=0;i<parts.length;i++){
+    p=parts[i];x=p.x-camx;y=p.y-camy;
+    if(x<-40||x>VW+40||y<-40||y>VH+40)continue;
+    ctx.globalAlpha=Math.max(0,Math.min(1,p.life/p.max));
+    ctx.fillStyle=p.col;
+    ctx.beginPath();ctx.arc(x,y,p.r,0,6.3);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+}
+/* ---- la parete delle fogne, quando si e' sotto --------------- */
+function drawSewerBack(){
+  var depth=Math.min(1,Math.max(0,(camy-(GY-VH*0.55))/380));
+  if(depth<=0.02)return;
+  ctx.save();
+  ctx.globalAlpha=depth;
+  var g=ctx.createLinearGradient(0,0,0,VH);
+  g.addColorStop(0,"#07100e");g.addColorStop(.6,"#0a1512");g.addColorStop(1,"#050c0a");
+  ctx.fillStyle=g;ctx.fillRect(0,0,VW,VH);
+  var i,off=(camx*0.62)%320,ax,ay;
+  /* gli archi: la fogna e' un tubo di mattoni */
+  for(i=-1;i<5;i++){
+    ax=i*320-off+120;
+    ay=VH*0.92;
+    ctx.strokeStyle="rgba(84,150,128,0.13)";ctx.lineWidth=30;
+    ctx.beginPath();ctx.arc(ax,ay,128,Math.PI,0);ctx.stroke();
+    ctx.strokeStyle="rgba(150,232,204,0.10)";ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(ax,ay,146,Math.PI,0);ctx.stroke();
+    ctx.fillStyle="rgba(4,10,8,0.85)";
+    ctx.beginPath();ctx.arc(ax,ay,110,Math.PI,0);ctx.fill();
+    ctx.fillRect(ax-110,ay-6,220,20);
+    /* la luce che filtra dal tombino */
+    var lg=ctx.createLinearGradient(0,120,0,VH*0.9);
+    lg.addColorStop(0,"rgba(111,240,208,0.06)");
+    lg.addColorStop(1,"rgba(111,240,208,0)");
+    ctx.fillStyle=lg;
+    ctx.beginPath();ctx.moveTo(ax-26,120);ctx.lineTo(ax+26,120);
+    ctx.lineTo(ax+130,VH*0.92);ctx.lineTo(ax-130,VH*0.92);ctx.closePath();ctx.fill();
+  }
+  /* i tubi che corrono sopra la testa */
+  ctx.strokeStyle="rgba(120,170,160,0.16)";ctx.lineWidth=9;
+  ctx.beginPath();ctx.moveTo(-20,108);ctx.lineTo(VW+20,108);ctx.stroke();
+  ctx.strokeStyle="rgba(90,140,130,0.12)";ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(-20,132);ctx.lineTo(VW+20,132);ctx.stroke();
+  for(i=0;i<6;i++){
+    var px=((i*220-camx*0.62)%(VW+220)+(VW+220))%(VW+220)-110;
+    ctx.fillStyle="rgba(70,110,102,0.35)";
+    ctx.fillRect(px,104,12,9);
+  }
+  /* vapore basso */
+  ctx.globalAlpha=depth*0.10;ctx.fillStyle="#8fe0cc";
+  for(i=0;i<3;i++)ctx.fillRect(0,VH*0.62+i*60+Math.sin(time*.5+i)*12,VW,30);
+  ctx.restore();
+}
+/* ============================================================
+   L'OCCHIO NEL CIELO
+   ============================================================ */
+function drawEye(){
+  /* L'occhio nel cielo: è sempre presente in alto nel cielo a osservare il coniglio.
+     Segue il movimento del giocatore e la sua pupilla lo fissa continuamente.
+     Quando si prende la cassetta (G.eyeOn) l'occhio diventa vigile, pulsa e scende il conto alla rovescia. */
+  var on=G.eyeOn;
+  var t=on?G.eyeT:999;
+  var urgent=on&&(t<15);
+  var pulse=urgent?0.5+0.5*Math.sin(time*8):0.5+0.5*Math.sin(time*1.4);
+
+  /* Posizione dell'occhio a schermo: l'occhio in cielo insegue il giocatore con morbida inerzia */
+  var ex=clamp(G.eyeX-camx,150,VW-150);
+  var ey=G.eyeY;
+  if(on){
+    var chase=Math.min(1,Math.max(0,1-G.eyeT/(G.eyeMax||40)));
+    ey+=chase*38;
+  }
+
+  var EK=on?(urgent?0.74:0.68):0.62;
+
+  ctx.save();
+
+  /* L'alone di luce nel cielo */
+  var halo=ctx.createRadialGradient(ex,ey,20,ex,ey,340*EK);
+  if(urgent){
+    halo.addColorStop(0,"rgba(255,80,60,"+(0.35+0.25*pulse)+")");
+    halo.addColorStop(0.5,"rgba(220,90,60,0.14)");
+  }else if(on){
+    halo.addColorStop(0,"rgba(245,210,140,0.24)");
+    halo.addColorStop(0.5,"rgba(200,160,100,0.08)");
+  }else{
+    halo.addColorStop(0,"rgba(200,215,230,0.12)");
+    halo.addColorStop(0.5,"rgba(160,180,200,0.04)");
+  }
+  halo.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=halo;ctx.beginPath();ctx.arc(ex,ey,340*EK,0,6.3);ctx.fill();
+
+  /* Palpebre */
+  var lid=on?(1-Math.abs(Math.sin(time*0.7))*0.05):(0.76-Math.abs(Math.sin(time*0.4))*0.06);
+  if(G.eyeBlink>0)lid=0.28;
+
+  ctx.save();
+  ctx.translate(ex,ey);
+  ctx.scale(EK,EK*lid);
+
+  /* Bulbo oculare */
+  var sc=ctx.createRadialGradient(-30,-24,10,0,0,180);
+  if(urgent){
+    sc.addColorStop(0,"#fff2e8");sc.addColorStop(0.65,"#edd1be");sc.addColorStop(1,"#b5877b");
+  }else{
+    sc.addColorStop(0,"#fbf6ea");sc.addColorStop(0.65,"#ded4c2");sc.addColorStop(1,"#a89b88");
+  }
+  ctx.fillStyle=sc;
+  ctx.beginPath();ctx.ellipse(0,0,178,112,0,0,6.3);ctx.fill();
+
+  /* Vene che pulsano quando il tempo stringe */
+  if(urgent){
+    ctx.strokeStyle="rgba(220,40,40,"+(0.35+0.35*pulse)+")";ctx.lineWidth=2.2;
+    var v;
+    for(v=0;v<7;v++){
+      var va=v/7*6.283;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(va)*150,Math.sin(va)*92);
+      ctx.quadraticCurveTo(Math.cos(va+0.3)*100,Math.sin(va+0.3)*70,Math.cos(va+0.18)*60,Math.sin(va+0.18)*44);
+      ctx.stroke();
+    }
+  }
+
+  /* L'IRIDE E LA PUPILLA: puntano esattamente verso la posizione a schermo del giocatore */
+  var playerScreenX=P.x-camx;
+  var playerScreenY=(P.y-48)-camy;
+  var dx=playerScreenX-ex;
+  var dy=playerScreenY-ey;
+  var dl=Math.sqrt(dx*dx+dy*dy)||1;
+  var maxLookX=64;
+  var maxLookY=36;
+  var ix=clamp((dx/dl)*68,-maxLookX,maxLookX);
+  var iy=clamp((dy/dl)*44,-maxLookY,maxLookY);
+
+  var ig=ctx.createRadialGradient(ix,iy,6,ix,iy,74);
+  if(urgent){
+    ig.addColorStop(0,"#ffb08a");
+    ig.addColorStop(0.55,"#c23a2a");
+    ig.addColorStop(1,"#20180e");
+  }else if(on){
+    ig.addColorStop(0,"#e8c98a");
+    ig.addColorStop(0.55,"#8f7036");
+    ig.addColorStop(1,"#20180e");
+  }else{
+    ig.addColorStop(0,"#cfd8dc");
+    ig.addColorStop(0.55,"#546e7a");
+    ig.addColorStop(1,"#121b20");
+  }
+  ctx.fillStyle=ig;
+  ctx.beginPath();ctx.arc(ix,iy,74,0,6.3);ctx.fill();
+
+  /* Pupilla */
+  ctx.fillStyle="#08080a";
+  ctx.beginPath();ctx.arc(ix,iy,on?36:28,0,6.3);ctx.fill();
+
+  /* Riflesso luce */
+  ctx.fillStyle="rgba(255,255,255,0.85)";
+  ctx.beginPath();ctx.arc(ix-18,iy-20,9,0,6.3);ctx.fill();
+
+  /* Contorno e ciglia */
+  ctx.strokeStyle="rgba(20,14,10,0.55)";ctx.lineWidth=6;
+  ctx.beginPath();ctx.ellipse(0,0,178,112,0,0,6.3);ctx.stroke();
+
+  ctx.restore();
+
+  /* Fascio di luce conico quando urgente */
+  if(urgent){
+    var ang=Math.atan2(dy,dx);
+    ctx.save();
+    ctx.translate(ex,ey);
+    ctx.rotate(ang-Math.PI/2);
+    var bg=ctx.createLinearGradient(0,0,0,VH);
+    bg.addColorStop(0,"rgba(255,90,70,"+(0.16+0.18*pulse)+")");
+    bg.addColorStop(1,"rgba(255,90,70,0)");
+    ctx.fillStyle=bg;
+    ctx.beginPath();
+    ctx.moveTo(-50*EK,50*EK);
+    ctx.lineTo(50*EK,50*EK);
+    ctx.lineTo(260*EK,VH*1.2);
+    ctx.lineTo(-260*EK,VH*1.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+/* ============================================================
+   LA TESTA DEL GIOCATORE — vita, armi, tempo, mappa
+   ============================================================ */
+function fmt(t){
+  if(t<0)t=0;
+  var m=Math.floor(t/60),s=Math.floor(t%60);
+  return (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+}
+function drawHUD(){
+  var i;
+  /* vita */
+  txt("VITA",24,26,9,"#5d676c");
+  for(i=0;i<G.maxhp;i++){
+    ctx.fillStyle=i<G.hp?"#e8b44a":"rgba(232,180,74,0.18)";
+    ctx.fillRect(24+i*22,32,17,6);
+  }
+  /* la radio della cassetta: si accende con M */
+  var rName = IS_ENDLESS ? "tg0.mpeg" : ("tg"+MEM+".MP3");
+  txt("RADIO "+(AUD_ON?"\u25cf":"\u25cb")+" " + rName,24,52,8,
+    AUD_ERR?"#7a3a34":(AUD_ON?"#e8b44a":"#4a5257"));
+  txt("TEKNO: ON", 24, 64, 8, "#38bdf8");
+  /* armi disponibili (slot 1-5) */
+  for(i=0;i<SLOTS.length;i++){
+    var y=VH-58-i*26,act=i===WI;
+    var wId=SLOTS[i];
+    var isEye=(wId==="eye");
+    var wName=WDEF[wId]?WDEF[wId].name:wId;
+    ctx.fillStyle=act?(isEye?"rgba(192,132,252,0.22)":"rgba(232,180,74,0.18)"):"rgba(10,14,16,0.65)";
+    ctx.fillRect(20,y,232,22);
+    ctx.strokeStyle=act?(isEye?"#c084fc":"rgba(232,180,74,0.85)"):"rgba(120,140,150,0.25)";
+    ctx.lineWidth=1;ctx.strokeRect(20.5,y+0.5,231,21);
+
+    var label=(i+1)+" · "+wName;
+    if(isEye){
+      if(G.timeFrozen){
+        label+=" [STASI "+Math.ceil(G.freezeTimer)+"s]";
+      } else if((G.eyeCooldown||0)>0){
+        label+=" ("+Math.ceil(G.eyeCooldown)+"s)";
+      } else {
+        label+=" [PRONTO · F]";
+      }
+    }
+    var col=isEye?(G.timeFrozen?"#c084fc":(G.eyeCooldown>0?"#78838a":"#38bdf8")):(act?"#e8b44a":"#78838a");
+    txt(label,28,y+15,9.5,col);
+  }
+  /* Cronometro stasi quando L'Occhio è attivo */
+  if(G.timeFrozen){
+    var frBoxW=400;
+    ctx.fillStyle="rgba(14, 10, 26, 0.92)";
+    ctx.fillRect(VW/2-frBoxW/2, 64, frBoxW, 44);
+    ctx.strokeStyle="#c084fc";
+    ctx.lineWidth=1.5;
+    ctx.strokeRect(VW/2-frBoxW/2+0.5, 64.5, frBoxW-1, 43);
+
+    var frPct=Math.max(0, G.freezeTimer / 10.0);
+    ctx.fillStyle="rgba(192, 132, 252, 0.45)";
+    ctx.fillRect(VW/2-frBoxW/2+6, 100, (frBoxW-12)*frPct, 4);
+
+    var frozCount=0;
+    for(var fbi=0; fbi<bul.length; fbi++) if(bul[fbi].frozen) frozCount++;
+
+    txt("⚡ L'OCCHIO ATTIVO · TEMPO FERMO: "+(Math.max(0, G.freezeTimer).toFixed(1))+"s", VW/2, 80, 11, "#e9d5ff", "center", 800);
+    txt("PROIETTILI SOSPESI: "+frozCount+" · SBLOCCA CON 'F' O CLICK", VW/2, 94, 8.5, "#38bdf8", "center");
+  }
+  /* obiettivo / ondate */
+  if(IS_ENDLESS || G.endless){
+    var eWaveBox = 340;
+    ctx.fillStyle="rgba(6,10,12,0.85)";
+    ctx.fillRect(VW/2-eWaveBox/2,12,eWaveBox,46);
+    ctx.strokeStyle="rgba(255,45,115,0.75)";
+    ctx.lineWidth=1.5;
+    ctx.strokeRect(VW/2-eWaveBox/2+.5,12.5,eWaveBox-1,45);
+    txt("MODALITÀ ETERNA · ONDATA "+G.wave,VW/2,29,12,"#ff2d75","center",900);
+    txt("NEMICI RESTANTI: "+Math.max(0, G.waveTotal - (G.waveKills || 0))+" · CORRUZIONE: "+(G.corruption||5)+"%",VW/2,47,9,"#e8dcc0","center");
+  } else {
+    var obj=G.cass?"TORNA AL FURGONE · CONSEGNA LA CASSETTA":"TROVA LA CASSETTA · "+MZ.where.toUpperCase();
+    var ow=obj.length*6.4+28;
+    ctx.fillStyle="rgba(6,10,12,0.6)";
+    ctx.fillRect(VW/2-ow/2,14,ow,18);
+    txt(obj,VW/2,27,10,G.cass?"#e8b44a":"#a6b6bd","center");
+  }
+  if(G.eyeOn){
+    var t=G.eyeT,urgent=t<15;
+    var col=urgent&&Math.floor(time*6)%2===0?"#ff6a5a":"#f0e2c4";
+    ctx.fillStyle="rgba(6,10,12,0.78)";
+    ctx.fillRect(VW/2-124,28,248,62);
+    ctx.strokeStyle="rgba(232,180,74,0.45)";ctx.lineWidth=1;
+    ctx.strokeRect(VW/2-123.5,28.5,247,61);
+    txt(fmt(t),VW/2,72,34,col,"center",700);
+    txt("PRIMA CHE L'OCCHIO TI VEDA",VW/2,85,8,"#8a9398","center");
+  }
+  /* mappa */
+  var mw=196,mh=92,mx=VW-mw-22,my=VH-mh-22;
+  ctx.fillStyle="rgba(6,10,12,0.72)";ctx.fillRect(mx,my,mw,mh);
+  ctx.strokeStyle="rgba(140,170,182,0.35)";ctx.lineWidth=1;ctx.strokeRect(mx+.5,my+.5,mw-1,mh-1);
+  var sx=mw/W,sy=mh/H;
+  for(i=0;i<SOL.length;i++){
+    var s=SOL[i];
+    ctx.fillStyle=s.k==="street"?"rgba(120,160,176,0.30)":s.k==="sewer"?"rgba(111,240,208,0.20)":"rgba(160,190,200,0.45)";
+    ctx.fillRect(mx+s.x*sx,my+s.y*sy,Math.max(1,s.w*sx),Math.max(1,s.h*sy));
+  }
+  /* il furgone e la cassetta */
+  ctx.fillStyle="#e8b44a";ctx.fillRect(mx+EXIT.x*sx-2,my+EXIT.y*sy-2,4,4);
+  if(!CASS.taken){ctx.fillStyle="#f2e6c8";ctx.fillRect(mx+CASS.x*sx-2,my+CASS.y*sy-2,4,4);}
+    ctx.fillStyle="rgba(255,110,90,0.9)";
+  for(i=0;i<ents.length;i++){
+    if(ents[i].dead)continue;
+    ctx.fillRect(mx+ents[i].x*sx-1.5,my+ents[i].y*sy-1.5,3,3);
+  }
+  ctx.fillStyle="#ffffff";
+  ctx.fillRect(mx+P.x*sx-2,my+P.y*sy-2,4,4);
+  /* riquadro della vista */
+  ctx.strokeStyle="rgba(255,255,255,0.22)";
+  ctx.strokeRect(mx+camx*sx,my+camy*sy,VW*sx,VH*sy);
+  txt(MZ.nome,mx+8,my+13,9,"#5d676c");
+  /* il messaggio */
+  if(G.msgT>0){
+    var a=Math.min(1,G.msgT/0.6);
+    ctx.globalAlpha=a;
+    var tw2=Math.min(VW-80,G.msg.length*7.4+40);
+    ctx.fillStyle="rgba(6,10,12,0.86)";
+    ctx.fillRect(VW/2-tw2/2,VH-104,tw2,30);
+    ctx.strokeStyle="rgba(232,180,74,0.5)";ctx.lineWidth=1;
+    ctx.strokeRect(VW/2-tw2/2+.5,VH-103.5,tw2-1,29);
+    txt(G.msg,VW/2,VH-84,10,"#e8dcc0","center");
+    ctx.globalAlpha=1;
+  }
+  /* vignetta */
+  var v=ctx.createRadialGradient(VW/2,VH*.46,190,VW/2,VH/2,700);
+  v.addColorStop(0,"rgba(0,0,0,0)");v.addColorStop(1,"rgba(0,0,0,0.46)");
+  ctx.fillStyle=v;ctx.fillRect(0,0,VW,VH);
+}
+/* ============================================================
+   LA MARGHERITA — la fine, quando l'occhio ti prende
+   ============================================================ */
+function drawDaisyAnim(){
+  var k=Math.min(1,G.daisy/2.2);
+  var x=P.x-camx,y=P.y-camy;
+  var i,a,r,alpha;
+  ctx.save();
+  if(G.daisy<0.5){
+    ctx.globalAlpha=1-G.daisy/0.5;
+    ctx.fillStyle="rgba(255,250,235,0.8)";
+    ctx.beginPath();ctx.arc(x,y-50,260*G.daisy/0.5+40,0,6.3);ctx.fill();
+    ctx.globalAlpha=1;
+  }
+  ctx.translate(x,y-50);
+  for(i=0;i<12;i++){
+    a=i/12*6.283+(1-k)*0.6;
+    r=lerp(6,80,k);
+    alpha=Math.min(1,k*1.8);
+    ctx.save();
+    ctx.translate(Math.cos(a)*r*0.85,Math.sin(a)*r*0.6);
+    ctx.rotate(a+1.57);
+    ctx.globalAlpha=alpha;
+    var pg=ctx.createLinearGradient(0,-16,0,16);
+    pg.addColorStop(0,"rgba(255,255,252,0.98)");
+    pg.addColorStop(1,"rgba(224,222,206,0.62)");
+    ctx.fillStyle=pg;
+    ctx.beginPath();ctx.ellipse(0,0,lerp(3,11,k),lerp(6,23,k),0,0,6.3);ctx.fill();
+    ctx.restore();
+  }
+  ctx.globalAlpha=Math.min(1,k*1.5);
+  var cg=ctx.createRadialGradient(0,0,2,0,0,26*k+8);
+  cg.addColorStop(0,"#ffe9a8");cg.addColorStop(.6,"#e8b44a");cg.addColorStop(1,"#8a6420");
+  ctx.fillStyle=cg;
+  ctx.beginPath();ctx.arc(0,0,lerp(6,25,k),0,6.3);ctx.fill();
+  ctx.fillStyle="#1a1208";
+  ctx.beginPath();ctx.arc(0,0,lerp(3,10,k),0,6.3);ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.strokeStyle="rgba(63,107,82,0.9)";ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(0,10);ctx.quadraticCurveTo(6,60,0,112);ctx.stroke();
+  ctx.restore();
+}
+/* ============================================================
+   I CARTELLI — inizio, vittoria, fine
+   ============================================================ */
+function panelBox(x,y,w,h){
+  ctx.fillStyle="rgba(4,7,8,0.94)";
+  ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle="rgba(232,180,74,0.55)";ctx.lineWidth=1;
+  ctx.strokeRect(x+.5,y+.5,w-1,h-1);
+  ctx.fillStyle="rgba(232,180,74,0.10)";
+  ctx.fillRect(x,y,w,3);
+}
+function drawOverlays(){
+  var a,a2,a3;
+  if(G.intro>0){
+    a=Math.min(1,G.intro/1.0);
+    ctx.fillStyle="rgba(3,5,6,"+a+")";ctx.fillRect(0,0,VW,VH);
+    ctx.globalAlpha=a;
+
+    if(IS_ENDLESS || G.endless){
+      // L'avviso in rosso prima di iniziare ESCLUSIVO per il Gioco Infinito
+      ctx.save();
+      var pulse = 0.85 + 0.15 * Math.sin(time * 7);
+      ctx.shadowColor = "rgba(255, 30, 60, " + (0.95 * pulse) + ")";
+      ctx.shadowBlur = 18;
+      txt(T("« LUI TI VEDE, TI LEGGE LA MENTE »", "« HE SEES YOU, HE READS YOUR MIND »"), VW/2, VH/2 - 76, 20, "#ff2247", "center", 900);
+      ctx.restore();
+
+      txt(T("IL GIOCO ETERNO · ONDATE INFINITE", "THE ETERNAL GAME · ENDLESS WAVES"),VW/2,VH/2-30,24,"#ff4a6a","center",900);
+      txt(T("resisti alle ondate di corruzione cosmica", "survive the waves of cosmic corruption"),VW/2,VH/2,12,"#f0e2c4","center");
+      var wpnTxt = T("armi: ", "weapons: ") + SLOTS.map(function(s){ return WDEF[s] ? WDEF[s].name : s; }).join(" · ");
+      txt(wpnTxt, VW/2, VH/2+26, 10, "#8fa0a8", "center");
+      txt("radio: tg0.mpeg · " + T("M accende / spegne", "M turns on / off"),VW/2,VH/2+44,9,"#7f8f96","center");
+      txt(T("A/D muovi · SPAZIO salta · W/S scale · click spara · 1-3 armi (Q) · F occhio", "A/D move · SPACE jump · W/S ladders · click shoot · 1-3 weapons (Q) · F eye"),VW/2,VH/2+64,9,"#5d676c","center");
+    } else {
+      txt(T("MEMORIE DEL COSMO", "MEMORIES OF THE COSMOS"),VW/2,VH/2-30,26,"#f0e2c4","center");
+      txt(T("MISSIONE ", "MISSION ") + MEM + " · " + (COSMO_LANG === "en" ? (MZ.en || MZ.nome) : MZ.nome),VW/2,VH/2+2,12,"#e8b44a","center");
+      txt(T(MZ.it, (MZ.en || MZ.it)),VW/2,VH/2-10,11,"#8fa0a8","center");
+      var wpnTxt2 = T("armi: ", "weapons: ") + SLOTS.map(function(s){ return WDEF[s] ? WDEF[s].name : s; }).join(" · ");
+      txt(wpnTxt2, VW/2, VH/2+24, 10, "#8fa0a8", "center");
+      txt("radio: tg"+MEM+".MP3 · " + T("M accende / spegne", "M turns on / off"),VW/2,VH/2+42,9,"#7f8f96","center");
+      txt(T("A/D muovi · SPAZIO salta · W/S scale · click spara · 1/2 armi", "A/D move · SPACE jump · W/S ladders · click shoot · 1/2 weapons"),VW/2,VH/2+62,9,"#5d676c","center");
+    }
+    ctx.globalAlpha=1;
+  }
+  if(G.daisy>0){
+    a2=Math.min(1,Math.max(0,(G.daisy-0.5)/1.4));
+    ctx.fillStyle="rgba(3,5,6,"+(a2*0.5)+")";ctx.fillRect(0,0,VW,VH);
+    if(a2>0.15){
+      ctx.globalAlpha=a2;
+      txt(G.reason||"",VW/2,VH-158,11,"#ff9a8a","center");
+      txt(T("diventi una margherita", "you turn into a daisy"),VW/2,VH-136,13,"#f2efd8","center");
+      ctx.globalAlpha=1;
+    }
+    if(G.ended){
+      if(IS_ENDLESS || G.endless){
+        panelBox(VW/2-280,VH/2-96,560,192);
+        txt(T("FINE DELLA TRASMISSIONE ETERNA", "END OF THE ETERNAL TRANSMISSION"),VW/2,VH/2-44,20,"#ff4a6a","center");
+        txt(T("sei sopravvissuto a ", "you survived ") + Math.max(0, (G.wave||1)-1) + T(" ondate di corruzione.", " waves of corruption."),VW/2,VH/2-12,12,"#f0e2c4","center");
+        txt(T("livello finale di distorsione cosmica: ", "final cosmic distortion level: ") + (G.corruption||5) + "%",VW/2,VH/2+16,11,"#e8b44a","center");
+        txt(T("R · RIPARTI DALL'ONDATA 1        ESC · MEMORIE DEL COSMO", "R · RESTART FROM WAVE 1        ESC · MEMORIES OF THE COSMOS"),VW/2,VH/2+56,10,"#8fa0a8","center");
+      } else {
+        panelBox(VW/2-250,VH/2-92,500,184);
+        txt(T("SEI UNA MARGHERITA", "YOU ARE A DAISY"),VW/2,VH/2-42,22,"#f2efd8","center");
+        txt(T("l'occhio ha visto. la strada si e' chiusa.", "the eye saw. the road is closed."),VW/2,VH/2-10,11,"#c9c2b0","center");
+        txt(T("il coniglio non e' tornato al furgone.", "the rabbit did not return to the van."),VW/2,VH/2+12,11,"#8a9398","center");
+        txt(T("R · RICOMINCIA        ESC · MEMORIE DEL COSMO", "R · RESTART        ESC · MEMORIES OF THE COSMOS"),VW/2,VH/2+56,10,"#e8b44a","center");
+      }
+    }
+  }
+  if(G.win>0){
+    a3=Math.min(1,G.win/0.7);
+    ctx.fillStyle="rgba(3,5,6,"+(a3*0.55)+")";ctx.fillRect(0,0,VW,VH);
+    if(G.win>0.7){
+      panelBox(VW/2-270,VH/2-104,540,208);
+      txt(T("MEMORIA RECUPERATA", "MEMORY RECOVERED"),VW/2,VH/2-52,22,"#e8b44a","center");
+      txt(T("la cassetta e' al sicuro nel furgone.", "the tape is safe in the van."),VW/2,VH/2-20,11,"#e8dcc0","center");
+      txt(T("l'occhio e' rimasto in cielo, con un ricordo in meno.", "the eye stayed in the sky, with one less memory."),VW/2,VH/2+2,11,"#8a9398","center");
+      txt(T("MISSIONE ", "MISSION ") + MEM + " · " + (COSMO_LANG === "en" ? (MZ.en || MZ.it) : MZ.it).toUpperCase() + T(" · COMPLETATA", " · COMPLETED"),VW/2,VH/2+34,10,"#8fa0a8","center");
+      txt(T("Rientro a Memorie del Cosmo...", "Returning to Memories of the Cosmos..."),VW/2,VH/2+70,10,"#e8b44a","center");
+    }
+  }
+}
+/* ============================================================
+   IL GIRO
+   ============================================================ */
+function update(){
+  var i;
+  G.msgT=Math.max(0,G.msgT-dt);
+  G.shake*=Math.pow(0.02,dt);
+  G.flash=Math.max(0,G.flash-dt*1.8);
+  if(G.intro>0)G.intro-=dt;
+  if(G.daisy>0){
+    G.daisy+=dt;
+    if(G.daisy>2.9&&!G.ended)G.ended=true;
+  }else if(G.win>0){
+    G.win+=dt;
+    if(G.win>2.2&&!G.ended){
+      G.ended=true;
+      returnToCosmo();
+    }
+  }else{
+    if(G.eyeCooldown>0 && !G.timeFrozen) G.eyeCooldown = Math.max(0, G.eyeCooldown - dt);
+    if(G.timeFrozen){
+      G.freezeTimer = Math.max(0, G.freezeTimer - dt);
+      if(G.freezeTimer <= 0){
+        unfreezeTime();
+      }
+    }
+    updatePlayer();
+    if(!P.dead&&(mouse.down||keys["j"]))fire();
+    updateBullets();
+    if(!G.timeFrozen){
+      updateEnemies();
+      updateEye();
+    }
+    updatePickups();
+  }
+  updateParts();
+  for(i=ents.length-1;i>=0;i--){
+    if(ents[i].dead&&Math.random()<dt*1.2)ents.splice(i,1);
+  }
+  updateCam();
+}
+function draw(){
+  ctx.setTransform(scale,0,0,scale,offX,offY);
+  ctx.clearRect(0,0,VW,VH);
+  drawSky();
+  drawSewerBack();
+  ctx.save();
+  if(G.shake>0.2)ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);
+  drawStructures();
+  drawPits();
+  drawLadders();
+  drawExit();
+  drawNotes();
+  drawCassette();
+  drawEnemies();
+  drawBullets();
+  drawParts();
+  if(G.daisy>0)drawDaisyAnim();
+  else drawRabbit();
+  ctx.restore();
+  drawEye();
+  if(G.flash>0){
+    ctx.fillStyle="rgba(255,200,140,"+(G.flash*0.45)+")";
+    ctx.fillRect(0,0,VW,VH);
+  }
+  drawPsychedelicGlitchPass();
+  if(G.timeFrozen){
+    ctx.save();
+    ctx.fillStyle="rgba(147, 51, 234, 0.09)";
+    ctx.fillRect(0, 0, VW, VH);
+    ctx.strokeStyle="rgba(192, 132, 252, 0.20)";
+    ctx.lineWidth=1.5;
+    for(var ri=0; ri<3; ri++){
+      var rad = ((time * 90 + ri * 180) % 550);
+      ctx.beginPath();
+      ctx.arc(P.x - camx, P.y - 48 - camy, rad, 0, 6.28);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  drawHUD();
+  drawOverlays();
+}
+var last=0;
+function frame(ts){
+  var now=ts||0;
+  dt=last?Math.min(0.034,(now-last)/1000):0.016;
+  last=now;
+  if(!(dt>0))dt=0.016;
+  time+=dt;
+  update();
+  draw();
+  requestAnimationFrame(frame);
+}
+reset();
+draw();
+requestAnimationFrame(frame);
+/* una presa per gli strumenti di controllo (screenshot, prove) */
+window.COSMO_DBG={
+  P:P,G:G,mouse:mouse,bul:bul,eb:eb,ents:ents,SLOTS:SLOTS,WDEF:WDEF,T:T,
+  triggerEyeTimeFreeze:function(){triggerEyeTimeFreeze();},
+  unfreezeTime:function(){unfreezeTime();},
+  getWI:function(){return WI;},
+  setWI:function(i){WI=i;},
+  mem:MEM,mission:MZ,W:W,SFX:SFX,notes:notes,
+  audio:function(){return {on:AUD_ON,err:AUD_ERR,src:AUD?(AUD.src||""):"",vol:AUD?AUD.volume:0};},
+  radio:function(){audioToggle();},
+  returnToCosmo:function(){returnToCosmo();},
+  warp:function(x,y){P.x=x;P.y=y;P.vx=0;P.vy=0;camx=clamp(x-VW/2,0,W-VW);camy=clamp(y-VH*0.6,0,H-VH);},
+  eyeOn:function(t){G.eyeOn=true;G.eyeT=t||40;},
+  daisy:function(r){startDaisy(r||"PROVA");},
+  win:function(){winMission();},
+  take:function(){updatePickups();},
+  fire:function(){fire();},
+  intro:function(){G.intro=0;},
+  cam:function(){return {x:camx,y:camy};},
+  keys:keys,
+  info:function(){return {mem:MEM,px:Math.round(P.x),py:Math.round(P.y),cx:Math.round(camx),cy:Math.round(camy),eye:Math.round(G.eyeT*10)/10,on:G.eyeOn,cass:G.cass,hp:G.hp,win:Math.round(G.win*10)/10,daisy:Math.round(G.daisy*10)/10,ladder:P.onLadder,timer:MZ.timer,maxhp:MZ.hp,notes:notes.length,foes:ents.length,audio:AUD_ON};},
+  step:function(n){for(var i=0;i<(n||1);i++){dt=0.016;time+=dt;update();}draw();},
+  note:function(id){for(var i=0;i<notes.length;i++)if(notes[i].id===id&&!notes[i].got)takeNote(notes[i]);}
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+})();
+</script></body></html>

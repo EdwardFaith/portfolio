@@ -392,7 +392,7 @@
 
     <!-- HUD (REC Timer + Score) -->
     <div class="hud" id="hud" style="display:none;">
-        <span id="rec-dot">●</span> REC <span id="timer">00:30</span><br>
+        <span id="rec-dot">●</span> REC <span id="timer">00:40</span><br>
         <span style="font-size: 0.8em; opacity: 0.8;">VITTORIE: <span id="win-count">0</span> | SCONFITTE: <span
                 id="loss-count">0</span></span>
     </div>
@@ -423,7 +423,7 @@
             <h1>IL COSMO TI OSSERVA</h1>
             <div class="tutorial-text">
                 > INIZIALIZZAZIONE LINK NEURALE...<br>
-                > MISSIONE: SOPRAVVIVERE 30 SECONDI<br>
+                > MISSIONE: SOPRAVVIVERE 40 SECONDI<br>
                 > CONTROLLO: DITO INDICE<br>
             </div>
             <button onclick="startIntroSequence()">[ AVVIA REGISTRAZIONE ]</button>
@@ -460,7 +460,7 @@
         const orientationWarning = document.getElementById('orientation-warning');
 
         let isPlaying = false;
-        let timeRemaining = 30;
+        let timeRemaining = 40;
         let spawnInterval;
         let enemies = [];
         let playerPos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
@@ -556,7 +556,7 @@
         function resetAndStart() {
             // Reset Game State
             isPlaying = true;
-            timeRemaining = 30;
+            timeRemaining = 40;
             enemies.forEach(e => e.el.remove());
             enemies = [];
 
@@ -653,7 +653,11 @@
                 const dx = playerPos.x - e.x;
                 const dy = playerPos.y - e.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
-                const speed = 2; // Slower
+                // il bulbo non inseguiva sempre uguale: parte lento e
+                // stringe man mano che il tempo scende, così il cursore
+                // dell'occhio ti sta addosso negli ultimi secondi
+                const progress = 1 - Math.max(0, timeRemaining) / 40;
+                const speed = 1.8 + 3.4 * progress;
 
                 if (dist > 0) {
                     e.x += (dx / dist) * speed;

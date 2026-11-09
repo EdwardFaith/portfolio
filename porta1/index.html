@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PORTA 01 // RESISTENZA CONIGLIO vs LUCIDUS COMPANY</title>
+  <style>
+    /* ============================================================
+       STILI BRUTALISTI & PALETTE DARK APOCALYPTIC
+       ============================================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #050507;
+      color: #f1f5f9;
+      font-family: ui-monospace, "SF Mono", "Courier New", monospace;
+    }
+
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #000000;
+    }
+
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      cursor: crosshair;
+    }
+
+    /* ============================================================
+       OVERLAY CSS FINTO SCHERMO CRT (Scanlines, Flicker, Vignette)
+       ============================================================ */
+    #crt-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 50;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%,
+        rgba(0, 0, 0, 0.45) 50%
+      ), linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.03),
+        rgba(0, 255, 0, 0.01),
+        rgba(0, 0, 255, 0.03)
+      );
+      background-size: 100% 3px, 6px 100%;
+      box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.95), inset 0 0 60px rgba(185, 28, 28, 0.25);
+      animation: crtFlicker 0.14s infinite;
+    }
+
+    @keyframes crtFlicker {
+      0% { opacity: 0.96; }
+      50% { opacity: 1.0; }
+      100% { opacity: 0.97; }
+    }
+
+    /* ============================================================
+       HUD BRUTALISTA SUPERIORE (Barra Empathy & Stato Condominio)
+       ============================================================ */
+    #top-hud {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      z-index: 60;
+      pointer-events: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .hud-panel {
+      background: rgba(8, 8, 12, 0.9);
+      border: 1px solid #334155;
+      padding: 10px 16px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.85);
+    }
+
+    #hud-robot-panel {
+      border-left: 4px solid #38bdf8;
+      width: 320px;
+    }
+
+    .hud-label {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #94a3b8;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hud-bar-container {
+      width: 100%;
+      height: 8px;
+      background: #111827;
+      border: 1px solid #1f2937;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .hud-bar-fill {
+      height: 100%;
+      transition: width 0.12s ease-out;
+    }
+
+    #hud-center-panel {
+      border-top: 3px solid #dc2626;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    #hud-mode-badge {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 3px 10px;
+      text-transform: uppercase;
+    }
+
+    .hud-badge-condo {
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid #0284c7;
+    }
+
+    .hud-badge-mind {
+      background: #450a0a;
+      color: #f87171;
+      border: 1px solid #ef4444;
+      animation: pulseAlert 0.8s infinite alternate;
+    }
+
+    @keyframes pulseAlert {
+      from { box-shadow: 0 0 4px #ef4444; }
+      to { box-shadow: 0 0 16px #ef4444; }
+    }
+
+    #hud-condo-stats {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #cbd5e1;
+    }
+
+    /* PANNELLO BATTAGLIA PSICHICA (Attivo solo in PsychicShooterMode) */
+    #hud-mind-info {
+      border-right: 4px solid #ef4444;
+      width: 280px;
+    }
+
+    #hud-mind-info.hidden {
+      display: none;
+    }
+
+    /* CONTROLLI IN BASSO */
+    #bottom-hud {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 60;
+      pointer-events: none;
+      background: rgba(8, 8, 12, 0.88);
+      border: 1px solid #1e293b;
+      padding: 6px 18px;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      display: flex;
+      gap: 16px;
+      white-space: nowrap;
+    }
+
+    #bottom-hud span b {
+      color: #ef4444;
+    }
+
+    /* PULSANTE USCITA / TORNA ALLA SOFFITTA */
+    #btn-exit-attic {
+      position: absolute;
+      bottom: 12px;
+      right: 14px;
+      z-index: 60;
+      pointer-events: auto;
+      background: #110303;
+      color: #ef4444;
+      border: 1px solid #b91c1c;
+      padding: 7px 14px;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    #btn-exit-attic:hover {
+      background: #dc2626;
+      color: #000;
+    }
+
+    /* ============================================================
+       GAME OVER MODAL (BRUTALIST COLLAPSE)
+       ============================================================ */
+    #gameover-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 0, 0, 0.95);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    #gameover-modal.hidden {
+      display: none;
+    }
+
+    .go-title {
+      font-size: 44px;
+      font-weight: 900;
+      color: #ef4444;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      text-shadow: 0 0 24px rgba(239, 68, 68, 0.8);
+      margin-bottom: 12px;
+    }
+
+    .go-reason {
+      font-size: 15px;
+      color: #fca5a5;
+      letter-spacing: 2px;
+      margin-bottom: 24px;
+      max-width: 620px;
+      line-height: 1.6;
+    }
+
+    .go-lore {
+      font-size: 12px;
+      color: #71717a;
+      max-width: 540px;
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+
+    #btn-restart {
+      background: #ef4444;
+      color: #000000;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      padding: 12px 28px;
+      border: none;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+
+    #btn-restart:hover {
+      background: #ffffff;
+      box-shadow: 0 0 24px #ef4444;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-container">
+    <!-- Canvas Unico di Gioco -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Finto Schermo CRT con Scanlines & Flicker -->
+    <div id="crt-overlay"></div>
+
+    <!-- HUD Superiore Brutalista -->
+    <div id="top-hud">
+      <!-- Pannello Stato Robot -->
+      <div id="hud-robot-panel" class="hud-panel">
+        <div class="hud-label">
+          <span>EMPATIA ROBOT (WEAR-DOWN)</span>
+          <span id="val-empathy">100%</span>
+        </div>
+        <div class="hud-bar-container">
+          <div id="bar-empathy" class="hud-bar-fill" style="width: 100%; background: #38bdf8;"></div>
+        </div>
+        <div style="font-size: 9px; color: #64748b; letter-spacing: 1px;">
+          RESISTENZA CONIGLIO // MODELLO CX-2001
+        </div>
+      </div>
+
+      <!-- Badge Stato e Info Condominio -->
+      <div id="hud-center-panel" class="hud-panel">
+        <div id="hud-mode-badge" class="hud-badge-condo">
+          MODALITÀ: CONDOMINIO 2D // GESTIONALE APOCALISSE
+        </div>
+        <div id="hud-condo-stats">
+          CARICAMENTO INQUILINI...
+        </div>
+      </div>
+
+      <!-- Info Battaglia Psichica (visibile solo durante l'immersione) -->
+      <div id="hud-mind-info" class="hud-panel hidden">
+        <div class="hud-label">
+          <span>FOBIE NELLA MENTE</span>
+          <span id="val-mind-fears" style="color: #ef4444;">0 / 0</span>
+        </div>
+        <div class="hud-label" style="margin-top: 6px;">
+          <span>INTEGRITÀ MENTALE</span>
+          <span id="val-robot-hp">100%</span>
+        </div>
+        <div class="hud-bar-container">
+          <div id="bar-robot-hp" class="hud-bar-fill" style="width: 100%; background: #22c55e;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra Controlli Rapidi in Basso -->
+    <div id="bottom-hud">
+      <span><b>[A/D]</b> CAMMINA</span>
+      <span><b>[W/SPAZIO]</b> SALTA</span>
+      <span><b>[W/S SCALE]</b> SALI/SCENDI PIANI</span>
+      <span><b>[E]</b> IMMERSIONE PSICHICA</span>
+      <span><b>[MOUSE]</b> MIRA 360°</span>
+      <span><b>[CLICK SX]</b> SPARA ALL'ARENA</span>
+    </div>
+
+    <!-- Pulsante Ritorno alla Soffitta Tecnologica & Audio Tekno -->
+    <button id="mute-btn" style="position:fixed;top:14px;right:210px;z-index:60;background:#09090b;border:1px solid #334155;color:#e2e8f0;font:bold 10px monospace;padding:8px 14px;cursor:pointer;">
+      [M] AUDIO: ATTIVO
+    </button>
+    <a id="btn-exit-attic" href="../museo.html" onclick="if (window.history.length > 1) { window.history.back(); return false; }" title="Torna alla Soffitta Tecnologica">
+      &larr; TORNA ALLA SOFFITTA
+    </a>
+
+    <!-- GAME OVER MODAL -->
+    <div id="gameover-modal" class="hidden">
+      <div class="go-title">COLLASSO DEL CIRCUITO</div>
+      <div id="gameover-reason" class="go-reason">L'EMPATIA DEL ROBOT È STATA COMPLETAMENTE CONSUMATA.</div>
+      <div class="go-lore">
+        La Lucidus Company ha trasformato tutti gli inquilini in soprammobili di legno e rose morte. L'apocalisse fuori dalle finestre continua in silenzio.
+      </div>
+      <button id="btn-restart">RIAVVIA IL CONIGLIO ROBOT</button>
+    </div>
+  </div>
+
+  <!-- Caricamento Moduli Condivisi e Motori Intercambiabili -->
+  <script src="physics.js"></script>
+  <script src="entities.js"></script>
+  <script src="condominium_state.js"></script>
+  <script src="mind_state.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

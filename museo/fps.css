@@ -1,0 +1,129 @@
+/* ============================================================
+   MUSEO — IL PRIMO FPS (dentro la porta MEMORIA 1) + il lettore CRT
+   Stesso schema del Foglio: il museo resta sotto, congelato, e torna
+   al suo posto appena si esce. Nessun WebGL: un raycaster in 2D su
+   un canvas a 480x270 che il browser ingrandisce senza filtrare.
+   ============================================================ */
+
+#fpscv {
+  position: fixed; left: 0; top: 0; display: none; z-index: 20;
+  background: #05060a; touch-action: none; cursor: crosshair;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: pixelated;
+}
+body.fps-on #fpscv { display: block; }
+
+/* il museo non si vede e non si tocca: è ancora lì sotto */
+body.fps-on #hud, body.fps-on #hint, body.fps-on #prompt,
+body.fps-on #dialog, body.fps-on #radioName, body.fps-on #touch,
+body.fps-on #panel, body.fps-on #quiz, body.fps-on #toast,
+body.fps-on #arsenalHud, body.fps-on #boot, body.fps-on #veil,
+body.fps-on #crt, body.fps-on #bootQuiz, body.fps-on #bootGo {
+  opacity: 0 !important; pointer-events: none !important;
+}
+/* il velo del museo resta sopra: è lui che tiene insieme 2D e 3D */
+body.fps-on #vhs { opacity: 0.2; }
+body.fps-on #stage { filter: saturate(0.28) brightness(0.28) blur(3px); }
+
+/* scanline CRT + vignetta, sopra il canvas del gioco */
+#fpsScan {
+  position: fixed; inset: 0; z-index: 21; display: none; pointer-events: none;
+  background:
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, .30) 0 1px, rgba(0, 0, 0, 0) 1px 3px),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, .62) 100%);
+}
+body.fps-on #fpsScan { display: block; }
+
+/* ---- le due levette, solo dove non c'è un mouse --------------- */
+#fpsTouch { position: fixed; inset: 0; z-index: 22; display: none; touch-action: none; }
+body.fps-on.touch-on #fpsTouch { display: block; }
+.fjst {
+  position: absolute; bottom: 24px; width: 118px; height: 118px; border-radius: 50%;
+  border: 1px solid rgba(200, 210, 215, .22); background: rgba(10, 12, 14, .26);
+  touch-action: none;
+}
+.fjst.l { left: 18px; }
+.fjst.r { right: 18px; }
+.fjst .kn {
+  position: absolute; left: 50%; top: 50%; width: 46px; height: 46px;
+  margin: -23px 0 0 -23px; border-radius: 50%;
+  background: rgba(220, 230, 235, .15); border: 1px solid rgba(220, 230, 235, .30);
+}
+#fpsFire {
+  position: absolute; right: 152px; bottom: 36px; width: 78px; height: 78px;
+  border-radius: 50%; border: 1px solid rgba(220, 90, 90, .45);
+  background: rgba(120, 30, 30, .22); color: #e6b0b0;
+  font: 700 12px ui-monospace, monospace; letter-spacing: .18em;
+}
+#fpsSwap {
+  position: absolute; left: 152px; bottom: 36px; width: 64px; height: 64px;
+  border-radius: 50%; border: 1px solid rgba(200, 210, 215, .24);
+  background: rgba(10, 12, 14, .3); color: #c8d2d6;
+  font: 700 11px ui-monospace, monospace;
+}
+#fpsExit {
+  position: absolute; right: 16px; top: 14px; padding: 6px 10px;
+  border: 1px solid rgba(200, 210, 215, .28); background: rgba(8, 10, 12, .6);
+  color: #b9c8c0; font: 700 11px ui-monospace, monospace; letter-spacing: .18em;
+}
+
+/* ---- la card finale: MEMORIA FALLITA / RECUPERATA ------------- */
+#fpsCard {
+  position: fixed; inset: 0; z-index: 42; display: none;
+  align-items: center; justify-content: center; text-align: center;
+  background: rgba(3, 4, 6, .84); color: #e8ecea; pointer-events: none;
+  font: 700 13px/1.7 ui-monospace, monospace;
+  letter-spacing: .28em; text-transform: uppercase;
+  padding: 0 8vw;
+}
+body.fps-card-on #fpsCard { display: flex; }
+#fpsCard .t { font-size: clamp(15px, 4.6vw, 38px); letter-spacing: .2em; color: #efe9e2; }
+#fpsCard .s { margin-top: 16px; color: #c2444a; letter-spacing: .3em; }
+#fpsCard .n { margin-top: 22px; color: #6d7a74; letter-spacing: .24em; font-size: 11px; }
+
+/* ============================================================
+   IL LETTORE CRT — le pagine trovate nei videogiochi si leggono
+   qui, una lettera per volta, con le scanline e un guasto ogni tanto
+   ============================================================ */
+#crt {
+  position: fixed; inset: 0; z-index: 65; display: none; overflow: hidden;
+  background: rgba(2, 4, 3, .95); padding: 7vh 7vw; box-sizing: border-box;
+  color: #9fe8b8; font: 700 13px/1.8 ui-monospace, "Courier New", monospace;
+  text-shadow: 0 0 7px rgba(120, 255, 170, .35);
+  cursor: pointer;
+}
+body.crt-on #crt { display: block; }
+#crt .crtHead {
+  color: #cfe8d8; letter-spacing: .28em; text-transform: uppercase;
+  font-size: 12px; margin-bottom: 12px;
+}
+#crt .crtSub {
+  color: rgba(150, 200, 175, .55); letter-spacing: .2em;
+  text-transform: uppercase; font-size: 10px; margin-bottom: 22px;
+}
+#crt .crtBody { white-space: pre-wrap; }
+#crt .crtCur {
+  display: inline-block; width: .58em; height: 1em; background: #9fe8b8;
+  vertical-align: -.14em; animation: crtBlink .9s steps(1) infinite;
+}
+@keyframes crtBlink { 50% { opacity: 0; } }
+#crt .crtScan {
+  position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, .38) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
+}
+#crt .crtGlitch {
+  position: absolute; left: 0; width: 100%; height: 2px; pointer-events: none;
+  background: rgba(150, 255, 200, .10);
+  animation: crtGlitch 3.6s infinite;
+}
+@keyframes crtGlitch {
+  0%, 90% { opacity: 0; transform: translateY(-40vh) scaleY(6); }
+  92% { opacity: .85; transform: translateY(18vh) scaleY(3); }
+  95% { opacity: .25; transform: translateY(32vh) scaleY(1); }
+  100% { opacity: 0; }
+}
+#crt .crtHint {
+  position: absolute; left: 7vw; bottom: 5vh; color: rgba(150, 200, 175, .45);
+  font-size: 10px; letter-spacing: .24em; text-transform: uppercase;
+}
+/*__END__*/

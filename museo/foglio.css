@@ -1,0 +1,39 @@
+﻿/* ================================================================
+   MONDO DEL FOGLIO — il foglio che si apre in fondo a Radio Kaoss.
+   Non ruba niente al museo: il museo resta sotto, congelato, e
+   questo canvas gli sta sopra, sotto il velo VHS.
+   ================================================================ */
+#fgl {
+    position: fixed; inset: 0; width: 100vw; height: 100vh;
+    display: none; z-index: 20; background: #0a0908;
+}
+body.foglio-on #fgl { display: block; }
+body.foglio-on #hud, body.foglio-on #hint, body.foglio-on #prompt,
+body.foglio-on #dialog, body.foglio-on #radioName, body.foglio-on #touch,
+body.foglio-on #panel, body.foglio-on #quiz, body.foglio-on #toast {
+    opacity: 0 !important; pointer-events: none !important;
+}
+/* il velo del museo resta: siamo dentro una trasmissione */
+body.foglio-on #vhs { opacity: 0.12; } /* leggero: la grana ce l'ha gia' il foglio */
+body.foglio-on #stage { filter: saturate(0.6) brightness(0.5); }
+
+/* ── i tasti del foglio: solo dove non c'e' una tastiera ──────── */
+#fglTouch {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+    display: none; justify-content: space-between; align-items: flex-end;
+    padding: 0 16px 20px; pointer-events: none;
+}
+body.foglio-on #fglTouch { display: flex; }
+@media (pointer: fine) { body.foglio-on #fglTouch { display: none; } }
+#fglTouch .grp { display: flex; gap: 10px; pointer-events: auto; }
+#fglTouch button {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: rgba(12, 11, 10, 0.55);
+    border: 1px solid rgba(231, 226, 214, 0.28);
+    color: rgba(231, 226, 214, 0.82);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 17px; line-height: 1; letter-spacing: 0.04em;
+    -webkit-tap-highlight-color: transparent; touch-action: none;
+}
+#fglTouch button:active { background: rgba(220, 38, 38, 0.22); border-color: rgba(220, 38, 38, 0.7); }
+#fglTouch #fglAct { font-size: 12px; letter-spacing: 0.14em; }

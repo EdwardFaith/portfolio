@@ -1,4 +1,4 @@
-﻿const CREATIVE_TEXTS = [
+const CREATIVE_TEXTS = [
     "Buona sera a tutti.",
     "Io sono Emanuele Baccigalupi. Posso dirlo: è bello usare il mio vero nome. Da quando metto mano sulla tastiera o sulla penna, non mi sono mai definito con il mio nome. Questa è la prima volta che scrivo di me senza pensare di essere qualcun altro, senza sognare con i desideri di un vecchio corpo o di una rimembranza.",
     "Nel mio soggiorno ho scritto tanto. Ho vagato in posti scuri e volatili, dove la ragione si perde nel contorto meccanismo della veglia. Il mio stile è sempre stato un flusso di pensiero. Eppure, in un discorso che a volte fila poco, ho sempre cercato il senso per leggere me e il circostante. L\u0026apos;ho fatto piantandomi davanti allo specchio dell\u0026apos;ipocrisia della creazione, quella che nasconde pulsioni vere, volgari e privilegi. Penso che, pur avendo scritto tanto di me, non esista nulla: non ho mai pubblicato niente, a parte qualche cortometraggio e una radio chiamata Radio Kaoss.",
@@ -824,5 +824,7 @@
     "Pensai ai bambini-ombra che avevano infranto la mia alleanza: la tristezza, la rabbia, l\u0026apos;ansia. Le emozioni, nemiche giurate dell\u0026apos;ordine. Pensai a Charles, la Paura. Erano tutte schegge estirpate dal cuore dell\u0026apos;Arcangelo. E per chiudere l\u0026apos;equazione, ne mancava solo una. L\u0026apos;ultima.",
     "La rivelazione cadde nella mia mente con inesorabile freddezza. Compresi esattamente chi fossi, e quale fosse la mia unica e spietata funzione in quell\u0026apos;universo di inchiostro e carne.",
     "La Logica ero io."
-]
-;
+];
+if (typeof window !== "undefined") {
+    window.CREATIVE_TEXTS = CREATIVE_TEXTS;
+}

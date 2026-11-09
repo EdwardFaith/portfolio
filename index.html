@@ -522,12 +522,15 @@
                                         <button
                                             key={link.id}
                                             onClick={() => scrollToSection(link.id)}
-                                            className={`text-xs font-bold tracking-widest uppercase transition-all duration-300 ${activeSection === link.id
+                                            className={`text-xs font-bold tracking-widest uppercase transition-all duration-300 inline-flex items-center gap-1.5 ${activeSection === link.id
                                                 ? 'text-white border-b-2 border-red-600'
                                                 : 'text-neutral-500 hover:text-white'
                                                 }`}
                                         >
                                             {link.label}
+                                            {link.id === 'home' && (
+                                                <span id="navRabbitIcon" className="inline-block cursor-pointer hover:scale-125 transition-transform" title="Segui il coniglio nel Museo">🐇</span>
+                                            )}
                                         </button>
                                     ))}
                                 </div>
@@ -538,59 +541,37 @@
             );
         };
 
-        const HeroSlideshow = () => {
-            // ALL YouTube video IDs from the entire site
-            const videoIds = [
-                // Radio Kaoss Ep.4
-                "4pKc-7TpGa4", "ST9RwbttmUM", "zbaqhWisKus",
-                // Radio Kaoss Ep.3
-                "DSSlnXeicsQ", "TzRSjsjwbbY", "aSD5oB4C2k0",
-                // Radio Kaoss Ep.2
-                "7Nyp5zsjTrs", "yHmR2vto5jY", "Xd2jEPdJ4EM",
-                // Radio Kaoss Ep.1
-                "IA8NHwhZ0mE", "3wkQ1VnV9MQ", "pCd0wSDidAk",
-                // Radio KaOsS full episodes
-                "2Jwhzy_S8os", "ixXZo5-G5jo", "Q5Rq2qlxAIA",
-                // Memorie del Cosmo
-                "J3xjF9M7McU", "kdEGkCbDpNo",
-                "3o0A7LNHBoI", "ljEb-Hk1RXM", "ewnP55nij-w",
-                // Visual & AI Art
-                "ydTiEnOoZOw", "d15N1SJYna8", "JVGrP0rJb6I",
-                // Cortometraggi / Cosmo
-                "OLdtHKF-bF0", "mBuTbn52NwU",
-                // Spot / Progetti
-                "pSX-55V5WDs", "gooO59AD_rs", "JssRfsHdp7E", "sTxUuiy72gg",
-                // Interattivo / Installazioni
-                "3wkQ1VnV9MQ", "idShNGihgTo", "HazCE6VEUZg",
-                // Zona Larga / Collaborazioni
-                "Jr15_es8qso", "1UVq6lwP8RY", "d4vJcflAObA",
-                "dKZavelqOng", "wfAFZMxOLRE",
-            ];
+        const HERO_VIDEOS = [
+            "DSSlnXeicsQ", "TzRSjsjwbbY", "aSD5oB4C2k0", "7Nyp5zsjTrs",
+            "yHmR2vto5jY", "IA8NHwhZ0mE", "3wkQ1VnV9MQ", "2Jwhzy_S8os",
+            "J3xjF9M7McU", "kdEGkCbDpNo", "ljEb-Hk1RXM", "ewnP55nij-w",
+            "ydTiEnOoZOw", "d15N1SJYna8", "JVGrP0rJb6I", "OLdtHKF-bF0",
+            "mBuTbn52NwU", "pSX-55V5WDs", "gooO59AD_rs", "JssRfsHdp7E",
+            "sTxUuiy72gg", "idShNGihgTo", "HazCE6VEUZg", "Jr15_es8qso",
+            "1UVq6lwP8RY", "d4vJcflAObA"
+        ];
 
+        const HeroSlideshow = () => {
             const [fading, setFading] = useState(false);
             const [slotA, setSlotA] = useState(0);
             const [slotB, setSlotB] = useState(1);
             const [activeSlot, setActiveSlot] = useState('A');
-            // Per-slot ready state: video is loaded and actually playing
             const [readyA, setReadyA] = useState(false);
             const [readyB, setReadyB] = useState(false);
-            // Offline detection — GIF always stays visible underneath
             const [isOffline, setIsOffline] = useState(!navigator.onLine);
             const readyTimers = useRef({});
 
-            // Online/offline events
             useEffect(() => {
                 const goOffline = () => setIsOffline(true);
-                const goOnline  = () => setIsOffline(false);
+                const goOnline = () => setIsOffline(false);
                 window.addEventListener('offline', goOffline);
-                window.addEventListener('online',  goOnline);
+                window.addEventListener('online', goOnline);
                 return () => {
                     window.removeEventListener('offline', goOffline);
-                    window.removeEventListener('online',  goOnline);
+                    window.removeEventListener('online', goOnline);
                 };
             }, []);
 
-            // When a slot iframe loads, wait 4s then mark ready (video is playing, play button gone)
             const handleLoadA = () => {
                 clearTimeout(readyTimers.current.A);
                 readyTimers.current.A = setTimeout(() => setReadyA(true), 4000);
@@ -600,21 +581,19 @@
                 readyTimers.current.B = setTimeout(() => setReadyB(true), 4000);
             };
 
-            // Reset ready state when a slot gets a new video assigned
             useEffect(() => { setReadyA(false); }, [slotA]);
             useEffect(() => { setReadyB(false); }, [slotB]);
 
-            // Cycling interval — always runs, iframes just stay invisible if offline
             useEffect(() => {
                 const interval = setInterval(() => {
                     setFading(true);
                     setTimeout(() => {
                         setActiveSlot(prev => {
                             if (prev === 'A') {
-                                setSlotA(s => (s + 2) % videoIds.length);
+                                setSlotA(s => (s + 2) % HERO_VIDEOS.length);
                                 return 'B';
                             } else {
-                                setSlotB(s => (s + 2) % videoIds.length);
+                                setSlotB(s => (s + 2) % HERO_VIDEOS.length);
                                 return 'A';
                             }
                         });
@@ -627,13 +606,11 @@
             const embedUrl = (id) =>
                 `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&loop=1&playlist=${id}&disablekb=1&iv_load_policy=3`;
 
-            // Visible only when: active slot + video ready + not fading
             const iframeOpacity = (isActive, isReady) => {
                 if (isOffline || !isReady || !isActive) return 0;
                 return fading ? 0 : 0.55;
             };
 
-            // GIF shows only when no video is visible (loading phase or between transitions)
             const videoVisible = !fading && (
                 (activeSlot === 'A' && readyA) ||
                 (activeSlot === 'B' && readyB)
@@ -654,8 +631,8 @@
             });
 
             return (
-                <div className="absolute inset-0 z-0 overflow-hidden">
-                    {/* ── Layer 1: GIF — visible only when no video is playing ── */}
+                <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                    {/* Layer 1: GIF */}
                     <img
                         src="giff-presentazione/bg.gif"
                         alt=""
@@ -667,10 +644,10 @@
                         }}
                     />
 
-                    {/* ── Layer 2: YouTube iframes — fade in once video is playing ── */}
+                    {/* Layer 2: YouTube iframes */}
                     <iframe
                         key={`A-${slotA}`}
-                        src={embedUrl(videoIds[slotA])}
+                        src={embedUrl(HERO_VIDEOS[slotA])}
                         allow="autoplay; encrypted-media"
                         allowFullScreen={false}
                         tabIndex={-1}
@@ -680,7 +657,7 @@
                     />
                     <iframe
                         key={`B-${slotB}`}
-                        src={embedUrl(videoIds[slotB])}
+                        src={embedUrl(HERO_VIDEOS[slotB])}
                         allow="autoplay; encrypted-media"
                         allowFullScreen={false}
                         tabIndex={-1}
@@ -689,25 +666,7 @@
                         title="bg-b"
                     />
 
-                    {/* ── Layer 3: click-blocker — no interaction possible ── */}
-                    <div
-                        className="absolute inset-0"
-                        style={{
-                            zIndex: 3,
-                            pointerEvents: 'all',
-                            userSelect: 'none',
-                            WebkitUserSelect: 'none',
-                            cursor: 'default',
-                            touchAction: 'none',
-                            background: 'transparent',
-                        }}
-                        onContextMenu={e => e.preventDefault()}
-                        onClick={e => e.preventDefault()}
-                        onMouseDown={e => e.preventDefault()}
-                        onTouchStart={e => e.preventDefault()}
-                    />
-
-                    {/* ── Layer 4: top-bottom gradient ── */}
+                    {/* Layer 3: top-bottom gradient */}
                     <div
                         className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black"
                         style={{ zIndex: 4, pointerEvents: 'none' }}
@@ -716,26 +675,32 @@
             );
         };
 
-        const Hero = () => (
-            <section id="home" className="relative h-[75vh] md:h-[80vh] flex flex-col items-center justify-center overflow-hidden bg-black px-4">
-                <HeroSlideshow />
+        const Hero = ({ onScrollDown }) => {
+            return (
+                <section
+                    id="home"
+                    onClick={onScrollDown}
+                    className="relative h-[85vh] md:h-[90vh] flex flex-col items-center justify-center overflow-hidden bg-black px-4 cursor-pointer select-none"
+                >
+                    <HeroSlideshow />
 
-                <div className="relative z-10 text-center max-w-6xl mx-auto mix-blend-screen flex flex-col items-center justify-center">
-                    <h1 className="brand-font text-6xl md:text-8xl lg:text-9xl font-bold text-white mb-3 tracking-tighter leading-none">
-                        E.B
-                    </h1>
+                    <div className="relative z-10 text-center max-w-6xl mx-auto mix-blend-screen flex flex-col items-center justify-center pointer-events-auto">
+                        <h1
+                            className="brand-font text-6xl md:text-8xl lg:text-9xl font-bold text-white mb-3 tracking-tighter leading-none hover:text-red-500 transition-colors duration-300"
+                        >
+                            E.B
+                        </h1>
 
-                    <p className="text-red-600 font-mono text-xs md:text-sm uppercase tracking-[0.3em] font-bold mb-6">
-                        EMANUELE BACCIGALUPI PORTFOLIO
-                    </p>
-
-
-                </div>
-            </section>
-        );
+                        <p className="text-red-600 font-mono text-xs md:text-sm uppercase tracking-[0.3em] font-bold">
+                            EMANUELE BACCIGALUPI PORTFOLIO
+                        </p>
+                    </div>
+                </section>
+            );
+        };
 
         const IntroSection = ({ scrollToContact, scrollToBio, scrollToSection }) => (
-            <section className="pt-24 pb-16 md:pt-36 md:pb-24 bg-black border-b border-neutral-900">
+            <section id="intro" className="pt-24 pb-16 md:pt-36 md:pb-24 bg-black border-b border-neutral-900">
                 <div className="max-w-5xl mx-auto px-6 text-center">
 
                     {/* Navigation Control Bar - Intermediate position */}
@@ -764,15 +729,10 @@
                         {/* SUBCONSCIO button */}
                         <button
                             onClick={() => triggerSubconsciousEffect(() => window.location.href = 'subconscio/subconscio.html')}
-                            className="px-3 py-2 sm:px-5 sm:py-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-neutral-600 hover:text-white border border-neutral-800 hover:border-white/30 hover:bg-white/5 active:scale-95 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 backdrop-blur-sm whitespace-nowrap group"
+                            className="px-3 py-2 sm:px-5 sm:py-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-white border border-neutral-800 hover:border-red-600 hover:bg-red-950/20 active:scale-95 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 backdrop-blur-sm whitespace-nowrap group"
+                            title="Entra nel Subconscio"
                         >
-                            <svg viewBox="0 0 60 80" width="24" height="24" fill="white" xmlns="http://www.w3.org/2000/svg" className="opacity-70 group-hover:opacity-100 transition-opacity">
-                                <ellipse cx="20" cy="18" rx="7" ry="18" />
-                                <ellipse cx="40" cy="18" rx="7" ry="18" />
-                                <ellipse cx="30" cy="42" rx="18" ry="16" />
-                                <ellipse cx="30" cy="65" rx="22" ry="15" />
-                                <ellipse cx="48" cy="72" rx="7" ry="5" />
-                            </svg>
+                            <span className="text-sm select-none group-hover:scale-125 transition-transform inline-block">🐇</span>
                             <span>Subconscio</span>
                         </button>
                     </div>
@@ -945,7 +905,6 @@
                 { src: "illustrazioni/4.png", title: "Ricorda chi sei" },
                 { src: "illustrazioni/5.jpg", title: "Nascondi le mani" },
                 { src: "illustrazioni/6.jpg", title: "Ricordo di terra" },
-                { src: "illustrazioni/7.png", title: "Presagio" },
                 { src: "illustrazioni/9.png", title: "Pagliaccio" },
                 { src: "illustrazioni/10.png", title: "Dormi e sogna" },
                 { src: "illustrazioni/11.jpeg", title: "Nella bottiglia" },
@@ -1144,9 +1103,6 @@
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="aspect-video sm:col-span-2">
-                                        <VideoPlaceholder label="TG del Cosmo" extraClass="w-full h-full" videoId="3o0A7LNHBoI" />
-                                    </div>
                                     <div className="aspect-video">
                                         <VideoPlaceholder label="La Danza" extraClass="w-full h-full" videoId="ljEb-Hk1RXM" />
                                     </div>
@@ -1440,8 +1396,9 @@
                 return { ref, style: loaded ? { backgroundImage: `url('${gifUrl}')`, ...(colorFilter ? { filter: colorFilter } : {}) } : {} };
             };
 
-            const r1 = lazyGifRef('eyes-in-the-sky/bg.gif', 'sepia(1) saturate(8) hue-rotate(-30deg)');
-            const r2 = lazyGifRef('eyes-in-the-sky/bg.gif', 'sepia(0.8) saturate(2) hue-rotate(100deg) brightness(0.6) contrast(1.2)');
+            const rSub = lazyGifRef('subconscio/rabbit.png', null);
+            const r1 = lazyGifRef('RadioKaoSs/giff/1.gif', null);
+            const r2 = lazyGifRef('giff-presentazione/bg.gif', 'sepia(0.8) saturate(2) hue-rotate(100deg) brightness(0.6) contrast(1.2)');
             const r3 = lazyGifRef('lucidus/copertina-2.gif', null);
             const r4 = lazyGifRef('simbolo/player.gif/lv_0_20250613181641.gif', null);
             const r5 = lazyGifRef('eyes-in-the-sky/bg.gif', null);
@@ -1468,24 +1425,20 @@
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
 
-                            {/* Anche i conigli hanno le ali — Scrittura Creativa (primo) */}
+                            {/* Anche i conigli hanno le ali — Subconscio (primo) */}
                             <div
                                 onClick={() => triggerSubconsciousEffect(() => window.location.href = 'subconscio/subconscio.html')}
-                                className="group block bg-neutral-950 border border-white/10 p-1 hover:border-white/25 hover:bg-white/5 transition-all duration-400 cursor-pointer relative overflow-hidden"
+                                className="group block bg-neutral-900 border border-neutral-800 p-1 hover:border-white/25 hover:bg-neutral-800 transition-all duration-300 cursor-pointer relative overflow-hidden"
                             >
-                                <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5 flex items-center justify-center">
-                                    <svg viewBox="0 0 60 80" width="52" height="52" fill="white" xmlns="http://www.w3.org/2000/svg" className="opacity-20 group-hover:opacity-60 transition-opacity duration-500">
-                                        <ellipse cx="20" cy="18" rx="7" ry="18" />
-                                        <ellipse cx="40" cy="18" rx="7" ry="18" />
-                                        <ellipse cx="30" cy="42" rx="18" ry="16" />
-                                        <ellipse cx="30" cy="65" rx="22" ry="15" />
-                                        <ellipse cx="48" cy="72" rx="7" ry="5" />
-                                    </svg>
-                                    <div className="absolute inset-0" style={{ background: 'radial-gradient(circle, transparent 30%, rgba(0,0,0,0.85) 100%)' }}></div>
+                                <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
+                                    <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
+                                        <Icons.BookOpen />
+                                    </div>
+                                    <div ref={rSub.ref} className="absolute inset-0 bg-cover bg-center opacity-85 group-hover:opacity-100 transition-opacity" style={rSub.style}></div>
                                 </div>
                                 <div className="px-3 pb-3">
-                                    <h3 className="text-sm font-bold text-white/50 group-hover:text-white mb-0.5 tracking-wide transition-colors">Subconscio</h3>
-                                    <p className="text-white/20 text-[10px] leading-tight font-mono uppercase">scopri la verità e il sogno.</p>
+                                    <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Subconscio</h3>
+                                    <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">scopri la verità e il sogno.</p>
                                 </div>
                             </div>
 
@@ -2009,7 +1962,7 @@
                 <div className="min-h-screen bg-black text-white selection:bg-red-900 selection:text-white pb-20 lg:pb-0">
                     <MobileBottomNav scrollToSection={scrollToSection} />
                     <Nav activeSection={activeSection} scrollToSection={scrollToSection} />
-                    <Hero />
+                    <Hero onScrollDown={() => scrollToSection("intro")} />
                     <IntroSection scrollToContact={() => scrollToSection('contact')} scrollToBio={() => scrollToSection('bio')} scrollToSection={scrollToSection} />
 
                     <KaossSection />
@@ -2029,6 +1982,8 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+    <!-- Sagoma del coniglio che corre per la cornice -->
+    <script src="coniglio-cornice.js"></script>
 </body>
 
 </html>
