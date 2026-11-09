@@ -291,6 +291,109 @@
       background: #ffffff;
       box-shadow: 0 0 24px #ef4444;
     }
+  
+    /* TOUCH CONTROLS PER TELEFONO */
+    #porta1-touch {
+      display: none;
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      padding: 12px 14px 18px;
+      z-index: 100;
+      pointer-events: none;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    @media (pointer: coarse), (max-width: 900px) {
+      #porta1-touch { display: flex; }
+      #bottom-hud { font-size: 8px; padding: 4px 10px; bottom: 120px; }
+      #bottom-hud .kb-hint { display: none; }
+      #bottom-hud .touch-hint { display: inline !important; }
+    }
+    body.touch-device #porta1-touch { display: flex; }
+
+    .t-btn {
+      pointer-events: auto;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+      background: rgba(12, 14, 20, 0.75);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      font-family: inherit;
+      font-weight: 900;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+      border-radius: 8px;
+      transition: transform 0.08s, background 0.1s;
+    }
+    .t-btn:active {
+      transform: scale(0.92);
+      background: rgba(56, 189, 248, 0.35);
+      border-color: #38bdf8;
+    }
+    .dpad {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    .dpad-mid {
+      display: flex;
+      gap: 6px;
+    }
+    .btn-up, .btn-down, .btn-left, .btn-right {
+      width: 48px;
+      height: 48px;
+      font-size: 18px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .btn-jump {
+      width: 58px;
+      height: 58px;
+      border-radius: 29px;
+      font-size: 10px;
+      letter-spacing: 1px;
+      border-color: rgba(148, 163, 184, 0.5);
+      color: #f1f5f9;
+    }
+    .btn-act {
+      width: 64px;
+      height: 64px;
+      border-radius: 32px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      border-color: rgba(239, 68, 68, 0.8);
+      background: rgba(185, 28, 28, 0.3);
+      color: #fff;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.4);
+    }
+    .btn-act:active {
+      background: #ef4444;
+      color: #000;
+    }
+    .btn-shoot {
+      width: 58px;
+      height: 58px;
+      border-radius: 29px;
+      font-size: 10px;
+      letter-spacing: 1px;
+      border-color: rgba(234, 179, 8, 0.6);
+      background: rgba(161, 98, 7, 0.25);
+      color: #fef08a;
+    }
+    .btn-shoot:active {
+      background: #eab308;
+      color: #000;
+    }
+
   </style>
 </head>
 <body>
@@ -346,12 +449,29 @@
 
     <!-- Barra Controlli Rapidi in Basso -->
     <div id="bottom-hud">
-      <span><b>[A/D]</b> CAMMINA</span>
-      <span><b>[W/SPAZIO]</b> SALTA</span>
-      <span><b>[W/S SCALE]</b> SALI/SCENDI PIANI</span>
-      <span><b>[E]</b> IMMERSIONE PSICHICA</span>
-      <span><b>[MOUSE]</b> MIRA 360°</span>
-      <span><b>[CLICK SX]</b> SPARA ALL'ARENA</span>
+      <span class="kb-hint"><b>[A/D]</b> CAMMINA</span>
+      <span class="kb-hint"><b>[W/SPAZIO]</b> SALTA</span>
+      <span class="kb-hint"><b>[W/S SCALE]</b> SALI/SCENDI PIANI</span>
+      <span class="kb-hint"><b>[E]</b> IMMERSIONE PSICHICA</span>
+      <span class="kb-hint"><b>[CLICK SX]</b> SPARA ALL'ARENA</span>
+      <span class="touch-hint" style="display:none; color:#38bdf8; font-weight:bold;">TOCCA I RESIDENTI O PREMI ENTRA PER L'IMMERSIONE</span>
+    </div>
+
+    <!-- TOUCH CONTROLS PER TELEFONO -->
+    <div id="porta1-touch">
+      <div class="dpad">
+        <button type="button" class="t-btn btn-up" data-k="up" aria-label="su">▲</button>
+        <div class="dpad-mid">
+          <button type="button" class="t-btn btn-left" data-k="left" aria-label="sinistra">◀</button>
+          <button type="button" class="t-btn btn-down" data-k="down" aria-label="giù">▼</button>
+          <button type="button" class="t-btn btn-right" data-k="right" aria-label="destra">▶</button>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" class="t-btn btn-jump" data-k="jump">SALTA</button>
+        <button type="button" class="t-btn btn-act" data-k="interact">ENTRA</button>
+        <button type="button" class="t-btn btn-shoot" data-k="shoot">FUOCO</button>
+      </div>
     </div>
 
     <!-- Pulsante Ritorno alla Soffitta Tecnologica & Audio Tekno -->

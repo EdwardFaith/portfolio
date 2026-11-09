@@ -518,7 +518,8 @@
 
       ctx.font = "900 11px ui-monospace, monospace";
       ctx.fillStyle = "rgba(34, 197, 94, " + openPulse + ")";
-      ctx.fillText("[ ATTIVA // ENTRA [E] ]", x + w / 2, barY + 4);
+      var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+      ctx.fillText(isTouch ? "[ ATTIVA // TOCCA PER ENTRARE ]" : "[ ATTIVA // ENTRA [E] ]", x + w / 2, barY + 4);
 
       ctx.fillStyle = "#22c55e";
       ctx.beginPath();

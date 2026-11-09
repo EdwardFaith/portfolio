@@ -227,6 +227,42 @@
         @keyframes loadBar {
             to { left: 0; }
         }
+    
+        /* Controlli Zoom & Reset Mobile */
+        #subc-controls {
+            position: fixed;
+            bottom: 24px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .subc-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(10, 10, 15, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.8);
+            transition: transform 0.08s, background 0.15s, border-color 0.15s;
+        }
+        .subc-btn:active {
+            transform: scale(0.90);
+            background: rgba(220, 38, 38, 0.35);
+            border-color: #ef4444;
+        }
+
     </style>
 </head>
 
@@ -253,6 +289,14 @@
     <div class="noise"></div>
 
     <!-- Mind Canvas -->
+    
+    <!-- Floating Zoom Controls -->
+    <div id="subc-controls">
+        <button class="subc-btn" id="subc-zin" aria-label="Ingrandisci">+</button>
+        <button class="subc-btn" id="subc-zout" aria-label="Riduci">−</button>
+        <button class="subc-btn" id="subc-reset" style="font-size:16px;" aria-label="Centra">⟲</button>
+    </div>
+
     <div id="mind-container">
         <svg id="synapses" xmlns="http://www.w3.org/2000/svg"></svg>
         <div id="canvas"></div>

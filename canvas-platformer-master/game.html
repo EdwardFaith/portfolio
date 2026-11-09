@@ -2,6 +2,60 @@
 <html>
 <head>
     <title>My Little Platformer</title>
+
+<style>
+#cp-touch {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  padding: 14px 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: none;
+  z-index: 1000;
+}
+.cp-dpad {
+  display: flex;
+  gap: 10px;
+}
+.cp-actions {
+  display: flex;
+  gap: 12px;
+}
+.cp-btn {
+  pointer-events: auto;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(20, 20, 30, 0.75);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  font-family: sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.7);
+  transition: transform 0.08s, background 0.12s;
+}
+.cp-btn:active {
+  transform: scale(0.90);
+  background: rgba(255, 255, 255, 0.35);
+}
+.cp-fire {
+  border-color: rgba(239, 68, 68, 0.8);
+  background: rgba(185, 28, 28, 0.3);
+  font-size: 11px;
+}
+.cp-fire:active {
+  background: #ef4444;
+}
+</style>
+
 </head>
 <body>
     <div id="SplashScreen" style="border:1px solid #000; width: 1000px; height: 600px; 
@@ -1106,6 +1160,40 @@ document.body.addEventListener("keydown", function(e) {
 document.body.addEventListener("keyup", function(e) {
     keys[e.keyCode] = false;
 });
+
+function bindCpBtn(id, code) {
+  var b = document.getElementById(id);
+  if (!b) return;
+  var pStart = function(e) {
+    e.preventDefault();
+    keys[code] = true;
+  };
+  var pEnd = function(e) {
+    e.preventDefault();
+    keys[code] = false;
+  };
+  b.addEventListener('pointerdown', pStart);
+  b.addEventListener('pointerup', pEnd);
+  b.addEventListener('pointercancel', pEnd);
+  b.addEventListener('pointerleave', pEnd);
+}
+bindCpBtn('cp-left', 37);
+bindCpBtn('cp-right', 39);
+bindCpBtn('cp-jump', 38);
+bindCpBtn('cp-shoot', 32);
+
 </script>
+
+<div id="cp-touch">
+  <div class="cp-dpad">
+    <button type="button" class="cp-btn" id="cp-left" aria-label="sinistra">◀</button>
+    <button type="button" class="cp-btn" id="cp-right" aria-label="destra">▶</button>
+  </div>
+  <div class="cp-actions">
+    <button type="button" class="cp-btn cp-fire" id="cp-shoot">SPARA</button>
+    <button type="button" class="cp-btn" id="cp-jump" aria-label="salta">▲</button>
+  </div>
+</div>
+
 </body>
 </html>

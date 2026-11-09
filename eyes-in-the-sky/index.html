@@ -367,6 +367,48 @@
             color: white;
             font-size: 1.2rem;
         }
+    
+        /* Touch Buttons per mobile */
+        #eyes-touch {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+        }
+        .eyes-mid {
+            display: flex;
+            gap: 8px;
+        }
+        #eyes-touch button {
+            pointer-events: auto;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: rgba(10, 15, 25, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: #fff;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(6px);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.7);
+            transition: transform 0.08s, background 0.12s;
+        }
+        #eyes-touch button:active {
+            transform: scale(0.90);
+            background: rgba(255, 255, 255, 0.3);
+            border-color: #fff;
+        }
+
     </style>
 </head>
 
@@ -587,6 +629,57 @@
         });
 
         // Touch fallback (important for mobile if webcam fails or user prefers touch)
+        
+        // Controlli Touch D-Pad per Telefono
+        const dirState = { up: false, down: false, left: false, right: false };
+
+        function updatePadMove() {
+            if (!isPlaying) return;
+            const speed = 7;
+            if (dirState.up) playerPos.y = Math.max(30, playerPos.y - speed);
+            if (dirState.down) playerPos.y = Math.min(window.innerHeight - 30, playerPos.y + speed);
+            if (dirState.left) playerPos.x = Math.max(30, playerPos.x - speed);
+            if (dirState.right) playerPos.x = Math.min(window.innerWidth - 30, playerPos.x + speed);
+            updatePlayerPos();
+            if (dirState.up || dirState.down || dirState.left || dirState.right) {
+                requestAnimationFrame(updatePadMove);
+            }
+        }
+
+        function bindBtn(id, dir) {
+            const b = document.getElementById(id);
+            if (!b) return;
+            const start = (e) => {
+                e.preventDefault();
+                dirState[dir] = true;
+                updatePadMove();
+            };
+            const end = (e) => {
+                e.preventDefault();
+                dirState[dir] = false;
+            };
+            b.addEventListener('pointerdown', start);
+            b.addEventListener('pointerup', end);
+            b.addEventListener('pointercancel', end);
+            b.addEventListener('pointerleave', end);
+        }
+
+        bindBtn('e-up', 'up');
+        bindBtn('e-down', 'down');
+        bindBtn('e-left', 'left');
+        bindBtn('e-right', 'right');
+
+        // Touchstart fallback
+        window.addEventListener('touchstart', (e) => {
+            if (!isPlaying) return;
+            if (e.target && e.target.closest('#eyes-touch')) return;
+            if (e.targetTouches.length > 0) {
+                playerPos.x = e.targetTouches[0].clientX;
+                playerPos.y = e.targetTouches[0].clientY;
+                updatePlayerPos();
+            }
+        }, { passive: true });
+
         window.addEventListener('touchmove', (e) => {
             if (!isPlaying) return;
             if (e.targetTouches.length > 0) {
@@ -706,6 +799,17 @@
         }
 
     </script>
+
+    <!-- Mobile Touch Controls -->
+    <div id="eyes-touch">
+        <button id="e-up" aria-label="su">▲</button>
+        <div class="eyes-mid">
+            <button id="e-left" aria-label="sinistra">◀</button>
+            <button id="e-down" aria-label="giù">▼</button>
+            <button id="e-right" aria-label="destra">▶</button>
+        </div>
+    </div>
+
 </body>
 
 </html>

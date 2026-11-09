@@ -20,7 +20,10 @@
   var focus = null, doorTo = null, doorT = 0;
   var keys = { left: false, right: false, run: false, jump: false };
   var time = 0, last = 0;
-  var target = null;              /* cosa si può guardare, adesso */
+  var target = null;
+  function isTouchDevice() {
+    return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+  }              /* cosa si può guardare, adesso */
   var dialog = null, npcPhase = 0;
   var workerJob = null;           /* cosa sta staccando l'operaio */
   var look = null;
@@ -620,11 +623,17 @@
 
     var pr = $("prompt");
     if (pr) {
-      if (dialog) { pr.textContent = "E · " + say("prompt.more"); pr.classList.add("on"); }
-      else if (target) {
-        pr.textContent = "E · " + labelOf(target);
+      var isTouch = isTouchDevice();
+      if (dialog) {
+        pr.textContent = isTouch ? (say("prompt.more") || "avanti") : ("E · " + say("prompt.more"));
         pr.classList.add("on");
-      } else pr.classList.remove("on");
+      } else if (target) {
+        var lbl = labelOf(target);
+        pr.textContent = isTouch ? lbl : ("E · " + lbl);
+        pr.classList.add("on");
+      } else {
+        pr.classList.remove("on");
+      }
     }
     if (M.SOUND && M.SOUND.ready) M.SOUND.flicker(M.WORLD.flick || 0);
     updateCursorHover();
@@ -1943,8 +1952,12 @@
       /* il piede: le due cose che si possono fare, nella lingua di adesso */
       var kk = $("dialogKeys");
       if (kk) {
-        kk.textContent = "E · " + (say("dialog.next") || "avanti") +
-          " \u00a0 ESC · " + (say("dialog.close") || "basta");
+        if (isTouchDevice()) {
+          kk.textContent = (say("dialog.next") || "avanti") + " · tocca per continuare";
+        } else {
+          kk.textContent = "E · " + (say("dialog.next") || "avanti") +
+            " \u00a0 ESC · " + (say("dialog.close") || "basta");
+        }
       }
     }
   }
@@ -2197,24 +2210,47 @@
     /* ≡ apre la mappa, non il questionario: il questionario sta al bar */
     if (menu) menu.addEventListener("click", openMap);
 
+    if (isTouchDevice()) document.body.classList.add("touch-device");
     var touch = $("touch");
     if (touch) {
       var btns = touch.querySelectorAll("[data-k]");
       Array.prototype.forEach.call(btns, function (b) {
         var kk = b.getAttribute("data-k");
-        b.addEventListener("pointerdown", function (e) {
+        var pDown = function (e) {
           e.preventDefault();
           if (kk === "left") keys.left = true;
           else if (kk === "right") keys.right = true;
+          else if (kk === "run") keys.run = true;
           else if (kk === "jump") keys.jump = true;
           else if (kk === "act") interact();
-        });
-        b.addEventListener("pointerup", function (e) {
+        };
+        var pUp = function (e) {
           e.preventDefault();
           if (kk === "left") keys.left = false;
           else if (kk === "right") keys.right = false;
+          else if (kk === "run") keys.run = false;
           else if (kk === "jump") keys.jump = false;
-        });
+        };
+        b.addEventListener("pointerdown", pDown);
+        b.addEventListener("pointerup", pUp);
+        b.addEventListener("pointercancel", pUp);
+        b.addEventListener("pointerleave", pUp);
+      });
+    }
+    var promptEl = $("prompt");
+    if (promptEl) {
+      promptEl.addEventListener("pointerdown", function (e) {
+        e.preventDefault();
+        interact();
+      });
+    }
+    var dlgEl = $("dialog");
+    if (dlgEl) {
+      dlgEl.addEventListener("pointerdown", function (e) {
+        if (dialog) {
+          e.preventDefault();
+          nextDialog();
+        }
       });
     }
 
@@ -2388,9 +2424,42 @@
     var dpr = stage.width / Math.max(1, view.w);
     var k = view.k * cam.zoom;
     var wx = (e.clientX * dpr) / k + cam.x, wy = (e.clientY * dpr) / k + cam.y;
-    /* nel corridoio che gira il punto cliccato può stare un giro più
-       in là: si misura sempre lungo il giro, non sull'asse */
     var dxw = function (x) { return M.WORLD.loopDist(wx, x, room.loop || 0); };
+
+    /* Clic diretto su qualsiasi porta del corridoio o delle sale */
+    if (room && room.props) {
+      for (var pi = 0; pi < room.props.length; pi++) {
+        var prp = room.props[pi];
+        if (prp.kind === "door") {
+          var dDoor = dxw(prp.x + prp.w / 2);
+          if (dDoor < 700 && wx >= prp.x - 45 && wx <= prp.x + prp.w + 45 && wy >= prp.y - 70 && wy <= prp.y + prp.h + 70) {
+            go(prp.to);
+            return;
+          }
+        }
+      }
+    }
+    if (room && room.doorR && wx >= room.doorR.x - 45 && wx <= room.doorR.x + room.doorR.w + 45 && wy >= room.doorR.y - 70 && wy <= room.doorR.y + room.doorR.h + 70) {
+      go(room.next);
+      return;
+    }
+    if (room && room.doorL && wx >= room.doorL.x - 45 && wx <= room.doorL.x + room.doorL.w + 45 && wy >= room.doorL.y - 70 && wy <= room.doorL.y + room.doorL.h + 70) {
+      go("hub");
+      return;
+    }
+    if (room && room.exitSign && wx >= room.exitSign.x - 70 && wx <= room.exitSign.x + room.exitSign.w + 70 && wy >= room.exitSign.y - 60 && wy <= room.exitSign.y + room.exitSign.h + 70) {
+      if (room.id === "hub") { go("lucidus"); }
+      else if (room.id === "lucidus") { go("hub"); }
+      else { leaveToSite(); }
+      return;
+    }
+    if (target) {
+      if (target.door) { interact(); return; }
+      if (target.soffittaDoor || target.soffittaLadder) { interact(); return; }
+      if (target.exit) { interact(); return; }
+      if (target.hatch) { interact(); return; }
+      if (target.x != null && dxw(target.x) < 320) { interact(); return; }
+    }
 
     /* le porte non si aprono con un clic da lontano: ci si mette
        davanti, si legge il nome della sala, e si preme E */

@@ -105,7 +105,7 @@
     btn(r, "\u21c5", "up");
     btn(r, "\u2193", "down");
     btn(r, "\u25cf", "jump");
-    btn(r, "E", "act", "fglAct");
+    btn(r, "ENTRA", "act", "fglAct");
     box.appendChild(l);
     box.appendChild(r);
     document.body.appendChild(box);
@@ -1989,7 +1989,9 @@
     }
     if (S.introT > 4.6) {
       var a2 = 0.3 + Math.sin(time * 3.2) * 0.16;
-      text(c, "PREMI E O SPAZIO PER GIOCARE", w / 2, h * 0.82, 12 * k, "rgba(236,230,216," + a2.toFixed(3) + ")", "center", 600);
+      var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+      var playTxt = isTouch ? "TOCCA PER GIOCARE" : "PREMI E O SPAZIO PER GIOCARE";
+      text(c, playTxt, w / 2, h * 0.82, 12 * k, "rgba(236,230,216," + a2.toFixed(3) + ")", "center", 600);
     }
   }
 

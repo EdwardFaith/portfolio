@@ -24,7 +24,9 @@ body.foglio-on #stage { filter: saturate(0.6) brightness(0.5); }
     padding: 0 16px 20px; pointer-events: none;
 }
 body.foglio-on #fglTouch { display: flex; }
-@media (pointer: fine) { body.foglio-on #fglTouch { display: none; } }
+body.touch-device #fglTouch { display: flex !important; }
+@media (pointer: coarse), (max-width: 900px) { body.foglio-on #fglTouch { display: flex !important; } }
+@media (pointer: fine) and (min-width: 901px) { body.foglio-on:not(.touch-device) #fglTouch { display: none; } }
 #fglTouch .grp { display: flex; gap: 10px; pointer-events: auto; }
 #fglTouch button {
     width: 60px; height: 60px; border-radius: 50%;

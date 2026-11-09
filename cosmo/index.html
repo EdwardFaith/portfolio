@@ -7,10 +7,162 @@
 #hint{position:fixed;left:0;right:0;bottom:8px;text-align:center;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#5a6166;z-index:11;text-shadow:0 0 6px #000}
 #ver{position:fixed;left:10px;bottom:26px;z-index:20;font:700 9px ui-monospace,monospace;letter-spacing:.18em;color:#4a5257;pointer-events:none;text-shadow:0 0 6px #000}
 #back{position:fixed;top:12px;right:12px;z-index:20;font:700 11px ui-monospace,monospace;letter-spacing:.14em;color:#8a9298;text-decoration:none;background:#0a0c0e;border:1px solid #22282c;padding:8px 12px}#back:hover{color:#e8b44a;border-color:#e8b44a}
+
+#cosmoTouch {
+  display: none;
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  padding: 10px 14px 18px;
+  z-index: 50;
+  pointer-events: none;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+@media (pointer: coarse), (max-width: 900px) {
+  #cosmoTouch { display: flex; }
+  #hint { font-size: 9px; bottom: 130px; letter-spacing: 0.08em; color: #8a9298; }
+  #ver { bottom: 145px; }
+}
+body.touch-device #cosmoTouch { display: flex; }
+
+.c-btn {
+  pointer-events: auto;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  background: rgba(10, 14, 18, 0.78);
+  border: 1px solid rgba(232, 180, 74, 0.35);
+  color: #e8b44a;
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.8);
+  border-radius: 8px;
+  transition: transform 0.08s, background 0.1s;
+}
+.c-btn:active {
+  transform: scale(0.92);
+  background: rgba(232, 180, 74, 0.35);
+  border-color: #e8b44a;
+}
+.c-dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.c-dpad-row {
+  display: flex;
+  gap: 6px;
+}
+.c-dir {
+  width: 48px;
+  height: 48px;
+  font-size: 18px;
+}
+.c-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.c-act-top, .c-act-bot {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.c-jump {
+  width: 58px;
+  height: 58px;
+  border-radius: 29px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  border-color: rgba(200, 215, 220, 0.5);
+  color: #fff;
+}
+.c-fire {
+  width: 66px;
+  height: 66px;
+  border-radius: 33px;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  border-color: rgba(220, 60, 60, 0.85);
+  background: rgba(160, 25, 25, 0.35);
+  color: #ffb4b4;
+  box-shadow: 0 0 16px rgba(220, 60, 60, 0.45);
+}
+.c-fire:active {
+  background: #dc2626;
+  color: #000;
+}
+.c-enter {
+  width: 54px;
+  height: 54px;
+  border-radius: 27px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  border-color: rgba(56, 189, 248, 0.6);
+  color: #38bdf8;
+}
+.c-run {
+  width: 46px;
+  height: 46px;
+  border-radius: 23px;
+  font-size: 9px;
+  font-weight: 800;
+  border-color: rgba(232, 180, 74, 0.4);
+  color: #e8b44a;
+}
+.c-eye {
+  width: 46px;
+  height: 46px;
+  border-radius: 23px;
+  font-size: 9px;
+  font-weight: 800;
+  border-color: rgba(168, 85, 247, 0.6);
+  color: #d8b4fe;
+}
+.c-swap {
+  width: 46px;
+  height: 46px;
+  border-radius: 23px;
+  font-size: 9px;
+  border-color: rgba(200, 215, 220, 0.35);
+  color: #cfd3d6;
+}
+
 </style></head><body>
 <canvas id="cv"></canvas><div id="crt"></div>
 <a id="back" href="../museo.html?stanza=cosmo">&larr; MEMORIE DEL COSMO</a>
 <div id="ver">MEMORIE DEL COSMO · MISSIONE 1 · TIX-9</div>
+
+<div id="cosmoTouch">
+  <div class="c-dpad">
+    <button type="button" class="c-btn c-dir" data-k="w" aria-label="su">▲</button>
+    <div class="c-dpad-row">
+      <button type="button" class="c-btn c-dir" data-k="a" aria-label="sinistra">◀</button>
+      <button type="button" class="c-btn c-dir" data-k="s" aria-label="giù">▼</button>
+      <button type="button" class="c-btn c-dir" data-k="d" aria-label="destra">▶</button>
+    </div>
+  </div>
+  <div class="c-actions">
+    <div class="c-act-top">
+      <button type="button" class="c-btn c-swap" data-k="swap">ARMA</button>
+      <button type="button" class="c-btn c-eye" data-k="f">STASI</button>
+      <button type="button" class="c-btn c-run" data-k="shift">CORRI</button>
+    </div>
+    <div class="c-act-bot">
+      <button type="button" class="c-btn c-enter" data-k="e">ENTRA</button>
+      <button type="button" class="c-btn c-jump" data-k="space">SALTA</button>
+      <button type="button" class="c-btn c-fire" data-k="j">FUOCO</button>
+    </div>
+  </div>
+</div>
+
 <div id="hint">A/D muovi · SPAZIO salta · W/S scale · mouse mira · click spara · 1/2/3 armi (Q) · F occhio · E prendi · R ricomincia</div>
 <script>"use strict";
 (function(){
@@ -949,6 +1101,89 @@ function tw(e){return {x:(e.clientX-offX)/scale,y:(e.clientY-offY)/scale}}
 addEventListener("mousemove",function(e){var p=tw(e);mouse.x=p.x;mouse.y=p.y;});
 addEventListener("mousedown",function(e){if(typeof SFX!=="undefined") SFX.resume();if(e.button===0)mouse.down=true;if(G&&G.win>0.7){returnToCosmo();return;}if(G&&G.ended&&G.daisy>0)reset();});
 addEventListener("mouseup",function(e){if(e.button===0)mouse.down=false;});
+
+  var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+  if (isTouch) {
+    document.body.classList.add("touch-device");
+    var hEl = document.getElementById("hint");
+    if (hEl) hEl.textContent = "USA I TASTI A SCHERMO · TOCCA PER SPARARE O ENTRARE";
+  }
+
+  var cTouch = document.getElementById("cosmoTouch");
+  if (cTouch) {
+    var cBtns = cTouch.querySelectorAll("[data-k]");
+    Array.prototype.forEach.call(cBtns, function (b) {
+      var k = b.getAttribute("data-k");
+      var pStart = function (e) {
+        e.preventDefault();
+        if (typeof SFX !== "undefined") SFX.resume();
+        if (k === "swap") {
+          if (typeof SLOTS !== "undefined" && SLOTS.length > 1) {
+            WI = (WI + 1) % SLOTS.length;
+          }
+          return;
+        }
+        if (k === "space") {
+          keys["space"] = true;
+          if (typeof P !== "undefined" && P.ground && typeof coyote !== "undefined") {
+            P.vy = -880; P.ground = false; coyote = 0;
+            if (typeof SFX !== "undefined") SFX.jump();
+          }
+          return;
+        }
+        if (k === "j") {
+          keys["j"] = true;
+          mouse.down = true;
+          if (typeof fire === "function") fire();
+          return;
+        }
+        keys[k] = true;
+      };
+      var pEnd = function (e) {
+        e.preventDefault();
+        if (k === "swap") return;
+        if (k === "j") {
+          keys["j"] = false;
+          mouse.down = false;
+          return;
+        }
+        keys[k] = false;
+      };
+      b.addEventListener("pointerdown", pStart);
+      b.addEventListener("pointerup", pEnd);
+      b.addEventListener("pointercancel", pEnd);
+      b.addEventListener("pointerleave", pEnd);
+    });
+  }
+
+  // Touch sul canvas: mira verso il tocco e spara
+  cv.addEventListener("touchstart", function (e) {
+    if (e.touches.length > 0) {
+      if (typeof SFX !== "undefined") SFX.resume();
+      var t = e.touches[0];
+      var p = tw(t);
+      mouse.x = p.x;
+      mouse.y = p.y;
+      mouse.down = true;
+      if (typeof fire === "function") fire();
+      if (G && G.win > 0.7) { returnToCosmo(); return; }
+      if (G && G.ended && G.daisy > 0) reset();
+    }
+  }, { passive: false });
+
+  cv.addEventListener("touchmove", function (e) {
+    if (e.touches.length > 0) {
+      var t = e.touches[0];
+      var p = tw(t);
+      mouse.x = p.x;
+      mouse.y = p.y;
+    }
+  }, { passive: false });
+
+  cv.addEventListener("touchend", function (e) {
+    mouse.down = false;
+  }, { passive: false });
+
 addEventListener("blur",function(){mouse.down=false;keys={};});
 function hitKey(a,b){return !!keys[a]||!!keys[b]}
 /* ---- memoria: le armi che scendono dal muro (e L'Occhio dono di B-E-P-E) ---- */

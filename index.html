@@ -1396,7 +1396,6 @@
                 return { ref, style: loaded ? { backgroundImage: `url('${gifUrl}')`, ...(colorFilter ? { filter: colorFilter } : {}) } : {} };
             };
 
-            const rSub = lazyGifRef('subconscio/rabbit.png', null);
             const r1 = lazyGifRef('RadioKaoSs/giff/1.gif', null);
             const r2 = lazyGifRef('giff-presentazione/bg.gif', 'sepia(0.8) saturate(2) hue-rotate(100deg) brightness(0.6) contrast(1.2)');
             const r3 = lazyGifRef('lucidus/copertina-2.gif', null);
@@ -1430,11 +1429,9 @@
                                 onClick={() => triggerSubconsciousEffect(() => window.location.href = 'subconscio/subconscio.html')}
                                 className="group block bg-neutral-900 border border-neutral-800 p-1 hover:border-white/25 hover:bg-neutral-800 transition-all duration-300 cursor-pointer relative overflow-hidden"
                             >
-                                <div className="aspect-[4/3] bg-black relative overflow-hidden mb-2.5">
-                                    <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center text-neutral-600 group-hover:text-white transition-colors">
-                                        <Icons.BookOpen />
-                                    </div>
-                                    <div ref={rSub.ref} className="absolute inset-0 bg-cover bg-center opacity-85 group-hover:opacity-100 transition-opacity" style={rSub.style}></div>
+                                <div className="aspect-[4/3] bg-gradient-to-b from-neutral-950 via-neutral-900 to-black border border-neutral-800/80 relative overflow-hidden mb-2.5 flex items-center justify-center group-hover:border-red-900/50 transition-colors">
+                                    <div className="absolute inset-0 bg-red-950/20 opacity-60 group-hover:opacity-100 transition-opacity"></div>
+                                    <span className="text-4xl sm:text-5xl select-none group-hover:scale-125 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] relative z-10" role="img" aria-label="Subconscio Coniglio">🐇</span>
                                 </div>
                                 <div className="px-3 pb-3">
                                     <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Subconscio</h3>

@@ -422,7 +422,8 @@
       x.fillRect(w / 2 - 160, 252, 320, 36);
       x.fillStyle = "#ffffff";
       x.font = "700 16px 'Space Grotesk', system-ui, sans-serif";
-      x.fillText("→ CLICCA / PREMI E PER APRIRE", w / 2, 276);
+      var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+      x.fillText(isTouch ? "→ TOCCA PER APRIRE" : "→ CLICCA / PREMI E PER APRIRE", w / 2, 276);
 
       x.textAlign = "left";
 

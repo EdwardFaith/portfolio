@@ -310,12 +310,13 @@
     /* targa non interattiva */
     if (t.kind === "dep") return "la consolle di partenza";
     if (t.kind === "airlock") {
-      return "IL GIOCO ETERNO · LA MODALITÀ INFINITA (PREMI E PER ENTRARE)";
+      var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+      return "IL GIOCO ETERNO · LA MODALITÀ INFINITA " + (isTouch ? "(TOCCA PER ENTRARE)" : "(PREMI E PER ENTRARE)");
     }
     if (t.kind === "gift_eye") {
       return chosen("eye")
         ? "IL REGALO DI B-E-P-E: L'OCCHIO DEL TEMPO · IN MANO"
-        : "IL REGALO DI B-E-P-E: L'OCCHIO DEL TEMPO (PREMI E PER PRENDERE)";
+        : ("IL REGALO DI B-E-P-E: L'OCCHIO DEL TEMPO " + (isTouch ? "(TOCCA PER PRENDERE)" : "(PREMI E PER PRENDERE)"));
     }
     return "";
   };

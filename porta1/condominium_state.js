@@ -325,7 +325,8 @@
       ctx.font = "bold 11px ui-monospace, 'Courier New', monospace";
       ctx.textAlign = "center";
 
-      var text = "[E] CONNETTI JACK NEURALE (" + Math.round(this.selectedNPC.corruption) + "% CORRUZIONE)";
+      var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+      var text = isTouch ? ("TOCCA PER ENTRARE (" + Math.round(this.selectedNPC.corruption) + "% CORRUZIONE)") : ("[E] CONNETTI JACK NEURALE (" + Math.round(this.selectedNPC.corruption) + "% CORRUZIONE)");
       var tw = ctx.measureText(text).width + 20;
 
       ctx.fillStyle = "rgba(5, 5, 5, 0.88)";

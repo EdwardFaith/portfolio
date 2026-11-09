@@ -369,6 +369,112 @@
     }
   });
 
+  
+  // Gestione Touch per Telefono
+  var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+  if (isTouch) document.body.classList.add("touch-device");
+
+  var touchControls = document.getElementById("porta1-touch");
+  if (touchControls) {
+    var tBtns = touchControls.querySelectorAll("[data-k]");
+    Array.prototype.forEach.call(tBtns, function (b) {
+      var k = b.getAttribute("data-k");
+      var pStart = function (e) {
+        e.preventDefault();
+        resumeAudio();
+        if (k === "left") input.left = true;
+        else if (k === "right") input.right = true;
+        else if (k === "up") input.up = true;
+        else if (k === "down") input.down = true;
+        else if (k === "jump") input.jump = true;
+        else if (k === "shoot") { input.shoot = true; mouse.isDown = true; }
+        else if (k === "interact") {
+          input.interact = true;
+          if (GAME_STATE === "CONDO" && condoState.selectedNPC) {
+            input.interact = false;
+            mindState = new root.PORTA1_MIND(condoState.selectedNPC);
+            GAME_STATE = "MIND";
+            player.x = mindState.arena.x + mindState.arena.w / 2;
+            player.y = mindState.arena.y + mindState.arena.h / 2;
+          }
+        }
+      };
+      var pEnd = function (e) {
+        e.preventDefault();
+        if (k === "left") input.left = false;
+        else if (k === "right") input.right = false;
+        else if (k === "up") input.up = false;
+        else if (k === "down") input.down = false;
+        else if (k === "jump") input.jump = false;
+        else if (k === "shoot") { input.shoot = false; mouse.isDown = false; }
+        else if (k === "interact") input.interact = false;
+      };
+      b.addEventListener("pointerdown", pStart);
+      b.addEventListener("pointerup", pEnd);
+      b.addEventListener("pointercancel", pEnd);
+      b.addEventListener("pointerleave", pEnd);
+    });
+  }
+
+  // Clic e Touch sul Canvas: seleziona e entra direttamente negli inquilini o spara
+  function handleCanvasPointer(clientX, clientY) {
+    resumeAudio();
+    mouse.x = clientX;
+    mouse.y = clientY;
+    if (GAME_STATE === "CONDO") {
+      var wx = cam.x + clientX;
+      var wy = cam.y + clientY;
+      // Cerca se ha cliccato un inquilino
+      if (condoState && condoState.npcs) {
+        for (var ni = 0; ni < condoState.npcs.length; ni++) {
+          var npc = condoState.npcs[ni];
+          if (Math.abs(wx - (npc.x + npc.w / 2)) < 90 && Math.abs(wy - (npc.y + npc.h / 2)) < 110) {
+            condoState.selectedNPC = npc;
+            mindState = new root.PORTA1_MIND(npc);
+            GAME_STATE = "MIND";
+            player.x = mindState.arena.x + mindState.arena.w / 2;
+            player.y = mindState.arena.y + mindState.arena.h / 2;
+            return;
+          }
+        }
+      }
+      // Se era già vicino e clicca ovunque: entra
+      if (condoState && condoState.selectedNPC) {
+        mindState = new root.PORTA1_MIND(condoState.selectedNPC);
+        GAME_STATE = "MIND";
+        player.x = mindState.arena.x + mindState.arena.w / 2;
+        player.y = mindState.arena.y + mindState.arena.h / 2;
+      }
+    } else if (GAME_STATE === "MIND") {
+      mouse.isDown = true;
+      input.shoot = true;
+    }
+  }
+
+  canvas.addEventListener("touchstart", function (e) {
+    if (e.touches.length > 0) {
+      handleCanvasPointer(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", function (e) {
+    if (e.touches.length > 0) {
+      mouse.x = e.touches[0].clientX;
+      mouse.y = e.touches[0].clientY;
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", function (e) {
+    if (GAME_STATE === "MIND") {
+      mouse.isDown = false;
+      input.shoot = false;
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("click", function (e) {
+    handleCanvasPointer(e.clientX, e.clientY);
+  });
+
   window.addEventListener("mouseup", function (e) {
     if (e.button === 0) {
       mouse.isDown = false;
