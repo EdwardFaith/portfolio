@@ -79,13 +79,23 @@
     <!-- ── i comandi per il pollice ───────────────────────────── -->
     <div id="touch">
         <div class="pad">
-            <button type="button" data-k="left" aria-label="sinistra">◀</button>
-            <button type="button" data-k="right" aria-label="destra">▶</button>
+            <button type="button" data-k="left" aria-label="sinistra">←</button>
+            <button type="button" data-k="right" aria-label="destra">→</button>
         </div>
-        <button type="button" data-k="run" class="run" aria-label="corri">CORSA</button>
-        <button type="button" data-k="jump" class="jump" aria-label="salta">▲</button>
-        <button type="button" data-k="act" class="act" aria-label="entra o interagisci">ENTRA</button>
+        <button type="button" data-k="jump" class="jump" aria-label="salta">↑</button>
+        <button type="button" data-k="act" class="act" id="touchAct" aria-label="azione">E</button>
     </div>
+
+    <!-- ── nero di passaggio, fra una sala e l'altra ──────────── -->
+    <div id="veil" aria-hidden="true"></div>
+
+    <!-- ── il pannello: quello che c'è dentro al monitor ──────── -->
+    <div id="panel" role="dialog" aria-modal="true">
+        <div class="crt">
+            <div class="crt-glass"></div>
+            <div id="panelBody" class="card"></div>
+            <div class="crt-curve"></div>
+        </div>
     </div>
 
     <!-- ── il questionario: dentro a un altro monitor ─────────── -->

@@ -635,6 +635,27 @@
         pr.classList.remove("on");
       }
     }
+
+    // Il tasto ENTRA compare solo sulla porta; sulle opere dice GUARDA/LEGGI, sulle persone PARLA, altrimenti E
+    var actBtn = document.getElementById("touchAct");
+    if (actBtn) {
+      if (target && target.door) {
+        actBtn.textContent = "ENTRA";
+        actBtn.classList.add("is-door");
+      } else if (target && (target.soffittaDoor || target.soffittaLadder || target.exit || target.hatch)) {
+        actBtn.textContent = "ENTRA";
+        actBtn.classList.add("is-door");
+      } else if (target && target.talk) {
+        actBtn.textContent = "PARLA";
+        actBtn.classList.remove("is-door");
+      } else if (target && target.work) {
+        actBtn.textContent = (target.work.kind === "note") ? "LEGGI" : "GUARDA";
+        actBtn.classList.remove("is-door");
+      } else {
+        actBtn.textContent = "E";
+        actBtn.classList.remove("is-door");
+      }
+    }
     if (M.SOUND && M.SOUND.ready) M.SOUND.flicker(M.WORLD.flick || 0);
     updateCursorHover();
   }
