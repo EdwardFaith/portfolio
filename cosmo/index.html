@@ -18,12 +18,13 @@
   justify-content: space-between;
   align-items: flex-end;
 }
-@media (pointer: coarse), (max-width: 900px) {
+@media (pointer: coarse) {
   #cosmoTouch { display: flex; }
   #hint { font-size: 9px; bottom: 130px; letter-spacing: 0.08em; color: #8a9298; }
   #ver { bottom: 145px; }
 }
 body.touch-device #cosmoTouch { display: flex; }
+body.desktop-device #cosmoTouch { display: none; }
 
 .c-btn {
   pointer-events: auto;
@@ -1102,7 +1103,37 @@ addEventListener("mousemove",function(e){var p=tw(e);mouse.x=p.x;mouse.y=p.y;});
 addEventListener("mousedown",function(e){if(typeof SFX!=="undefined") SFX.resume();if(e.button===0)mouse.down=true;if(G&&G.win>0.7){returnToCosmo();return;}if(G&&G.ended&&G.daisy>0)reset();});
 addEventListener("mouseup",function(e){if(e.button===0)mouse.down=false;});
 
-  var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+  /* dito o mouse? conta il puntatore principale, non la memoria del
+     telefono: un portatile col touchscreen ha comunque un mouse, e i
+     tasti a schermo gli coprirebbero il gioco */
+  var mqPtr = function (q) {
+    try { return !!(window.matchMedia && window.matchMedia(q).matches); }
+    catch (e) { return false; }
+  };
+  function ditaOra() {
+    if (mqPtr("(pointer: fine)")) return false;
+    if (mqPtr("(pointer: coarse)")) return true;
+    return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  }
+  var isTouch = ditaOra();
+  document.body.classList.add(isTouch ? "touch-device" : "desktop-device");
+  if (window.matchMedia && window.addEventListener) {
+    /* il puntatore può cambiare sotto: tavoletta staccata, mouse
+       collegato a caldo */
+    var mqG = window.matchMedia("(pointer: coarse)");
+    var mqF = window.matchMedia("(pointer: fine)");
+    var ancoraPtr = function () {
+      var t = ditaOra();
+      document.body.classList.toggle("touch-device", t);
+      document.body.classList.toggle("desktop-device", !t);
+      var h3 = document.getElementById("hint");
+      if (h3) h3.textContent = t
+        ? "USA I TASTI A SCHERMO · TOCCA PER SPARARE O ENTRARE"
+        : "A/D muovi · SPAZIO salta · W/S scale · mouse mira · click spara · 1/2/3 armi (Q) · F occhio · E prendi · R ricomincia";
+    };
+    if (mqG && mqG.addEventListener) mqG.addEventListener("change", ancoraPtr);
+    if (mqF && mqF.addEventListener) mqF.addEventListener("change", ancoraPtr);
+  }
   if (isTouch) {
     document.body.classList.add("touch-device");
     var hEl = document.getElementById("hint");

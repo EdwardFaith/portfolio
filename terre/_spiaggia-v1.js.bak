@@ -1,0 +1,897 @@
+/* ============================================================
+   LE TERRE — LA SPIAGGIA
+   Il primo pezzo del mondo fuori dal museo. Ci si arriva col
+   treno della stazione (museo/metro.js), e si esce da una porta
+   isolata che sembra non portare in nessun posto: è la porta del
+   ragno, quella che nella soffitta è chiusa da fuori.
+
+   Qui non c'è ancora niente da combattere: c'è l'aria.
+     - il cielo è ocra e verde, come un tubo catodico vecchio
+     - il mare è nero e denso, e fa rumore statico
+     - la sabbia è cenere
+     - la lumaca insegue il carro armato, e non lo prende mai
+     - gli omini con la valigia camminano a 4-5 fotogrammi al
+       secondo, mentre tutto il resto va a sessanta
+
+   Tutto il resto — la città, le case, l'inchiostro — viene dopo,
+   e questa pagina è la loro porta di ingresso.
+   ============================================================ */
+(function (root) {
+  "use strict";
+
+  var M = root.MUSEO || {};
+  var STATO = M.STATO;
+  var doc = root.document;
+
+  var cv = doc.getElementById("tela");
+  var ctx = cv && cv.getContext("2d");
+  var velInk = doc.getElementById("v-inchiostro");
+  var did = doc.getElementById("didascalia");
+  if (!ctx) return;
+
+  var W = 1280, H = 720, dpr = 1;
+
+  /* ---- il mondo ---- */
+  var MONDO = { lungo: 5200 };
+  var giocatore = {
+    x: 900, vx: 0, dir: 1, passo: 0, fermo: 0,
+    /* alt: quanto è in aria; vy: la spinta che gli resta; vel: la
+       velocità di adesso, che serve a player.js per scegliere
+       l'andatura (fermo, passo, corsa) */
+    alt: 0, vy: 0, aria: false, vel: 0
+  };
+  var camera = { x: 0 };
+  var cartello = { x: 1120 };
+  var porta = { x: 3560, w: 116, h: 252, aperta: false };
+  var uscita = { fatta: false, t0: 0 };
+
+  /* ---- il caso, sempre lo stesso ---- */
+  function hash(n) {
+    var v = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+    return v - Math.floor(v);
+  }
+  function rr(seed, a, b) { return a + hash(seed) * (b - a); }
+  function fra(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function rgba(hex, a) {
+    var p = parseInt(hex.slice(1), 16);
+    return "rgba(" + ((p >> 16) & 255) + "," + ((p >> 8) & 255) + "," + (p & 255) + "," + a + ")";
+  }
+
+  function lingua() {
+    if (M.LANG && M.LANG.current) {
+      try {
+        var l = M.LANG.current();
+        if (l) return l;
+      } catch (e) { }
+    }
+    return "it";
+  }
+  function t2(it, en) { return lingua() === "en" ? en : it; }
+
+  /* ============================================================
+     GLI OMINI CON LA VALIGIA
+     Camminano a scatti: la loro posizione si aggiorna solo cinque
+     volte al secondo. Il mondo intorno va a sessanta. È questo che
+     li rende sbagliati.
+     ============================================================ */
+  var UOMINI = [];
+  var RITMO_UOMINI = 0.21;          /* ~4,8 fotogrammi al secondo */
+  var accumulo = 0;
+  var faseUomini = 0;
+
+  function seminaUomini() {
+    UOMINI.length = 0;
+    for (var i = 0; i < 9; i++) {
+      UOMINI.push({
+        x: 300 + i * 560 + rr(i * 3.1, -180, 180),
+        dir: hash(i * 7.7) > 0.5 ? 1 : -1,
+        vel: 26 + rr(i * 2.3, 0, 34),
+        scala: 0.72 + rr(i * 5.9, 0, 0.5),
+        prof: 0.55 + hash(i * 1.7) * 0.25,
+        valigia: hash(i * 9.1) > 0.35
+      });
+    }
+  }
+
+  function passoUomini(dt) {
+    accumulo += dt;
+    if (accumulo < RITMO_UOMINI) return;
+    var n = Math.floor(accumulo / RITMO_UOMINI);
+    accumulo -= n * RITMO_UOMINI;
+    faseUomini = (faseUomini + n) % 4;
+    for (var i = 0; i < UOMINI.length; i++) {
+      var u = UOMINI[i];
+      u.x += u.dir * u.vel * RITMO_UOMINI * n;
+      if (u.x > MONDO.lungo + 400) u.x = -300;
+      if (u.x < -300) u.x = MONDO.lungo + 400;
+    }
+  }
+
+  /* ============================================================
+     I TASTI
+     ============================================================ */
+  var tasti = { left: false, right: false, run: false };
+  var atto = false;
+
+  /* il salto: uno solo per volta, e solo con i piedi per terra */
+  function salta() {
+    if (giocatore.aria || uscita.fatta) return;
+    giocatore.vy = 690;
+    giocatore.aria = true;
+  }
+
+  function premi(k, on) {
+    if (k === "left" || k === "a" || k === "arrowleft") tasti.left = on;
+    else if (k === "right" || k === "d" || k === "arrowright") tasti.right = on;
+    else if (k === "shift") tasti.run = on;
+    else if (k === "e" || k === "enter" || k === "act") { if (on) atto = true; }
+    else if (k === "jump" || k === "w" || k === "arrowup" || k === " ") { if (on) salta(); }
+  }
+
+  if (doc.addEventListener) {
+    doc.addEventListener("keydown", function (e) {
+      var k = String(e.key || "").toLowerCase();
+      if (k === "arrowleft" || k === "arrowright" || k === " ") e.preventDefault();
+      premi(k, true);
+    });
+    doc.addEventListener("keyup", function (e) {
+      premi(String(e.key || "").toLowerCase(), false);
+    });
+  }
+
+  /* il dito: si tiene premuto il tasto, si cammina */
+  var tocco = doc.getElementById("tocco");
+  if (tocco) {
+    var giu = function (e) {
+      var b = e.target;
+      while (b && b !== tocco && b.tagName !== "BUTTON") b = b.parentNode;
+      if (!b || b.tagName !== "BUTTON") return;
+      e.preventDefault();
+      premi(b.getAttribute("data-k"), true);
+    };
+    var su = function (e) {
+      var b = e.target;
+      while (b && b !== tocco && b.tagName !== "BUTTON") b = b.parentNode;
+      if (!b || b.tagName !== "BUTTON") return;
+      e.preventDefault();
+      premi(b.getAttribute("data-k"), false);
+    };
+    tocco.addEventListener("pointerdown", giu);
+    tocco.addEventListener("pointerup", su);
+    tocco.addEventListener("pointercancel", su);
+    tocco.addEventListener("pointerleave", su);
+  }
+
+  if (M.DEVICE && M.DEVICE.segna) M.DEVICE.segna();
+  if (M.DEVICE && M.DEVICE.osserva) M.DEVICE.osserva();
+
+  /* dove si rientra: la spiaggia ricorda il punto in cui eri, se
+     qualcuno glielo dice (il quaderno lo fa con "torna") */
+  var ricerca = String((root.location && root.location.search) || "");
+  var hx = /[?&]x=(\d+)/.exec(ricerca);
+  if (hx) giocatore.x = fra(parseInt(hx[1], 10), 60, MONDO.lungo - 60);
+
+  /* ============================================================
+     LA MISURA DELLO SCHERMO
+     ============================================================ */
+  function misura() {
+    dpr = Math.min(2, root.devicePixelRatio || 1);
+    W = root.innerWidth || 1280;
+    H = root.innerHeight || 720;
+    cv.width = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  misura();
+  if (root.addEventListener) root.addEventListener("resize", misura);
+
+  /* ============================================================
+     IL DISEGNO — cielo, mare, sabbia
+     ============================================================ */
+  function cielo(t, oriz) {
+    var g = ctx.createLinearGradient(0, 0, 0, oriz);
+    g.addColorStop(0, "#262a15");
+    g.addColorStop(0.35, "#4e4c1d");
+    g.addColorStop(0.72, "#8a6a29");
+    g.addColorStop(1, "#a97f33");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, oriz + 2);
+
+    /* le bande del tubo catodico: si spostano piano, verso l'alto */
+    var scorr = (t * 7) % 24;
+    for (var y = -24 + scorr; y < oriz; y += 24) {
+      ctx.fillStyle = "rgba(12,10,4," + (0.05 + hash(Math.floor(y)) * 0.05).toFixed(3) + ")";
+      ctx.fillRect(0, y, W, 9);
+    }
+    /* la grana del segnale */
+    for (var i = 0; i < 90; i++) {
+      var sx = (hash(i * 2.7 + Math.floor(t * 9) * 0.31) * W);
+      var sy = hash(i * 5.1 + Math.floor(t * 9)) * oriz;
+      ctx.fillStyle = "rgba(240,230,190," + (0.012 + hash(i + 3) * 0.05).toFixed(3) + ")";
+      ctx.fillRect(sx, sy, 2 + hash(i) * 3, 1);
+    }
+
+    /* il sole, spento: un disco d'ocra senza raggi */
+    var cx = W * 0.72, cy = oriz * 0.62, r = Math.min(W, H) * 0.11;
+    var sg = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r);
+    sg.addColorStop(0, "rgba(228,190,110,0.22)");
+    sg.addColorStop(0.7, "rgba(206,160,80,0.12)");
+    sg.addColorStop(1, "rgba(206,160,80,0)");
+    ctx.fillStyle = sg;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.3); ctx.fill();
+
+    /* l'orizzonte: una riga più chiara, come un tubo che sbaglia */
+    ctx.fillStyle = "rgba(240,214,150,0.18)";
+    ctx.fillRect(0, oriz - 2, W, 2);
+  }
+
+  function mare(t, oriz, fondo) {
+    var alto = oriz, basso = fondo;
+    var g = ctx.createLinearGradient(0, alto, 0, basso);
+    g.addColorStop(0, "#0b0c0d");
+    g.addColorStop(0.5, "#060708");
+    g.addColorStop(1, "#0b0b0a");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, alto, W, basso - alto);
+
+    /* la statica: il mare non riflette, non respira, non si muove.
+       Fa rumore, come un televisore su un canale che non c'è. */
+    var salto = Math.floor(t * 12);
+    for (var i = 0; i < 520; i++) {
+      var sx = hash(i * 1.37 + salto * 0.71) * W;
+      var sy = alto + hash(i * 3.11 + salto * 0.37) * (basso - alto);
+      var l = 0.5 + hash(i * 7.3 + salto) * 0.5;
+      ctx.fillStyle = "rgba(210,220,215," + (0.03 + l * 0.14).toFixed(3) + ")";
+      ctx.fillRect(sx, sy, 1 + hash(i + 2) * 2, 1);
+    }
+    /* le onde: tre righe, dritte, che non arrivano mai a riva */
+    ctx.strokeStyle = "rgba(190,200,196,0.06)";
+    ctx.lineWidth = 1.4;
+    for (var w = 0; w < 3; w++) {
+      var y = alto + (basso - alto) * (0.28 + w * 0.22);
+      ctx.beginPath();
+      ctx.moveTo(0, y + Math.sin(t * 0.4 + w) * 2);
+      for (var x = 0; x <= W; x += 60) {
+        ctx.lineTo(x, y + Math.sin((x * 0.006) + t * 0.5 + w) * 2.2);
+      }
+      ctx.stroke();
+    }
+
+    /* la battigia: una striscia di schiuma sporca */
+    ctx.fillStyle = "rgba(206,204,190,0.10)";
+    ctx.beginPath();
+    ctx.moveTo(0, basso);
+    for (var x2 = 0; x2 <= W; x2 += 40) {
+      ctx.lineTo(x2, basso - 6 - Math.sin(x2 * 0.01 + t * 0.8) * 4);
+    }
+    ctx.lineTo(W, basso);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function sabbia(t, fondo) {
+    var g = ctx.createLinearGradient(0, fondo - 10, 0, H);
+    g.addColorStop(0, "#454339");
+    g.addColorStop(0.35, "#302e27");
+    g.addColorStop(1, "#131210");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, fondo, W, H - fondo);
+
+    /* la riva: la sabbia bagnata, e il punto in cui il mare
+       smette di essere mare */
+    var riva = ctx.createLinearGradient(0, fondo - 2, 0, fondo + 52);
+    riva.addColorStop(0, "rgba(10,10,9,0.85)");
+    riva.addColorStop(0.5, "rgba(24,23,20,0.5)");
+    riva.addColorStop(1, "rgba(24,23,20,0)");
+    ctx.fillStyle = riva;
+    ctx.fillRect(0, fondo - 2, W, 54);
+    ctx.fillStyle = "rgba(200,198,184,0.05)";
+    ctx.fillRect(0, fondo + 6, W, 2);
+
+    /* la cenere: granelli e sassolini, sempre gli stessi */
+    for (var i = 0; i < 260; i++) {
+      var wx = rr(i * 1.7, 0, MONDO.lungo);
+      var sx = wx - camera.x;
+      if (sx < -20 || sx > W + 20) continue;
+      var sy = fondo + rr(i * 3.3, 4, H - fondo - 6);
+      var l = rr(i * 5.1, 0.02, 0.12);
+      ctx.fillStyle = "rgba(210,204,186," + l.toFixed(3) + ")";
+      ctx.fillRect(sx, sy, 1 + rr(i * 7.7, 0, 2.5), 1);
+    }
+    /* i ciuffi: l'erba che non cresce più */
+    for (var j = 0; j < 40; j++) {
+      var wx2 = rr(j * 9.1, 0, MONDO.lungo);
+      var sx2 = wx2 - camera.x;
+      if (sx2 < -30 || sx2 > W + 30) continue;
+      var sy2 = fondo + rr(j * 4.7, 30, H - fondo - 30);
+      ctx.strokeStyle = "rgba(58,56,44,0.85)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      for (var k = 0; k < 5; k++) {
+        ctx.moveTo(sx2, sy2);
+        ctx.lineTo(sx2 + rr(j * 3 + k, -6, 6), sy2 - rr(j * 5 + k, 6, 16));
+      }
+      ctx.stroke();
+    }
+    /* le orme: solo le nostre, perché siamo appena arrivati */
+    ctx.fillStyle = "rgba(10,10,9,0.35)";
+    for (var o = 0; o < 26; o++) {
+      var ox = 700 + o * 34 - camera.x;
+      if (ox < -20 || ox > W + 20) continue;
+      ctx.beginPath();
+      ctx.ellipse(ox, fondo + 54 + (o % 2) * 12, 5, 2.4, 0, 0, 6.3);
+      ctx.fill();
+    }
+  }
+
+  /* ============================================================
+     QUELLO CHE PASSA SULLO SFONDO
+     La lumaca insegue il carro armato, e non lo prende mai: è la
+     prima cosa che si vede arrivando, e non succede niente.
+     Sono due creature enormi, e camminano verso destra: il carro
+     davanti, la lumaca dietro. Non si voltano, non si fermano, non
+     arrivano mai a riva.
+     ============================================================ */
+  function carro(ctx, x, y, s) {
+    ctx.fillStyle = "rgba(10,11,10,0.88)";
+    ctx.fillRect(x, y - 26 * s, 118 * s, 26 * s);          /* scafo */
+    ctx.fillRect(x + 10 * s, y - 38 * s, 54 * s, 14 * s);  /* torretta */
+    ctx.fillRect(x + 72 * s, y - 36 * s, 64 * s, 7 * s);   /* cannone */
+    ctx.beginPath(); ctx.arc(x + 26 * s, y - 2 * s, 9 * s, 0, 6.3); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 62 * s, y - 2 * s, 9 * s, 0, 6.3); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 96 * s, y - 2 * s, 9 * s, 0, 6.3); ctx.fill();
+    /* i cingoli: due nastri, non tre ruote per aria */
+    ctx.fillStyle = "rgba(16,17,16,0.95)";
+    ctx.fillRect(x - 4 * s, y - 9 * s, 128 * s, 6 * s);
+    /* il filo di luce sul bordo alto: senza, il nero sparisce nel nero */
+    ctx.fillStyle = "rgba(214,204,176,0.12)";
+    ctx.fillRect(x, y - 26 * s, 118 * s, 2 * s);
+    ctx.fillRect(x + 10 * s, y - 38 * s, 54 * s, 2 * s);
+  }
+
+  function lumaca(ctx, x, y, s, t) {
+    ctx.fillStyle = "rgba(8,9,8,0.9)";
+    /* il corpo, che striscia */
+    ctx.beginPath();
+    ctx.ellipse(x + 40 * s, y - 12 * s, 48 * s, 13 * s, 0, 0, 6.3);
+    ctx.fill();
+    /* la testa, con i due tentacoli */
+    ctx.beginPath();
+    ctx.ellipse(x + 84 * s, y - 20 * s, 14 * s, 10 * s, -0.2, 0, 6.3);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(8,9,8,0.9)";
+    ctx.lineWidth = 2 * s;
+    ctx.beginPath();
+    ctx.moveTo(x + 90 * s, y - 26 * s); ctx.lineTo(x + 96 * s, y - 40 * s);
+    ctx.moveTo(x + 84 * s, y - 27 * s); ctx.lineTo(x + 84 * s, y - 42 * s);
+    ctx.stroke();
+    /* la conchiglia: una spirale */
+    ctx.beginPath();
+    ctx.arc(x + 34 * s, y - 30 * s, 24 * s, 0, 6.3);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(150,150,132,0.16)";
+    ctx.lineWidth = 1.6 * s;
+    ctx.beginPath();
+    for (var a = 0; a < 12; a += 0.3) {
+      var r = (2 + a * 1.7) * s;
+      var px = x + 34 * s + Math.cos(a + t * 0.2) * r;
+      var py = y - 30 * s + Math.sin(a + t * 0.2) * r;
+      if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    /* la scia di bava: luccica sull'acqua, e resta indietro */
+    ctx.strokeStyle = "rgba(210,216,200,0.10)";
+    ctx.lineWidth = 2 * s;
+    ctx.beginPath();
+    ctx.moveTo(x - 10 * s, y - 2 * s);
+    ctx.lineTo(x + 20 * s, y - 3 * s);
+    ctx.stroke();
+  }
+
+  /* l'inseguimento: vanno verso destra, e sono grandi come palazzi.
+     Il carro attraversa lo schermo, esce, e ricomincia da sinistra:
+     la lumaca gli resta sempre dietro di un corpo e mezzo. */
+  function inseguimento(t, oriz) {
+    var s = Math.max(1.9, Math.min(3.4, W / 280));
+    var span = W + 1200 + 900 * s;          /* da un bordo all'altro */
+    var fase = (t * 40) % (2 * span);
+    var tankX = fase < span ? W * 0.42 + fase : (fase - span) - 900 * s;
+    var lumX = tankX - 135 * s;             /* la lumaca gli sta dietro, quasi addosso */
+
+    /* la polvere che alza il carro armato: sta dietro di lui, e resta
+       indietro a sinistra */
+    ctx.fillStyle = "rgba(196,176,132,0.05)";
+    for (var i = 0; i < 14; i++) {
+      var dx = tankX - 10 * s - i * 16 * s + Math.sin(t * 2 + i) * 4;
+      var dy = oriz + 6 - i * 1.6 * s;
+      ctx.beginPath();
+      ctx.arc(dx, dy, 8 * s + i * 1.6 * s, 0, 6.3);
+      ctx.fill();
+    }
+    /* l'ombra sull'acqua: due macchie lunghe */
+    ctx.fillStyle = "rgba(0,0,0,0.28)";
+    ctx.beginPath();
+    ctx.ellipse(tankX + 60 * s, oriz + 8, 80 * s, 7 * s, 0, 0, 6.3);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(lumX + 40 * s, oriz + 8, 60 * s, 5 * s, 0, 0, 6.3);
+    ctx.fill();
+    carro(ctx, tankX, oriz + 4, s);
+    lumaca(ctx, lumX, oriz + 6, s, t);
+  }
+
+  /* ============================================================
+     GLI OMINI CON LA VALIGIA
+     ============================================================ */
+  function omino(u, fondo) {
+    var s = u.scala;
+    var sx = u.x - camera.x * u.prof;
+    var base = fondo + 26 + u.prof * 46;
+    var passo = (faseUomini % 2) ? 1 : -1;
+    ctx.save();
+    ctx.translate(sx, base);
+    ctx.scale(u.dir * s, s);
+
+    ctx.fillStyle = "rgba(9,10,9,0.92)";
+    /* le gambe, che si scambiano a scatti */
+    ctx.strokeStyle = "rgba(9,10,9,0.92)";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(-2, -34); ctx.lineTo(-6 + passo * 4, 0);
+    ctx.moveTo(3, -34); ctx.lineTo(7 - passo * 4, 0);
+    ctx.stroke();
+    /* il cappotto */
+    ctx.beginPath();
+    ctx.moveTo(-9, -34);
+    ctx.lineTo(-11, -74);
+    ctx.quadraticCurveTo(0, -82, 11, -74);
+    ctx.lineTo(9, -34);
+    ctx.closePath();
+    ctx.fill();
+    /* la testa, e un cappello */
+    ctx.beginPath(); ctx.arc(0, -88, 8, 0, 6.3); ctx.fill();
+    ctx.fillRect(-9, -98, 18, 4);
+    ctx.fillRect(-6, -104, 12, 7);
+    /* la valigia */
+    if (u.valigia) {
+      ctx.fillStyle = "rgba(20,19,16,0.95)";
+      ctx.fillRect(9, -46, 22, 16);
+      ctx.fillRect(17, -50, 6, 4);
+      ctx.strokeStyle = "rgba(120,110,88,0.25)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(9.5, -45.5, 21, 15);
+    }
+    ctx.restore();
+  }
+
+  function omini(fondo) {
+    for (var i = 0; i < UOMINI.length; i++) omino(UOMINI[i], fondo);
+  }
+
+  /* ============================================================
+     IL CARTELLO
+     "benvenuti nelle terre della fantasia". Non spiega cos'è la
+     fantasia, non dice cosa fare: dà il benvenuto, e basta.
+     ============================================================ */
+  function cartelloDisegno(fondo) {
+    var sx = cartello.x - camera.x;
+    if (sx < -280 || sx > W + 280) return;
+    /* il cartello si misura sullo schermo: su una finestra bassa non
+       deve arrivare al cielo, e su una alta non deve sparire */
+    var s = Math.min(1.1, Math.max(0.52, H / 720));
+    var base = fondo + 34 * s;
+    var w = 330 * s, h = 132 * s;
+    var x = sx - w / 2, y = base - 300 * s;
+
+    /* il palo, storto */
+    ctx.fillStyle = "#221d16";
+    ctx.beginPath();
+    ctx.moveTo(sx - 7 * s, y + h - 6 * s);
+    ctx.lineTo(sx - 5 * s, base);
+    ctx.lineTo(sx + 6 * s, base);
+    ctx.lineTo(sx + 5 * s, y + h - 6 * s);
+    ctx.closePath();
+    ctx.fill();
+
+    /* la tavola */
+    var g = ctx.createLinearGradient(0, y, 0, y + h);
+    g.addColorStop(0, "#5a5040");
+    g.addColorStop(0.5, "#4a4133");
+    g.addColorStop(1, "#332c22");
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = "rgba(12,11,8,0.9)";
+    ctx.lineWidth = 4 * s;
+    ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
+    /* le assi */
+    ctx.strokeStyle = "rgba(12,11,8,0.5)";
+    ctx.lineWidth = 1.6;
+    for (var i = 1; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(x + 4, y + (h / 3) * i);
+      ctx.lineTo(x + w - 4, y + (h / 3) * i);
+      ctx.stroke();
+    }
+    /* la ruggine che scende dai chiodi */
+    for (var k = 0; k < 4; k++) {
+      var rx = x + 18 * s + k * (w - 36 * s) / 3;
+      ctx.fillStyle = "rgba(96,54,28,0.5)";
+      ctx.fillRect(rx, y + 8, 2, (22 + hash(k) * 40) * s);
+    }
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "rgba(232,220,188,0.86)";
+    ctx.font = "700 " + Math.round(21 * s) + "px ui-monospace, monospace";
+    ctx.fillText(t2("BENVENUTI", "WELCOME"), sx, y + 34 * s);
+    ctx.font = "400 " + Math.round(15 * s) + "px ui-monospace, monospace";
+    ctx.fillStyle = "rgba(214,200,164,0.78)";
+    ctx.fillText(t2("NELLE TERRE", "TO THE LANDS"), sx, y + 66 * s);
+    ctx.fillText(t2("DELLA FANTASIA", "OF FANTASY"), sx, y + 94 * s);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+  }
+
+  /* ============================================================
+     LA PORTA ISOLATA
+     In piedi sulla sabbia, senza pareti intorno. Il pannello non
+     è una porta chiusa: è un buco nero, e dentro c'è un ragno che
+     aspetta di essere trovato.
+     ============================================================ */
+  function portaDisegno(fondo) {
+    var sx = porta.x - camera.x;
+    if (sx < -260 || sx > W + 260) return;
+    var base = fondo + 96;
+    var w = porta.w, h = porta.h;
+    var y = base - h;
+    var cxs = sx + w / 2;
+
+    /* l'ombra per terra */
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.beginPath();
+    ctx.ellipse(cxs, base + 4, w * 0.9, 12, 0, 0, 6.3);
+    ctx.fill();
+
+    /* il telaio: pietra chiara, sporca */
+    ctx.fillStyle = "#8b8672";
+    ctx.fillRect(sx - 12, y - 12, w + 24, h + 12);
+    ctx.fillStyle = "rgba(20,18,14,0.35)";
+    ctx.fillRect(sx - 12, y - 12, w + 24, 5);
+    ctx.fillStyle = "#6d6857";
+    ctx.fillRect(sx - 12, base - 10, w + 24, 8);
+
+    /* il pannello: nero, e non riflette niente */
+    var g = ctx.createLinearGradient(sx, y, sx + w, y + h);
+    g.addColorStop(0, "#050505");
+    g.addColorStop(0.55, "#000000");
+    g.addColorStop(1, "#080807");
+    ctx.fillStyle = g;
+    ctx.fillRect(sx, y, w, h);
+
+    ctx.strokeStyle = "rgba(210,204,180,0.18)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(sx + 1, y + 1, w - 2, h - 2);
+
+    /* la targa, col ragno */
+    ctx.fillStyle = "rgba(224,216,190,0.9)";
+    ctx.fillRect(cxs - 26, y + 28, 52, 26);
+    ctx.strokeStyle = "rgba(20,18,14,0.7)";
+    ctx.lineWidth = 1.6;
+    for (var i = 0; i < 4; i++) {
+      var ly = y + 35 + i * 5;
+      ctx.beginPath();
+      ctx.moveTo(cxs - 14, ly);
+      ctx.lineTo(cxs - 4, ly + (i < 2 ? -4 : 4));
+      ctx.moveTo(cxs + 14, ly);
+      ctx.lineTo(cxs + 4, ly + (i < 2 ? -4 : 4));
+      ctx.stroke();
+    }
+    ctx.fillStyle = "rgba(20,18,14,0.85)";
+    ctx.beginPath(); ctx.arc(cxs, y + 41, 5, 0, 6.3); ctx.fill();
+
+    /* la riga di luce sotto la porta: da dentro arriva qualcosa */
+    ctx.fillStyle = "rgba(226,220,200,0.10)";
+    ctx.fillRect(sx, base - 4, w, 3);
+    var hal = ctx.createRadialGradient(cxs, base, 4, cxs, base, 90);
+    hal.addColorStop(0, "rgba(226,220,200,0.07)");
+    hal.addColorStop(1, "rgba(226,220,200,0)");
+    ctx.fillStyle = hal;
+    ctx.fillRect(cxs - 90, base - 30, 180, 90);
+  }
+
+  /* ============================================================
+     IL CONIGLIO
+     Non è un coniglio nuovo: è lo stesso corpo di museo/player.js,
+     quello che cammina nel corridoio. Gli si passa la posizione
+     sullo schermo e lo stato — fermo, cammina, corre, salta — e si
+     disegna da solo: stessa pelliccia, stesse orecchie a molla,
+     stessa ombra. Chi si è messo un costume nel guardaroba se lo
+     ritrova addosso anche qui.
+     ============================================================ */
+  var bestia = null;
+
+  function coniglio(fondo, t) {
+    var sx = giocatore.x - camera.x;
+    var base = fondo + 96 - giocatore.alt;
+    var stato = giocatore.aria ? "jump"
+      : giocatore.vel > 300 ? "run"
+        : giocatore.vel > 1 ? "walk" : "idle";
+
+    if (M.RABBIT && M.RABBIT.make && M.RABBIT.draw) {
+      if (!bestia) { M.RABBIT.make(sx); bestia = M.RABBIT.get(); }
+      if (bestia) {
+        bestia.x = sx;
+        bestia.y = base;
+        bestia.dir = giocatore.dir;
+        bestia.speed = giocatore.vel;
+        bestia.state = stato;
+        bestia.phase = giocatore.passo;
+        bestia.ground = !giocatore.aria;
+        bestia.hop = giocatore.aria ? 0.55 : 0;
+        try { M.RABBIT.draw(ctx, null, t); return; } catch (e) { /* si ripiega */ }
+      }
+    }
+    coniglioRiserva(base);
+  }
+
+  /* il coniglio di riserva: se player.js non c'è, la spiaggia non
+     resta senza nessuno che la attraversi */
+  function coniglioRiserva(base) {
+    var sx = giocatore.x - camera.x;
+    var cammina = giocatore.vel > 0;
+    var bob = cammina ? Math.sin(giocatore.passo * 11) * 2.4 : 0;
+
+    ctx.save();
+    ctx.translate(sx, base + bob);
+    ctx.scale(giocatore.dir, 1);
+
+    /* l'ombra */
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.beginPath();
+    ctx.ellipse(0, 2 - bob, 22, 6, 0, 0, 6.3);
+    ctx.fill();
+
+    /* le zampe, che si alternano */
+    var fal = cammina ? Math.sin(giocatore.passo * 11) * 7 : 0;
+    ctx.strokeStyle = "#dcd8c6";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(-8, -22); ctx.lineTo(-10 + fal, -2);
+    ctx.moveTo(8, -22); ctx.lineTo(10 - fal, -2);
+    ctx.stroke();
+
+    /* il corpo */
+    ctx.fillStyle = "#e9e5d3";
+    ctx.beginPath();
+    ctx.ellipse(0, -40, 20, 24, 0, 0, 6.3);
+    ctx.fill();
+    /* la coda */
+    ctx.beginPath();
+    ctx.arc(-17, -34, 6, 0, 6.3);
+    ctx.fill();
+
+    /* la testa */
+    ctx.beginPath();
+    ctx.arc(4, -70, 15, 0, 6.3);
+    ctx.fill();
+    /* le orecchie lunghe */
+    ctx.beginPath();
+    ctx.ellipse(-1, -96, 5, 17, -0.16, 0, 6.3);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(9, -97, 5, 17, 0.2, 0, 6.3);
+    ctx.fill();
+    ctx.fillStyle = "rgba(190,150,150,0.5)";
+    ctx.beginPath();
+    ctx.ellipse(-1, -96, 2, 11, -0.16, 0, 6.3);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(9, -97, 2, 11, 0.2, 0, 6.3);
+    ctx.fill();
+
+    /* l'occhio: uno solo, di profilo */
+    ctx.fillStyle = "rgba(18,16,14,0.9)";
+    ctx.beginPath();
+    ctx.arc(11, -72, 2.4, 0, 6.3);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  /* ============================================================
+     L'ARIA SOPRA TUTTO: la vignettatura, e il calore del tubo
+     ============================================================ */
+  function vignetta(t) {
+    var g = ctx.createRadialGradient(W / 2, H * 0.55, Math.min(W, H) * 0.34,
+      W / 2, H * 0.55, Math.max(W, H) * 0.78);
+    g.addColorStop(0, "rgba(0,0,0,0)");
+    g.addColorStop(1, "rgba(0,0,0,0.74)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    /* l'ocra che sale dal basso: la sabbia scaldata */
+    var w = ctx.createLinearGradient(0, H * 0.72, 0, H);
+    w.addColorStop(0, "rgba(150,110,40,0)");
+    w.addColorStop(1, "rgba(150,110,40,0.07)");
+    ctx.fillStyle = w;
+    ctx.fillRect(0, H * 0.72, W, H * 0.28);
+
+    /* la riga che scorre: una volta ogni tanto, come un tubo */
+    var rigaY = (t * 60) % (H + 200) - 100;
+    ctx.fillStyle = "rgba(210,226,210,0.018)";
+    ctx.fillRect(0, rigaY, W, 8);
+  }
+
+  /* ---- la didascalia: una riga sola, e solo quando serve ---- */
+  var ultimaDid = null;
+  function didascalia(txt) {
+    if (!did || ultimaDid === txt) return;
+    ultimaDid = txt;
+    did.textContent = txt || "";
+    did.classList.toggle("is-on", !!txt);
+  }
+
+  /* ---- entrare nella porta ---- */
+  function entra(t) {
+    if (uscita.fatta) return;
+    var d = Math.abs(giocatore.x - (porta.x + porta.w / 2));
+    if (d > 140) return;
+    uscita.fatta = true;
+    uscita.t0 = t;
+    if (STATO) {
+      STATO.sblocca("ragno");
+      STATO.segnaCheckpoint({
+        stanza: "soffitta", x: 1520,
+        nome: {
+          it: "la soffitta, davanti alla seconda porta",
+          en: "the attic, in front of the second door"
+        }
+      });
+    }
+    didascalia("");
+  }
+
+  /* ---- la dissolvenza, e il ritorno al corridoio ---- */
+  function dissolvenza(t) {
+    var k = fra((t - uscita.t0) / 1.7, 0, 1);
+    ctx.fillStyle = "rgba(0,0,0," + Math.pow(k, 1.5).toFixed(3) + ")";
+    ctx.fillRect(0, 0, W, H);
+    /* uno sbaffo d'inchiostro che si apre dal centro */
+    if (k > 0.15) {
+      var r = Math.min(W, H) * 0.55 * Math.pow(k, 0.7);
+      var ig = ctx.createRadialGradient(W / 2, H * 0.55, r * 0.2, W / 2, H * 0.55, r);
+      ig.addColorStop(0, "rgba(10,8,6," + (k * 0.9).toFixed(3) + ")");
+      ig.addColorStop(1, "rgba(10,8,6,0)");
+      ctx.fillStyle = ig;
+      ctx.fillRect(0, 0, W, H);
+    }
+    if (k >= 1 && !uscita.via) {
+      uscita.via = true;
+      var via = "../museo.html?stanza=hub&x=830";
+      try { root.location.href = via; }
+      catch (e) { try { root.location.assign(via); } catch (e2) { } }
+    }
+  }
+
+  /* ============================================================
+     IL CICLO
+     Il mondo va a sessanta; gli omini con la valigia no. Il resto
+     è tutto una funzione di t: niente stato da sincronizzare.
+     ============================================================ */
+  var ultimo = 0;
+  var arrivoT0 = -1;
+  var daTreno = /[?&]da=treno/.test(String((root.location && root.location.search) || ""));
+
+  function ciclo(ts) {
+    var t = ts / 1000;
+    var dt = ultimo ? Math.min(0.05, t - ultimo) : 0.016;
+    ultimo = t;
+    if (arrivoT0 < 0) arrivoT0 = t;
+
+    /* il coniglio cammina, corre, salta: gli stessi comandi del museo */
+    var v = uscita.fatta ? 0 : ((tasti.right ? 1 : 0) - (tasti.left ? 1 : 0));
+    var corsa = tasti.run && !giocatore.aria;
+    var vel = corsa ? 430 : 250;
+    if (v) {
+      giocatore.dir = v;
+      giocatore.vel = vel;
+      giocatore.passo += dt * (corsa ? 1.85 : 1);
+      giocatore.fermo = 0;
+      giocatore.x = fra(giocatore.x + v * vel * dt, 60, MONDO.lungo - 60);
+    } else {
+      giocatore.vel = 0;
+      giocatore.fermo += dt;
+    }
+    /* la gravità: 1900 al secondo, come nel corridoio. In aria si
+       tiene il passo, non si accelera */
+    if (giocatore.aria) {
+      giocatore.vy -= 1900 * dt;
+      giocatore.alt += giocatore.vy * dt;
+      if (giocatore.alt <= 0) {
+        giocatore.alt = 0;
+        giocatore.vy = 0;
+        giocatore.aria = false;
+      }
+    }
+
+    /* gli omini: solo loro si muovono a scatti */
+    passoUomini(dt);
+
+    camera.x = fra(giocatore.x - W * 0.45, 0, Math.max(0, MONDO.lungo - W));
+
+    var oriz = H * 0.40, fondo = H * 0.58;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = "#0a0a08";
+    ctx.fillRect(0, 0, W, H);
+
+    cielo(t, oriz);
+    mare(t, oriz, fondo);
+    sabbia(t, fondo);
+    /* i due colossi camminano sulla sabbia, verso destra: la lumaca
+       insegue il carro armato e non lo prende mai */
+    inseguimento(t, fondo + 70);
+    omini(fondo);
+    cartelloDisegno(fondo);
+    portaDisegno(fondo);
+    coniglio(fondo, t);
+    vignetta(t);
+
+    /* l'arrivo: il bianco del tunnel che si scioglie */
+    if (daTreno) {
+      var arr = (t - arrivoT0) / 1.3;
+      if (arr < 1) {
+        ctx.fillStyle = "rgba(236,240,232," + Math.max(0, 1 - arr).toFixed(3) + ")";
+        ctx.fillRect(0, 0, W, H);
+      }
+    }
+
+    if (atto) {
+      atto = false;
+      entra(t);
+    }
+
+    /* la riga della porta: la porta parla solo a chi le sta davanti */
+    if (!uscita.fatta) {
+      var d = Math.abs(giocatore.x - (porta.x + porta.w / 2));
+      if (d < 230) {
+        didascalia(STATO && STATO.sbloccato && STATO.sbloccato("ragno")
+          ? t2("la porta è aperta.", "the door is open.")
+          : t2("la porta non porta in nessun posto.", "the door leads nowhere."));
+      } else {
+        didascalia("");
+      }
+    }
+
+    if (uscita.fatta) dissolvenza(t);
+
+    root.requestAnimationFrame(ciclo);
+  }
+
+  /* ============================================================
+     L'INGRESSO
+     Arrivare qui è già un posto: si scrive nel quaderno, così chi
+     muore sa da dove ricominciare. Poi si cammina.
+     ============================================================ */
+  seminaUomini();
+
+  if (STATO) {
+    STATO.segnaCheckpoint({
+      stanza: "terre", x: giocatore.x,
+      nome: { it: "la spiaggia delle terre", en: "the beach of the lands" }
+    });
+    var mostraInk = function () {
+      if (velInk) velInk.textContent = String(STATO.inchiostro());
+    };
+    mostraInk();
+    if (STATO.osserva) STATO.osserva(mostraInk);
+  }
+
+  root.requestAnimationFrame(ciclo);
+})(typeof window !== "undefined" ? window : globalThis);
+
+
+
+
+
+

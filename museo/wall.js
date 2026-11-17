@@ -1066,7 +1066,7 @@
       ctx.fillStyle = alpha(p.accent, 0.9);
       ctx.fillText(sub, sx + 8, it.h - 4);
     }
-    var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+    var isTouch = (M.DEVICE && M.DEVICE.touch) ? M.DEVICE.touch() : (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
     var e = isTouch ? "tocca" : lang.t("wall.enter");
     if (e) {
       ctx.font = "700 10px " + FONT;

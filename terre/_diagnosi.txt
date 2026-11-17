@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html lang="it"><head>
+  <meta charset="UTF-8">
+  <title>diagnosi terre</title>
+  <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body class="desktop-device">
+  <div id="sala">
+    <canvas id="tela" width="1264" height="625"></canvas>
+    <div id="velo" aria-hidden="true"></div>
+    <div id="inchiostro"><span class="k">inchiostro</span><span class="v" id="v-inchiostro">0</span></div>
+    <div id="arma"><span class="k">in mano</span><span class="v" id="v-arma">pugni</span></div>
+    <p id="aiuto"><span class="per-topo">A / D cammina ┬À SHIFT corri ┬À SPAZIO salta ┬À E entra</span><span class="per-dito">i due tasti in basso camminano ┬À il cerchio salta ┬À Ôùª entra</span></p>
+    <p id="didascalia"></p>
+    <div id="domanda" hidden=""></div>
+  </div>
+  <pre id="err" style="position:fixed;left:0;top:0;z-index:99999;background:#fff;color:#000;font:12px monospace;white-space:pre-wrap;max-width:100%">MUSEO: DEVICE,STATO,RABBIT,TERRE
+TERRE: u,tasti,premi,g,cam,salta,SCENE,zona,registra,vai,cambiaZona,parla,zitto,aiuto,arma,cambiaArma,colpo,atto,muori,rinasce,tornaAlMuseo,chiediRitorno,segna,misura,W,H,ctx,mouse,avvia,query
+SCENE: spiaggia,bosco,citta,casa,tempio
+avvia HA LANCIATO: t2 is not defined
+zona: spiaggia ┬À mod=true
+canvas: 1264x625
+pixel accesi: 0 su 790000 ┬À primo=-1</pre>
+
+  <script>
+    var LOG = [];
+    window.onerror = function (m, s, l, c) {
+      LOG.push("ERRORE: " + m + " @ " + String(s || "").split("/").pop() + ":" + l + ":" + c);
+      return false;
+    };
+    function nota(t) { LOG.push(t); }
+  </script>
+
+  <script src="../museo/device.js"></script>
+  <script src="../museo/stato.js"></script>
+  <script src="../museo/player.js"></script>
+  <script src="mondo.js?v=2"></script>
+  <script src="spiaggia.js?v=3"></script>
+  <script src="bosco.js?v=1"></script>
+  <script src="citta.js?v=3"></script>
+  <script src="case.js?v=2"></script>
+  <script src="tempio.js?v=2"></script>
+
+  <script>
+    (function () {
+      var M = window.MUSEO || {};
+      var T = M.TERRE;
+      nota("MUSEO: " + Object.keys(M).join(","));
+      nota("TERRE: " + (T ? Object.keys(T).join(",") : "MANCA"));
+      nota("SCENE: " + (T && T.SCENE ? Object.keys(T.SCENE).join(",") : "MANCA"));
+      if (!T || !T.avvia) { nota("niente avvia"); return; }
+      try {
+        T.avvia("spiaggia", {});
+        nota("avvia ok");
+      } catch (e) {
+        nota("avvia HA LANCIATO: " + e.message);
+      }
+      setTimeout(function () {
+        try {
+          var z = T.zona();
+          nota("zona: " + (z && z.id) + " ┬À mod=" + !!(z && z.mod));
+        } catch (e) { nota("zona? " + e.message); }
+        try {
+          var cv = document.getElementById("tela");
+          nota("canvas: " + cv.width + "x" + cv.height);
+          var c = cv.getContext("2d");
+          var d = c.getImageData(0, 0, cv.width, cv.height).data;
+          var nz = 0, primo = -1;
+          for (var i = 0; i < d.length; i += 4) {
+            if (d[i] || d[i + 1] || d[i + 2]) { nz++; if (primo < 0) primo = i / 4; }
+          }
+          nota("pixel accesi: " + nz + " su " + (d.length / 4) + " ┬À primo=" + primo);
+        } catch (e) { nota("pixel? " + e.message); }
+        document.getElementById("err").textContent = LOG.join("\n");
+      }, 1500);
+    })();
+  </script>
+
+
+</body></html>

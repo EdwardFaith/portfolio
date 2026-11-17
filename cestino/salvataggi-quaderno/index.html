@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>I POSTI // IL QUADERNO</title>
+  <meta name="description" content="Il quaderno della porta dei ragni: l'elenco dei posti dove sei stato, e basta. Un posto, un tasto per tornarci.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="sala">
+
+    <header id="testata">
+      <p id="occhiello">porta 02 &nbsp;·&nbsp; i ragni</p>
+      <h1 id="titolo">i posti</h1>
+    </header>
+
+    <ol id="posti" aria-label="i posti dove sei stato"></ol>
+
+    <p id="vuoto" hidden>ancora nessuno.</p>
+
+    <p id="nota" role="status" aria-live="polite"></p>
+
+    <a id="ritorno" href="../museo.html?stanza=soffitta&amp;x=1520"
+       title="Torna alla soffitta, davanti alla seconda porta">◀ soffitta</a>
+
+    <div id="velo" aria-hidden="true"></div>
+
+    <!-- la grata è chiusa: si vede solo se qualcuno apre l'indirizzo
+         a mano, prima di aver trovato la porta isolata sulla spiaggia -->
+    <div id="chiusa" hidden>
+      <p class="simbolo">🕷️</p>
+      <p class="riga">la serratura è chiusa da fuori.</p>
+      <a class="via" href="../museo.html?stanza=soffitta&amp;x=1520">torna in soffitta</a>
+    </div>
+
+  </main>
+
+  <script src="../museo/stato.js"></script>
+  <script src="salva.js?v=2"></script>
+</body>
+</html>

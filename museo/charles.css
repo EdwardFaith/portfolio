@@ -1,0 +1,489 @@
+/* ============================================================
+   MUSEO — CHARLES (charles.css)
+   Il pannello della guida. Non è una finestra di chat: è lo stesso
+   schermo del pinguino del bar — la faccia grande a sinistra, le
+   domande in colonna a destra, e la risposta che compare nel mezzo
+   come una battuta. Un personaggio non ha schede: ha una faccia,
+   una voce e le cose che gli puoi chiedere.
+
+   Le classi sono quelle che costruisce museo/charles.js:
+     .ch-btn .ch-nudge .ch-win
+     .ch-crt > .ch-x + .ch-peng
+     .ch-peng > .ch-face (.ch-frame .ch-img .ch-led .ch-name .ch-dove)
+              > .ch-side  (.ch-log .ch-opts .ch-form)
+   ============================================================ */
+.ch-btn,
+.ch-nudge,
+.ch-win {
+  --ch-red: var(--red, #d13a2e);
+  --ch-ink: var(--ink, #e7e2d6);
+  --ch-dim: var(--dim, #9a958c);
+  --ch-faint: var(--faint, rgba(231, 226, 214, 0.16));
+  --ch-font: var(--font, "Space Grotesk", system-ui, -apple-system, sans-serif);
+  --ch-mono: ui-monospace, "SFMono-Regular", "Consolas", monospace;
+}
+
+[hidden] { display: none !important; }
+
+/* ---------- il punto di domanda ------------------------------ */
+.ch-btn {
+  font-family: var(--ch-font);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ch-red);
+  background: rgba(8, 8, 9, 0.86);
+  border: 1px solid var(--ch-red);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 120ms, color 120ms, transform 120ms;
+}
+.ch-btn:hover,
+.ch-btn:focus-visible {
+  background: var(--ch-red);
+  color: #0a0a0b;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+/* se non c'è la fila dei bottoni, galleggia in basso a destra */
+body > .ch-btn {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 60;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
+}
+
+/* ---------- la nuvoletta che si fa vivo ---------------------- */
+.ch-nudge {
+  position: fixed;
+  right: 14px;
+  bottom: 64px;
+  z-index: 60;
+  max-width: 230px;
+  font-family: var(--ch-font);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: left;
+  color: var(--ch-ink);
+  background: rgba(10, 10, 11, 0.94);
+  border: 1px solid var(--ch-red);
+  border-radius: 3px;
+  padding: 9px 11px;
+  cursor: pointer;
+  animation: ch-entra 260ms ease-out;
+}
+.ch-nudge:hover { background: rgba(24, 10, 10, 0.96); }
+
+@keyframes ch-entra {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- la finestra -------------------------------------- */
+.ch-win {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: rgba(3, 3, 4, 0.76);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  font-family: var(--ch-font);
+  color: var(--ch-ink);
+}
+
+.ch-crt {
+  position: relative;
+  width: min(880px, 100%);
+  max-height: min(92vh, 760px);
+  min-height: 340px;
+  background:
+    linear-gradient(180deg, rgba(20, 18, 17, 0.98), rgba(7, 7, 8, 0.99) 42%);
+  border: 1px solid rgba(209, 58, 46, 0.42);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.8),
+    0 30px 80px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(150, 26, 20, 0.10);
+  overflow: hidden;
+  animation: ch-entra 200ms ease-out;
+}
+.ch-crt::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, #d13a2e, #6d1712 62%, transparent);
+  z-index: 3;
+}
+
+.ch-x {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 6;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--ch-faint);
+  border-radius: 2px;
+  background: rgba(8, 8, 9, 0.9);
+  color: var(--ch-dim);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+.ch-x:hover { color: var(--ch-ink); border-color: var(--ch-red); }
+
+/* ---------- la faccia grande, e la voce accanto -------------- */
+.ch-peng {
+  display: grid;
+  grid-template-columns: 268px 1fr;
+  gap: 18px;
+  padding: 18px 18px 16px;
+  /* la colonna della voce si allunga fino in fondo: è quella che
+     scorre, e il riquadro della foto resta in cima */
+  align-items: stretch;
+  max-height: min(92vh, 760px);
+  min-height: 0;
+}
+
+.ch-face {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  background: radial-gradient(120% 80% at 50% 26%,
+    rgba(52, 24, 22, 0.6), rgba(4, 6, 8, 0.98) 74%);
+  border: 1px solid rgba(209, 58, 46, 0.25);
+  border-radius: 6px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.8), inset 0 0 16px rgba(0, 0, 0, 0.6);
+}
+
+.ch-frame {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #060709;
+  box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.85);
+}
+.ch-frame.vuota { display: grid; place-items: center; }
+.ch-punto {
+  font-family: var(--ch-mono);
+  font-size: 62px;
+  color: var(--ch-red);
+  text-shadow: 0 0 18px rgba(209, 58, 46, 0.55);
+}
+
+.ch-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  filter: saturate(0.92) contrast(1.04);
+  transition: transform 0.4s ease;
+}
+.ch-frame:hover .ch-img { transform: scale(1.03); }
+
+/* il led che dice che è accesa: è lo stesso del banco */
+.ch-led {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  font-family: var(--ch-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: #ff3333;
+  background: rgba(0, 0, 0, 0.85);
+  padding: 3px 7px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 50, 50, 0.6);
+  box-shadow: 0 0 10px rgba(255, 30, 30, 0.85);
+  animation: ch-faro 1.8s steps(2, end) infinite;
+}
+@keyframes ch-faro { 50% { opacity: 0.2; } }
+
+.ch-name {
+  width: 100%;
+  margin-top: 9px;
+  padding: 6px 10px 5px;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #ede5d5;
+  background: rgba(10, 10, 12, 0.85);
+  border: 1px solid rgba(231, 226, 214, 0.18);
+  border-radius: 3px;
+  text-shadow: 0 0 6px rgba(209, 58, 46, 0.4);
+}
+
+.ch-dove {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.ch-micro {
+  font-family: var(--ch-mono);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ch-dim);
+}
+.ch-luogo {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ch-red);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- la colonna della voce ---------------------------- */
+.ch-side {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* la risposta: una bolla sola, che cambia quando si chiede altro */
+.ch-log {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 4px 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ch-log::-webkit-scrollbar { width: 8px; }
+.ch-log::-webkit-scrollbar-thumb {
+  background: rgba(231, 226, 214, 0.18);
+  border-radius: 4px;
+}
+
+/* la domanda fatta, in piccolo: si sa cosa si è chiesto */
+.ch-domanda {
+  font-family: var(--ch-mono);
+  font-size: 10.5px;
+  line-height: 1.4;
+  letter-spacing: 0.03em;
+  color: var(--ch-dim);
+  padding-left: 3px;
+}
+
+.ch-bolla {
+  position: relative;
+  font-family: var(--ch-font);
+  font-size: clamp(13px, 1.7vw, 16px);
+  line-height: 1.62;
+  color: #ded8ca;
+  background: rgba(231, 226, 214, 0.045);
+  border-left: 2px solid rgba(209, 58, 46, 0.55);
+  border-radius: 0 4px 4px 0;
+  padding: 11px 24px 11px 13px;
+  animation: ch-entra 180ms ease-out;
+}
+.ch-bolla.mia {
+  border-left-color: var(--ch-faint);
+  color: var(--ch-dim);
+  font-style: italic;
+}
+.ch-firma {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--ch-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: var(--ch-red);
+}
+.ch-righe { margin: 0; }
+.ch-righe a { color: var(--ch-ink); }
+
+/* i tasti, quando li elenca: due colonne, e nessun fronzolo */
+.ch-tasti {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ch-tasti li {
+  display: grid;
+  grid-template-columns: 104px 1fr;
+  align-items: baseline;
+  gap: 9px;
+}
+.ch-tasti kbd {
+  font-family: var(--ch-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ch-red);
+  background: rgba(209, 58, 46, 0.09);
+  border: 1px solid rgba(209, 58, 46, 0.42);
+  border-radius: 2px;
+  padding: 3px 6px;
+  text-align: center;
+  white-space: nowrap;
+}
+.ch-tasti span {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ch-dim);
+}
+
+/* ---------- le domande: una lista, e ognuna si preme --------- */
+.ch-opts {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  max-height: 34vh;
+  overflow-y: auto;
+}
+.ch-opts::-webkit-scrollbar { width: 8px; }
+.ch-opts::-webkit-scrollbar-thumb {
+  background: rgba(231, 226, 214, 0.18);
+  border-radius: 4px;
+}
+.ch-opts button {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 13px;
+  cursor: pointer;
+  font-family: var(--ch-font);
+  font-size: 12.5px;
+  color: #ede7da;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(231, 226, 214, 0.14);
+  border-radius: 3px;
+  transition: background 140ms, border-color 140ms, transform 140ms;
+}
+.ch-opts button b {
+  color: var(--ch-red);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  min-width: 14px;
+}
+.ch-opts button:hover,
+.ch-opts button:focus-visible {
+  background: rgba(209, 58, 46, 0.16);
+  border-color: rgba(209, 58, 46, 0.75);
+  outline: none;
+  transform: translateX(2px);
+}
+
+/* ---------- la riga per chiedere ---------------------------- */
+.ch-form {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ch-faint);
+  margin-top: auto;
+}
+.ch-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--ch-font);
+  font-size: 13px;
+  color: var(--ch-ink);
+  background: #0b0b0c;
+  border: 1px solid rgba(231, 226, 214, 0.18);
+  border-radius: 3px;
+  padding: 9px 11px;
+  outline: none;
+}
+.ch-input::placeholder { color: rgba(154, 149, 140, 0.72); }
+.ch-input:focus {
+  border-color: var(--ch-red);
+  box-shadow: 0 0 0 1px rgba(209, 58, 46, 0.28);
+}
+.ch-invia {
+  flex: 0 0 auto;
+  font-family: var(--ch-font);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ch-ink);
+  background: rgba(209, 58, 46, 0.16);
+  border: 1px solid rgba(209, 58, 46, 0.65);
+  border-radius: 3px;
+  padding: 0 14px;
+  cursor: pointer;
+}
+.ch-invia:hover { background: var(--ch-red); color: #0a0a0b; }
+
+/* ---------- sul telefono: la faccia in cima, la voce sotto --- */
+@media (max-width: 720px) {
+  .ch-win { padding: 0; place-items: end center; }
+  .ch-crt {
+    width: 100%;
+    max-height: 94vh;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 0;
+  }
+  .ch-peng {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 14px 14px 12px;
+    max-height: 94vh;
+  }
+  .ch-face {
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+  }
+  .ch-frame { width: 84px; height: 84px; flex: 0 0 auto; }
+  .ch-name { width: auto; margin-top: 0; flex: 1 1 auto; text-align: left; }
+  .ch-dove { align-items: flex-start; margin: 0; width: auto; }
+  .ch-luogo { text-align: left; font-size: 10.5px; }
+  .ch-log { padding: 0 0 10px; }
+  .ch-bolla { font-size: 13px; padding: 10px 12px; }
+  .ch-tasti li { grid-template-columns: 92px 1fr; gap: 7px; }
+  .ch-tasti kbd { font-size: 9.5px; }
+  .ch-tasti span { font-size: 11.5px; }
+  .ch-opts { max-height: 30vh; }
+  .ch-opts button { font-size: 12px; padding: 9px 11px; }
+  .ch-nudge { right: 10px; bottom: 58px; max-width: 200px; font-size: 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ch-crt, .ch-bolla, .ch-nudge { animation: none; }
+  .ch-led { animation: none; }
+}

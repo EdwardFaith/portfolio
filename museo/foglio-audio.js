@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    MONDO DEL FOGLIO — il suono.
    Nessun file: tutto sintetizzato, come il museo. Il suono che
    conta e' uno solo — lo scatto delle zampe, in panning, che dice

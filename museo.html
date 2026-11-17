@@ -27,9 +27,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="museo/museo.css?v=3">
+    <link rel="stylesheet" href="museo/museo.css?v=5">
     <!-- il foglio che si apre in fondo a Radio Kaoss -->
     <link rel="stylesheet" href="museo/foglio.css">
+    <!-- il punto di domanda rosso: Charles, in fila con gli altri bottoni -->
+    <link rel="stylesheet" href="museo/charles.css?v=4">
 </head>
 
 <body>
@@ -129,20 +131,33 @@
     </div>
 
     <!-- ── il motore: contenuti, lingue, shader, stanze, regia ── -->
-    <script src="museo/lang.js?v=5"></script>
+    <script src="museo/lang.js?v=7"></script>
     <script src="museo/auth.js?v=1"></script>
     <script src="museo/data.js?v=7"></script>
     <script src="museo/panel.js?v=5"></script>
     <script src="museo/quiz.js"></script>
     <script src="museo/radio.js"></script>
 
+    <!-- il dispositivo: dito o mouse. Una risposta sola per tutto il museo -->
+    <script src="museo/device.js?v=1"></script>
+
+    <!-- il quaderno: inchiostro, armi, porte aperte, segnalibri.
+         Lo leggono anche le terre, e la grata della soffitta si apre
+         da sola quando il segno arriva -->
+    <script src="museo/stato.js?v=6"></script>
+
     <script src="museo/gl.js"></script>
     <script src="museo/fx.js"></script>
     <script src="museo/scene.js"></script>
-    <script src="museo/player.js"></script>
+    <script src="museo/player.js?v=2"></script>
     <!-- la strada delle memorie: la città, il robot spento, il razzo, la nave -->
     <script src="museo/cosmo.js?v=1"></script>
-    <script src="museo/world.js?v=8"></script>
+    <script src="museo/world.js?v=13"></script>
+    <!-- la carta da parati del corridoio, il linoleum, i ragni, i cavi -->
+    <script src="museo/corridoio.js?v=2"></script>
+    <!-- la stazione in mezzo al giro: la galleria, il treno, e il
+         viaggio in prima persona dentro al vagone -->
+    <script src="museo/metro.js?v=4"></script>
     <!-- la sala d'armi e la camera del bambino sono state sostituite da
          cosmo.js: restano nel repository, ma non si caricano più -->
     <script src="museo/audio.js?v=5"></script>
@@ -156,17 +171,20 @@
     <script src="museo/foglio.js"></script>
 
     <!-- ── IL SOTTERRANEO: due piani sotto il corridoio ── -->
-    <script src="museo/sotterraneo.js?v=3"></script>
+    <script src="museo/sotterraneo.js?v=4"></script>
 
     <!-- ── IL BERE: la botola, il pinguino, e la stanza che non c'è ── -->
     <script src="museo/disco.js?v=2"></script>
     <script src="museo/bar.js?v=3"></script>
-    <script src="museo/soffitta.js?v=2"></script>
+    <script src="museo/soffitta.js?v=9"></script>
 
     <!-- ── la memoria 1 non sta più qui dentro: è cosmo/index.html,
          e ci si arriva dal primo portello del razzo ── -->
 
-    <script src="museo/main.js?v=8"></script>
+    <script src="museo/main.js?v=12"></script>
+    <!-- Charles: il punto di domanda. Va per ultimo: si costruisce da
+         solo, e legge la sala corrente dal motore quando lo apri -->
+    <script src="museo/charles.js?v=8"></script>
     <script>
         // Il museo si accende subito senza schermata iniziale di scelta
         window.addEventListener("load", function () {
@@ -184,3 +202,4 @@
 </body>
 
 </html>
+

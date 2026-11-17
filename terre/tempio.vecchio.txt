@@ -1,0 +1,1019 @@
+/* ============================================================
+   LE TERRE — IL TEMPIO (tempio.js)
+   Il tempio non è una zona da attraversare: è il posto dove si
+   finisce quando si muore. Non c'è niente da vincere, qui.
+
+   Sul piedistallo, in mezzo, c'è Madama Morte: una signora vestita
+   di bianco, alta, i capelli davanti alla faccia e gli occhi rossi
+   che seguono il coniglio. Sopra di lei c'è un occhio grande, che si
+   apre e si chiude quando vuole lui; in alto a destra un pianeta
+   nero con lo stesso occhio, che guarda il tempio e non te; sotto i
+   gradini, il dorso di un serpente su cui è costruito tutto il
+   resto. Fra i gradini pascola una lumaca grossa come una colonna:
+   è l'unica cosa che passa di qui, e ci mette dei minuti.
+
+   Il tempio non spiega e non consola. Si arriva, si guarda la
+   signora, e lei dice che non c'è niente da decidere: si torna dove
+   si è morti. Il coniglio, se lo incontri, dice che è colpa tua e
+   che non sono affari suoi.
+   ============================================================ */
+(function (root) {
+  "use strict";
+
+  var M = root.MUSEO || (root.MUSEO = {});
+  var T = M.TERRE;
+  if (!T) return;
+
+  var u = T.u;
+  var hash = u.hash, rr = u.rr, t2 = u.t2, occhio = u.occhio, fra = u.fra;
+
+  var LUNGO = 1700;
+  var STATUA = 900;
+  var vicino = false, andato = 0, giaDetto = false;
+
+  function suolo() { return T.H() * 0.86; }
+
+  /* ============================================================
+     IL VUOTO — non è cielo: è la fine del disegno
+     ============================================================ */
+  function vuoto(c, t) {
+    var W = T.W(), H = T.H();
+    var g = c.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "#040405");
+    g.addColorStop(0.40, "#0a0810");
+    g.addColorStop(0.78, "#060508");
+    g.addColorStop(1, "#000000");
+    c.fillStyle = g;
+    c.fillRect(0, 0, W, H);
+
+    /* le stelle: poche, e qualcuna si spegne */
+    for (var i = 0; i < 130; i++) {
+      var x = hash(i * 3.7) * W;
+      var y = hash(i * 7.9) * H * 0.68;
+      var q = 0.20 + 0.80 * (0.5 + 0.5 * Math.sin(t * (0.5 + hash(i) * 1.4) + i));
+      var r = 0.7 + hash(i * 11.3) * 1.4;
+      c.fillStyle = "rgba(226,224,214," + (0.10 + q * 0.45).toFixed(3) + ")";
+      c.fillRect(x, y, r, r);
+    }
+
+    /* la galassia: due nebbie che girano piano, una viola a sinistra e
+       una rossa a destra, e fra le due il nero */
+    var racc = Math.min(W, H);
+    var n1 = c.createRadialGradient(
+      W * 0.24 + Math.sin(t * 0.03) * 36, H * 0.24, 10,
+      W * 0.26, H * 0.26, racc * 0.85);
+    n1.addColorStop(0, "rgba(96,58,120,0.20)");
+    n1.addColorStop(0.45, "rgba(58,30,74,0.10)");
+    n1.addColorStop(1, "rgba(0,0,0,0)");
+    c.fillStyle = n1;
+    c.fillRect(0, 0, W, H);
+
+    var n2 = c.createRadialGradient(
+      W * 0.78, H * 0.30 + Math.cos(t * 0.024) * 30, 10,
+      W * 0.74, H * 0.34, racc * 0.9);
+    n2.addColorStop(0, "rgba(152,40,44,0.16)");
+    n2.addColorStop(0.5, "rgba(70,20,26,0.08)");
+    n2.addColorStop(1, "rgba(0,0,0,0)");
+    c.fillStyle = n2;
+    c.fillRect(0, 0, W, H);
+
+    /* il serpente: anelli enormi che escono dal basso e si perdono nel
+       nero. Non è un mostro: è la cosa su cui è costruito il tempio */
+    var sxc = W * 0.5 + Math.sin(t * 0.05) * 12;
+    c.lineCap = "round";
+    for (var b = 0; b < 4; b++) {
+      var rr0 = racc * (0.60 + b * 0.13);
+      c.strokeStyle = b % 2 ? "rgba(32,36,32,0.50)" : "rgba(22,26,24,0.62)";
+      c.lineWidth = racc * (0.075 - b * 0.013);
+      c.beginPath();
+      c.ellipse(sxc, H * 1.02, rr0, rr0 * 0.30,
+        -0.05 + Math.sin(t * 0.05 + b) * 0.02, Math.PI * 1.03, Math.PI * 1.97);
+      c.stroke();
+    }
+    /* le scaglie: una riga di archi chiari sul dorso dell'anello più
+       vicino, e basta — il resto è buio */
+    c.strokeStyle = "rgba(150,150,132,0.10)";
+    c.lineWidth = 1.4;
+    for (var d = 0; d < 14; d++) {
+      var ad = Math.PI * (1.08 + d * 0.062);
+      var sdx = sxc + Math.cos(ad) * racc * 0.60;
+      c.beginPath();
+      c.arc(sdx, H * 1.02 + Math.sin(ad) * racc * 0.30, racc * 0.012, 0, 6.3);
+      c.stroke();
+    }
+
+    /* il pianeta con l'occhio: si apre e si chiude, e non è mai del
+       tutto chiuso. Guarda il tempio, non te */
+    var pr = racc * 0.125;
+    var pxc = W * 0.83, pyc = H * 0.19;
+    var pgl = c.createRadialGradient(pxc - pr * 0.3, pyc - pr * 0.35, pr * 0.1, pxc, pyc, pr);
+    pgl.addColorStop(0, "rgba(60,54,62,0.85)");
+    pgl.addColorStop(0.6, "rgba(18,14,20,0.92)");
+    pgl.addColorStop(1, "rgba(4,4,6,0.98)");
+    c.fillStyle = pgl;
+    c.beginPath();
+    c.arc(pxc, pyc, pr, 0, 6.3);
+    c.fill();
+
+    var ap = 0.5 + 0.5 * Math.sin(t * 0.35);
+    var apertura = 0.08 + 0.92 * Math.pow(ap, 8);
+    c.save();
+    c.beginPath();
+    c.ellipse(pxc, pyc, pr * 0.60, pr * 0.40 * apertura, 0, 0, 6.3);
+    c.clip();
+    c.fillStyle = "rgba(238,232,218,0.86)";
+    c.fillRect(pxc - pr, pyc - pr, pr * 2, pr * 2);
+    c.fillStyle = "rgba(150,24,30,0.85)";
+    c.beginPath();
+    c.arc(pxc + Math.sin(t * 0.2) * pr * 0.10, pyc, pr * 0.22 * apertura, 0, 6.3);
+    c.fill();
+    c.restore();
+    c.strokeStyle = "rgba(20,16,22,0.9)";
+    c.lineWidth = 2;
+    c.beginPath();
+    c.ellipse(pxc, pyc, pr * 0.62, pr * 0.42 * apertura, 0, 0, 6.3);
+    c.stroke();
+  }
+
+  /* ============================================================
+     L'OCCHIO — sopra Madama Morte, e più grande di lei
+     ============================================================ */
+  function occhioGrande(c, t) {
+    var W = T.W(), H = T.H();
+    var cx = W * 0.5 + (STATUA - T.cam.x - W * 0.5) * 0.16;
+    var cy = H * 0.185;
+    var rx = Math.min(W, H) * 0.155;
+    var ry = rx * 0.62;
+
+    /* il battito delle palpebre: si chiude quando vuole lui */
+    var respiro = Math.sin(t * 0.42);
+    var k = 0.30 + 0.70 * (0.5 + 0.5 * respiro);
+    if (Math.sin(t * 0.17) > 0.985) k *= 0.10;   /* lo sguardo, ogni tanto */
+
+    /* l'alone: la luce che arriva da lì */
+    var gl = c.createRadialGradient(cx, cy, ry * 0.2, cx, cy, rx * 2.6);
+    gl.addColorStop(0, "rgba(232,226,204,0.16)");
+    gl.addColorStop(0.5, "rgba(196,188,170,0.05)");
+    gl.addColorStop(1, "rgba(196,188,170,0)");
+    c.fillStyle = gl;
+    c.beginPath(); c.arc(cx, cy, rx * 2.6, 0, 6.3); c.fill();
+
+    /* il bianco, schiacciato dalla palpebra */
+    c.save();
+    c.beginPath();
+    c.ellipse(cx, cy, rx, ry * k, 0, 0, 6.3);
+    c.clip();
+
+    /* la sclera */
+    var sg = c.createRadialGradient(cx - rx * 0.2, cy - ry * 0.2, rx * 0.1, cx, cy, rx);
+    sg.addColorStop(0, "rgba(246,242,232,0.97)");
+    sg.addColorStop(0.65, "rgba(214,206,192,0.95)");
+    sg.addColorStop(1, "rgba(148,134,120,0.95)");
+    c.fillStyle = sg;
+    c.fillRect(cx - rx, cy - ry, rx * 2, ry * 2);
+
+    /* l'iride: si muove piano, e ci guarda */
+    var lx = Math.sin(t * 0.30) * 0.55;
+    var ly = Math.cos(t * 0.23) * 0.28;
+    var ix = cx + lx * rx * 0.30, iy = cy + ly * ry * 0.30;
+    var ir = rx * 0.44;
+    var ig = c.createRadialGradient(ix, iy, ir * 0.12, ix, iy, ir);
+    ig.addColorStop(0, "#4a2a12");
+    ig.addColorStop(0.55, "#22140a");
+    ig.addColorStop(1, "#080404");
+    c.fillStyle = ig;
+    c.beginPath(); c.arc(ix, iy, ir, 0, 6.3); c.fill();
+
+    /* i raggi dell'iride */
+    c.strokeStyle = "rgba(186,132,66,0.30)";
+    c.lineWidth = Math.max(0.8, ir * 0.03);
+    for (var q = 0; q < 26; q++) {
+      var an = q / 26 * 6.2832 + lx * 0.2;
+      c.beginPath();
+      c.moveTo(ix + Math.cos(an) * ir * 0.40, iy + Math.sin(an) * ir * 0.40);
+      c.lineTo(ix + Math.cos(an) * ir * 0.96, iy + Math.sin(an) * ir * 0.96);
+      c.stroke();
+    }
+
+    /* la pupilla, e il riflesso che fa finta di essere una finestra */
+    c.fillStyle = "#040303";
+    c.beginPath(); c.arc(ix, iy, ir * 0.42, 0, 6.3); c.fill();
+    c.fillStyle = "rgba(255,255,255,0.78)";
+    c.beginPath(); c.arc(ix - ir * 0.34, iy - ir * 0.38, Math.max(1.2, rx * 0.035), 0, 6.3); c.fill();
+    c.restore();
+
+    /* il contorno dell'occhio, e le ciglia */
+    c.strokeStyle = "rgba(6,5,6,0.9)";
+    c.lineWidth = Math.max(1.5, rx * 0.035);
+    c.beginPath();
+    c.ellipse(cx, cy, rx, ry * k, 0, 0, 6.3);
+    c.stroke();
+    for (var e = 0; e < 22; e++) {
+      var ae = Math.PI + e / 21 * Math.PI;
+      var bx = cx + Math.cos(ae) * rx, by = cy + Math.sin(ae) * ry * k;
+      c.beginPath();
+      c.moveTo(bx, by);
+      c.lineTo(bx + Math.cos(ae) * rx * 0.10, by + Math.sin(ae) * ry * k * 0.55 - ry * 0.10);
+      c.stroke();
+    }
+  }
+
+  /* ============================================================
+     MADAMA MORTE — la statua del tempio
+     Una signora vestita di bianco, alta, ferma sul piedistallo.
+     I capelli le cadono davanti alla faccia, e cadono davvero — un
+     filo alla volta — e gli occhi sono rossi, e seguono il coniglio.
+     Non è una statua: è carne chiara davanti al vuoto.
+     ============================================================ */
+  function madama(c, x, y, s, t, dx) {
+    var pelle = "#efeade";
+    var pelleScura = "#c8bfae";
+    var veste = "#f5f1e6";
+    var piega = "rgba(40,36,34,0.42)";
+    var capello = "#0a080b";
+    var bordo = "rgba(236,230,218,0.18)";
+    /* dove guarda: le pupille seguono il coniglio, non il nulla */
+    var mira = fra((dx || 0) / 620, -1, 1);
+    var miraY = Math.sin(t * 0.7) * 0.5;
+
+    /* il piedistallo: due blocchi, e il secondo è storto */
+    c.fillStyle = "#0a090c";
+    c.fillRect(x - 150 * s, y - 52 * s, 300 * s, 52 * s);
+    c.beginPath();
+    c.moveTo(x - 132 * s, y - 52 * s);
+    c.lineTo(x - 118 * s, y - 84 * s);
+    c.lineTo(x + 120 * s, y - 84 * s);
+    c.lineTo(x + 134 * s, y - 52 * s);
+    c.closePath();
+    c.fill();
+    c.fillStyle = "rgba(226,222,206,0.07)";
+    c.fillRect(x - 132 * s, y - 54 * s, 266 * s, 2.5 * s);
+
+    /* l'alone: non è un'aureola, è il vuoto che si apre dietro di lei */
+    var alone = c.createRadialGradient(x, y - 420 * s, 24 * s, x, y - 420 * s, 320 * s);
+    alone.addColorStop(0, "rgba(238,232,220,0.12)");
+    alone.addColorStop(0.45, "rgba(186,44,48,0.06)");
+    alone.addColorStop(1, "rgba(0,0,0,0)");
+    c.fillStyle = alone;
+    c.beginPath();
+    c.arc(x, y - 420 * s, 320 * s, 0, 6.3);
+    c.fill();
+
+    /* e la luce che arriva da dietro: un anello freddo, non santo */
+    c.strokeStyle = "rgba(238,232,214,0.16)";
+    c.lineWidth = 2 * s;
+    c.beginPath();
+    c.arc(x, y - 500 * s, 62 * s, 0, 6.3);
+    c.stroke();
+    c.strokeStyle = "rgba(196,48,52,0.14)";
+    c.lineWidth = 5 * s;
+    c.beginPath();
+    c.arc(x, y - 500 * s, 64 * s, -1.2 + Math.sin(t * 0.5) * 0.24, 1.2 + Math.sin(t * 0.5) * 0.24);
+    c.stroke();
+
+    /* il velo: un manto bianco che scende dalle spalle lungo i fianchi.
+       Non sono ali — è stoffa, e si muove appena */
+    var onda = Math.sin(t * 0.6) * 3 * s;
+    c.fillStyle = veste;
+    c.beginPath();
+    c.moveTo(x - 30 * s, y - 448 * s);
+    c.quadraticCurveTo(x - 100 * s + onda, y - 340 * s, x - 108 * s, y - 116 * s);
+    c.quadraticCurveTo(x - 62 * s, y - 200 * s, x - 40 * s, y - 340 * s);
+    c.closePath();
+    c.fill();
+    c.beginPath();
+    c.moveTo(x + 30 * s, y - 448 * s);
+    c.quadraticCurveTo(x + 100 * s - onda, y - 340 * s, x + 108 * s, y - 116 * s);
+    c.quadraticCurveTo(x + 62 * s, y - 200 * s, x + 40 * s, y - 340 * s);
+    c.closePath();
+    c.fill();
+
+    /* le pieghe del manto: due righe, altrimenti è un lenzuolo */
+    c.strokeStyle = piega;
+    c.lineWidth = 1.6 * s;
+    for (var i = 0; i < 2; i++) {
+      c.beginPath();
+      c.moveTo(x - (52 + i * 26) * s, y - (420 - i * 18) * s);
+      c.quadraticCurveTo(x - (96 + i * 12) * s, y - (330 - i * 20) * s,
+        x - (104 + i * 6) * s, y - (150 - i * 20) * s);
+      c.stroke();
+      c.beginPath();
+      c.moveTo(x + (52 + i * 26) * s, y - (420 - i * 18) * s);
+      c.quadraticCurveTo(x + (96 + i * 12) * s, y - (330 - i * 20) * s,
+        x + (104 + i * 6) * s, y - (150 - i * 20) * s);
+      c.stroke();
+    }
+
+    /* la veste: bianca, lunga fino ai piedi, col lembo che strascica */
+    c.fillStyle = veste;
+    c.beginPath();
+    c.moveTo(x - 60 * s, y - 452 * s);
+    c.quadraticCurveTo(x - 84 * s, y - 300 * s, x - 96 * s, y - 74 * s);
+    for (var q = 1; q <= 6; q++) {
+      c.lineTo(x - 96 * s + q * 32 * s, y - 74 * s + (q % 2 ? 9 * s : 0));
+    }
+    c.quadraticCurveTo(x + 84 * s, y - 300 * s, x + 60 * s, y - 452 * s);
+    c.closePath();
+    c.fill();
+
+    /* le pieghe della veste: due, e non di più */
+    c.strokeStyle = piega;
+    c.lineWidth = 2 * s;
+    c.beginPath();
+    c.moveTo(x - 18 * s, y - 430 * s);
+    c.quadraticCurveTo(x - 30 * s, y - 280 * s, x - 22 * s, y - 86 * s);
+    c.stroke();
+    c.beginPath();
+    c.moveTo(x + 20 * s, y - 430 * s);
+    c.quadraticCurveTo(x + 34 * s, y - 280 * s, x + 26 * s, y - 86 * s);
+    c.stroke();
+
+    /* il busto, e le spalle: pelle, non stoffa */
+    c.fillStyle = pelle;
+    c.beginPath();
+    c.moveTo(x - 60 * s, y - 452 * s);
+    c.quadraticCurveTo(x - 46 * s, y - 498 * s, x, y - 508 * s);
+    c.quadraticCurveTo(x + 46 * s, y - 498 * s, x + 60 * s, y - 452 * s);
+    c.closePath();
+    c.fill();
+    c.fillStyle = pelleScura;
+    c.beginPath();
+    c.ellipse(x, y - 470 * s, 26 * s, 9 * s, 0, 0, 6.3);
+    c.fill();
+
+    /* le braccia: sottili, lunghe, con le mani sul ventre */
+    c.strokeStyle = pelle;
+    c.lineCap = "round";
+    c.lineWidth = 11 * s;
+    c.beginPath();
+    c.moveTo(x - 54 * s, y - 470 * s);
+    c.quadraticCurveTo(x - 78 * s, y - 370 * s, x - 30 * s, y - 300 * s);
+    c.stroke();
+    c.beginPath();
+    c.moveTo(x + 54 * s, y - 470 * s);
+    c.quadraticCurveTo(x + 78 * s, y - 370 * s, x + 30 * s, y - 300 * s);
+    c.stroke();
+    c.lineWidth = 8 * s;
+    c.beginPath();
+    c.moveTo(x - 30 * s, y - 300 * s);
+    c.quadraticCurveTo(x, y - 268 * s, x + 30 * s, y - 300 * s);
+    c.stroke();
+
+    /* il collo, lungo, e la testa un filo china */
+    c.fillStyle = pelle;
+    c.fillRect(x - 13 * s, y - 522 * s, 26 * s, 24 * s);
+    c.beginPath();
+    c.ellipse(x + 2 * s, y - 546 * s, 29 * s, 35 * s, 0.06, 0, 6.3);
+    c.fill();
+
+    /* i capelli: una calotta nera in cima al cranio, e due ciocche ai
+       lati che scendono oltre il mento */
+    c.fillStyle = capello;
+    c.beginPath();
+    c.ellipse(x + 2 * s, y - 572 * s, 32 * s, 24 * s, 0.06, 0, 6.3);
+    c.fill();
+    c.beginPath();
+    c.moveTo(x - 30 * s, y - 560 * s);
+    c.quadraticCurveTo(x - 44 * s, y - 500 * s, x - 36 * s, y - 448 * s);
+    c.quadraticCurveTo(x - 28 * s, y - 500 * s, x - 26 * s, y - 552 * s);
+    c.closePath();
+    c.fill();
+    c.beginPath();
+    c.moveTo(x + 32 * s, y - 560 * s);
+    c.quadraticCurveTo(x + 46 * s, y - 500 * s, x + 38 * s, y - 448 * s);
+    c.quadraticCurveTo(x + 30 * s, y - 500 * s, x + 28 * s, y - 552 * s);
+    c.closePath();
+    c.fill();
+
+    /* i fili davanti alla faccia: passano ai lati degli occhi, mai
+       sopra. Ognuno oscilla per conto suo */
+    var fili = [-40, -28, -5, 5, 28, 40];
+    c.strokeStyle = capello;
+    c.lineWidth = 1.5 * s;
+    for (var h = 0; h < fili.length; h++) {
+      var hx = x + fili[h] * s;
+      var osc = Math.sin(t * (0.6 + h * 0.11) + h) * 2.4 * s;
+      c.beginPath();
+      c.moveTo(hx, y - 566 * s);
+      c.quadraticCurveTo(hx + osc, y - 520 * s, hx + osc * 1.6, y - (472 + (h % 3) * 16) * s);
+      c.stroke();
+    }
+
+    /* gli occhi: bianchi, l'iride rossa fatta di fili, la pupilla che
+       si sposta verso il coniglio */
+    var oc = 11 * s, oy = y - 548 * s;
+    function iride(cx2, cy2) {
+      c.fillStyle = "rgba(250,246,238,0.97)";
+      c.beginPath();
+      c.ellipse(cx2, cy2, 9.4 * s, 6.4 * s, 0, 0, 6.3);
+      c.fill();
+      c.strokeStyle = "rgba(178,28,34,0.95)";
+      c.lineWidth = 1.1 * s;
+      for (var f = 0; f < 12; f++) {
+        var ang = f * 0.5236 + Math.sin(t * 0.8 + f) * 0.06;
+        c.beginPath();
+        c.moveTo(cx2 + Math.cos(ang) * 1.6 * s, cy2 + Math.sin(ang) * 1.3 * s);
+        c.lineTo(cx2 + Math.cos(ang) * 5.6 * s, cy2 + Math.sin(ang) * 4.4 * s);
+        c.stroke();
+      }
+      c.fillStyle = "rgba(150,16,22,0.92)";
+      c.beginPath();
+      c.ellipse(cx2 + mira * 2.6 * s, cy2 + miraY * 1.4 * s, 2.4 * s, 2.1 * s, 0, 0, 6.3);
+      c.fill();
+      c.strokeStyle = "rgba(12,10,12,0.9)";
+      c.lineWidth = 1.8 * s;
+      c.beginPath();
+      c.moveTo(cx2 - 9 * s, cy2 - 5.4 * s);
+      c.quadraticCurveTo(cx2, cy2 - 8.2 * s, cx2 + 9 * s, cy2 - 5.4 * s);
+      c.stroke();
+    }
+    iride(x - oc * 1.35, oy);
+    iride(x + oc * 1.35, oy);
+
+    /* la bocca: una riga, e basta. Non sorride */
+    c.strokeStyle = "rgba(96,56,58,0.75)";
+    c.lineWidth = 1.4 * s;
+    c.beginPath();
+    c.moveTo(x - 5 * s, y - 524 * s);
+    c.quadraticCurveTo(x + 1 * s, y - 522 * s, x + 6 * s, y - 525 * s);
+    c.stroke();
+
+    /* i capelli che cadono: sei fili staccati, ognuno col suo tempo.
+       Scendono lenti, girano un po', e spariscono sul piedistallo */
+    for (var p = 0; p < 6; p++) {
+      var ciclo = 5.5 + hash(p * 2.3) * 3;
+      var k = ((t / ciclo) + hash(p * 7.1)) % 1;
+      var px = x + (hash(p * 5.9) - 0.5) * 120 * s + Math.sin(t * 0.9 + p) * 6 * s;
+      var py = y - 540 * s + k * 470 * s;
+      var alfa = 0.75 * (1 - Math.abs(k - 0.5) * 1.4);
+      c.strokeStyle = "rgba(10,8,11," + Math.max(0, alfa).toFixed(3) + ")";
+      c.lineWidth = 1.7 * s;
+      c.beginPath();
+      c.moveTo(px, py);
+      c.quadraticCurveTo(px + 3 * s, py + 12 * s, px - 2 * s, py + 26 * s);
+      c.stroke();
+    }
+
+    /* il bordo di luce: solo a sinistra, dove arriva l'occhio */
+    c.strokeStyle = bordo;
+    c.lineWidth = 2 * s;
+    c.beginPath();
+    c.moveTo(x - 96 * s, y - 74 * s);
+    c.quadraticCurveTo(x - 84 * s, y - 300 * s, x - 60 * s, y - 452 * s);
+    c.quadraticCurveTo(x - 46 * s, y - 498 * s, x - 2 * s, y - 508 * s);
+    c.stroke();
+    c.beginPath();
+    c.moveTo(x - 34 * s, y - 440 * s);
+    c.quadraticCurveTo(x - 150 * s, y - 470 * s, x - 236 * s, y - 396 * s);
+    c.stroke();
+  }
+
+  /* il pavimento: gradini rotti, e sotto il nero */
+  function gradini(c, cx, t) {
+    var W = T.W(), H = T.H(), y = suolo();
+    var s = H / 720;
+    var g = c.createLinearGradient(0, y - 40, 0, H);
+    g.addColorStop(0, "#0c0b0e");
+    g.addColorStop(1, "#030303");
+    c.fillStyle = g;
+    c.fillRect(0, y, W, H - y);
+
+    /* tre gradini, che corrono con la camera */
+    for (var i = 0; i < 3; i++) {
+      var gy = y + i * 26 * s;
+      var off = -(cx * (0.06 + i * 0.05)) % 420;
+      c.fillStyle = i % 2 ? "rgba(20,19,22,0.9)" : "rgba(14,13,16,0.9)";
+      c.fillRect(0, gy, W, 26 * s);
+      c.strokeStyle = "rgba(220,214,196,0.055)";
+      c.lineWidth = 1;
+      for (var x = off - 420; x < W + 420; x += 420) {
+        c.beginPath();
+        c.moveTo(x, gy);
+        c.lineTo(x, gy + 26 * s);
+        c.stroke();
+      }
+      c.beginPath();
+      c.moveTo(0, gy);
+      c.lineTo(W, gy);
+      c.stroke();
+    }
+
+    /* la linea dove il tempio si stacca dal nero */
+    c.strokeStyle = "rgba(230,224,204,0.10)";
+    c.lineWidth = 1.6;
+    c.beginPath();
+    c.moveTo(0, y);
+    c.lineTo(W, y);
+    c.stroke();
+  }
+
+  /* le colonne rotte ai lati: quello che resta del tempio */
+  function colonne(c, cx, t) {
+    var W = T.W(), H = T.H(), y = suolo();
+    var s = H / 720;
+    for (var i = 0; i < 8; i++) {
+      var worldX = i * 520 + 180;
+      var d = 0.55 + (i % 3) * 0.18;
+      var x = worldX - cx * (1 - d * 0.55);
+      if (x < -180 || x > W + 180) continue;
+      var h = (150 + hash(i * 3.3) * 210) * s * d;
+      var w = (30 + hash(i * 5.1) * 16) * s * d;
+
+      c.fillStyle = "rgba(9,8,10,0.95)";
+      c.fillRect(x - w / 2, y - h, w, h);
+      if (hash(i * 7.7) > 0.45) {
+        c.fillRect(x - w * 0.78, y - h - 14 * s * d, w * 1.56, 14 * s * d);
+      }
+      /* il taglio, in alto: il marmo si è rotto storto */
+      c.fillStyle = "#040404";
+      c.beginPath();
+      c.moveTo(x - w / 2, y - h);
+      c.lineTo(x - w / 2 + w * 0.3, y - h - 12 * s * d);
+      c.lineTo(x + w / 2, y - h);
+      c.closePath();
+      c.fill();
+      c.fillStyle = "rgba(224,220,204,0.07)";
+      c.fillRect(x - w / 2, y - h, 2 * s, h);
+    }
+  }
+
+  /* la polvere: quello che resta dei pellegrini */
+  function polvere(c, t) {
+    var W = T.W(), H = T.H();
+    for (var i = 0; i < 54; i++) {
+      var x = (hash(i * 2.9) * W + Math.sin(t * 0.25 + i) * 20) % W;
+      var y = (hash(i * 6.1) * H + t * (5 + hash(i * 3) * 13)) % H;
+      c.fillStyle = "rgba(230,226,208," + (0.03 + hash(i * 7.7) * 0.13).toFixed(3) + ")";
+      c.fillRect(x, y, 1.6, 1.6);
+    }
+  }
+
+  /* ============================================================
+     IL CORTEO — il prato, le preghiere, i corpi appesi
+     Il tempio non è vuoto. Sul marmo è cresciuto un prato di
+     margherite e narcisi; davanti all'occhio stanno quelli che
+     pregano e non si voltano; dai corpi appesi cola un liquido
+     giallo che non è sangue.
+
+     E in mezzo a tutto questo passa la lumaca: una sola, enorme,
+     che non ha fretta e non guarda nessuno. È la misura del posto —
+     quello che per lei è un passo, per il coniglio è una stanza.
+     ============================================================ */
+
+  function margherita(c, x, y, r, seed, t) {
+    var piega = Math.sin(t * 0.8 + seed) * 0.10;
+    var cx0 = x + piega * r * 3, cy0 = y - r * 2.4;
+    c.strokeStyle = "rgba(10,12,10,0.85)";
+    c.lineWidth = Math.max(1, r * 0.18);
+    c.beginPath();
+    c.moveTo(x, y);
+    c.quadraticCurveTo(x + r * 0.4, y - r * 1.5, cx0, cy0);
+    c.stroke();
+    for (var i = 0; i < 11; i++) {
+      var a = i / 11 * 6.2832 + piega;
+      c.fillStyle = "rgba(238,236,226," + (0.62 + hash(seed + i) * 0.30).toFixed(2) + ")";
+      c.beginPath();
+      c.ellipse(cx0 + Math.cos(a) * r * 0.85, cy0 + Math.sin(a) * r * 0.85,
+        r * 0.52, r * 0.24, a, 0, 6.3);
+      c.fill();
+    }
+    c.fillStyle = "rgba(206,166,52,0.95)";
+    c.beginPath(); c.arc(cx0, cy0, r * 0.36, 0, 6.3); c.fill();
+  }
+
+  function narciso(c, x, y, r, seed, t) {
+    var piega = Math.sin(t * 0.7 + seed) * 0.09;
+    var cx0 = x + piega * r * 4, cy0 = y - r * 2.7;
+    c.strokeStyle = "rgba(24,30,22,0.85)";
+    c.lineWidth = Math.max(1, r * 0.20);
+    c.beginPath();
+    c.moveTo(x, y);
+    c.quadraticCurveTo(x - r * 0.5, y - r * 1.6, cx0, cy0);
+    c.stroke();
+    for (var i = 0; i < 6; i++) {
+      var a = -1.5708 + (i - 2.5) * 0.52 + piega * 0.5;
+      c.fillStyle = "rgba(242,240,228," + (0.72 + hash(seed + i) * 0.2).toFixed(2) + ")";
+      c.beginPath();
+      c.ellipse(cx0 + Math.cos(a) * r * 0.7, cy0 + Math.sin(a) * r * 0.55,
+        r * 0.46, r * 0.24, a, 0, 6.3);
+      c.fill();
+    }
+    /* la tromba: gialla, e guarda in faccia a chi passa */
+    c.fillStyle = "rgba(214,146,40,0.92)";
+    c.beginPath();
+    c.moveTo(cx0 - r * 0.32, cy0 - r * 0.10);
+    c.lineTo(cx0 + r * 0.32, cy0 - r * 0.10);
+    c.lineTo(cx0 + r * 0.20, cy0 + r * 0.58);
+    c.lineTo(cx0 - r * 0.20, cy0 + r * 0.58);
+    c.closePath();
+    c.fill();
+  }
+
+  /* il prato: cresce dove i gradini si sono rotti, e non chiede acqua */
+  function prato(c, cx, t, s) {
+    var W = T.W(), y = suolo();
+    for (var i = 0; i < 30; i++) {
+      var x = i * 82 + hash(i * 3.3) * 54 - cx;
+      if (x < -90 || x > W + 90) continue;
+      var prof = 0.7 + hash(i * 5.7) * 0.5;
+      var yy = y + (prof - 0.7) * 74 * s + 6 * s;
+      var r = (3.2 + hash(i * 7.1) * 2.8) * s * prof;
+      if (hash(i * 9.9) > 0.44) margherita(c, x, yy, r, i * 1.7, t);
+      else narciso(c, x, yy, r, i * 2.3, t);
+    }
+  }
+
+  /* ============================================================
+     LA LUMACA — una sola, e grossa come una colonna
+     Attraversa il tempio da un capo all'altro e ci mette dei minuti.
+     Non è un mostro e non è un segno: è l'unica cosa viva che passa
+     di qui, e va piano perché anche questo posto è suo. Dietro di lei
+     resta la scia, una strada lucida sui gradini che non si asciuga.
+     ============================================================ */
+  function lumacaGigante(c, cx, t, s) {
+    var W = T.W(), y = suolo();
+    var G = s * 1.5;                    /* la misura di tutto, d'ora in poi */
+    /* il giro: duemila unità di mondo in tre minuti e mezzo, poi si
+       ricomincia da fuori quadro. Chi arriva la trova dove capita */
+    var x = (-560 + ((t / 210) % 1) * (LUNGO + 1120)) - cx;
+    if (x < -430 * G || x > W + 210 * G) return;
+
+    /* l'ombra: la lumaca poggia su tutto il piede, e pesa */
+    c.fillStyle = "rgba(0,0,0,0.55)";
+    c.beginPath();
+    c.ellipse(x - 40 * G, y - 1 * G, 180 * G, 7 * G, 0, 0, 6.3);
+    c.fill();
+
+    /* la scia: la strada che ha già fatto, e che resta */
+    c.lineCap = "round";
+    c.strokeStyle = "rgba(228,224,208,0.045)";
+    c.lineWidth = 20 * G;
+    c.beginPath();
+    c.moveTo(x - 420 * G, y - 3 * G);
+    c.quadraticCurveTo(x - 240 * G, y + 2 * G, x - 92 * G, y - 1 * G);
+    c.stroke();
+    c.strokeStyle = "rgba(240,236,222,0.10)";
+    c.lineWidth = 3.2 * G;
+    c.beginPath();
+    c.moveTo(x - 420 * G, y - 3 * G);
+    c.quadraticCurveTo(x - 240 * G, y + 2 * G, x - 92 * G, y - 1 * G);
+    c.stroke();
+    /* e i lustrini: la scia riflette l'occhio, a pezzi */
+    for (var q = 0; q < 9; q++) {
+      var pk = (q / 9 + t * 0.02) % 1;
+      c.fillStyle = "rgba(238,234,220," + (0.05 + 0.05 * Math.sin(t * 1.3 + q)).toFixed(3) + ")";
+      c.beginPath();
+      c.ellipse(x - 400 * G + pk * 300 * G, y - 2 * G, 9 * G, 1.7 * G, 0, 0, 6.3);
+      c.fill();
+    }
+
+    /* il corpo: il piede che tocca terra, il collo che sale, e la
+       testa in cima — un pezzo solo, perché la lumaca non ha cuciture.
+       Sotto, il bordo si muove a onde: non cammina, scivola */
+    var nero = "rgba(5,5,7,0.97)";
+    c.fillStyle = nero;
+    c.beginPath();
+    c.moveTo(x - 190 * G, y);
+    for (var f = 0; f <= 10; f++) {
+      var fx = x - 190 * G + f * 26 * G;
+      var fy = y - 2 * G - Math.max(0, Math.sin(t * 1.6 - f * 0.9)) * 3 * G;
+      c.lineTo(fx, fy);
+    }
+    /* il petto, che sale nel collo */
+    c.quadraticCurveTo(x + 92 * G, y - 26 * G, x + 96 * G, y - 56 * G);
+    c.quadraticCurveTo(x + 100 * G, y - 92 * G, x + 108 * G, y - 124 * G);
+    /* la nuca, e il collo che torna giù verso la schiena */
+    c.lineTo(x + 84 * G, y - 132 * G);
+    c.quadraticCurveTo(x + 74 * G, y - 92 * G, x + 52 * G, y - 56 * G);
+    c.quadraticCurveTo(x - 40 * G, y - 40 * G, x - 190 * G, y);
+    c.closePath();
+    c.fill();
+
+    /* la schiena, e il filo di luce che la stacca dal nero */
+    c.strokeStyle = "rgba(226,222,206,0.13)";
+    c.lineWidth = 2 * G;
+    c.beginPath();
+    c.moveTo(x - 160 * G, y - 18 * G);
+    c.quadraticCurveTo(x - 40 * G, y - 48 * G, x + 46 * G, y - 62 * G);
+    c.stroke();
+
+    /* la testa: un'ellisse china, e i tentacoli, due lunghi e due
+       corti, con l'occhio in punta — piccolissimo, e fermo */
+    c.fillStyle = nero;
+    c.beginPath();
+    c.ellipse(x + 96 * G, y - 132 * G, 24 * G, 20 * G, -0.22, 0, 6.3);
+    c.fill();
+
+    c.strokeStyle = nero;
+    c.lineWidth = 4.6 * G;
+    for (var tn = 0; tn < 2; tn++) {
+      var onda = Math.sin(t * 0.7 + tn * 1.9) * 3 * G;
+      c.beginPath();
+      c.moveTo(x + (102 + tn * 6) * G, y - 146 * G);
+      c.quadraticCurveTo(x + (112 + tn * 8) * G + onda, y - 168 * G,
+        x + (114 + tn * 12) * G + onda * 1.4, y - 186 * G);
+      c.stroke();
+      c.fillStyle = "rgba(240,236,220,0.55)";
+      c.beginPath();
+      c.arc(x + (114 + tn * 12) * G + onda * 1.4, y - 186 * G, 4.4 * G, 0, 6.3);
+      c.fill();
+      c.strokeStyle = nero;
+    }
+    c.lineWidth = 3.4 * G;
+    for (var tb = 0; tb < 2; tb++) {
+      c.beginPath();
+      c.moveTo(x + (108 + tb * 4) * G, y - 124 * G);
+      c.quadraticCurveTo(x + (124 + tb * 6) * G, y - 128 * G,
+        x + (132 + tb * 6) * G, y - 136 * G);
+      c.stroke();
+      c.fillStyle = "rgba(240,236,220,0.34)";
+      c.beginPath();
+      c.arc(x + (132 + tb * 6) * G, y - 136 * G, 2.6 * G, 0, 6.3);
+      c.fill();
+      c.strokeStyle = nero;
+    }
+
+    /* il guscio: una spirale, e dentro la spirale non si vede niente.
+       La luce dell'occhio lo prende solo da sinistra, in alto */
+    var gx = x - 26 * G, gy = y - 140 * G, R = 92 * G;
+    var gg = c.createRadialGradient(gx - R * 0.34, gy - R * 0.40, R * 0.08, gx, gy, R);
+    gg.addColorStop(0, "rgba(30,28,32,0.98)");
+    gg.addColorStop(0.55, "rgba(10,9,12,0.99)");
+    gg.addColorStop(1, "rgba(3,3,5,1)");
+    c.fillStyle = gg;
+    c.beginPath();
+    c.arc(gx, gy, R, 0, 6.3);
+    c.fill();
+
+    /* le bande di crescita: tre archi larghi, e basta */
+    c.strokeStyle = "rgba(0,0,0,0.55)";
+    c.lineWidth = 5 * G;
+    for (var b = 0; b < 3; b++) {
+      c.beginPath();
+      c.arc(gx, gy, R * (0.86 - b * 0.24), -2.5 + b * 0.25, 0.6 + b * 0.3);
+      c.stroke();
+    }
+
+    /* la spirale vera: tre giri che si stringono verso il centro */
+    c.strokeStyle = "rgba(220,216,200,0.14)";
+    c.lineWidth = 2.4 * G;
+    for (var sp = 0; sp < 3; sp++) {
+      c.beginPath();
+      c.arc(gx + sp * 3 * G, gy + sp * 2 * G, R * (0.72 - sp * 0.24),
+        -0.5 + sp * 0.9, 2.4 + sp * 0.9);
+      c.stroke();
+    }
+
+    /* il bordo di luce: un quarto di cerchio, e il guscio è finito */
+    c.strokeStyle = "rgba(238,232,214,0.20)";
+    c.lineWidth = 3 * G;
+    c.beginPath();
+    c.arc(gx, gy, R - 1.5 * G, Math.PI * 1.02, Math.PI * 1.52);
+    c.stroke();
+    c.strokeStyle = "rgba(238,232,214,0.07)";
+    c.lineWidth = 7 * G;
+    c.beginPath();
+    c.arc(gx, gy, R - 4 * G, Math.PI * 1.05, Math.PI * 1.45);
+    c.stroke();
+  }
+
+  /* ============================================================
+     GLI ORANTI — non si voltano, e non hanno fretta
+     ============================================================ */
+  function orante(c, x, y, s, seed, t) {
+    var prega = 0.5 + 0.5 * Math.sin(t * 0.7 + seed);
+    var nero = "rgba(4,4,6,0.95)";
+
+    c.fillStyle = "rgba(0,0,0,0.45)";
+    c.beginPath();
+    c.ellipse(x, y + 2 * s, 30 * s, 5 * s, 0, 0, 6.3);
+    c.fill();
+
+    c.fillStyle = nero;
+    c.beginPath();
+    c.moveTo(x - 27 * s, y);
+    c.quadraticCurveTo(x - 20 * s, y - 30 * s, x - 9 * s, y - 43 * s);
+    c.lineTo(x + 10 * s, y - 43 * s);
+    c.quadraticCurveTo(x + 22 * s, y - 28 * s, x + 27 * s, y);
+    c.closePath();
+    c.fill();
+
+    /* la testa, rovesciata verso l'occhio */
+    c.beginPath();
+    c.ellipse(x, y - 53 * s, 9 * s, 11 * s, 0.34, 0, 6.3);
+    c.fill();
+
+    /* le braccia giunte, che salgono e scendono di poco */
+    c.strokeStyle = nero;
+    c.lineCap = "round";
+    c.lineWidth = 5 * s;
+    c.beginPath();
+    c.moveTo(x - 12 * s, y - 36 * s);
+    c.quadraticCurveTo(x - 20 * s, y - (48 + prega * 4) * s, x - 3 * s, y - (57 + prega * 5) * s);
+    c.stroke();
+    c.beginPath();
+    c.moveTo(x + 12 * s, y - 36 * s);
+    c.quadraticCurveTo(x + 20 * s, y - (48 + prega * 4) * s, x + 3 * s, y - (57 + prega * 5) * s);
+    c.stroke();
+  }
+
+  function oranti(c, cx, t, s) {
+    var X = [120, 330, 560, 1180, 1370, 1560];
+    for (var i = 0; i < X.length; i++) {
+      var x = X[i] - cx;
+      if (x < -60 || x > T.W() + 60) continue;
+      var prof = 0.72 + hash(i * 8.1) * 0.3;
+      orante(c, x, suolo() + 10 * s, (0.72 + prof * 0.42) * s, i * 1.9, t);
+    }
+  }
+
+  /* ============================================================
+     GLI APPESI — e il liquido giallo che non è sangue
+     ============================================================ */
+  function appeso(c, x, yTop, h, s, seed, t, terreno) {
+    var osc = Math.sin(t * 0.4 + seed) * 7 * s;
+
+    c.strokeStyle = "rgba(198,192,174,0.16)";
+    c.lineWidth = 1.6 * s;
+    c.beginPath();
+    c.moveTo(x, yTop);
+    c.lineTo(x + osc * 0.5, yTop + h * 0.34);
+    c.stroke();
+
+    c.save();
+    c.translate(x + osc * 0.5, yTop + h * 0.34);
+    c.rotate(osc * 0.0014);
+
+    /* le caviglie legate, il corpo, la testa in giù */
+    c.fillStyle = "rgba(6,5,7,0.95)";
+    c.beginPath();
+    c.moveTo(-7 * s, -14 * s);
+    c.lineTo(7 * s, -14 * s);
+    c.lineTo(15 * s, h * 0.24);
+    c.lineTo(-17 * s, h * 0.24);
+    c.closePath();
+    c.fill();
+    c.beginPath();
+    c.ellipse(0, h * 0.34, 15 * s, 21 * s, 0, 0, 6.3);
+    c.fill();
+    c.fillStyle = "rgba(9,8,10,0.96)";
+    c.beginPath();
+    c.arc(0, h * 0.47, 11 * s, 0, 6.3);
+    c.fill();
+
+    /* il liquido: esce dalla bocca e cade fino a terra */
+    var giu = (t * 0.7 + seed * 0.3) % 1;
+    var caduta = (h * 0.5 + giu * (terreno - (yTop + h * 0.47)));
+    c.fillStyle = "rgba(226,196,66,0.90)";
+    c.fillRect(-1.7 * s, h * 0.50, 3.4 * s, 7 * s);
+    c.fillStyle = "rgba(226,196,66," + (0.80 * (1 - giu)).toFixed(2) + ")";
+    c.beginPath();
+    c.ellipse(0, caduta, 2.4 * s, 5 * s, 0, 0, 6.3);
+    c.fill();
+    c.restore();
+
+    /* la pozza gialla, per terra */
+    c.fillStyle = "rgba(206,176,52,0.16)";
+    c.beginPath();
+    c.ellipse(x + osc * 0.5, terreno, 20 * s, 5 * s, 0, 0, 6.3);
+    c.fill();
+  }
+
+  function appesi(c, cx, t, s) {
+    var X = [230, 620, 1240];
+    for (var i = 0; i < X.length; i++) {
+      var x = X[i] - cx;
+      if (x < -140 || x > T.W() + 140) continue;
+      appeso(c, x, -30 * s, (250 + hash(i * 3.7) * 110) * s, 0.95 * s, i * 2.4, t, suolo());
+    }
+  }
+
+  /* tutto quello che sta intorno a Madama Morte, nell'ordine giusto:
+     prima quello che è appeso, poi chi prega, poi il prato, e per
+     ultimo la lumaca, che è la più grande e passa davanti a tutti */
+  function corteo(c, cx, t, s) {
+    appesi(c, cx, t, s);
+    oranti(c, cx, t, s);
+    prato(c, cx, t, s);
+    lumacaGigante(c, cx, t, s);
+  }
+
+  /* ============================================================
+     LA ZONA
+     ============================================================ */
+  T.registra("tempio", {
+    nome: "il tempio",
+    lungo: LUNGO,
+    minX: 60,
+    maxX: LUNGO - 60,
+    senzaConiglio: false,
+    fondo: suolo,
+
+    init: function (opt) {
+      opt = opt || {};
+      vicino = false;
+      andato = 0;
+      if (opt.x == null) T.g.x = 300;
+      if (opt.dir == null) T.g.dir = 1;
+
+      /* ci si arriva morti, e chi arriva morto non deve fare niente:
+         non c'è nessuna domanda, nessuna scritta. Il tempio aspetta, e
+         l'unica cosa che si può fare è andare dalla signora e parlarle */
+      if (opt.da) {
+        T.parla(t2("«te la sei cercata.» dice il coniglio.", "«you asked for it.» says the rabbit."), 4);
+        return;
+      }
+      if (!giaDetto) {
+        giaDetto = true;
+        T.segna("tempio", STATUA, t2("il tempio", "the temple"));
+      }
+    },
+
+    update: function (dt) {
+      if (andato > 0) {
+        andato -= dt;
+        if (andato <= 0) T.reincarna();
+        return;
+      }
+      vicino = Math.abs(T.g.x - STATUA) < 180;
+    },
+
+    act: function () {
+      if (andato > 0) return;
+      if (vicino) {
+        T.segna("tempio", STATUA, t2("Madama Morte", "Madama Morte"));
+        T.suono("tempio");
+        T.parla(t2("«Non c'è niente da decidere. Sei già qui.» dice Madama Morte.",
+          "«There's nothing to decide. You're already here.» says Madama Morte."), 2.6, STATUA);
+        andato = 1.6;
+        return;
+      }
+      /* la signora non ha niente da aggiungere */
+    },
+
+    draw: function (t) {
+      var c = T.ctx(), W = T.W(), H = T.H(), cx = T.cam.x;
+      var s = Math.max(0.62, Math.min(1.25, H / 760));
+
+      vuoto(c, t);
+
+      /* la colonna di luce: dall'occhio fino alla statua */
+      var colX = W * 0.5 + (STATUA - cx - W * 0.5) * 0.16;
+      var lg = c.createLinearGradient(colX, H * 0.20, colX, H * 0.94);
+      lg.addColorStop(0, "rgba(226,220,196,0.055)");
+      lg.addColorStop(1, "rgba(226,220,196,0)");
+      c.fillStyle = lg;
+      c.beginPath();
+      c.moveTo(colX - 30 * s, H * 0.20);
+      c.lineTo(colX + 30 * s, H * 0.20);
+      c.lineTo(colX + 250 * s, H * 0.94);
+      c.lineTo(colX - 250 * s, H * 0.94);
+      c.closePath();
+      c.fill();
+
+      occhioGrande(c, t);
+      colonne(c, cx, t);
+      gradini(c, cx, t);
+      corteo(c, cx, t, s);
+
+      /* Madama Morte: prima l'ombra che lascia sui gradini, poi lei */
+      var sx = STATUA - cx;
+      c.fillStyle = "rgba(0,0,0,0.6)";
+      c.beginPath();
+      c.ellipse(sx, suolo() - 3 * s, 190 * s, 20 * s, 0, 0, 6.3);
+      c.fill();
+      madama(c, sx, suolo() + 2 * s, s, t, T.g.x - STATUA);
+    },
+
+    sopra: function (t) {
+      var c = T.ctx(), W = T.W(), H = T.H();
+
+      polvere(c, t);
+
+      /* quando manca poco: la freccia */
+      var manca = STATUA - T.g.x;
+      if (manca > 220 && manca < 780) {
+        var al = 0.30 * Math.min(1, (780 - manca) / 300) * (0.6 + 0.4 * Math.sin(t * 3));
+        c.strokeStyle = "rgba(232,226,206," + al.toFixed(3) + ")";
+        c.lineWidth = 3;
+        for (var q = 0; q < 3; q++) {
+          var qx = W - 70 - q * 16;
+          c.beginPath();
+          c.moveTo(qx - 8, H * 0.5 - 10);
+          c.lineTo(qx + 4, H * 0.5);
+          c.lineTo(qx - 8, H * 0.5 + 10);
+          c.stroke();
+        }
+      }
+
+      /* il buio ai bordi: il vuoto arriva prima degli occhi */
+      var vg = c.createRadialGradient(W * 0.5, H * 0.5, Math.min(W, H) * 0.22,
+        W * 0.5, H * 0.5, Math.max(W, H) * 0.82);
+      vg.addColorStop(0, "rgba(0,0,0,0)");
+      vg.addColorStop(1, "rgba(0,0,0,0.88)");
+      c.fillStyle = vg;
+      c.fillRect(0, 0, W, H);
+    }
+  });
+
+})(typeof window !== "undefined" ? window : globalThis);

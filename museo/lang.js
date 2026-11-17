@@ -26,7 +26,7 @@
       "hint.oca": "E guarda · le sagome dicono una cosa alla volta",
       "hint.fps": "W A S D muoviti · il mirino è al centro · clicca per sparare all'opera · R radio",
       "hint.keys": "A / D cammina · SPAZIO salta · SHIFT corre · E guarda o legge · ESC esce · R radio",
-      "hint.hub": "A / D cammina fino a una porta · E entra · in fondo, al bar, c'è il pinguino",
+      "hint.hub": "A / D cammina fino a una porta · E entra · al centro, al bar, c'è il pinguino · in fondo, la stazione",
 
       "hud.room": "sala",
       "hud.radio": "radio kaoss",
@@ -132,6 +132,7 @@
       "peng.radioOn": "«Radio Kaoss accesa. Tasto R se ti dà noia.»",
       "peng.radioOff": "«Spenta. Meglio il silenzio del banco.»",
       "peng.death": "«Ti ha preso il ragno, eh? Te l'avevo detto. Le pagine finiscono in fretta. Bevi qualcosa e riprovaci quando hai voglia.»",
+      "peng.terre": "«Ti ho visto morire, di là. Non è che mi dispiaccia — non sono affari miei. Però da qui si ricomincia: il banco è questo, le porte sono quelle di prima.»",
       "peng.o1": "firma il questionario & accedi (salvataggi)",
       "peng.o2": "che posto è questo",
       "peng.o3": "come si cammina",
@@ -202,7 +203,7 @@
       "hint.oca": "click a square · the dice shows the face you need · E look at the wall",
       "hint.fps": "W A S D move · crosshair in the middle · click to shoot the work · R radio",
       "hint.keys": "A / D walk · SPACE jump · SHIFT run · E look or read · ESC exit · R radio",
-      "hint.hub": "A / D walk to a door · E enters · at the far end, at the bar, there is the penguin",
+      "hint.hub": "A / D walk to a door · E enters · at the centre, at the bar, there is the penguin · past the doors, the station",
 
       "hud.room": "room",
       "hud.radio": "radio kaoss",
@@ -308,6 +309,7 @@
       "peng.radioOn": "«Radio Kaoss is on. Press R if it annoys you.»",
       "peng.radioOff": "«Off. Counter silence is better anyway.»",
       "peng.death": "«The spider got you, huh? Told you so. Pages run out quickly. Grab a drink and try again whenever you feel like it.»",
+      "peng.terre": "«I watched you die, over there. Not that I mind — none of my business. But from here you start over: this is the counter, the doors are the same ones.»",
       "peng.o1": "sign questionnaire & login (saves)",
       "peng.o2": "what is this place",
       "peng.o3": "how do I walk",

@@ -1,0 +1,3 @@
+﻿1467: T.muori = function (perche) {
+1501: T.ferisci = function (chi, quante) {
+1704: /* il lampo rosso del colpo preso: dura quanto l'invulnerabilità */

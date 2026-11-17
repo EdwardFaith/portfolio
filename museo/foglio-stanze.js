@@ -640,8 +640,149 @@
      Fuori non c'e' soffitto: c'e' una striscia di notte, pochi
      palazzi piu' alti del muro, e la luna che non serve a niente.
      ============================================================ */
+  /* ============================================================
+     IL SOLE, UNA VOLTA SOLA
+     Dove sta, quanto e' grande: lo stesso numero per il cielo, per
+     il muro che gli sta sotto e per la luce che arriva sul
+     pavimento. Se il sole non fosse uno si vedrebbe subito.
+     ============================================================ */
+  var SUN_TOP = -160;
+  function sunny(reg) {
+    var K = KINDS[reg.kind];
+    return !!(K && K.sun);
+  }
+  function sole(reg) {
+    return {
+      x: rr(reg.seed, 1300, 260, RW - 260),
+      y: SUN_TOP + 80,
+      r: 180 + Math.abs(reg.gy) * 20
+    };
+  }
+
+  /* ---- i raggi: la luce che scende dal sole fino al muro. Non
+     sono un cono, sono sette fessure fra le isole: si vedono solo
+     perche' l'aria li' e' polverosa. ---- */
+  function raggi(c, reg, t, S, wt) {
+    var i, len = wt - S.y + 130, a0, spread;
+    c.save();
+    c.globalCompositeOperation = "lighter";
+    for (i = 0; i < 7; i++) {
+      a0 = (i - 3) * 0.17 + Math.sin(t * 0.12 + i * 1.3) * 0.015;
+      spread = 0.028 + r(reg.seed, 3100 + i) * 0.045;
+      var g = c.createLinearGradient(S.x, S.y, S.x + Math.sin(a0) * len, S.y + Math.cos(a0) * len);
+      g.addColorStop(0, "rgba(255,246,206,0.20)");
+      g.addColorStop(0.62, "rgba(255,236,178,0.07)");
+      g.addColorStop(1, "rgba(255,230,160,0)");
+      c.fillStyle = g;
+      c.beginPath();
+      c.moveTo(S.x, S.y);
+      c.lineTo(S.x + Math.sin(a0 - spread) * len, S.y + Math.cos(a0 - spread) * len);
+      c.lineTo(S.x + Math.sin(a0 + spread) * len, S.y + Math.cos(a0 + spread) * len);
+      c.closePath();
+      c.fill();
+    }
+    c.restore();
+  }
+
+  /* ---- il riverbero: tre macchie sulla diagonale fra il sole e il
+     bordo del muro, come le fa un obiettivo vero. Sono l'unica cosa
+     del cielo che non sta cercando di essere un oggetto. ---- */
+  function riverbero(c, reg, S, wt) {
+    var ex = RW * 0.5, ey = wt - 30, i;
+    var kk = [0.34, 0.55, 0.74], rad = [16, 30, 11], al = [0.10, 0.055, 0.13];
+    c.save();
+    c.globalCompositeOperation = "lighter";
+    for (i = 0; i < 3; i++) {
+      var fx = S.x + (ex - S.x) * kk[i] + rr(reg.seed, 3500 + i, -18, 18);
+      var fy = S.y + (ey - S.y) * kk[i];
+      var g = c.createRadialGradient(fx, fy, 0, fx, fy, rad[i]);
+      g.addColorStop(0, "rgba(255,240,200," + al[i] + ")");
+      g.addColorStop(1, "rgba(255,232,180,0)");
+      c.fillStyle = g;
+      c.fillRect(fx - rad[i], fy - rad[i], rad[i] * 2, rad[i] * 2);
+    }
+    c.restore();
+  }
+
+  /* ---- le isole del foglio: carta strappata che galleggia nel
+     cielo, tutte controluce. Il sole sta di dietro, quindi quello
+     che si vede e' il filo chiaro del bordo e il buio di sotto; i
+     fili che le tengono su' si perdono nell'aria. Piu' sono
+     lontane, piu' si muovono piano quando la stanza scorre. ---- */
+  function isole(c, reg, cam, t, S, wt) {
+    var i, j, k, n = 5;
+    for (i = 0; i < n; i++) {
+      var dep = 0.3 + r(reg.seed, 3600 + i) * 0.7;
+      var par = 0.34 * (1 - dep);
+      var cx = rr(reg.seed, 3610 + i, 100, RW - 100) + cam.x * par;
+      var cy = rr(reg.seed, 3620 + i, S.y + 34, wt - 54 + dep * 40) +
+        Math.sin(t * 0.33 + i * 1.7) * (2 + dep * 3);
+      var w = (70 + rr(reg.seed, 3630 + i, 0, 90)) * (0.5 + dep);
+      var h = w * (0.34 + r(reg.seed, 3640 + i) * 0.22);
+      var x0 = cx - w * 0.5;
+
+      /* il riverbero dietro: la carta e' trasparente al sole */
+      var hg = c.createRadialGradient(cx, cy - h * 0.1, w * 0.15, cx, cy - h * 0.1, w * 0.92);
+      hg.addColorStop(0, "rgba(255,240,196," + (0.12 * dep).toFixed(3) + ")");
+      hg.addColorStop(1, "rgba(255,236,180,0)");
+      c.save();
+      c.globalCompositeOperation = "lighter";
+      c.fillStyle = hg;
+      c.fillRect(cx - w, cy - w, w * 2, w * 2);
+      c.restore();
+
+      /* il corpo: dorso quasi dritto, sotto strappato */
+      c.beginPath();
+      for (k = 0; k <= 10; k++) {
+        var px = x0 + w * k / 10, py = cy - Math.sin(k / 10 * Math.PI) * h * 0.30;
+        if (k === 0) c.moveTo(px, py); else c.lineTo(px, py);
+      }
+      for (k = 10; k >= 0; k--) {
+        c.lineTo(x0 + w * k / 10, cy + h * (0.55 + r(reg.seed, 3700 + i * 11 + k) * 0.55));
+      }
+      c.closePath();
+      c.fillStyle = "rgba(26,22,16," + (0.34 + dep * 0.5).toFixed(3) + ")";
+      c.fill();
+
+      /* il filo di luce sul dorso */
+      c.strokeStyle = "rgba(255,248,222," + (0.30 + dep * 0.45).toFixed(3) + ")";
+      c.lineWidth = 1 + dep * 1.6;
+      c.beginPath();
+      for (k = 0; k <= 10; k++) {
+        var rx = x0 + w * k / 10, ry = cy - Math.sin(k / 10 * Math.PI) * h * 0.30;
+        if (k === 0) c.moveTo(rx, ry); else c.lineTo(rx, ry);
+      }
+      c.stroke();
+
+      /* gli alberi, che sono solo tre triangoli neri */
+      c.fillStyle = "rgba(20,17,12," + (0.45 + dep * 0.45).toFixed(3) + ")";
+      for (j = 0; j < 3; j++) {
+        var tx = cx + (j - 1) * w * 0.22 + rr(reg.seed, 3800 + i * 5 + j, -6, 6);
+        var th = h * (0.45 + r(reg.seed, 3820 + i * 5 + j) * 0.55);
+        c.beginPath();
+        c.moveTo(tx - th * 0.34, cy - 2);
+        c.lineTo(tx + th * 0.34, cy - 2);
+        c.lineTo(tx, cy - 2 - th);
+        c.closePath();
+        c.fill();
+      }
+
+      /* i fili che pendono da sotto: radici, o la carta che si sfilaccia */
+      c.strokeStyle = "rgba(40,34,24," + (0.20 + dep * 0.30).toFixed(3) + ")";
+      c.lineWidth = 1;
+      for (j = 0; j < 3; j++) {
+        var fx2 = cx + rr(reg.seed, 3850 + i * 4 + j, -w * 0.3, w * 0.3);
+        var fy2 = cy + h * (0.55 + r(reg.seed, 3860 + i * 4 + j) * 0.5);
+        c.beginPath();
+        c.moveTo(fx2, fy2);
+        c.quadraticCurveTo(fx2 + 7, fy2 + 20, fx2 - 5, fy2 + 38 + r(reg.seed, 3870 + i * 4 + j) * 42);
+        c.stroke();
+      }
+    }
+  }
+
   function skyOut(c, reg, cam, t, sc) {
-    var p = reg.pal, i, x, top = -160, wt = reg.wallTop;
+    var p = reg.pal, i, x, top = SUN_TOP, wt = reg.wallTop;
     var K = KINDS[reg.kind] || {};
     var isSun = !!(K.sun || reg.gy < 0);
     var isSea = !!(K.sea || reg.gy > 0);
@@ -673,9 +814,10 @@
 
     if (isSun) {
       // ---- IL SOLE BIANCO / DORATO RADIOSO ----
-      var sx = rr(reg.seed, 1300, 260, RW - 260);
-      var sy = top + 80;
-      var srad = 180 + Math.abs(reg.gy) * 20;
+      var S0 = sole(reg);
+      var sx = S0.x;
+      var sy = S0.y;
+      var srad = S0.r;
       var sg = c.createRadialGradient(sx, sy, 8, sx, sy, srad);
       sg.addColorStop(0, "rgba(255, 255, 240, 0.98)");
       sg.addColorStop(0.2, "rgba(255, 230, 150, 0.85)");
@@ -711,6 +853,19 @@
         c.fillRect(-4, -6, 8, 12);
         c.restore();
       }
+
+      /* ---- e adesso la luce vera: i raggi che scendono fra le
+         isole, le isole stesse (controluce, col filo chiaro sul
+         dorso) e il riverbero dell'obiettivo. Tutto dentro alla
+         striscia di cielo: sotto il muro non arriva niente. ---- */
+      c.save();
+      c.beginPath();
+      c.rect(-60, top - 60, RW + 120, wt - top + 60);
+      c.clip();
+      raggi(c, reg, t, S0, wt);
+      isole(c, reg, cam, t, S0, wt);
+      c.restore();
+      riverbero(c, reg, S0, wt);
     } else if (isSea) {
       // ---- IL MARE E GLI SPAZI LIMINALI ----
       // Orizzonte marino con onde animate
@@ -763,30 +918,41 @@
       }
     }
 
-    /* le stelle: poche, e qualcuna si spegne */
-    for (i = 0; i < 90; i++) {
+    /* le stelle: poche, e qualcuna si spegne. Dove c'e' il sole
+       resistono solo in alto, dove il cielo e' ancora blu: sono le
+       stelle "oltre" del nome della stanza. */
+    var nstar = isSun ? 46 : 90;
+    var ymax = isSun ? top + 10 + (wt - top) * 0.40 : wt - 40;
+    var amul = isSun ? 0.55 : 1;
+    for (i = 0; i < nstar; i++) {
       x = rr(reg.seed, 1000 + i, -40, RW + 40);
-      var y = rr(reg.seed, 1100 + i, top + 10, wt - 40);
-      var tw = 0.16 + 0.5 * Math.abs(Math.sin(t * rr(reg.seed, 1200 + i, 0.4, 1.3) + i));
+      var y = rr(reg.seed, 1100 + i, top + 10, ymax);
+      var tw = (0.16 + 0.5 * Math.abs(Math.sin(t * rr(reg.seed, 1200 + i, 0.4, 1.3) + i))) * amul;
       c.fillStyle = "rgba(238,236,224," + tw.toFixed(3) + ")";
       c.fillRect(x, y, 1.6, 1.6);
     }
 
-    /* la luna: una moneta graffiata */
-    var mx = rr(reg.seed, 1300, 160, RW - 160), my = rr(reg.seed, 1310, top + 60, wt - 120);
-    var mg = c.createRadialGradient(mx, my, 4, mx, my, 120);
-    mg.addColorStop(0, "rgba(236,234,220,0.16)");
-    mg.addColorStop(1, "rgba(236,234,220,0)");
-    c.fillStyle = mg;
-    c.beginPath(); c.arc(mx, my, 120, 0, 6.3); c.fill();
-    c.fillStyle = p.moon || "rgba(226,228,214,0.85)";
-    c.beginPath(); c.arc(mx, my, 26, 0, 6.3); c.fill();
-    c.fillStyle = "rgba(150,150,140,0.16)";
-    c.beginPath(); c.arc(mx - 8, my - 6, 7, 0, 6.3); c.fill();
-    c.beginPath(); c.arc(mx + 9, my + 5, 5, 0, 6.3); c.fill();
+    /* la luna: una moneta graffiata. Col sole acceso non c'e':
+       sarebbe due volte giorno. */
+    if (!isSun) {
+      var mx = rr(reg.seed, 1300, 160, RW - 160), my = rr(reg.seed, 1310, top + 60, wt - 120);
+      var mg = c.createRadialGradient(mx, my, 4, mx, my, 120);
+      mg.addColorStop(0, "rgba(236,234,220,0.16)");
+      mg.addColorStop(1, "rgba(236,234,220,0)");
+      c.fillStyle = mg;
+      c.beginPath(); c.arc(mx, my, 120, 0, 6.3); c.fill();
+      c.fillStyle = p.moon || "rgba(226,228,214,0.85)";
+      c.beginPath(); c.arc(mx, my, 26, 0, 6.3); c.fill();
+      c.fillStyle = "rgba(150,150,140,0.16)";
+      c.beginPath(); c.arc(mx - 8, my - 6, 7, 0, 6.3); c.fill();
+      c.beginPath(); c.arc(mx + 9, my + 5, 5, 0, 6.3); c.fill();
+    }
 
-    /* i palazzi dietro: neri, con le antenne */
-    for (i = 0; i < 9; i++) {
+    /* i palazzi dietro: neri, con le antenne. Sono la citta', e la
+       citta' si vede solo di notte: sotto il sole al posto dei
+       palazzi ci sono le isole, che stanno gia' li'. */
+    var nbl = isSun ? 0 : 9;
+    for (i = 0; i < nbl; i++) {
       var bx = -80 + i * (RW + 160) / 9 + rr(reg.seed, 1400 + i, -30, 30);
       var bw = rr(reg.seed, 1500 + i, 110, 260);
       var bh = rr(reg.seed, 1600 + i, 40, 150);
@@ -810,25 +976,195 @@
       }
     }
 
-    /* il fumo basso, fermo */
+    /* il fumo basso, fermo: di notte, e solo di notte */
+    var nfum = isSun ? 0 : 6;
     c.fillStyle = "rgba(96,104,116,0.10)";
-    for (i = 0; i < 6; i++) {
+    for (i = 0; i < nfum; i++) {
       var fw = rr(reg.seed, 2000 + i, 300, 720);
       c.fillRect(rr(reg.seed, 2050 + i, -60, RW - 200), wt - rr(reg.seed, 2100 + i, 10, 90), fw, 26);
     }
 
-    /* il comignolo del muro: la linea che chiude il cielo */
+    /* il comignolo del muro: la linea che chiude il cielo.
+       Sotto il sole e' la cosa piu' chiara che c'e': il muro e'
+       controluce, e il filo di carta bianca e' l'unico punto in cui
+       il sole lo tocca davvero. */
     c.fillStyle = p.wall2;
     c.fillRect(-60, wt - 14, RW + 120, 18);
-    c.fillStyle = "rgba(255,250,240,0.10)";
-    c.fillRect(-60, wt - 14, RW + 120, 2);
+    if (isSun) {
+      var cg2 = c.createLinearGradient(0, wt - 84, 0, wt - 12);
+      cg2.addColorStop(0, "rgba(255,238,190,0)");
+      cg2.addColorStop(1, "rgba(255,240,198,0.22)");
+      c.fillStyle = cg2;
+      c.fillRect(-60, wt - 84, RW + 120, 72);
+      c.fillStyle = "rgba(255,252,236,0.62)";
+      c.fillRect(-60, wt - 14, RW + 120, 2.5);
+      c.fillStyle = "rgba(255,246,220,0.20)";
+      c.fillRect(-60, wt - 12, RW + 120, 4);
+    } else {
+      c.fillStyle = "rgba(255,250,240,0.10)";
+      c.fillRect(-60, wt - 14, RW + 120, 2);
+    }
     c.fillStyle = "rgba(6,8,12,0.35)";
     c.fillRect(-60, wt + 2, RW + 120, 8);
   }
 
+  /* ============================================================
+     IL LUCERNARIO DELLE ISOLE
+     Il soffitto non c'e' piu': si e' aperto. Dentro al buco c'e'
+     il bianco del sole e, appese, le due isole piu' vicine; intorno
+     i pannelli di fibra si sono scollati e pendono. Non e' una
+     finestra: e' uno strappo, e da uno strappo entra tutto.
+     ============================================================ */
+  /* il buco: serve al soffitto e serve alla luce che ci cade sotto */
+  function buco(reg) {
+    return {
+      x: RW * 0.5 + rr(reg.seed, 3400, -110, 110),
+      y: (SUN_TOP + CEIL) * 0.5,
+      w: 520 + rr(reg.seed, 3410, 0, 170),
+      h: (CEIL - SUN_TOP) * 0.42
+    };
+  }
+  /* il contorno dello strappo: una poligonale chiusa, sempre la stessa */
+  function contorno(c, B, reg) {
+    var k, passi = 52;
+    c.beginPath();
+    for (k = 0; k <= passi; k++) {
+      var a = k / passi * Math.PI * 2;
+      var rad = 1 + Math.sin(a * 3 + 1.7) * 0.05 + r(reg.seed, 3420 + (k % 11)) * 0.09;
+      var px = B.x + Math.cos(a) * B.w * 0.5 * rad;
+      var py = B.y + Math.sin(a) * B.h * rad;
+      if (k === 0) c.moveTo(px, py); else c.lineTo(px, py);
+    }
+    c.closePath();
+  }
+  function ceilingSun(c, reg, cam, t, sc) {
+    var p = reg.pal, i, k, B = buco(reg);
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.fillStyle = p.voidc;
+    c.fillRect(0, 0, c.canvas.width, c.canvas.height);
+    tf(c, cam, sc);
+
+    var top = SUN_TOP + 20, hgt = CEIL - top;
+    /* i pannelli, ma smorti: sotto il buco la luce non arriva */
+    var g = c.createLinearGradient(0, top, 0, CEIL);
+    g.addColorStop(0, p.ceil2);
+    g.addColorStop(0.7, p.ceil);
+    g.addColorStop(1, p.ceil2);
+    c.fillStyle = g;
+    c.fillRect(-60, top, RW + 120, hgt);
+
+    c.strokeStyle = p.line;
+    c.lineWidth = 1;
+    c.beginPath();
+    for (var x = -60; x < RW + 60; x += 168) { c.moveTo(Math.round(x) + 0.5, top); c.lineTo(Math.round(x) + 0.5, CEIL); }
+    for (i = 0; i < 4; i++) {
+      var yy = Math.round(CEIL - 6 - i * 46) + 0.5;
+      c.moveTo(-60, yy); c.lineTo(RW + 60, yy);
+    }
+    c.stroke();
+
+    /* la trave di traverso: si e' spostata, adesso e' storta */
+    c.fillStyle = p.wain2;
+    c.globalAlpha = 0.55;
+    c.fillRect(-60, CEIL - 34, RW + 120, 12);
+    c.globalAlpha = 1;
+
+    /* ---- il buco ---- */
+    contorno(c, B, reg);
+    c.save();
+    c.clip();
+    var bg = c.createRadialGradient(B.x, B.y, 14, B.x, B.y, B.w * 0.66);
+    bg.addColorStop(0, "#fffdf4");
+    bg.addColorStop(0.34, "rgba(255,246,208,0.96)");
+    bg.addColorStop(0.72, "rgba(246,206,134,0.60)");
+    bg.addColorStop(1, "rgba(226,176,104,0.22)");
+    c.fillStyle = bg;
+    c.fillRect(B.x - B.w, B.y - B.h * 1.6, B.w * 2, B.h * 3.2);
+
+    /* le isole appese, dentro al bianco: due, controluce, coi fili */
+    for (i = 0; i < 2; i++) {
+      var iw = (i === 0 ? 150 : 96) * (1 + r(reg.seed, 3430 + i) * 0.2);
+      var ix = B.x + (i === 0 ? -B.w * 0.20 : B.w * 0.19);
+      var iy = B.y + (i === 0 ? -6 : 18) + Math.sin(t * 0.4 + i * 2.1) * 3;
+      c.strokeStyle = "rgba(150,120,70,0.45)";
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(ix, B.y - B.h * 1.2); c.lineTo(ix, iy - 20);
+      c.stroke();
+      c.fillStyle = "rgba(38,30,20,0.62)";
+      c.beginPath();
+      c.moveTo(ix - iw * 0.5, iy);
+      c.lineTo(ix + iw * 0.5, iy);
+      c.lineTo(ix + iw * 0.34, iy + iw * 0.26);
+      c.lineTo(ix + iw * 0.1, iy + iw * 0.16);
+      c.lineTo(ix - iw * 0.12, iy + iw * 0.3);
+      c.lineTo(ix - iw * 0.38, iy + iw * 0.18);
+      c.closePath();
+      c.fill();
+      c.strokeStyle = "rgba(255,250,228,0.75)";
+      c.lineWidth = 1.4;
+      c.beginPath();
+      c.moveTo(ix - iw * 0.5, iy); c.lineTo(ix + iw * 0.5, iy);
+      c.stroke();
+    }
+    c.restore();
+
+    /* il bordo dello strappo: carta scura, e il filo di luce dentro */
+    contorno(c, B, reg);
+    c.strokeStyle = "rgba(60,44,28,0.55)";
+    c.lineWidth = 5;
+    c.stroke();
+    contorno(c, B, reg);
+    c.strokeStyle = "rgba(255,246,214,0.55)";
+    c.lineWidth = 1.6;
+    c.stroke();
+
+    /* i pezzi che pendono: tre lembi di carta, fermati dal tempo */
+    for (k = 0; k < 3; k++) {
+      var lx = B.x + (k - 1) * B.w * 0.26 + rr(reg.seed, 3440 + k, -16, 16);
+      var ly = B.y + B.h * (0.86 + r(reg.seed, 3450 + k) * 0.14);
+      var lw = rr(reg.seed, 3460 + k, 22, 54);
+      var lh = rr(reg.seed, 3470 + k, 18, 44);
+      c.fillStyle = "rgba(52,40,26,0.55)";
+      c.beginPath();
+      c.moveTo(lx - lw * 0.5, ly);
+      c.lineTo(lx + lw * 0.5, ly);
+      c.lineTo(lx + lw * 0.3, ly + lh);
+      c.lineTo(lx - lw * 0.2, ly + lh * 0.7);
+      c.closePath();
+      c.fill();
+      c.strokeStyle = "rgba(255,244,206,0.30)";
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(lx - lw * 0.5, ly); c.lineTo(lx + lw * 0.5, ly);
+      c.stroke();
+    }
+
+    /* l'alone: la stanza intera e' illuminata da quel buco */
+    c.save();
+    c.globalCompositeOperation = "lighter";
+    var al = c.createRadialGradient(B.x, B.y, B.w * 0.2, B.x, B.y, B.w * 1.05);
+    al.addColorStop(0, "rgba(255,244,204,0.26)");
+    al.addColorStop(0.5, "rgba(255,232,176,0.10)");
+    al.addColorStop(1, "rgba(255,226,160,0)");
+    c.fillStyle = al;
+    c.fillRect(B.x - B.w, B.y - B.w, B.w * 2, B.w * 2);
+    c.restore();
+
+    /* la polvere che cade dal buco, controluce */
+    for (i = 0; i < 26; i++) {
+      var px2 = B.x + rr(reg.seed, 3480 + i, -B.w * 0.42, B.w * 0.42);
+      var py2 = top + ((r(reg.seed, 3490 + i) * CEIL + t * (9 + i % 6)) % (CEIL - top));
+      c.fillStyle = "rgba(255,250,226," + (0.10 + r(reg.seed, 3500 + i) * 0.22).toFixed(3) + ")";
+      c.fillRect(px2, py2, 1.8, 1.8);
+    }
+  }
+
   W.sky = function (c, reg, cam, t, sc) {
     var p = reg.pal, i, x;
+    var K = KINDS[reg.kind] || {};
     if (reg.out) { skyOut(c, reg, cam, t, sc); return; }
+    if (K.sun) { ceilingSun(c, reg, cam, t, sc); return; }
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.fillStyle = p.voidc;
     c.fillRect(0, 0, c.canvas.width, c.canvas.height);
@@ -1005,6 +1341,44 @@
         c.ellipse(ix2 + (lf % 2 ? 9 : -7) * (0.6 + lf * 0.1), ly2, 7, 4, lf, 0, 6.3);
         c.fill();
       }
+    }
+
+    /* ---- la luce addosso al muro ----
+       Il sole sta di la' dal muro, quindi la facciata e' in
+       controluce: il filo in cima e' bianco, e sotto la luce cala.
+       L'unico sole che arriva davvero e' la macchia che passa fra
+       due isole, e cade storta. Il piede del muro resta l'unica
+       ombra vera della stanza. */
+    if (sunny(reg)) {
+      var st = c.createLinearGradient(0, wt, 0, wt + 300);
+      st.addColorStop(0, "rgba(255,236,186,0.32)");
+      st.addColorStop(0.42, "rgba(255,224,160,0.09)");
+      st.addColorStop(1, "rgba(255,220,150,0)");
+      c.fillStyle = st;
+      c.fillRect(-60, wt, RW + 120, 300);
+
+      c.save();
+      c.globalCompositeOperation = "lighter";
+      var mx2 = rr(reg.seed, 3200, 220, RW - 660);
+      var mgg = c.createLinearGradient(mx2, wt, mx2 + 560, FLOOR);
+      mgg.addColorStop(0, "rgba(255,238,192,0.15)");
+      mgg.addColorStop(0.6, "rgba(255,234,182,0.05)");
+      mgg.addColorStop(1, "rgba(255,230,176,0)");
+      c.fillStyle = mgg;
+      c.beginPath();
+      c.moveTo(mx2, wt);
+      c.lineTo(mx2 + 300, wt);
+      c.lineTo(mx2 + 640, FLOOR);
+      c.lineTo(mx2 + 130, FLOOR);
+      c.closePath();
+      c.fill();
+      c.restore();
+
+      var ob = c.createLinearGradient(0, FLOOR - 130, 0, FLOOR);
+      ob.addColorStop(0, "rgba(26,19,13,0)");
+      ob.addColorStop(1, "rgba(22,16,11,0.30)");
+      c.fillStyle = ob;
+      c.fillRect(-60, FLOOR - 130, RW + 120, 132);
     }
 
     drawSecret(c, reg, t);
@@ -1457,6 +1831,34 @@
     c.fillRect(-60, FLOOR - 8, RW + 120, 10);
     c.fillStyle = "rgba(16,18,20,0.35)";
     c.fillRect(-60, FLOOR + 2, RW + 120, 4);
+
+    /* ---- e adesso il sole sul pavimento ----
+       Il pavimento e' l'unica cosa illuminata davvero: il sole cade
+       dove sta, e le isole ci fanno sopra le loro ombre lunghe. Il
+       cordolo, che tocca la luce di striscio, e' la riga piu'
+       chiara di tutta la stanza. */
+    if (sunny(reg)) {
+      var S1 = sole(reg);
+      var px3 = cl(S1.x, 130, RW - 130);
+      c.save();
+      c.globalCompositeOperation = "lighter";
+      var pool = c.createRadialGradient(px3, FLOOR + 66, 24, px3, FLOOR + 66, 640);
+      pool.addColorStop(0, "rgba(255,240,200,0.20)");
+      pool.addColorStop(0.45, "rgba(255,226,160,0.10)");
+      pool.addColorStop(1, "rgba(255,220,150,0)");
+      c.fillStyle = pool;
+      c.fillRect(-60, FLOOR - 40, RW + 120, 260);
+      c.restore();
+
+      for (i = 0; i < 3; i++) {
+        var ox = rr(reg.seed, 3300 + i, 0, RW);
+        var ow = rr(reg.seed, 3310 + i, 220, 520);
+        shade(c, ox, FLOOR + rr(reg.seed, 3320 + i, 40, 150), ow, 46, 0.16);
+      }
+
+      c.fillStyle = "rgba(255,244,210,0.34)";
+      c.fillRect(-60, FLOOR - 8, RW + 120, 3);
+    }
   }
 
   W.ground = function (c, reg, cam, t, sc) {
@@ -2436,9 +2838,13 @@
   /* ============================================================
      LA LUCE
      Due o tre coni gialli, il ronzio del neon, e nient'altro.
+     Dove c'e' il sole, pero', il sole non e' "un'altra lampada":
+     i neon restano accesi ma non contano piu' niente, e la stanza
+     la illumina lui — dal cielo, o dal buco nel soffitto.
      ============================================================ */
   W.lights = function (c, reg, cam, t, sc) {
     var p = reg.pal, i, L;
+    var lucido = sunny(reg);
     tf(c, cam, sc);
     c.globalCompositeOperation = "lighter";
 
@@ -2448,7 +2854,8 @@
       var fl = L.flick ? (0.55 + 0.45 * Math.abs(Math.sin(t * L.flick * 6.1 + i * 1.7))) : 1;
       /* quando lui si avvicina, la luce non basta piu' */
       var dim = 1 - cl(reg.aura || 0, 0, 1) * 0.5;
-      var a = 0.075 * fl * dim;
+      /* sotto il sole i neon si vedono appena accesi */
+      var a = 0.075 * fl * dim * (lucido ? 0.22 : 1);
       /* il cono */
       var g = c.createLinearGradient(0, ly, 0, FLOOR + 90);
       g.addColorStop(0, "rgba(255,226,164," + (a * 1.35).toFixed(3) + ")");
@@ -2501,6 +2908,58 @@
       c.fillRect(jx - 190, FLOOR - 310, 380, 380);
     }
 
+    /* ---- il sole, che e' l'unica lampada che conta ----
+       Dentro al lucernario scende un fascio dritto dal buco, largo
+       in basso, e in fondo al fascio c'e' la pozza sul pavimento.
+       Fuori, sotto il cielo, il sole non si disegna: si disegna
+       l'aria che ha attraversato, e che resta chiara. */
+    if (lucido && !reg.out) {
+      var B = buco(reg);
+      var sh = c.createLinearGradient(0, B.y, 0, FLOOR + 70);
+      sh.addColorStop(0, "rgba(255,248,218,0.22)");
+      sh.addColorStop(0.58, "rgba(255,238,190,0.10)");
+      sh.addColorStop(1, "rgba(255,230,170,0)");
+      c.fillStyle = sh;
+      c.beginPath();
+      c.moveTo(B.x - B.w * 0.42, B.y);
+      c.lineTo(B.x + B.w * 0.42, B.y);
+      c.lineTo(B.x + B.w * 0.98, FLOOR + 70);
+      c.lineTo(B.x - B.w * 0.98, FLOOR + 70);
+      c.closePath();
+      c.fill();
+
+      var pozza = c.createRadialGradient(B.x, FLOOR + 26, 12, B.x, FLOOR + 26, B.w * 0.78);
+      pozza.addColorStop(0, "rgba(255,244,208,0.26)");
+      pozza.addColorStop(0.5, "rgba(255,232,176,0.11)");
+      pozza.addColorStop(1, "rgba(255,224,160,0)");
+      c.fillStyle = pozza;
+      c.fillRect(B.x - B.w, FLOOR - 120, B.w * 2, 300);
+
+      /* la polvere dentro al fascio: e' quello che lo fa vedere */
+      for (i = 0; i < 30; i++) {
+        var dx2 = B.x + rr(reg.seed, 3520 + i, -B.w * 0.46, B.w * 0.46) * (0.7 + 0.5 * r(reg.seed, 3530 + i));
+        var dy2 = B.y + ((r(reg.seed, 3540 + i) * (FLOOR - B.y) + t * (12 + i % 7)) % (FLOOR - B.y));
+        c.fillStyle = "rgba(255,250,230," + (0.06 + r(reg.seed, 3550 + i) * 0.16).toFixed(3) + ")";
+        c.fillRect(dx2, dy2, 1.8, 1.8);
+      }
+    } else if (lucido) {
+      var S2 = sole(reg);
+      var aria = c.createRadialGradient(S2.x, S2.y, S2.r * 0.4, S2.x, S2.y, S2.r * 3.4);
+      aria.addColorStop(0, "rgba(255,246,208,0.16)");
+      aria.addColorStop(0.5, "rgba(255,236,186,0.06)");
+      aria.addColorStop(1, "rgba(255,230,170,0)");
+      c.fillStyle = aria;
+      c.fillRect(S2.x - S2.r * 3.4, S2.y - S2.r * 3.4, S2.r * 6.8, S2.r * 6.8);
+
+      /* e la riga di luce che si posa sul filo del muro */
+      var lb = c.createLinearGradient(0, reg.wallTop - 120, 0, reg.wallTop + 40);
+      lb.addColorStop(0, "rgba(255,240,196,0)");
+      lb.addColorStop(0.75, "rgba(255,242,200,0.10)");
+      lb.addColorStop(1, "rgba(255,240,196,0)");
+      c.fillStyle = lb;
+      c.fillRect(-60, reg.wallTop - 120, RW + 120, 160);
+    }
+
     c.globalCompositeOperation = "source-over";
 
     /* i bordi: la stanza si chiude in alto e in fondo */
@@ -2522,13 +2981,18 @@
      ============================================================ */
   W.fog = function (c, reg, cam, t, sc, layer) {
     var p = reg.pal, i;
+    var lucido = sunny(reg);
     var top = reg.out ? reg.wallTop : CEIL;
     tf(c, cam, sc);
     if (layer === "far") {
       /* fuori la foschia e' fredda e si tiene bassa: il muro deve
-         restare un muro, non latte */
+         restare un muro, non latte. Sotto il sole diventa calda,
+         perche' quella che si vede non e' foschia: e' luce. */
       var g = c.createLinearGradient(0, top, 0, top + (reg.out ? 140 : 240));
-      if (reg.out) {
+      if (lucido) {
+        g.addColorStop(0, "rgba(255,238,196," + (reg.out ? 0.075 : 0.11) + ")");
+        g.addColorStop(1, "rgba(255,232,180,0)");
+      } else if (reg.out) {
         g.addColorStop(0, "rgba(198,212,226,0.045)");
         g.addColorStop(1, "rgba(198,212,226,0)");
       } else {
@@ -2540,7 +3004,7 @@
       return;
     }
     /* le volute: tre curve che non si muovono quasi */
-    var warm = reg.out ? "212,220,230" : "255,244,222";
+    var warm = lucido ? "255,240,200" : (reg.out ? "212,220,230" : "255,244,222");
     c.lineCap = "round";
     for (i = 0; i < 3; i++) {
       var cx = 240 + i * 470 + Math.sin(t * 0.12 + i) * 26;

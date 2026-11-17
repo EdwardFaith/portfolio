@@ -1,0 +1,19 @@
+﻿8: appena entri ti dice di uscire, e poi ti cammina addosso. Le armi
+45: armi: [],
+66: armi: [],
+87: armi: [],
+108: armi: [],
+131: armi: [{ id: "gomma", x: 1140 }, { id: "forbici", x: 1360 }],
+145: var DETTO = {
+715: LE ARMI APPESE AL MURO
+716: Ognuna penzola da un chiodo. Chi non l'ha presa la vede
+717: dondolare; chi l'ha presa vede il chiodo e basta.
+753: /* il chiodo regge, la luce lo dice */
+930: for (i = 0; i < st.armi.length; i++) {
+931: a = st.armi[i];
+974: /* l'arma appesa: si stacca dal chiodo con E */
+978: /* si stacca dal chiodo: metallo, e la carta che si muove */
+980: var d2 = DETTO[a.id];
+1027: /* le armi sui chiodi */
+1028: for (i = 0; i < st.armi.length; i++) {
+1029: a = st.armi[i];

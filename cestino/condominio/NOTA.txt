@@ -1,0 +1,23 @@
+PORTA 01 — IL CONDOMINIO (archiviato)
+=====================================
+
+Questo gioco non è più agganciato alla Porta della Lumaca.
+
+Prima si raggiungeva dalla spiaggia onirica (il pulsante CONDOMINIO in
+basso a sinistra); quel pulsante è stato tolto, e la cartella è stata
+spostata qui: la Porta 01 non contiene più nessuna logica del
+Condominio.
+
+Il Condominio adesso è il quarto piano della Porta 03 — LA TERZA PORTA
+(terza-porta/index.html), dove è stato ricostruito in forma minima:
+sagome, finestre accese, niente HUD.
+
+Per riaverlo com'era, basta rimetterlo al suo posto:
+
+    git mv cestino/condominio porta1
+
+(e rimettere il collegamento nella spiaggia, se serve).
+
+I due link interni sono stati corretti per il nuovo livello di cartella
+(../../museo.html, ../../spiaggia/index.html), quindi la copia qui
+funziona comunque se aperta direttamente.

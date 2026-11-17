@@ -27,8 +27,23 @@
       sit: 0, hop: 0, dead: false, ground: true,
       w: 46, h: 92, scale: 1, build: 1, line: 3
     };
+    /* la corporatura scelta al questionario vale da subito: chi riapre
+       il gioco — o entra nelle terre — non lo rifà, il coniglio è
+       quello che aveva scelto */
+    if (corpo) corporatura(S, corpo);
     return S;
   };
+
+  /* la corporatura: una formula sola, per il questionario, per il
+     salvataggio e per chi disegna. Cambia le proporzioni, non l'anima */
+  function corporatura(T0, c) {
+    T0.build = c === "line" ? 0.55 : c === "tall" ? 1.18 : c === "child" ? 0.72 :
+      c === "dancer" ? 0.9 : 1;
+    T0.line = c === "line" ? 1.4 : c === "solid" ? 4.5 : 3;
+    T0.w = 46 * (0.85 + T0.build * 0.2);
+    T0.h = 92 * T0.build;
+    return T0;
+  }
 
   R.get = function () { return S; };
 
@@ -40,6 +55,14 @@
      ============================================================ */
   var COSTUMES = ["rabbit", "black", "daisy", "robot", "astro"];
   var SKINKEY = "cosmo_skin_v1";
+  /* la corporatura scelta al questionario: si ricorda qui, così le
+     terre — che non caricano data.js — disegnano lo stesso coniglio */
+  var SHAPEKEY = "cosmo_shape_v1";
+  var corpo = "";
+  try {
+    var c0 = root.localStorage && root.localStorage.getItem(SHAPEKEY);
+    if (c0) corpo = String(c0);
+  } catch (e) { }
   var skin = "rabbit";
   try {
     var sk0 = root.localStorage && root.localStorage.getItem(SKINKEY);
@@ -85,16 +108,23 @@
   };
 
   /* la corporatura viene dal questionario: filo, alto, bambino,
-     sagoma piena, ballerina. Cambia le proporzioni, non l'anima. */
+     sagoma piena, ballerina. Cambia le proporzioni, non l'anima.
+     Senza argomenti si riprende quella salvata: è così che le terre
+     disegnano lo stesso coniglio del museo, senza rifare il quiz. */
   R.shape = function (look) {
     if (!S) return;
-    var c = look && look.corpo;
-    S.build = c === "line" ? 0.55 : c === "tall" ? 1.18 : c === "child" ? 0.72 :
-      c === "dancer" ? 0.9 : 1;
-    S.line = c === "line" ? 1.4 : c === "solid" ? 4.5 : 3;
-    S.w = 46 * (0.85 + S.build * 0.2);
-    S.h = 92 * S.build;
+    var c = (look && look.corpo) ||
+      (M.DATA && M.DATA.look && M.DATA.look.corpo) || corpo || "";
+    if (c && c !== corpo) {
+      corpo = c;
+      try { if (root.localStorage) root.localStorage.setItem(SHAPEKEY, c); } catch (e) { }
+    }
+    corporatura(S, c);
+    return S;
   };
+
+  /* che corporatura ha addosso adesso: la leggono chi vuole saperlo */
+  R.corpo = function () { return corpo; };
 
   /* ============================================================
      I QUATTRO COSTUMI
@@ -253,6 +283,77 @@
   }
   R.hits = hits;
 
+  /* ============================================================
+     L'ANIMAZIONE, DA SOLA
+     Lo stato (fermo, passo, corsa, salto, seduto), il ciclo delle
+     zampe, le molle di orecchie, coda e corpo, il respiro, il
+     battito di ciglia, il tremito: niente di tutto questo sa dov'è
+     un muro. Legge solo quello che il corpo sta facendo — speed,
+     ground, hop, idle — e lo scrive in S.
+
+     Il museo la chiama in fondo al suo passo, dopo la fisica della
+     sala. Le terre, che hanno un'altra fisica (un muro per volta, il
+     loro salto, la loro gravità), la chiamano allo stesso modo. Il
+     coniglio si muove uguale nei due posti perché non è un disegno
+     copiato: è questa funzione.
+
+     Chi la chiama deve aver già messo in S: speed, ground, hop,
+     idle, e dir se è cambiata. La velocità si conta in unità di
+     schermo — nel museo la sala è alta 1000 unità, quindi 1000 è
+     l'altezza dello schermo. Le terre fanno lo stesso conto.
+     ============================================================ */
+  function anima(dt, maxRun) {
+    if (!S) return;
+    if (!maxRun) maxRun = 2100;
+
+    /* lo stato: la macchina a stati è tutta qui */
+    var prev = S.state;
+    if (S.state !== "enter") {
+      if (!S.ground) S.state = "jump";
+      else if (S.speed > 860) S.state = "run";
+      else if (S.speed > 16) S.state = "walk";
+      else if (S.idle > 6) S.state = "sit";
+      else S.state = "idle";
+    }
+    if (prev !== S.state && S.state === "sit") S.phase = 0;
+
+    /* il ciclo: avanza con la velocità, si ferma con il corpo.
+       Il divisore tiene la falcata credibile anche adesso che il
+       coniglio corre il doppio: le zampe non diventano un frullatore.
+       Oltre una certa velocità il ciclo smette di accelerare, e la
+       corsa si legge come corsa invece che come guasto. */
+    S.phase += (Math.min(S.speed, 980) / 70) * dt * 7.5;
+    if (S.speed < 16) S.phase += dt * 0.6;
+
+    /* le molle: orecchie, coda, corpo */
+    var bounce = S.state === "walk" || S.state === "run" ? Math.sin(S.phase * 2) * 0.16 : 0;
+    var targetEar = -0.35 * S.dir * (S.speed / maxRun) + bounce * 0.5 + (S.state === "sit" ? 0.5 : 0);
+    S.earV += (targetEar - S.earA) * 46 * dt;
+    S.earV *= Math.pow(0.02, dt);
+    S.earA += S.earV * dt;
+    S.ear2V += (targetEar * 1.35 - S.ear2A) * 38 * dt - S.earV * 0.3;
+    S.ear2V *= Math.pow(0.02, dt);
+    S.ear2A += S.ear2V * dt;
+    S.tailV += (-S.dir * 0.25 * (0.3 + S.speed / maxRun) - S.tailA) * 30 * dt;
+    S.tailV *= Math.pow(0.05, dt);
+    S.tailA += S.tailV * dt;
+    var targetBody = (S.state === "sit" ? 22 : 0) + Math.abs(Math.sin(S.phase * 2)) * (S.speed > 16 ? 4 : 0);
+    S.bodyV += (targetBody - S.bodyY) * 90 * dt;
+    S.bodyV *= Math.pow(0.01, dt);
+    S.bodyY += S.bodyV * dt;
+
+    /* il respiro quando è fermo, il battito di ciglia, il tremito */
+    if (S.blink <= 0 && Math.random() < dt * 0.35) S.blink = 0.14;
+    if (S.blink > 0) S.blink -= dt;
+    if (S.idle > 2 && Math.random() < dt * 0.25) S.twitch = 0.5;
+    if (S.twitch > 0) S.twitch -= dt;
+  }
+
+  /* la stessa animazione, per chi ha una fisica sua (le terre): dopo
+     aver messo lo stato del corpo, si chiama questa e il coniglio si
+     muove come nel museo */
+  R.anima = anima;
+
   /* ---- passo -------------------------------------------------- */
   R.update = function (dt, input, room, look) {
     if (!S) return;
@@ -320,48 +421,11 @@
     /* quanto è per aria: serve all'ombra e alle zampe raccolte */
     S.hop = S.ground ? 0 : Math.min(1, Math.abs(S.vy) / 880 + 0.35);
 
-    /* lo stato: la macchina a stati è tutta qui */
+    /* lo stato, il ciclo delle zampe, le molle: tutto in anima(), che
+       è la stessa funzione che chiamano le terre */
     S.speed = Math.abs(S.vx);
-    var prev = S.state;
-    if (S.state !== "enter") {
-      if (!S.ground) S.state = "jump";
-      else if (S.speed > 860) S.state = "run";
-      else if (S.speed > 16) S.state = "walk";
-      else if (S.idle > 6) S.state = "sit";
-      else S.state = "idle";
-    }
-    if (prev !== S.state && S.state === "sit") S.phase = 0;
+    anima(dt, maxRun);
 
-    /* il ciclo: avanza con la velocità, si ferma con il corpo.
-       Il divisore tiene la falcata credibile anche adesso che il
-       coniglio corre il doppio: le zampe non diventano un frullatore.
-       Oltre una certa velocità il ciclo smette di accelerare, e la
-       corsa si legge come corsa invece che come guasto. */
-    S.phase += (Math.min(S.speed, 980) / 70) * dt * 7.5;
-    if (S.speed < 16) S.phase += dt * 0.6;
-
-    /* le molle: orecchie, coda, corpo */
-    var bounce = S.state === "walk" || S.state === "run" ? Math.sin(S.phase * 2) * 0.16 : 0;
-    var targetEar = -0.35 * S.dir * (S.speed / maxRun) + bounce * 0.5 + (S.state === "sit" ? 0.5 : 0);
-    S.earV += (targetEar - S.earA) * 46 * dt;
-    S.earV *= Math.pow(0.02, dt);
-    S.earA += S.earV * dt;
-    S.ear2V += (targetEar * 1.35 - S.ear2A) * 38 * dt - S.earV * 0.3;
-    S.ear2V *= Math.pow(0.02, dt);
-    S.ear2A += S.ear2V * dt;
-    S.tailV += (-S.dir * 0.25 * (0.3 + S.speed / maxRun) - S.tailA) * 30 * dt;
-    S.tailV *= Math.pow(0.05, dt);
-    S.tailA += S.tailV * dt;
-    var targetBody = (S.state === "sit" ? 22 : 0) + Math.abs(Math.sin(S.phase * 2)) * (S.speed > 16 ? 4 : 0);
-    S.bodyV += (targetBody - S.bodyY) * 90 * dt;
-    S.bodyV *= Math.pow(0.01, dt);
-    S.bodyY += S.bodyV * dt;
-
-    /* il respiro quando è fermo, il battito di ciglia, il tremito */
-    if (S.blink <= 0 && Math.random() < dt * 0.35) S.blink = 0.14;
-    if (S.blink > 0) S.blink -= dt;
-    if (S.idle > 2 && Math.random() < dt * 0.25) S.twitch = 0.5;
-    if (S.twitch > 0) S.twitch -= dt;
     if (look) R.shape(look);
   };
 
@@ -393,7 +457,12 @@
   R.draw = function (ctx, pal, time) {
     var S2 = R.get();
     if (!S2) return;
-    var s = S2.build;
+    /* build è la corporatura scelta al questionario; scale è quanto è
+       grande il mondo intorno. Il museo sta a 1 (la sala è alta 1000
+       unità); le terre, che misurano in pixel, stanno a H/1000. È la
+       stessa misura: il coniglio occupa la stessa parte di schermo */
+    var sc = S2.scale || 1;
+    var s = S2.build * sc;
     var run = S2.state === "run", walk = S2.state === "walk";
     var stride = (run ? 42 : walk ? 26 : 0) * Math.min(1, S2.speed / 240);
     var bob = Math.sin(S2.phase * 2) * (walk ? 2.4 : run ? 5 : 0) * s;
@@ -403,7 +472,7 @@
     ctx.save();
     ctx.translate(S2.x, S2.y);
     /* l'ombra: si allunga con la velocità */
-    var sw = S2.w * (1.05 - S2.hop * 0.3);
+    var sw = S2.w * sc * (1.05 - S2.hop * 0.3);
     var sh = ctx.createRadialGradient(0, 0, 1, 0, 0, sw);
     sh.addColorStop(0, "rgba(0,0,0,0.55)");
     sh.addColorStop(0.6, "rgba(0,0,0,0.22)");

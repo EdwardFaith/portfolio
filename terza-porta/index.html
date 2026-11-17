@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PORTA 03 // L'OCCHIO</title>
+  <meta name="description" content="Un labirinto di carne, quattro occhi che ti cercano. Mangia i bulbi: per venti secondi la bocca si apre e chi ti tocca diventa un boccone. Raycasting in prima persona.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="sala">
+    <canvas id="tela" aria-label="Un labirinto di carne visto in prima persona"></canvas>
+
+    <!-- righe da tubo catodico: non è un filtro, è l'aria -->
+    <div id="velo"></div>
+
+    <!-- l'unica introduzione: sparisce al primo gesto -->
+    <div id="avviso">
+      <p id="avviso-titolo">III — l'occhio</p>
+      <p id="avviso-testo">
+        Sei dentro uno stomaco. Nel buio camminano quattro uomini con un occhio
+        al posto della testa: se ti toccano, ti prendono.
+      </p>
+      <p id="avviso-regola">
+        Mangia i denti. Nei quattro angoli ci sono bulbi grandi come teste:
+        per venti secondi sei tu il predatore — mastica, sputa, fagocita.
+      </p>
+      <p id="avviso-invito"><span class="per-topo">clicca o premi un tasto</span><span class="per-dito">tocca per cominciare — trascina per guardarti intorno</span></p>
+    </div>
+
+    <p id="aiuto"><span class="per-topo">w a s d — muoviti · mouse — guarda · clic / spazio — sputa · tab — mappa · f — schermo</span><span class="per-dito">trascina — guarda · ◀ ▲ ▶ — muoviti · ◦ — sputa</span></p>
+
+    <button id="voce" type="button" title="Suono acceso — clic per spegnerlo" aria-pressed="false">◍</button>
+    <button id="schermo" type="button" title="Schermo intero (F)" aria-pressed="false">⛶</button>
+    <a id="ritorno" href="../museo.html?stanza=soffitta&amp;x=2080"
+       title="Torna alla soffitta, davanti alla terza porta">◀ soffitta</a>
+
+    <div id="tocco" aria-hidden="true">
+      <button class="t" type="button" data-k="left">◀</button>
+      <button class="t" type="button" data-k="up">▲</button>
+      <button class="t" type="button" data-k="right">▶</button>
+      <button class="t" type="button" data-k="act">◦</button>
+    </div>
+  </div>
+
+  <script src="sound.js"></script>
+  <script src="stage.js"></script>
+  <script src="avatar.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

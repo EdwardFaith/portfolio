@@ -22,7 +22,11 @@
   var time = 0, last = 0;
   var target = null;
   function isTouchDevice() {
-    return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+    /* la risposta sta in device.js, una sola per tutto il museo: un
+       portatile col touchscreen non è un telefono, e i tasti del
+       telefono non devono comparire sulla tastiera */
+    if (M.DEVICE && M.DEVICE.touch) return M.DEVICE.touch();
+    return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
   }              /* cosa si può guardare, adesso */
   var dialog = null, npcPhase = 0;
   var workerJob = null;           /* cosa sta staccando l'operaio */
@@ -193,6 +197,16 @@
       if (room.loop && rabbit.x >= room.loop) rabbit.x -= room.loop;
       rabbit.y = room.floorY;
       rabbit.vx = 0;
+    }
+    /* il posto dove sei finisce nel quaderno da solo: la porta dei
+       ragni mostra l'elenco dei posti, e non c'è niente da scrivere */
+    if (M.STATO && M.STATO.segnaCheckpoint) {
+      try {
+        M.STATO.segnaCheckpoint({
+          stanza: room.id, x: Math.round(rabbit ? rabbit.x : 0),
+          nome: room.title
+        }, "museo");
+      } catch (e) { }
     }
     cam.x = room.loop ? rabbit.x - cam.w / 2 : Math.max(0, rabbit.x - cam.w / 2);
     cam.zoom = 1;
@@ -595,7 +609,13 @@
         n.step = (n.step || 0) + dt * 1.2;
         if (!n.pause) n.pause = 2.5 + Math.random() * 5;
         n.pause -= dt;
-        if (n.pause <= 0) n.tx = 300 + Math.random() * Math.max(240, room.maxX - 1000);
+        if (n.pause <= 0) {
+          /* ognuno ha il suo tratto: l'ospite della banchina aspetta il
+             treno, non attraversa trentaduemila unità di corridoio */
+          n.tx = n.casa
+            ? n.casa[0] + Math.random() * Math.max(60, n.casa[1] - n.casa[0])
+            : 300 + Math.random() * Math.max(240, room.maxX - 1000);
+        }
       }
     }
 
@@ -649,7 +669,9 @@
         actBtn.textContent = "PARLA";
         actBtn.classList.remove("is-door");
       } else if (target && target.work) {
-        actBtn.textContent = (target.work.kind === "note") ? "LEGGI" : "GUARDA";
+        /* non "guarda": la stazione e le opere non si guardano soltanto,
+           si usano. Il tasto dice cosa fa, non cosa sembra. */
+        actBtn.textContent = (target.work.kind === "note") ? "LEGGI" : "INTERAGISCI";
         actBtn.classList.remove("is-door");
       } else {
         actBtn.textContent = "E";
@@ -1046,6 +1068,8 @@
     if (target.talk === "woman") { openWoman(); return; }
     if (target.soffittaDoor) { if (M.SOFFITTA && M.SOFFITTA.interactDoor) M.SOFFITTA.interactDoor(target); return; }
     if (target.soffittaLadder) { go(target.door); return; }
+    /* la stazione: il controllore chiama il treno, il treno porta via */
+    if (target.metro) { if (M.METRO && M.METRO.interact) M.METRO.interact(target); return; }
     if (target.jukebox) { openJukebox(); return; }
     if (target.talk) { speakProp(target.prop); return; }
     if (target.door) { go(target.door); return; }
@@ -2231,7 +2255,13 @@
     /* ≡ apre la mappa, non il questionario: il questionario sta al bar */
     if (menu) menu.addEventListener("click", openMap);
 
-    if (isTouchDevice()) document.body.classList.add("touch-device");
+    if (M.DEVICE && M.DEVICE.segna) M.DEVICE.segna();
+    else if (isTouchDevice()) document.body.classList.add("touch-device");
+    if (M.DEVICE && M.DEVICE.osserva) {
+      /* se il puntatore cambia sotto — tavoletta staccata, mouse
+         collegato — i comandi cambiano con lui */
+      M.DEVICE.osserva();
+    }
     var touch = $("touch");
     if (touch) {
       var btns = touch.querySelectorAll("[data-k]");
@@ -2305,9 +2335,10 @@
       if (dxi <= iw / 2 + 8 && wy >= iy - 8 && wy <= iy + ih + 8) return true;
     }
 
-    // 2. Scritta EXIT / ESCI
-    if (room.exitSign) {
-      var es = room.exitSign;
+    // 2. Scritta EXIT / ESCI — una per metà del giro
+    var ess = (M.WORLD && M.WORLD.exitSigns) ? M.WORLD.exitSigns(room) : (room.exitSign ? [room.exitSign] : []);
+    for (var qe = 0; qe < ess.length; qe++) {
+      var es = ess[qe];
       var dxes = L > 0 ? dxw(es.x + es.w / 2) : Math.abs(wx - (es.x + es.w / 2));
       if (dxes <= es.w / 2 + 10 && wy >= es.y - 10 && wy <= es.y + es.h + 10) return true;
     }
@@ -2365,12 +2396,15 @@
       if (dxwom <= 75 && wy >= room.floorY - 350 && wy <= room.floorY + 15) return true;
     }
 
-    // 8. Jukebox
-    if (room.jukebox) {
-      var jbW = room.jukebox.w || 100, jbH = room.jukebox.h || 200;
-      var jbx = room.jukebox.x + jbW / 2;
+    // 8. Jukebox — ce n'è uno per metà del giro
+    var jbs = [room.jukebox, room.jukebox2];
+    for (var qj = 0; qj < jbs.length; qj++) {
+      var jb = jbs[qj];
+      if (!jb) continue;
+      var jbW = jb.w || 100, jbH = jb.h || 200;
+      var jbx = jb.x + jbW / 2;
       var dxjb = L > 0 ? dxw(jbx) : Math.abs(wx - jbx);
-      if (dxjb <= jbW / 2 + 15 && wy >= room.jukebox.y - 15 && wy <= room.jukebox.y + jbH + 15) return true;
+      if (dxjb <= jbW / 2 + 15 && wy >= jb.y - 15 && wy <= jb.y + jbH + 15) return true;
     }
 
     // 9. Computerino
@@ -2398,14 +2432,7 @@
     if (room.cam && M.CAMERA && M.CAMERA.hitAt && M.CAMERA.hitAt(room, wx, wy)) return true;
     if (room.cz && M.COSMO && M.COSMO.hitAt && M.COSMO.hitAt(room, wx, wy)) return true;
     if (room.ars && M.ARSENAL && M.ARSENAL.hitAt && M.ARSENAL.hitAt(room, wx, wy)) return true;
-    if (room && room.id === "soffitta" && M.SOFFITTA && M.SOFFITTA.DOORS) {
-      for (var sdi2 = 0; sdi2 < M.SOFFITTA.DOORS.length; sdi2++) {
-        var sdr2 = M.SOFFITTA.DOORS[sdi2];
-        if (wx >= sdr2.x - 15 && wx <= sdr2.x + sdr2.w + 15 &&
-            wy >= (room.floorY || 880) - sdr2.h - 20 && wy <= (room.floorY || 880) + 20) {
-          return true;
-        }
-      }
+    if (room && room.id === "soffitta") {
       if (Math.abs(wx - 240) < 65 && wy >= (room.floorY || 880) - 70 && wy <= (room.floorY || 880) + 40) return true;
     }
     if (room && (room.id === "interattivo" || room.id === "codec")) {
@@ -2468,15 +2495,23 @@
       go("hub");
       return;
     }
-    if (room && room.exitSign && wx >= room.exitSign.x - 70 && wx <= room.exitSign.x + room.exitSign.w + 70 && wy >= room.exitSign.y - 60 && wy <= room.exitSign.y + room.exitSign.h + 70) {
-      if (room.id === "hub") { go("lucidus"); }
-      else if (room.id === "lucidus") { go("hub"); }
-      else { leaveToSite(); }
-      return;
+    if (room && room.exitSign) {
+      var ess2 = (M.WORLD && M.WORLD.exitSigns) ? M.WORLD.exitSigns(room) : [room.exitSign];
+      for (var qe2 = 0; qe2 < ess2.length; qe2++) {
+        var es2 = ess2[qe2];
+        if (dxw(es2.x + es2.w / 2) <= es2.w / 2 + 70 &&
+          wy >= es2.y - 60 && wy <= es2.y + es2.h + 70) {
+          if (room.id === "hub") { go("lucidus"); }
+          else if (room.id === "lucidus") { go("hub"); }
+          else { leaveToSite(); }
+          return;
+        }
+      }
     }
     if (target) {
       if (target.door) { interact(); return; }
-      if (target.soffittaDoor || target.soffittaLadder) { interact(); return; }
+      if (target.soffittaDoor) { interact(); return; }
+      if (target.soffittaLadder) { interact(); return; }
       if (target.exit) { interact(); return; }
       if (target.hatch) { interact(); return; }
       if (target.x != null && dxw(target.x) < 320) { interact(); return; }
@@ -2487,23 +2522,12 @@
     if (target && target.door) {
       if (dxw(target.x) < 230) { interact(); return; }
     }
-    if (target && target.soffittaDoor) {
-      if (dxw(target.x) < 260) { interact(); return; }
-    }
     if (target && target.soffittaLadder) {
       if (dxw(target.x) < 260) { interact(); return; }
     }
-    /* Porte della soffitta (clic con il mouse) */
-    if (room && room.id === "soffitta" && M.SOFFITTA && M.SOFFITTA.DOORS) {
-      for (var sdi = 0; sdi < M.SOFFITTA.DOORS.length; sdi++) {
-        var sdr = M.SOFFITTA.DOORS[sdi];
-        if (wx >= sdr.x - 20 && wx <= sdr.x + sdr.w + 20 && wy >= (room.floorY || 880) - sdr.h - 30 && wy <= (room.floorY || 880) + 30) {
-          if (M.SOFFITTA.interactDoor) {
-            M.SOFFITTA.interactDoor({ soffittaDoor: true, doorData: sdr });
-            return;
-          }
-        }
-      }
+    /* la botola della soffitta si tocca col dito;
+       le grate si aprono solo da davanti, con E */
+    if (room && room.id === "soffitta") {
       var hatchX = 240;
       if (Math.abs(wx - hatchX) < 70 && wy >= (room.floorY || 880) - 70 && wy <= (room.floorY || 880) + 50) {
         go("interattivo");
@@ -2566,13 +2590,16 @@
       }
     }
     if (room.exitSign) {
-      var es = room.exitSign;
-      if (wx > es.x - 24 && wx < es.x + es.w + 24 &&
-        wy > es.y - 24 && wy < es.y + es.h + 24) {
-        if (room.id === "hub") { go("lucidus"); return; }
-        if (room.id === "lucidus") { go("hub"); return; }
-        leaveToSite();
-        return;
+      var ess3 = (M.WORLD && M.WORLD.exitSigns) ? M.WORLD.exitSigns(room) : [room.exitSign];
+      for (var qe3 = 0; qe3 < ess3.length; qe3++) {
+        var es3 = ess3[qe3];
+        if (dxw(es3.x + es3.w / 2) <= es3.w / 2 + 24 &&
+          wy > es3.y - 24 && wy < es3.y + es3.h + 24) {
+          if (room.id === "hub") { go("lucidus"); return; }
+          if (room.id === "lucidus") { go("hub"); return; }
+          leaveToSite();
+          return;
+        }
       }
     }
     /* la guida si tocca con il dito, come il pinguino */
@@ -2597,9 +2624,12 @@
     if (room.woman && dxw(room.woman.x) < 80 && wy > room.floorY - 360) {
       openWoman(); return;
     }
-    if (room.jukebox && dxw(room.jukebox.x + room.jukebox.w / 2) < 70 &&
-      wy > room.jukebox.y - 20) {
-      openJukebox(); return;
+    var jbs3 = [room.jukebox, room.jukebox2], qj3;
+    for (qj3 = 0; qj3 < jbs3.length; qj3++) {
+      if (!jbs3[qj3]) continue;
+      if (dxw(jbs3[qj3].x + jbs3[qj3].w / 2) < 70 && wy > jbs3[qj3].y - 20) {
+        openJukebox(); return;
+      }
     }
     if (room.arch === "hub" && dxw(room.npc.x) < 70 && wy > room.floorY - 300) {
       openDialog(); return;
@@ -2667,10 +2697,44 @@
        (dalla spedizione si esce davanti al robot guasto, non al banco) */
     var qs = String((root.location && root.location.search) || "");
     var hit = /[?&]stanza=([a-z0-9_]+)/i.exec(qs);
+    /* ?da=treno — si arriva dalle terre, in metropolitana. Si scende
+       sulla banchina della stazione, e il nastro del viaggio si riavvolge
+       per dieci secondi: il treno è appena ripartito all'indietro, e di
+       qua si vede tornare indietro quello che si era visto andare */
+    var daTreno = /[?&]da=treno(&|$)/i.test(qs);
+    /* ?da=morte — si arriva dalle terre, rincarnati. Non è un ritorno
+       da una porta: si rinasce al banco, davanti al pinguino, che ha
+       la battuta pronta. Chi muore non riparte da dove è morto: da
+       morti si finisce sempre qui. */
+    var daMorte = /[?&]da=morte(&|$)/i.test(qs);
     if (hit) {
       var rid = hit[1].toLowerCase();
       if (M.WORLD && M.WORLD.byId && M.WORLD.byId[rid]) {
         goRoom(rid, true);
+        /* la battuta del ritorno: prima che la camera si posi */
+        if (daMorte) {
+          startAtBar("peng.terre", 700);
+          return;
+        }
+        /* ?x= — chi torna da una porta si ritrova davanti alla stessa
+           grata da cui è uscito, non all'imbocco della stanza */
+        var hx = /[?&]x=(\d+)/i.exec(qs);
+        if (hx && rabbit && room) {
+          var wx = parseInt(hx[1], 10);
+          if (!isNaN(wx)) {
+            rabbit.x = Math.max(0, Math.min((room.maxX || 2600) - 80, wx));
+            rabbit.vx = 0;
+            cam.x = room.loop
+              ? rabbit.x - cam.w / 2
+              : Math.max(0, rabbit.x - cam.w / 2);
+            clampCam();
+          }
+        }
+        if (daTreno && M.METRO && M.METRO.parti) {
+          setTimeout(function () {
+            if (M.METRO && M.METRO.parti) M.METRO.parti({ inverso: true });
+          }, 520);
+        }
         return;
       }
     }
@@ -2684,8 +2748,9 @@
     }
     /* si comincia al banco, non in mezzo al corridoio: prima che uno
        parta e si perda, il pinguino spiega in che posto è finito —
-       cioè un portfolio, con le porte. Poi si cammina. */
-    startAtBar("peng.intro", 900);
+       cioè un portfolio, con le porte. Poi si cammina. E chi arriva
+       morto dalle terre trova lui, con un'altra battuta. */
+    startAtBar(daMorte ? "peng.terre" : "peng.intro", daMorte ? 700 : 900);
   }
   G.begin = begin;
 
@@ -2755,6 +2820,14 @@
       };
     }
 
+    /* ---- la stazione: il controllore, e il treno quando è fermo --
+       Non è una porta del museo: è un mezzo pubblico. Risponde solo
+       lui, e solo da vicino. */
+    if (room.metro && M.METRO && M.METRO.pick) {
+      var mt = M.METRO.pick(room, cx, far);
+      if (mt) return mt;
+    }
+
     /* il foglio aperto in fondo a Radio Kaoss: non è una porta del
        museo, è una pagina, e si entra solo da davanti */
     if (M.FOWLINK && M.FOWLINK.spot) {
@@ -2805,13 +2878,15 @@
         best = { talk: room.bar.talk, prop: room.bar, x: hubXOf(room.bar), y: room.floorY - 300 };
       }
     }
-    /* il jukebox: le tracce della radio vera */
-    if (room.jukebox) {
-      var jx2 = room.jukebox.x + room.jukebox.w / 2;
+    /* il jukebox: le tracce della radio vera — ce n'è uno per metà */
+    var jbs4 = [room.jukebox, room.jukebox2], qj4;
+    for (qj4 = 0; qj4 < jbs4.length; qj4++) {
+      if (!jbs4[qj4]) continue;
+      var jx2 = jbs4[qj4].x + jbs4[qj4].w / 2;
       d = far(jx2);
       if (d < 160 && d < bd) {
         bd = d;
-        best = { jukebox: true, prop: room.jukebox, x: jx2, y: room.jukebox.y + 40 };
+        best = { jukebox: true, prop: jbs4[qj4], x: jx2, y: jbs4[qj4].y + 40 };
       }
     }
     /* il computerino del laboratorio: si preme e si apre il gioco Lucidus */
@@ -2867,15 +2942,18 @@
       }
     }
     if (room.arch === "hub" || room.arch === "lucidus") {
-      /* la scritta ESCI / EXIT */
-      if (room.exitSign) {
-        d = far(room.exitSign.x + room.exitSign.w / 2);
+      /* la scritta ESCI / EXIT — una per metà del giro, quindi si
+         guarda quale delle due è più vicina */
+      var ess4 = (M.WORLD && M.WORLD.exitSigns) ? M.WORLD.exitSigns(room) : (room.exitSign ? [room.exitSign] : []);
+      for (var qe4 = 0; qe4 < ess4.length; qe4++) {
+        var es4 = ess4[qe4];
+        d = far(es4.x + es4.w / 2);
         if (d < 190 && d < bd) {
           bd = d;
           var exTitle = room.id === "lucidus" ? "exit · opzioni di uscita" : say("hud.out");
           best = {
-            exit: true, x: room.exitSign.x + room.exitSign.w / 2,
-            y: room.exitSign.y, title: exTitle
+            exit: true, x: es4.x + es4.w / 2,
+            y: es4.y, title: exTitle
           };
         }
       }

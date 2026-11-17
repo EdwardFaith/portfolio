@@ -82,16 +82,40 @@
      ancora.
      ============================================================ */
   T.hatch = function (room) {
+    var h = botolaBase(room);
+    if (!h) return null;
+    if (!room.loop) return h;
+    /* nel giro la botola c'è due volte, una per metà. Qui si restituisce
+       quella più vicina a chi cammina, così mirarla e disegnarla
+       parlano della stessa buca */
+    var p = (M.RABBIT && M.RABBIT.get) ? M.RABBIT.get() : null;
+    if (!p || p.x == null) return h;
+    var m = room.loop - h.x;
+    var d1 = Math.abs(p.x - h.x), d2 = Math.abs(p.x - m);
+    d1 = Math.min(d1, room.loop - d1);
+    d2 = Math.min(d2, room.loop - d2);
+    return d2 < d1 ? { x: m, y: h.y, w: h.w, h: h.h } : h;
+  };
+
+  /* tutte le buche del giro: la sua, e la sua specchiata */
+  T.hatchCopies = function (room) {
+    var h = botolaBase(room);
+    if (!h) return [];
+    if (!room.loop) return [h];
+    return [h, { x: room.loop - h.x, y: h.y, w: h.w, h: h.h }];
+  };
+
+  function botolaBase(room) {
     if (!room || !room.floorY) return null;
     if (T.depth >= 2) return null;              /* all'ultimo piano non si scende più */
     if (T.depth === 0 && room.id !== "hub") return null;
     if (room._sotHatch === undefined) {
       var x;
       if (room.id === "hub") {
-        /* fra la porta di Memorie del Cosmo (2040, larga 130) e quella
-           di Visual AI (2680): il tratto di pavimento che resta libero
-           fra la panca di una e quella dell'altra (world.js) */
-        x = 2550;
+        /* world.js la mette fra la porta di Memorie del Cosmo (IV) e
+           quella di Visual AI (V): è il tratto di muro rimasto
+           spoglio, fra la panca di una e quella dell'altra */
+        x = room.hatchX || 3470;
       } else {
         var span = (room.maxX || 1000) - (room.minX || 0);
         x = Math.round((room.minX || 0) + span * (0.34 + ((room.seed || 0) % 3) * 0.11));
@@ -99,7 +123,7 @@
       room._sotHatch = { x: x, y: room.floorY, w: HATCH_W, h: HATCH_H };
     }
     return room._sotHatch;
-  };
+  }
 
   /* la riga che compare quando ci si ferma sopra */
   T.hatchLabel = function () {
@@ -628,8 +652,24 @@
      ============================================================ */
   T.paintWorld = function (ctx, room, t, cam) {
     if (!room) return;
-    var h = T.hatch(room);
-    if (h && h.x + 320 > cam.x - 200 && h.x - 320 < cam.x + cam.w + 200) drawHatch(ctx, room, h, t);
+    /* le buche: quella di questa metà del giro, la sua specchiata, e
+       le copie del giro accanto — così la cucitura non si vede */
+    var buche = T.hatchCopies(room), shifts = [0], i, k, h, off;
+    if (room.loop && M.WORLD && M.WORLD.loopShifts) {
+      shifts = M.WORLD.loopShifts(room, cam) || [0];
+    }
+    for (k = 0; k < shifts.length; k++) {
+      off = shifts[k];
+      for (i = 0; i < buche.length; i++) {
+        h = buche[i];
+        var bx = h.x + off;
+        if (bx + 320 < cam.x - 200 || bx - 320 > cam.x + cam.w + 200) continue;
+        ctx.save();
+        ctx.translate(off, 0);
+        drawHatch(ctx, room, h, t);
+        ctx.restore();
+      }
+    }
     if (T.depth < 2) return;
 
     /* ---- il piano di sotto: il foglio si è bagnato ---- */

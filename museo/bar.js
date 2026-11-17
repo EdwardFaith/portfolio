@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    IL BERE — la stanza che non c'è.
 
    Comincia in fondo alla botola. Chi scende non torna al sito: torna

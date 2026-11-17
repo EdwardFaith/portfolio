@@ -691,10 +691,10 @@
     {
       id: "soffitta",
       num: "ATTIC",
-      title: { it: "SOFFITTA INTERATTIVA", en: "INTERACTIVE ATTIC" },
+      title: { it: "LA SOFFITTA", en: "THE ATTIC" },
       line: {
-        it: "la soffitta tecnologica della sala interattiva: cavi pulsanti, circuiti e tre porte d'acciaio sigillate.",
-        en: "the tech attic of the interactive zone: pulsing cables, circuits and three sealed steel doors."
+        it: "la soffitta vera, sopra la sala interattiva: tavole marce, travi di legno, vecchi cavi di rame e tre grate da carcere, una per simbolo.",
+        en: "the real attic, above the interactive room: rotting boards, wooden beams, old copper cables and three prison grates, one per symbol."
       },
       arch: "soffitta",
       noFeature: true,

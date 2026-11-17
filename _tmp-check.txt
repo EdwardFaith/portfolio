@@ -1,0 +1,9 @@
+﻿cscript : C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\_tmp-parse.js(21, 1) Errore di run-time di JavaScript: 
+'globalThis' non è definito
+In riga:1 car:47
++ ... se.js -Force; cscript //nologo //E:JScript _tmp-parse.js 2>&1 | Out-F ...
++                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (C:\Users\Emanue... non è definito:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+

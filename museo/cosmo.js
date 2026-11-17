@@ -310,7 +310,7 @@
     /* targa non interattiva */
     if (t.kind === "dep") return "la consolle di partenza";
     if (t.kind === "airlock") {
-      var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+      var isTouch = (M.DEVICE && M.DEVICE.touch) ? M.DEVICE.touch() : (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
       return "IL GIOCO ETERNO · LA MODALITÀ INFINITA " + (isTouch ? "(TOCCA PER ENTRARE)" : "(PREMI E PER ENTRARE)");
     }
     if (t.kind === "gift_eye") {

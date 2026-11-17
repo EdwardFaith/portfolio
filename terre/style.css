@@ -1,0 +1,332 @@
+/* ============================================================
+   LE TERRE — LA SPIAGGIA
+   Cenere, petrolio, ocra. Nessun riquadro di sistema: solo quello
+   che hai in mano in un angolo, il simbolo del suono nell'altro, e i
+   tasti in basso.
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: #0a0a08;
+  color: #e6dcc4;
+  font-family: ui-monospace, "SF Mono", "Courier New", monospace;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#sala {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #0a0a08;
+}
+
+#tela {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+/* ── il puntatore — la stessa logica del museo, non una croce
+      disegnata sulla tela che si perde nel colore di fondo. Qui il
+      cursore è del sistema, quindi c'è sempre: croce normale sul
+      mondo, mirino rosso quando sotto c'è qualcosa da fare. Il foglio
+      delle terre prima spegneva il puntatore e lo ridisegnava a
+      inchiostro: metà delle volte non si vedeva. ────────────────── */
+#sala,
+#sala #tela {
+  cursor: crosshair;
+}
+
+#sala #tela.interattivo,
+#sala a,
+#sala button {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='12' cy='12' r='2' fill='%23ff1e1e'/%3E%3Cline x1='12' y1='1' x2='12' y2='6' stroke='%23ff1e1e' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='12' y1='18' x2='12' y2='23' stroke='%23ff1e1e' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='1' y1='12' x2='6' y2='12' stroke='%23ff1e1e' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='18' y1='12' x2='23' y2='12' stroke='%23ff1e1e' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='12' r='8' stroke='%23ff1e1e' stroke-width='1.6' fill='rgba(255,30,30,0.22)'/%3E%3C/svg%3E") 12 12, pointer;
+}
+
+/* ── IL VELO VHS — lo stesso del museo, riga per riga.
+      Quattro strati sopra tutto: le righe del tubo, il croma che
+      sbarella ai bordi, la grana della pellicola, il nastro che ogni
+      tanto perde la testa. Non è un filtro delle terre, è l'aria: chi
+      cambia qui, lo cambi uguale in museo/museo.css (#vhs). ─────── */
+#vhs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  /* nel museo la telecamera stringe e il velo si assottiglia (la
+     variabile la scrive main.js). Qui la telecamera non stringe mai:
+     zero, e il velo sta a metà, come nel corridoio */
+  --zoom: 0;
+  mix-blend-mode: screen;
+  opacity: calc(0.5 - var(--zoom) * 0.35);
+}
+
+#vhs i {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+#vhs .scan {
+  background: repeating-linear-gradient(to bottom,
+      rgba(255, 255, 255, 0.045) 0px, rgba(255, 255, 255, 0.045) 1px,
+      transparent 1px, transparent 3px);
+}
+
+#vhs .chroma {
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(220, 38, 38, 0.10) 100%),
+    radial-gradient(ellipse at 50% 50%, transparent 62%, rgba(30, 90, 160, 0.10) 100%);
+}
+
+#vhs .grain {
+  opacity: 0.10;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.35) 0.5px, transparent 0.6px);
+  background-size: 3px 3px;
+  animation: grain 0.6s steps(3) infinite;
+}
+
+#vhs .track {
+  height: 40%;
+  background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.05) 48%,
+      rgba(255, 255, 255, 0.10) 50%, transparent 52%, transparent 100%);
+  animation: track 7.5s linear infinite;
+}
+
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  33% { transform: translate(-1px, 1px); }
+  66% { transform: translate(1px, -1px); }
+}
+
+@keyframes track {
+  0% { transform: translateY(-60%); opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.4; }
+  100% { transform: translateY(320%); opacity: 0; }
+}
+
+/* chi ha chiesto al sistema di non farlo sbattere: il velo resta,
+   la grana e il nastro si fermano */
+@media (prefers-reduced-motion: reduce) {
+  #vhs .grain,
+  #vhs .track { animation: none; }
+}
+
+/* ── il suono: un simbolo solo, in un angolo, che non chiede
+      niente. Spento diventa un filo più chiaro e barrato ──────── */
+#suono {
+  position: absolute;
+  top: calc(10px + env(safe-area-inset-top, 0px));
+  left: calc(12px + env(safe-area-inset-left, 0px));
+  z-index: 26;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  color: #8a7f60;
+  background: none;
+  border: 0;
+  padding: 9px 10px;
+  opacity: 0.6;
+  transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+#suono:hover,
+#suono:focus-visible { opacity: 1; color: #f0e6cc; outline: none; }
+
+#suono[aria-pressed="true"] { color: #c9b98e; opacity: 0.8; }
+
+#suono.spento {
+  color: #4b4436;
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+/* ── il ritorno ─────────────────────────────────────────────── */
+#ritorno {
+  position: absolute;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  right: calc(14px + env(safe-area-inset-right, 0px));
+  z-index: 26;
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #7f7456;
+  text-decoration: none;
+  padding: 8px 10px;
+  opacity: 0.65;
+  transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+#ritorno:hover,
+#ritorno:focus-visible { opacity: 1; color: #f0e6cc; outline: none; }
+
+/* ── il fumetto ────────────────────────────────────────────────
+   Il fumetto è disegnato sul mondo (mondo.js, disegnaBolla): qui
+   resta solo la riga che leggono i lettori di schermo. */
+#didascalia {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── il dito ────────────────────────────────────────────────── */
+#tocco {
+  position: absolute;
+  inset: 0;
+  z-index: 28;
+  display: none;
+  pointer-events: none;
+}
+
+#tocco .t {
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  border: 1px solid rgba(226, 210, 170, 0.2);
+  border-radius: 50%;
+  background: rgba(30, 28, 20, 0.28);
+  color: rgba(230, 220, 196, 0.6);
+  font: 20px/1 ui-monospace, monospace;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+#tocco .t:active { background: rgba(120, 100, 60, 0.35); }
+
+#tocco .t[data-k="left"]  { left: calc(16px + env(safe-area-inset-left, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
+#tocco .t[data-k="right"] { left: calc(112px + env(safe-area-inset-left, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
+#tocco .t[data-k="run"]   { left: calc(208px + env(safe-area-inset-left, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); width: 68px; height: 68px; font-size: 17px; }
+#tocco .t[data-k="jump"]  { right: calc(124px + env(safe-area-inset-right, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); width: 96px; height: 96px; color: rgba(226, 208, 160, 0.75); }
+#tocco .t[data-k="act"]   { right: calc(18px + env(safe-area-inset-right, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); width: 96px; height: 96px; color: rgba(240, 216, 160, 0.8); }
+
+/* ── chi usa il dito, chi il mouse ─────────────────────────── */
+body.touch-device #tocco { display: block; }
+body.desktop-device #tocco { display: none; }
+
+@media (pointer: coarse) {
+  #tocco { display: block; }
+}
+
+/* ── quello che hai in mano ─────────────────────────────────── */
+#arma {
+  position: absolute;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  left: calc(16px + env(safe-area-inset-left, 0px));
+  margin-top: 58px;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+}
+
+#arma .k {
+  font-size: 8px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #6f6448;
+}
+
+#arma .v {
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #b3a67f;
+}
+
+#arma .v.fioca { color: #5a5040; }
+
+/* ── le tre vite ────────────────────────────────────────────────
+   Tre segni sotto quello che hai in mano. Accesi sono chiari, spenti
+   sono un buco. Non c'è nessun numero: è un arcade. ───────────── */
+#vite {
+  position: absolute;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  left: calc(16px + env(safe-area-inset-left, 0px));
+  margin-top: 116px;
+  z-index: 25;
+  display: flex;
+  gap: 7px;
+  pointer-events: none;
+}
+
+#vite i {
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #6b5340;
+  box-shadow: 0 0 0 1px rgba(226, 210, 170, 0.22);
+  transition: background 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+}
+
+#vite i.on {
+  background: #d8c48a;
+  box-shadow: 0 0 6px rgba(226, 198, 120, 0.55), 0 0 0 1px rgba(240, 226, 190, 0.5);
+}
+
+#vite i.off {
+  background: rgba(14, 12, 10, 0.9);
+  box-shadow: 0 0 0 1px rgba(120, 104, 74, 0.35);
+  opacity: 0.45;
+}
+
+/* ── dentro le case: la leva, e il resto non serve. Il velo si
+      assottiglia come quando si apre un foglio nel museo ──────── */
+body.in-3d #vhs { opacity: 0.12; }
+
+#tocco .t[data-k="r"] {
+  right: calc(240px + env(safe-area-inset-right, 0px));
+  bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+  width: 64px;
+  height: 64px;
+  font-size: 16px;
+}
+
+/* il colpo: si può tirare dappertutto, se in mano c'è qualcosa */
+#tocco .t[data-k="fuoco"] {
+  right: calc(126px + env(safe-area-inset-right, 0px));
+  bottom: calc(186px + env(safe-area-inset-bottom, 0px));
+  width: 74px;
+  height: 74px;
+  font-size: 18px;
+  color: rgba(236, 224, 190, 0.72);
+}
+
+/* ── schermi stretti: quello che hai in mano si fa più piccolo ─ */
+@media (max-width: 620px) {
+  #ritorno { font-size: 8px; }
+  #arma .v { font-size: 11px; }
+}
+
+/* ── schermi bassi: il fumetto sta più in alto ──────────────── */
+@media (max-height: 520px) {
+  #tocco .t[data-k="act"],
+  #tocco .t[data-k="jump"] { width: 76px; height: 76px; }
+}

@@ -422,7 +422,7 @@
       x.fillRect(w / 2 - 160, 252, 320, 36);
       x.fillStyle = "#ffffff";
       x.font = "700 16px 'Space Grotesk', system-ui, sans-serif";
-      var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+      var isTouch = (M.DEVICE && M.DEVICE.touch) ? M.DEVICE.touch() : (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
       x.fillText(isTouch ? "→ TOCCA PER APRIRE" : "→ CLICCA / PREMI E PER APRIRE", w / 2, 276);
 
       x.textAlign = "left";
@@ -723,18 +723,57 @@
      all'altra: qui dentro si cammina sempre tra persone alte uguale. */
   var SHADE_SIZE = 1.78;
 
-  /* ---- il corridoio è un giro --------------------------------
-     Otto porte, un passo fisso, e in fondo un tratto di muro libero
-     dove stanno il bar e il jukebox. Il giro misura HUB_LOOP: chi
-     esce a destra rientra a sinistra, e non se ne accorge. */
+  /* ---- il corridoio è un giro, e il giro è un palindromo -----
+     Non è una fila di porte: è una figura che si legge uguale da
+     tutte e due le parti, così chi cammina a destra e chi cammina a
+     sinistra incontrano le stesse cose nello stesso ordine.
+
+     Il centro del livello è il pinguino. Da lì, in un verso solo,
+     l'ordine è questo e non un altro:
+
+       la radio  ·  la scritta ESCI  ·  la porta I «chi sono»  ·
+       la II «archivio»  ·  la III «radio kaoss»  ·  la IV «memorie
+       del cosmo»  ·  la botola segreta  ·  la V «visual ai»  ·
+       la VI «sezione interattiva»  ·  la VII «illustrazioni»  ·
+       la VIII «zona larga»  ·  LA STAZIONE DELLA METROPOLITANA.
+
+     Superata la stazione le porte tornano nell'ordine inverso, poi
+     la scritta ESCI, poi la radio, poi di nuovo il pinguino: è lo
+     stesso giro, letto dall'altra parte. Per questo ogni cosa è
+     disegnata due volte, la seconda specchiata (hubMirror).
+
+     Il giro misura HUB_LOOP. La stazione sta esattamente a metà
+     del giro — è il centro del palindromo — ed è lunghissima: un
+     pezzo di città dentro il corridoio, da attraversare a piedi. */
   var HUB_DOORS = 8;
-  var HUB_GAP = 640;
-  var HUB_DOOR0 = 120;
-  var HUB_REST = 1000;
-  var HUB_LOOP = HUB_DOORS * HUB_GAP + HUB_REST;
-  /* il tratto di muro libero, dopo l'ultima porta: il bar e il jukebox */
-  var HUB_BAR_X = 4900;
-  var HUB_JUKE_X = 5500;
+  var HUB_GAP = 660;              /* fra una porta e la sua vicina */
+  var HUB_DOOR0 = 1160;           /* la prima porta dopo il pinguino */
+
+  /* il bancone sta a cavallo della cucitura: il giro comincia e finisce
+     dentro il bar, quindi il pinguino è al centro esatto del livello —
+     ed è anche al centro dello schermo quando si arriva (spawn 40). */
+  var HUB_BAR_X = -250;           /* il bancone: il centro del livello */
+  var HUB_JUKE_X = 640;           /* la radio, subito dopo il pinguino */
+  var HUB_EXIT_X = 900;           /* la scritta ESCI sul soffitto */
+
+  /* la banchina: un tratto di mappa che si attraversa camminando, ma
+     senza esagerare — il corridoio resta un corridoio. */
+  var HUB_METRO_W = 7200;         /* la banchina: lunga, ma contenuta */
+  var HUB_METRO_X = HUB_DOOR0 + HUB_DOORS * HUB_GAP;      /* 6440 */
+  /* il centro del giro è il centro della stazione: da lì si misura
+     tutto il resto, e la seconda metà del giro è la prima specchiata */
+  var HUB_CENTRO = HUB_METRO_X + HUB_METRO_W * 0.5;      /* 11240 */
+  var HUB_LOOP = HUB_CENTRO * 2;                          /* 22480 */
+
+  /* la botola segreta: fra «memorie del cosmo» (IV) e «visual ai» (V) */
+  var HUB_HATCH_X = HUB_DOOR0 + 3 * HUB_GAP + 330;        /* 3470 */
+
+  /* dove sta la porta numero i */
+  function hubDoorX(i) { return HUB_DOOR0 + i * HUB_GAP; }
+
+  /* la stessa cosa, dall'altra parte del giro: tutto quello che sta
+     in piedi sulla prima metà ha un gemello specchiato sulla seconda */
+  function hubMirror(x, w) { return HUB_LOOP - x - (w || 0); }
 
   /* le frasi delle sagome nere: non spiegano, non chiedono, non
      rispondono. Chi le legge non ha capito, e va bene così. */
@@ -1323,28 +1362,41 @@
     }
     if (arch === "hub") {
       /* ---- quello che c'è in un giro di corridoio --------------
-         Panche e casse stanno una per porta, sempre allo stesso modo:
-         il giro si ripete uguale, e la cucitura non si vede. L'ultimo
-         tratto di muro resta libero, per il bar. */
-      for (i = 0; i < HUB_DOORS - 1; i++) {
-        var hx = HUB_DOOR0 + i * HUB_GAP + 210;
-        prop("bench", hx, f - 58, 170, 58);
-        if (i % 3 === 1) prop("crates", hx + 190, f - 56, 86, 56);
-        if (i % 4 === 2) prop("rubble", hx + 230, f, 200, 26);
+         Panche e casse stanno una per porta, e ci sono due volte:
+         una di qua dal pinguino e una, specchiata, dall'altra parte
+         del giro. Il giro si ripete uguale, e la cucitura non si
+         vede: chi torna indietro trova le stesse panche al contrario. */
+      for (i = 0; i < HUB_DOORS; i++) {
+        for (var c = 0; c < 2; c++) {
+          var hx = c ? hubMirror(hubDoorX(i) + 210, 170) : hubDoorX(i) + 210;
+          prop("bench", hx, f - 58, 170, 58);
+          if (i % 3 === 1) {
+            prop("crates", c ? hubMirror(hx + 190, 86) : hx + 190, f - 56, 86, 56);
+          }
+          if (i % 4 === 2) {
+            prop("rubble", c ? hubMirror(hx + 230, 200) : hx + 230, f, 200, 26);
+          }
+        }
       }
       /* le sagome del corridoio non si mettono qui: le distribuisce
          la stanza alla fine, secondo la mappa degli abitanti (conigli
          e margherite), così in ogni sala sono sempre le stesse. */
-      /* ---- il bar, in testa al corridoio ----------------------
-         Il bancone con il pinguino dietro, e accanto il jukebox.
-         Davanti al pinguino si preme E e si parla: è lui che dà il
-         questionario, la radio e le istruzioni. */
+      /* ---- il bar, al centro del livello ---------------------
+         Il bancone con il pinguino dietro, e accanto la radio: è la
+         prima cosa che si incontra uscendo dal pinguino, in tutti e
+         due i versi. Davanti al pinguino si preme E e si parla: è
+         lui che dà il questionario, la radio e le istruzioni. */
       var bar = prop("bar", HUB_BAR_X, f - 150, 500, 150, {
-        seed: s + 2, front: true, talk: "penguin"
+        seed: s + 2, front: false, talk: "penguin"
       });
       bar.penguinX = HUB_BAR_X + 170;
       room.bar = bar;
       room.jukebox = prop("jukebox", HUB_JUKE_X, f - 250, 120, 250, {
+        seed: s + 7, front: true
+      });
+      /* la radio c'è anche dall'altra parte del pinguino, specchiata:
+         è la prima cosa che si incontra in tutti e due i versi */
+      room.jukebox2 = prop("jukebox", hubMirror(HUB_JUKE_X, 120), f - 250, 120, 250, {
         seed: s + 7, front: true
       });
     } else if (arch === "corridor") {
@@ -1733,10 +1785,11 @@
     }
   }
 
-  /* ---- il corridoio: otto porte in cerchio, un bar, nessuna fretta
-     Non ha né un inizio né una fine: HUB_LOOP unità di muro, e quello
-     che esce da una parte rientra dall'altra. Le porte sono nell'ordine
-     delle sale; dopo l'ultima c'è il tratto libero con il bar. */
+  /* ---- il corridoio: otto porte per metà, un bar, una stazione
+     lunghissima nel mezzo. Non ha né un inizio né una fine: HUB_LOOP
+     unità di muro, e quello che esce da una parte rientra dall'altra.
+     Le porte sono nell'ordine delle sale, e ci sono due volte: la
+     seconda metà del giro è la prima, specchiata. */
   function makeHub(rooms) {
     var a = ARCH.hub;
     var room = {
@@ -1744,39 +1797,106 @@
       src: {},
       title: { it: "IL CORRIDOIO", en: "THE CORRIDOR" },
       line: {
-        it: "tutte le stanze passano di qui, e il corridoio non finisce mai. in fondo, dietro un bancone, c'è un pinguino che versa.",
-        en: "every room passes through here, and the corridor never ends. at the far end, behind a counter, a penguin is pouring."
+        it: "tutte le stanze passano di qui, e il corridoio non finisce mai. al centro, dietro un bancone, c'è un pinguino che versa.",
+        en: "every room passes through here, and the corridor never ends. at the centre, behind a counter, a penguin is pouring."
       },
-      pal: a.pal, kind: a.kind, floorY: a.floorY,
+      pal: a.pal, kind: a.kind, floorY: a.floorY, ceilY: 62,
+      /* il vestito: carta da parati anni settanta sul muro, linoleum
+         per terra, ragni di metallo appesi. Vedi corridoio.js */
+      dress: "settanta",
       items: [], texts: [], props: [], solids: [], lights: [],
       fog: a.fog, fogAmt: a.fogAmt, seed: 3,
-      minX: 0, maxX: HUB_LOOP, loop: HUB_LOOP, spawn: 4780, x: 0
+      minX: 0, maxX: HUB_LOOP, loop: HUB_LOOP, spawn: 40, x: 0
     };
-    var i, d;
-    /* ---- le otto porte, una per sala --------------------------- */
+    var i, d, dw = 130, dh = 320;
+    /* ---- le otto porte, e le loro gemelle specchiate -----------
+       Andando a destra dal pinguino si incontrano la I, la II... fino
+       alla VIII; superata la stazione, le stesse porte tornano al
+       contrario. Sono due copie perché il giro è un palindromo: chi
+       va a sinistra deve trovare la stessa figura, non il rovescio. */
     for (i = 0; i < rooms.length && i < HUB_DOORS; i++) {
       d = {
         kind: "door", to: rooms[i].id,
-        x: HUB_DOOR0 + i * HUB_GAP, y: room.floorY - 320,
-        w: 130, h: 320, num: rooms[i].num, title: rooms[i].title
+        x: hubDoorX(i), y: room.floorY - dh,
+        w: dw, h: dh, num: rooms[i].num, title: rooms[i].title
       };
       room.props.push(d);
+      room.props.push({
+        kind: "door", to: rooms[i].id,
+        x: hubMirror(hubDoorX(i), dw), y: room.floorY - dh,
+        w: dw, h: dh, num: rooms[i].num, title: rooms[i].title
+      });
     }
+    /* ---- la stazione, al centro esatto del giro ---------------
+       Non è un fondo del corridoio: è un pezzo di un'altra città
+       rimasto dentro il giro, largo diecimila unità. Tutto quello che
+       si vede — piastrelle, sedie, orologi, binario, treno — lo
+       dipinge museo/metro.js, che sa anche quando il treno arriva e
+       quando riparte. Qui si dice solo dove stanno le cose, in
+       coordinate del mondo. Il buco nel muro sta a metà banchina:
+       da una parte e dall'altra si cammina lo stesso tratto. */
+    /* il buco nel muro non è una fessura: è la bocca di una galleria, e
+       il treno ci sta dentro con l'aria intorno. Prima era largo 380 e
+       alto 310, e il treno (460×250) ci finiva dentro tagliato ai lati:
+       sembrava un vagone incastrato in un buco, che è quello che era.
+       Poi 760×470: il treno (700 di corpo) riempiva ancora il buco, e
+       si vedeva una porta, non una galleria. Adesso è 1120×560 — il
+       treno ha 210 unità d'aria per lato e 146 sopra il tetto — e il
+       muro che lo circonda si legge come spessore di roccia. */
+    var LARGO_TRENO = 700;          /* come TRENO_W in museo/metro.js */
+    var bw = 1120, bh = 560;
+    var centro = HUB_METRO_X + HUB_METRO_W * 0.5;
+    var bx = Math.round(centro - bw / 2);
+    room.metro = {
+      x: HUB_METRO_X, w: HUB_METRO_W,
+      /* il buco nel muro da cui arriva il treno */
+      bocca: { x: bx, y: room.floorY - bh - 20, w: bw, h: bh },
+      /* la fila di sedie con le sagome sedute */
+      sedie: HUB_METRO_X + 96,
+      /* l'uomo dei biglietti, in piedi fra le sedie e il binario */
+      controllore: bx - 300,
+      /* dove si ferma il treno (angolo sinistro del muso): dentro la
+         bocca, col muso a metà dell'aria che c'è a sinistra, così le
+         porte cadono esattamente nel mezzo della galleria */
+      treno: bx + (bw - LARGO_TRENO) * 0.5,
+      linea: "8",
+      fermata: { it: "le terre", en: "the lands" }
+    };
     room.doorL = null;
     room.doorR = null;
-    /* ---- l'uscita, in fondo al giro ----------------------------
-       La scritta ESCI sul soffitto non è più solo segnaletica: è la
-       porta del sito. Si preme E davanti, o si tocca con il dito, e
-       si torna alla versione normale — quella che si scorre. */
-    room.exitSign = { x: HUB_LOOP - 250, y: 302, w: 120, h: 50 };
+    /* la botola segreta: fra la IV e la V, dov'è sempre stata */
+    room.hatchX = HUB_HATCH_X;
+    /* ---- l'uscita, subito dopo il pinguino --------------------
+       La scritta ESCI sul soffitto è la porta del sito. Sta fra la
+       radio e la prima porta, perché è la prima cosa che si incontra
+       dopo il bancone: si preme E, o si tocca con il dito, e si torna
+       alla versione normale — quella che si scorre. */
+    room.exitSign = { x: HUB_EXIT_X, y: 302, w: 120, h: 50 };
+    /* e la sua gemella, dall'altra parte del pinguino */
+    room.exitSign2 = {
+      x: hubMirror(HUB_EXIT_X, 120), y: 302, w: 120, h: 50
+    };
     room.exitHref = "index.html";
-    /* l'ospite con la margherita: attraversa il corridoio, e non esce
-       mai, perché tanto il corridoio è un cerchio */
-    room.npc = { x: 2700, tx: 2700, dir: -1, pause: 3.6 };
+    /* l'ospite con la margherita: aspetta il treno sulla banchina,
+       e cammina avanti e indietro nel tratto che gli spetta */
+    room.npc = { x: 7600, tx: 7600, dir: -1, pause: 3.6, casa: [7300, 7900] };
+    /* la luce di ogni porta, e della sua gemella */
     for (i = 0; i < HUB_DOORS; i++) {
       room.lights.push({
-        x: HUB_DOOR0 + i * HUB_GAP + 330, y: 140, r: 340,
+        x: hubDoorX(i) + 330, y: 140, r: 340,
         c: "#e8dcc0", i: 0.07, flicker: i === 2
+      });
+      room.lights.push({
+        x: hubMirror(hubDoorX(i) + 330, 0), y: 140, r: 340,
+        c: "#e8dcc0", i: 0.07, flicker: i === 2
+      });
+    }
+    /* la luce della stazione: fredda, una ogni tanto sfarfalla, e
+       sono tante perché la banchina è lunga diecimila unità */
+    for (i = 0; i < 8; i++) {
+      room.lights.push({
+        x: HUB_METRO_X + 700 + i * 1200, y: 150, r: 320,
+        c: "#dcecea", i: 0.07, flicker: (i === 3 || i === 6)
       });
     }
     /* la luce del bar: più bassa, più calda, e non sfarfalla */
@@ -3018,10 +3138,30 @@
     var ceilY = 62, i, x, y, k;
     var f = room.floorY;
 
+    /* ---- il giro: le stesse due regole di corridoio.js --------------
+       Il corridoio dell'hub si richiude su sé stesso ogni room.loop
+       unità: quando il coniglio attraversa la cucitura la camera salta
+       indietro di un giro intero, e il muro che ha davanti è lo stesso
+       muro. Perché non si veda, ogni passo qui sotto è il numero tondo
+       più vicino che entra un numero intero di volte nel giro, e ogni
+       indice si riporta dentro al giro: così travi, valvole, radiatori,
+       neon e graffiti tornano al loro posto di là dalla cucitura.
+       Nelle sale senza giro (room.loop assente) è tutto come prima. */
+    var L = room.loop || 0;
+    var giro = (M.CORRIDOIO && M.CORRIDOIO.passo) ? M.CORRIDOIO.passo : function (b) { return b; };
+    var ind = (M.CORRIDOIO && M.CORRIDOIO.cella) ? M.CORRIDOIO.cella : function (v, p) { return Math.round(v / p); };
+    /* la distanza dalla camera, misurata dentro al giro: serve alle
+       fughe del pavimento, che altrimenti scattano di un giro */
+    var lontano = (M.CORRIDOIO && M.CORRIDOIO.distanza)
+      ? M.CORRIDOIO.distanza : function (v) { return v - cam.x; };
+    var p190 = giro(190, L), p44 = giro(44, L), p520 = giro(520, L);
+    var p260 = giro(260, L), p640 = giro(640, L), p720 = giro(720, L);
+    var p120 = giro(120, L), p340 = giro(340, L), p900 = giro(900, L);
+
     /* ---- il soffitto: cemento, travi, e quello che ci passa sopra -- */
     ctx.fillStyle = S2.shade(pal.wall, 0.26);
     ctx.fillRect(x0, -80, W2, ceilY + 82);
-    for (x = Math.floor(x0 / 190) * 190; x < x1 + 190; x += 190) {
+    for (x = Math.floor(x0 / p190) * p190; x < x1 + p190; x += p190) {
       ctx.fillStyle = S2.rgba("#090b0b", 0.55);
       ctx.fillRect(x, ceilY - 26, 26, 26);
     }
@@ -3029,7 +3169,7 @@
     ctx.fillStyle = S2.rgba("#0c0e0e", 0.9);
     ctx.fillRect(x0, ceilY - 44, W2, 18);
     ctx.fillStyle = S2.rgba("#151a19", 0.9);
-    for (x = Math.floor(x0 / 44) * 44; x < x1; x += 44) ctx.fillRect(x, ceilY - 42, 3, 14);
+    for (x = Math.floor(x0 / p44) * p44; x < x1; x += p44) ctx.fillRect(x, ceilY - 42, 3, 14);
 
     /* ---- il muro: piastrelle fino a metà, intonaco sopra ----------- */
     S2.wall(ctx, { x: x0, y: ceilY, w: W2, h: 300 }, pal, room.kind, t);
@@ -3038,6 +3178,13 @@
     S2.wall(ctx, { x: x0, y: ceilY + 300, w: W2, h: f - ceilY - 300 }, pal, room.kind, t);
     ctx.fillStyle = S2.rgba("#7d9a72", 0.22);
     ctx.fillRect(x0, ceilY + 296, W2, 10);
+
+    /* ---- il vestito del corridoio: la carta da parati anni settanta.
+       Sta sopra l'intonaco e sotto tutto il resto, quindi radiatori,
+       macchie e graffiti le passano davanti — è vecchia, non è nuova. */
+    if (M.CORRIDOIO && M.CORRIDOIO.carta && M.CORRIDOIO.veste(room)) {
+      M.CORRIDOIO.carta(ctx, room, t, cam);
+    }
 
     /* ---- l'aria si accumula in alto: il muro si spegne salendo ----- */
     var vg = ctx.createLinearGradient(0, ceilY, 0, f - 200);
@@ -3048,8 +3195,8 @@
     ctx.fillRect(x0, ceilY, W2, f - 200 - ceilY);
 
     /* le mani di vernice date sopra le piastrelle, a chiazze */
-    for (x = Math.floor(x0 / 520) * 520; x < x1 + 520; x += 520) {
-      var ps = Math.round(x / 520) + 17;
+    for (x = Math.floor(x0 / p520) * p520; x < x1 + p520; x += p520) {
+      var ps = ind(x, p520, L) + 17;
       if (S2.rand(ps) > 0.6) continue;
       ctx.fillStyle = S2.rgba(S2.rand(ps + 1) > 0.5 ? "#7f8f83" : "#2c3a35", 0.05);
       ctx.fillRect(x + S2.rr(ps + 2, 0, 160), ceilY + S2.rr(ps + 3, 20, 200),
@@ -3057,8 +3204,8 @@
     }
 
     /* le macchie d'umidità: scendono dal soffitto, sempre le stesse */
-    for (x = Math.floor(x0 / 260) * 260; x < x1 + 260; x += 260) {
-      var sd = Math.round(x / 260) + 61;
+    for (x = Math.floor(x0 / p260) * p260; x < x1 + p260; x += p260) {
+      var sd = ind(x, p260, L) + 61;
       if (S2.rand(sd) > 0.55) continue;
       var sw2 = S2.rr(sd + 1, 40, 130), sh2 = S2.rr(sd + 2, 90, 320);
       ctx.fillStyle = S2.rgba(S2.mix(pal.wall, "#000000", 0.35), 0.20);
@@ -3085,7 +3232,7 @@
       ctx.fillRect(x0, py + 9, W2, 3);
       ctx.fillStyle = S2.rgba("#8a9a90", 0.30);
       ctx.fillRect(x0, py + 1, W2, 2);
-      for (x = Math.floor(x0 / 640) * 640; x < x1 + 640; x += 640) {
+      for (x = Math.floor(x0 / p640) * p640; x < x1 + p640; x += p640) {
         ctx.fillStyle = S2.rgba("#1b201e", 0.95);
         ctx.fillRect(x, py - 3, 16, 16);
         if (k === 1) {
@@ -3102,7 +3249,7 @@
     }
 
     /* ---- i radiatori, sotto la fascia, arrugginiti ----------------- */
-    for (x = Math.floor(x0 / 720) * 720; x < x1 + 720; x += 720) {
+    for (x = Math.floor(x0 / p720) * p720; x < x1 + p720; x += p720) {
       var rw = 130, ry = f - 190;
       ctx.fillStyle = S2.rgba("#3f4239", 0.55);
       ctx.fillRect(x, ry, rw, 92);
@@ -3130,21 +3277,31 @@
     ctx.fillRect(x0, f, W2, 220);
     ctx.strokeStyle = S2.rgba("#000000", 0.35);
     ctx.lineWidth = 1.4;
-    for (x = Math.floor(x0 / 120) * 120; x < x1 + 120; x += 120) {
+    for (x = Math.floor(x0 / p120) * p120; x < x1 + p120; x += p120) {
       ctx.beginPath();
       ctx.moveTo(x, f);
-      ctx.lineTo(x + (x - cam.x - cam.w / 2) * 0.22, f + 220);
+      ctx.lineTo(x + (lontano(x, cam, L) - cam.w / 2) * 0.22, f + 220);
       ctx.stroke();
     }
     ctx.beginPath();
     ctx.moveTo(x0, f + 30); ctx.lineTo(x1, f + 30);
     ctx.stroke();
 
+    /* il linoleum: lastre grandi, cera, e il vuoto che ci si specchia */
+    if (M.CORRIDOIO && M.CORRIDOIO.linoleum && M.CORRIDOIO.veste(room)) {
+      M.CORRIDOIO.linoleum(ctx, room, t, cam);
+    }
+
     /* ---- i neon appesi: una catena, un tubo, un cono di luce ------- */
-    for (i = Math.floor(x0 / 340) * 340; i < x1 + 340; i += 340) {
-      var on = S2.rand(i * 0.013) > 0.24;
-      var fl = on ? (0.82 + 0.18 * Math.abs(Math.sin(t * 3 + i))) : 0.05;
-      if (on && S2.rand(Math.floor(t * 6) + i) > 0.965) fl *= 0.18;
+    for (i = Math.floor(x0 / p340) * p340; i < x1 + p340; i += p340) {
+      var lt = ind(i, p340, L);
+      var on = S2.rand(lt * 0.013) > 0.24;
+      var fl = on ? (0.82 + 0.18 * Math.abs(Math.sin(t * 3 + lt))) : 0.05;
+      if (on && S2.rand(Math.floor(t * 6) + lt) > 0.965) fl *= 0.18;
+      /* il ronzio: la luce non sfarfalla a caso, cala. Tutti i tubi
+         del corridoio calano insieme, come se ci fosse un solo
+         trasformatore dietro il muro. */
+      if (on && M.CORRIDOIO && M.CORRIDOIO.ronzio) fl *= M.CORRIDOIO.ronzio(t * 0.9 + lt * 0.02);
       ctx.strokeStyle = S2.rgba("#202624", 0.9);
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -3179,11 +3336,30 @@
     }
 
     /* ---- i graffiti: sgorbi, nomi, un conteggio -------------------- */
-    for (x = Math.floor(x0 / 900) * 900; x < x1 + 900; x += 900) {
-      var gs = Math.round(x / 900) + 31;
+    for (x = Math.floor(x0 / p900) * p900; x < x1 + p900; x += p900) {
+      var gs = ind(x, p900, L) + 31;
       S2.paint(ctx, ["NON ENTRA", "8:15", "MANCA", "T 7"][(gs + 5) % 4],
         x + 60, ceilY + 420 + S2.rr(gs, 0, 90), 26, S2.rgba("#0d100e", 0.42),
         { seed: gs, drip: false, font: "ui-monospace, monospace" });
+    }
+
+    /* ---- i ragni di metallo, le ragnatele di cavi, le scintille.
+       Vanno sopra il muro e sotto la pelle: sono cose appese al
+       corridoio, non parte del muro. */
+    if (M.CORRIDOIO && M.CORRIDOIO.ragni && M.CORRIDOIO.veste(room)) {
+      M.CORRIDOIO.cavi(ctx, room, t, cam);
+      M.CORRIDOIO.ragni(ctx, room, t, cam);
+    }
+
+    /* ---- la stazione della metropolitana ------------------------
+       Un pezzo di un'altra città dentro il giro: piastrelle bianche
+       sporche, l'orologio digitale che glitcha, le sedie con le
+       sagome che respirano, il buco nel muro e il treno. Va disegnata
+       adesso, dopo la pelle del corridoio, perché la stazione non ha
+       carta da parati: ha le piastrelle. Chi passa davanti alle porte
+       (le props) le sta davanti anche a questa. */
+    if (M.METRO && M.METRO.paint) {
+      try { M.METRO.paint(ctx, room, t, cam); } catch (e) { }
     }
 
     /* ---- la pelle: se la sala ha un colore suo, glielo si dà a
@@ -3207,26 +3383,53 @@
     }
 
     if (room.arch === "hub" || room.arch === "lucidus") {
-      var ex = room.maxX - 250, ey = ceilY + 240;
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      var exg = ctx.createRadialGradient(ex + 60, ey + 25, 4, ex + 60, ey + 25, 120);
-      exg.addColorStop(0, "rgba(239,68,68,0.42)");
-      exg.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = exg; ctx.fillRect(ex - 60, ey - 60, 240, 170);
-      ctx.restore();
-      ctx.fillStyle = S2.rgba("#1a0407", 0.98);
-      ctx.fillRect(ex, ey, 120, 50);
-      var ea = (0.7 + 0.3 * Math.sin(t * 5)).toFixed(3);
-      ctx.fillStyle = "rgba(239,68,68," + ea + ")";
-      ctx.fillRect(ex + 4, ey + 4, 112, 42);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "700 24px ui-monospace, monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("EXIT", ex + 60, ey + 35);
-      ctx.textAlign = "left";
+      var ey = ceilY + 240;
+      var eschi = [];
+      if (room.exitSign) eschi.push(room.exitSign);
+      if (room.exitSign2) eschi.push(room.exitSign2);
+      if (!eschi.length) eschi.push({ x: room.maxX - 250, y: ey, w: 120, h: 50 });
+      for (var q = 0; q < eschi.length; q++) {
+        /* la scritta ESCI è una per metà del giro, e il giro si chiude:
+           quando la camera attraversa la cucitura la ritrova davanti,
+           non alle spalle. La luce che si porta dietro viene con lei. */
+        var ex = eschi[q].x;
+        if (L > 0) ex += Math.round((cam.x + cam.w * 0.5 - (ex + 60)) / L) * L;
+        paintExitSign(ctx, ex, ey, t);
+      }
     }
   }
+
+  /* ---- la scritta ESCI: un neon rosso appeso al soffitto ------- */
+  function paintExitSign(ctx, ex, ey, t) {
+    var S2 = scene();
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    var exg = ctx.createRadialGradient(ex + 60, ey + 25, 4, ex + 60, ey + 25, 120);
+    exg.addColorStop(0, "rgba(239,68,68,0.42)");
+    exg.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = exg; ctx.fillRect(ex - 60, ey - 60, 240, 170);
+    ctx.restore();
+    ctx.fillStyle = S2.rgba("#1a0407", 0.98);
+    ctx.fillRect(ex, ey, 120, 50);
+    var ea = (0.7 + 0.3 * Math.sin(t * 5)).toFixed(3);
+    ctx.fillStyle = "rgba(239,68,68," + ea + ")";
+    ctx.fillRect(ex + 4, ey + 4, 112, 42);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "700 24px ui-monospace, monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("EXIT", ex + 60, ey + 35);
+    ctx.textAlign = "left";
+  }
+
+  /* quante volte la scritta esiste in un giro: una per metà */
+  function exitSigns(room) {
+    var out = [];
+    if (!room) return out;
+    if (room.exitSign) out.push(room.exitSign);
+    if (room.exitSign2) out.push(room.exitSign2);
+    return out;
+  }
+  W.exitSigns = exitSigns;
 
   /* ---- la galleria: intonaco, faretti, quadri ----------------- */
   function galleryRoom(ctx, room, t, cam) {

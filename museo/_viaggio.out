@@ -1,0 +1,13 @@
+centro bocca 10040 + centro porte 10040 -> ok
+aria ai lati del treno: 210 / 210
+pick sul controllore: controllore
+dopo aver chiesto il treno: arriva
+stato a t=5: ferma dopo 21 passate
+pick sulle porte aperte: treno
+stato a t=40: vuota
+viaggio cominciato: stato=viaggio viaggio=true
+frame disegnati: 602, chiamate di disegno: 1168304
+scritte durante il viaggio: 0
+destinazione: terre/index.html?zona=stazione&da=treno
+
+nessun errore

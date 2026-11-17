@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PORTA 02 // LA STANZA DEI RAGNI</title>
+  <meta name="description" content="Un quadrato bianco nel buio, e una sagoma nera che ci sta sopra. Ogni pasto lo allarga: poi arrivano i colori, la gente, il sole, il fuoco. E la caduta.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="sala">
+    <canvas id="tela" aria-label="Il quadrato bianco che diventa mondo, il bambino che diventa ragno"></canvas>
+
+    <!-- l'aria: righe da tubo catodico e un bordo che si chiude -->
+    <div id="velo"></div>
+
+    <a id="ritorno" href="../museo.html?stanza=soffitta&amp;x=1520"
+       title="Torna alla soffitta, davanti alla porta dei ragni">◀ soffitta</a>
+
+    <!-- il tocco: tre fantasmi per il telefono -->
+    <div id="tocco" aria-hidden="true">
+      <button class="t" type="button" data-k="left">◀</button>
+      <button class="t" type="button" data-k="right">▶</button>
+      <button class="t" type="button" data-k="act">◦</button>
+    </div>
+  </div>
+
+  <script src="stage.js"></script>
+  <script src="avatar.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

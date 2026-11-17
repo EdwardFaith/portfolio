@@ -12,6 +12,15 @@ desktop.ini
 scratch/
 *.log
 
+# uscite del banco di prova (terza-porta/_occhio-test.js)
+terza-porta/_esiti.txt
+terza-porta/_sguardo.png
+
+# uscite del banco di prova delle terre (_prova-*.js)
+_prova-spiaggia.out
+_prova-stazione.out
+_prova-terre.out
+
 # Node
 node_modules/
 npm-debug.log*

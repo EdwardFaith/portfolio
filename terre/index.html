@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LE TERRE // LA SPIAGGIA</title>
+  <meta name="description" content="Le terre della fantasia: la spiaggia di cenere con i grattacieli affondati, il bosco rosso con un ragno grande come il sole, le rovine, la città di marmo e il tempio — che non è la fine: è il posto dove si finisce quando si muore.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=7">
+  <!-- il punto di domanda di Charles: lo stesso foglio del museo -->
+  <link rel="stylesheet" href="../museo/charles.css?v=4">
+</head>
+<body class="sez-terre">
+  <div id="sala">
+    <canvas id="tela" aria-label="La spiaggia delle terre: sabbia di cenere, il mare nero, una porta isolata"></canvas>
+
+    <!-- ── il velo VHS: lo stesso del museo, quattro strati sopra
+         tutto e sempre acceso — le righe del tubo, il croma, la grana,
+         il nastro che scorre. Non è un filtro delle terre: è l'aria
+         (vedi style.css, #vhs) ─────────────────────────────────── -->
+    <div id="vhs" aria-hidden="true">
+      <i class="scan"></i>
+      <i class="chroma"></i>
+      <i class="grain"></i>
+      <i class="track"></i>
+    </div>
+
+    <!-- il suono: si accende col primo gesto, e questa è l'unica cosa
+         che si può spegnere. Il simbolo è l'unico bottone del mondo -->
+    <button id="suono" type="button" aria-pressed="false"
+            title="accendi o spegni il suono">♪</button>
+
+    <div id="arma">
+      <span class="k">in mano</span>
+      <span class="v" id="v-arma">niente</span>
+    </div>
+
+    <!-- le tre vite, come negli arcade: tre segni, e si spengono -->
+    <div id="vite" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+
+    <a id="ritorno" href="../museo.html?stanza=hub&amp;x=40"
+       title="Torna nel corridoio, davanti al pinguino">◀ corridoio</a>
+
+    <div id="tocco" aria-hidden="true">
+      <button class="t" type="button" data-k="left">◀</button>
+      <button class="t" type="button" data-k="right">▶</button>
+      <button class="t" type="button" data-k="run">»</button>
+      <button class="t" type="button" data-k="jump">▲</button>
+      <button class="t" type="button" data-k="fuoco">✦</button>
+      <button class="t" type="button" data-k="c" title="cambia quello che hai in mano">✎</button>
+      <button class="t" type="button" data-k="act">◦</button>
+    </div>
+
+    <!-- il testo dei fumetti vive sul disegno; questa riga serve a chi
+         legge lo schermo con un lettore, e non si vede -->
+    <p id="didascalia" aria-live="polite"></p>
+  </div>
+
+  <script src="../museo/device.js"></script>
+  <script src="../museo/stato.js?v=6"></script>
+  <!-- il coniglio è lo stesso del museo: stesso corpo, stessa
+       animazione (RABBIT.anima), stessi comandi -->
+  <script src="../museo/player.js?v=2"></script>
+  <!-- la radio: la stessa stazione del museo (RadioKaoSs), con lo stesso
+       mazzo mescolato. Il tasto R la accende qui come nel corridoio, in
+       tutte le zone. data.js è solo la scaletta dei pezzi -->
+  <script src="../museo/data.js?v=7"></script>
+  <script src="../museo/radio.js"></script>
+  <!-- le bestie che si trovano in tutte le zone: crocifissi-lampada,
+       morti, alberi con gli occhi, ragni, nebbia. Vengono dopo
+       mondo.js perché usano le sue utilità (T.u) -->
+  <!-- il suono: un sintetizzatore, non un file. Viene prima di
+       mondo.js perché il mondo lo chiama appena parte -->
+  <script src="suono.js?v=2"></script>
+  <script src="mondo.js?v=27"></script>
+  <script src="orrori.js?v=5"></script>
+  <script src="spiaggia.js?v=24"></script>
+  <!-- sotto la sabbia: la stazione, la banchina, e il treno che passa
+       quando passa -->
+  <script src="stazione.js?v=10"></script>
+  <script src="bosco.js?v=13"></script>
+  <script src="rovine.js?v=5"></script>
+  <script src="citta.js?v=16"></script>
+  <!-- oltre la città: la scalinata di marmo con le lampade piantate nei
+       gradini e il ragno nero che scende, e il preingresso con gli
+       agenti (stanno tutti e due in oltrecitta.js) -->
+  <script src="oltrecitta.js?v=13"></script>
+  <script src="case.js?v=9"></script>
+  <script src="tempio.js?v=10"></script>
+  <!-- il fondo delle terre: le fabbriche Latte Materno. Le balie di
+       lamiera, gli operai con la lampada al posto della testa (che non
+       attaccano), e la polizia del latte che spara: si risponde con la
+       gomma, che cancella i colpi, e con le forbici -->
+  <script src="fabbriche.js?v=11"></script>
+  <!-- e sotto le fabbriche c'è Lucidus City: le fogne, la scala, la città,
+       il reparto, la scalata e gli uffici della Lucidus. Il buio è un
+       foglio nero forato dalle lampade, e le sagome lampadina si
+       sciolgono con l'acqua. In città non c'è una scritta: le insegne
+       sono figure, perché chi è nato qui non ha mai imparato a leggere -->
+  <script src="zoan.js?v=13"></script>
+  <!-- Charles: il punto di domanda rosso. È la guida, e si parla con lui
+       come con un personaggio: le domande sono lì sotto, e le risposte
+       arrivano nel fumetto. Niente schede, niente tour -->
+  <script src="../museo/charles.js?v=8"></script>
+
+  <script>
+    (function () {
+      var M = window.MUSEO || {};
+      var T = M.TERRE;
+      if (!T || !T.avvia) return;
+
+      /* il tasto del suono: lo stato lo sa suono.js, qui si disegna
+         solo il simbolo. Si guarda ogni mezzo secondo perché il suono
+         parte anche col primo tasto, e allora il simbolo deve
+         accorgersene da solo */
+      var s = document.getElementById("suono");
+      var S = M.SUONO;
+      if (s && S) {
+        var dipingi = function () {
+          var acceso = !!S.on;
+          s.setAttribute("aria-pressed", acceso ? "true" : "false");
+          s.className = acceso ? "" : "spento";
+        };
+        s.addEventListener("click", function (e) {
+          e.preventDefault();
+          if (S.on) S.stop(); else S.start();
+          dipingi();
+        });
+        dipingi();
+        window.setInterval(dipingi, 500);
+      }
+
+      var x = parseFloat(T.query("x"));
+      var opt = isNaN(x) ? {} : { x: x };
+      /* ?da=treno: si arriva col treno invece che a piedi. La stazione
+         lo usa per far scendere dal vagone (zona=stazione&da=treno);
+         la spiaggia, che è l'arrivo normale, lo lascia perdere */
+      var da = T.query("da");
+      if (da) opt.da = da;
+      /* ?stanza=latteria — per guardare una stanza precisa senza
+         girare per il reparto (serve alle foto di prova) */
+      var stanzaQ = T.query("stanza");
+      if (stanzaQ) opt.stanza = stanzaQ;
+      T.avvia(T.query("zona") || "spiaggia", opt);
+    })();
+  </script>
+</body>
+</html>
+

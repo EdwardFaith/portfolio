@@ -1,0 +1,178 @@
+/* ============================================================
+   PORTA 02 — I POSTI
+   Una pagina sola: il titolo in cima, l'elenco dei posti sotto.
+   Niente riquadri, niente istruzioni: un posto è un link.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  min-height: 100%;
+  background: #0b0a09;
+  color: #ded4bd;
+  font-family: ui-monospace, "SF Mono", "Courier New", monospace;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#sala {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 64px 22px 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+}
+
+/* ── la testata ─────────────────────────────────────────────── */
+#testata { text-align: center; }
+
+#occhiello {
+  font-size: 8px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: #6d6349;
+  margin-bottom: 10px;
+}
+
+#titolo {
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: lowercase;
+  color: #e4d9bf;
+  text-shadow: 0 0 30px rgba(228, 217, 191, 0.18);
+}
+
+/* ── l'elenco ───────────────────────────────────────────────── */
+#posti {
+  list-style: none;
+  width: min(560px, 92vw);
+  display: flex;
+  flex-direction: column;
+}
+
+.posto {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 4px;
+  border-bottom: 1px solid rgba(190, 178, 148, 0.10);
+}
+
+.posto:first-child { border-top: 1px solid rgba(190, 178, 148, 0.10); }
+
+.posto .dove {
+  font-size: 13px;
+  letter-spacing: 0.10em;
+  color: #cfc4a8;
+  text-decoration: none;
+  transition: color 0.25s ease, padding-left 0.25s ease;
+}
+
+.posto .dove::before {
+  content: "→ ";
+  color: #6f6344;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.posto .dove:hover,
+.posto .dove:focus-visible {
+  color: #f4ead0;
+  padding-left: 6px;
+  outline: none;
+}
+
+.posto .dove:hover::before,
+.posto .dove:focus-visible::before { opacity: 1; }
+
+.posto .qui {
+  font-size: 8px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #9b8a5c;
+  white-space: nowrap;
+}
+
+.posto.is-qui .dove { color: #efe2c2; }
+
+#vuoto,
+#nota {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #6a6046;
+}
+
+/* ── il ritorno ─────────────────────────────────────────────── */
+#ritorno {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #7f7456;
+  text-decoration: none;
+  padding: 8px 10px;
+  opacity: 0.7;
+  transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+#ritorno:hover,
+#ritorno:focus-visible { opacity: 1; color: #f0e6cc; outline: none; }
+
+/* ── la grata chiusa ────────────────────────────────────────── */
+#chiusa {
+  margin-top: 30vh;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+#chiusa[hidden] { display: none; }
+
+#chiusa .simbolo { font-size: 26px; opacity: 0.55; }
+
+#chiusa .riga {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8a7d5c;
+}
+
+#chiusa .via {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #b9a878;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(185, 168, 120, 0.35);
+  padding-bottom: 3px;
+}
+
+/* ── le righe del tubo catodico ─────────────────────────────── */
+#velo {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0.2;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0 3px,
+    rgba(0, 0, 0, 0.28) 3px 4px
+  );
+}
+
+@media (max-width: 620px) {
+  #sala { padding: 48px 16px 80px; }
+  #titolo { font-size: 18px; }
+  .posto .dove { font-size: 12px; }
+}

@@ -1,0 +1,240 @@
+/* ============================================================
+   PORTA 03 — L'OCCHIO
+   Carne, buio, e un occhio che ti guarda dalla minimappa.
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;          /* sul telefono: senza la barra che mangia il fondo */
+  overflow: hidden;
+  background: #050406;
+  color: #d8c9c4;
+  font-family: ui-monospace, "SF Mono", "Courier New", monospace;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#sala {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #050406;
+}
+
+#tela {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: crosshair;
+  image-rendering: pixelated;
+}
+
+/* ── le righe del tubo catodico ─────────────────────────────── */
+#velo {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0.32;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0 3px,
+    rgba(0, 0, 0, 0.26) 3px 4px
+  );
+}
+
+/* ── l'ingresso ─────────────────────────────────────────────── */
+#avviso {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 30;
+  width: min(560px, 84vw);
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;   /* il primo clic deve arrivare alla tela */
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+
+#avviso.is-off {
+  opacity: 0;
+  transform: translate(-50%, -46%);
+  pointer-events: none;
+}
+
+#avviso-titolo {
+  font-size: clamp(15px, 1.6vw, 21px);
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: #f0d9d2;
+  margin-bottom: 20px;
+  text-shadow: 0 0 26px rgba(255, 90, 70, 0.28);
+}
+
+#avviso-testo,
+#avviso-regola {
+  font-size: clamp(11px, 1.05vw, 14px);
+  line-height: 1.85;
+  letter-spacing: 0.08em;
+  color: #c9aea8;
+}
+
+#avviso-regola {
+  margin-top: 14px;
+  color: #a98b86;
+}
+
+#avviso-invito {
+  margin-top: 26px;
+  font-size: 10px;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: #8d5a52;
+  animation: battito 2.6s ease-in-out infinite;
+}
+
+@keyframes battito {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+
+/* ── i comandi, appena leggibili ───────────────────────────── */
+#aiuto {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  z-index: 25;
+  transform: translateX(-50%);
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #7d5f5b;
+  opacity: 0.85;
+  transition: opacity 1.6s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+#aiuto.is-off { opacity: 0; }
+
+#voce,
+#ritorno,
+#schermo {
+  position: absolute;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 26;
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #8a6a66;
+  background: transparent;
+  border: 0;
+  padding: 8px 10px;
+  cursor: pointer;
+  text-decoration: none;
+  opacity: 0.6;
+  transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+#voce { right: calc(12px + env(safe-area-inset-right, 0px)); }
+#schermo { right: calc(50px + env(safe-area-inset-right, 0px)); font-size: 13px; letter-spacing: 0; }
+#ritorno { left: calc(12px + env(safe-area-inset-left, 0px)); }
+
+#voce:hover,
+#ritorno:hover,
+#schermo:hover,
+#voce:focus-visible,
+#ritorno:focus-visible,
+#schermo:focus-visible {
+  opacity: 1;
+  color: #f2ddd6;
+  outline: none;
+}
+
+#voce.is-off { color: #402f2c; }
+
+/* ── il tocco: tre direzioni e una bocca ────────────────── */
+#tocco {
+  position: absolute;
+  inset: 0;
+  z-index: 28;
+  display: none;
+  pointer-events: none;
+}
+
+body.touch-device #tocco { display: block; }
+
+#tocco .t {
+  position: absolute;
+  width: 82px;
+  height: 82px;
+  border: 1px solid rgba(255, 160, 140, 0.22);
+  border-radius: 50%;
+  background: rgba(120, 20, 20, 0.14);
+  color: rgba(255, 190, 175, 0.6);
+  font: 20px/1 ui-monospace, monospace;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+#tocco .t:active { background: rgba(200, 40, 30, 0.3); }
+
+#tocco .t[data-k="left"]  { left: calc(14px + env(safe-area-inset-left, 0px)); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+#tocco .t[data-k="up"]    { left: calc(104px + env(safe-area-inset-left, 0px)); bottom: calc(118px + env(safe-area-inset-bottom, 0px)); }
+#tocco .t[data-k="right"] { left: calc(194px + env(safe-area-inset-left, 0px)); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+#tocco .t[data-k="act"]   { right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); width: 94px; height: 94px; color: rgba(255, 210, 160, 0.75); }
+
+/* ── chi parla col dito, chi col mouse ────────────────────────
+   Non si guarda se lo schermo sa ricevere un dito — i portatili lo
+   sanno — ma qual è il puntatore principale. Su un computer restano
+   i tasti della tastiera; sul telefono i tasti rotondi, e la riga
+   dei comandi sparisce perché non c'è niente da leggere. */
+#aiuto .per-dito,
+#avviso-invito .per-dito { display: none; }
+
+@media (pointer: coarse) {
+  #aiuto { display: none; }
+  #avviso-invito .per-topo { display: none; }
+  #avviso-invito .per-dito { display: inline; }
+}
+
+@media (pointer: fine) {
+  #tocco { display: none; }
+  #aiuto { display: block; }
+  #aiuto .per-topo,
+  #avviso-invito .per-topo { display: inline; }
+  #aiuto .per-dito,
+  #avviso-invito .per-dito { display: none; }
+}
+
+/* il segno sul body ha l'ultima parola: sa anche quando il mouse
+   viene collegato dopo, o quando la tavoletta si stacca */
+body.touch-device #tocco { display: block; }
+body.touch-device #aiuto { display: none; }
+body.touch-device #avviso-invito .per-topo { display: none; }
+body.touch-device #avviso-invito .per-dito { display: inline; }
+body.desktop-device #tocco { display: none; }
+body.desktop-device #aiuto { display: block; }
+body.desktop-device #aiuto .per-topo,
+body.desktop-device #avviso-invito .per-topo { display: inline; }
+body.desktop-device #aiuto .per-dito,
+body.desktop-device #avviso-invito .per-dito { display: none; }
+
+@media (max-width: 620px) {
+  #voce, #ritorno, #schermo { font-size: 9px; }
+  #schermo { font-size: 12px; }
+}

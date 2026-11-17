@@ -1989,7 +1989,7 @@
     }
     if (S.introT > 4.6) {
       var a2 = 0.3 + Math.sin(time * 3.2) * 0.16;
-      var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+      var isTouch = (M.DEVICE && M.DEVICE.touch) ? M.DEVICE.touch() : (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
       var playTxt = isTouch ? "TOCCA PER GIOCARE" : "PREMI E O SPAZIO PER GIOCARE";
       text(c, playTxt, w / 2, h * 0.82, 12 * k, "rgba(236,230,216," + a2.toFixed(3) + ")", "center", 600);
     }
