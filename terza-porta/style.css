@@ -167,36 +167,55 @@ html, body {
 
 #voce.is-off { color: #402f2c; }
 
-/* ── il tocco: tre direzioni e una bocca ────────────────── */
+/* ── il tocco: tre direzioni e una bocca ──────────────────
+   Il pollice sinistro cammina (◀ ▲ ▶), il destro parla alla porta.
+   I cerchi erano da 82px e stavano a 80px dal bordo: sul telefono di
+   traverso coprivano mezzo schermo e, in verticale, si
+   sovrapponevano. Adesso sono più piccoli, più bassi, e le misure
+   sono variabili perché cambiano con l'altezza. */
 #tocco {
   position: absolute;
   inset: 0;
   z-index: 28;
   display: none;
   pointer-events: none;
+  --p: 64px;   /* le tre direzioni */
+  --a: 76px;   /* la bocca */
+  --g: 8px;
+  --b: 54px;
 }
 
 body.touch-device #tocco { display: block; }
 
 #tocco .t {
   position: absolute;
-  width: 82px;
-  height: 82px;
+  width: var(--p);
+  height: var(--p);
   border: 1px solid rgba(255, 160, 140, 0.22);
   border-radius: 50%;
   background: rgba(120, 20, 20, 0.14);
   color: rgba(255, 190, 175, 0.6);
-  font: 20px/1 ui-monospace, monospace;
+  font: 17px/1 ui-monospace, monospace;
   pointer-events: auto;
   touch-action: none;
 }
 
 #tocco .t:active { background: rgba(200, 40, 30, 0.3); }
 
-#tocco .t[data-k="left"]  { left: calc(14px + env(safe-area-inset-left, 0px)); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
-#tocco .t[data-k="up"]    { left: calc(104px + env(safe-area-inset-left, 0px)); bottom: calc(118px + env(safe-area-inset-bottom, 0px)); }
-#tocco .t[data-k="right"] { left: calc(194px + env(safe-area-inset-left, 0px)); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
-#tocco .t[data-k="act"]   { right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); width: 94px; height: 94px; color: rgba(255, 210, 160, 0.75); }
+#tocco .t[data-k="left"]  { left: calc(12px + env(safe-area-inset-left, 0px)); bottom: calc(var(--b) + env(safe-area-inset-bottom, 0px)); }
+#tocco .t[data-k="up"]    { left: calc(12px + var(--p) + var(--g) + env(safe-area-inset-left, 0px)); bottom: calc(var(--b) + 34px + env(safe-area-inset-bottom, 0px)); }
+#tocco .t[data-k="right"] { left: calc(12px + (var(--p) + var(--g)) * 2 + env(safe-area-inset-left, 0px)); bottom: calc(var(--b) + env(safe-area-inset-bottom, 0px)); }
+#tocco .t[data-k="act"]   { right: calc(12px + env(safe-area-inset-right, 0px)); bottom: calc(var(--b) + env(safe-area-inset-bottom, 0px)); width: var(--a); height: var(--a); font-size: 19px; color: rgba(255, 210, 160, 0.75); }
+
+/* di traverso lo schermo è basso: un giro più stretto e più basso,
+   o i tasti si mangiano il corridoio. `--b` tiene il ◦ sopra la riga
+   di ⛶ e ◍, che stanno appoggiate al bordo */
+@media (max-height: 400px) {
+  #tocco { --p: 56px; --a: 66px; --g: 7px; --b: 52px; }
+  #tocco .t { font-size: 15px; }
+  #tocco .t[data-k="act"] { font-size: 17px; }
+  #tocco .t[data-k="up"] { bottom: calc(var(--b) + 28px + env(safe-area-inset-bottom, 0px)); }
+}
 
 /* ── chi parla col dito, chi col mouse ────────────────────────
    Non si guarda se lo schermo sa ricevere un dito — i portatili lo

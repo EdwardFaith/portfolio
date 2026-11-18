@@ -327,3 +327,20 @@ html, body {
   .pw-name { font-size: 8px; letter-spacing: 0.06em; }
   .pw-emoji { font-size: 13px; }
 }
+
+/* di traverso lo schermo è basso: la colonna scende e si stringe di
+   un altro giro, così la prima voce non finisce sotto i pannelli in
+   alto e resta sotto il pollice sinistro. In basso a sinistra non c'è
+   altro: il ritorno sta dall'altra parte, accanto a Charles. */
+@media (max-height: 420px) {
+  #powers {
+    top: auto;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    transform: none;
+    gap: 5px;
+  }
+  .pw { width: 92px; padding: 4px 6px 5px; }
+  .pw-name { font-size: 7.5px; letter-spacing: 0.05em; }
+  .pw-emoji { font-size: 12px; }
+  .pw-bar { margin-top: 4px; }
+}

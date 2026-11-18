@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>probe</title>
+<style>
+  html, body { margin: 0; background: #fff; }
+  iframe { display: block; border: 0; }
+  #out { font: 12px monospace; white-space: pre; padding: 8px; }
+</style>
+</head>
+<body>
+<iframe id="fin" width="740" height="360"></iframe>
+<div id="out">…</div>
+<script>
+(function () {
+  "use strict";
+  var q = new URLSearchParams(location.search);
+  var pagina = q.get("p") || "cosmo/index.html";
+  var w = Number(q.get("w") || 740);
+  var h = Number(q.get("h") || 360);
+  /* chiudi=1: mette via la finestra di Charles e mostra la nuvoletta,
+     così si vedono insieme la nuvoletta e i tasti. Non si preme ✕
+     davvero: aprirebbe il gioco e la scena non si fermerebbe più. */
+  var chiudi = q.get("chiudi") === "1";
+  var fin = document.getElementById("fin");
+  fin.width = w;
+  fin.height = h;
+  fin.src = pagina;
+
+  function scopriNuvoletta(d, win) {
+    var f = d.querySelector(".ch-win");
+    if (f) f.style.display = "none";
+    var n = d.querySelector(".ch-nudge");
+    if (n) {
+      n.hidden = false;
+      win.dispatchEvent(new Event("resize"));
+    }
+  }
+
+  var selettori = {
+    "cosmo/index.html": [".c-btn", "#back", "#ver"],
+    "terre/index.html": ["#tocco .t", "#arma", "body > .ch-btn", ".ch-nudge"],
+    "terza-porta/index.html": ["#tocco .t", "#voce", "#ritorno", "#schermo"],
+    "spiaggia/index.html": ["#powers .pw", "#back", "body > .ch-btn", ".ch-nudge", "#prompt"],
+    "museo.html": ["#touch button", "#tools button", "#hint", ".ch-nudge", "#ch-win"]
+  };
+
+  function area(r) {
+    return Math.max(0, r.right - r.left) * Math.max(0, r.bottom - r.top);
+  }
+  function inter(a, b) {
+    var x = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+    var y = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+    return x * y;
+  }
+  function nome(el) {
+    var t = (el.textContent || "").trim().slice(0, 8);
+    return (el.id ? "#" + el.id : "." + String(el.className).split(" ").join(".")) + " " + t;
+  }
+
+  function misura() {
+    var d = fin.contentDocument, win = fin.contentWindow;
+    var righe = [];
+    var vw = win.innerWidth, vh = win.innerHeight;
+    righe.push("pagina " + pagina + "  " + vw + "x" + vh);
+    righe.push("pointer coarse: " + win.matchMedia("(pointer: coarse)").matches +
+      "  touch-device: " + d.body.classList.contains("touch-device") +
+      "  gira-on: " + d.body.classList.contains("gira-on"));
+
+    var sel = selettori[pagina] || [];
+    var elems = [];
+    sel.forEach(function (s) {
+      Array.prototype.forEach.call(d.querySelectorAll(s), function (el) {
+        var st = win.getComputedStyle(el);
+        if (st.display === "none" || st.visibility === "hidden" || Number(st.opacity) === 0) return;
+        elems.push(el);
+      });
+    });
+
+    elems.forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      var fuori = r.left < -1 || r.top < -1 || r.right > vw + 1 || r.bottom > vh + 1;
+      righe.push("  " + nome(el) + "  [" + Math.round(r.left) + "," + Math.round(r.top) +
+        " " + Math.round(r.width) + "x" + Math.round(r.height) + "]" + (fuori ? "  FUORI SCHERMO" : ""));
+    });
+
+    for (var i = 0; i < elems.length; i++) {
+      for (var j = i + 1; j < elems.length; j++) {
+        var a = elems[i].getBoundingClientRect(), b = elems[j].getBoundingClientRect();
+        var sc = inter(a, b);
+        if (sc > 4) {
+          righe.push("  SOVRAPPOSIZIONE " + nome(elems[i]) + " / " + nome(elems[j]) + "  " + Math.round(sc) + "px2");
+        }
+      }
+    }
+    var g = d.getElementById("gira");
+    if (g) {
+      righe.push("  velo #gira display: " + win.getComputedStyle(g).display +
+        "  aria-hidden: " + g.getAttribute("aria-hidden"));
+    }
+    return righe.join("\n");
+  }
+
+  fin.addEventListener("load", function () {
+    var d = fin.contentDocument;
+    try {
+      d.body.classList.add("touch-device");
+      d.body.classList.remove("desktop-device");
+    } catch (e) { }
+    if (chiudi) {
+      setTimeout(function () {
+        try { scopriNuvoletta(d, fin.contentWindow); } catch (e) { }
+      }, 700);
+    }
+    setTimeout(function () {
+      var testo;
+      try { testo = misura(); } catch (e) { testo = "ERRORE " + e.message; }
+      document.getElementById("out").textContent = testo;
+      document.title = "pronto";
+    }, chiudi ? 1600 : 900);
+  });
+})();
+</script>
+</body>
+</html>

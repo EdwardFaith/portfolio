@@ -1124,6 +1124,9 @@
       : "se hai bisogno sono qui.");
     nuvoletta.type = "button";
     nuvoletta.hidden = true;
+    /* la freccia della nuvoletta guarda il «?»: il lato lo scrive
+       posizionaNuvoletta(), questo è solo il ripiego del primo frame */
+    nuvoletta.setAttribute("data-lato", "sotto");
     nuvoletta.addEventListener("click", function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -1330,6 +1333,80 @@
     if (e.stopPropagation) e.stopPropagation();
   }
 
+  /* ---- dove sta la nuvoletta: accanto al punto di domanda ------
+     Prima stava in basso a destra, lontana dal «?» che la apre: la si
+     leggeva come un annuncio, non come Charles che si fa vivo. Adesso
+     si aggancia al bottone — a sinistra se c'è posto, altrimenti sotto
+     o sopra — e la freccia dice da che parte è il «?».
+     Si ricalcola a ogni apertura e a ogni cambio di misura: su un
+     telefono ruotato una posizione scritta una volta sola finirebbe
+     fuori schermo. */
+  /* il «?» sta in una fila di tasti (la barra del museo)? Allora di
+     fianco non c'è posto: la nuvoletta coprirebbe gli altri tasti, e
+     sotto il dito si perderebbe anche il «?». Lì si va sotto. */
+  function inUnaFila(r) {
+    var p = pulsante.parentNode;
+    if (!p || p === doc.body) return false;
+    var figli = p.children || [];
+    var stile = root.getComputedStyle;
+    for (var i = 0; i < figli.length; i++) {
+      var f = figli[i];
+      if (f === pulsante) continue;
+      if (stile) {
+        var s = stile(f);
+        if (!s || s.display === "none" || s.visibility === "hidden") continue;
+      }
+      var fr = f.getBoundingClientRect();
+      if (!fr.width && !fr.height) continue;
+      /* sulla stessa fascia verticale: è un fratello di fila */
+      if (Math.abs(fr.top - r.top) < r.height) return true;
+    }
+    return false;
+  }
+
+  function posizionaNuvoletta() {
+    if (!nuvoletta || !pulsante) return;
+    if (nuvoletta.hidden) return;
+    var r = pulsante.getBoundingClientRect();
+    if (!r.width && !r.height) return;
+    var vw = root.innerWidth || (doc.documentElement && doc.documentElement.clientWidth) || 0;
+    var vh = root.innerHeight || (doc.documentElement && doc.documentElement.clientHeight) || 0;
+    if (!vw || !vh) return;
+    var w = nuvoletta.offsetWidth;
+    var h = nuvoletta.offsetHeight;
+    var gap = 10, bordo = 8;
+    var lato = "sx";
+    var left = r.left - w - gap;
+    var top = r.top + (r.height - h) / 2;
+    if (left < bordo || inUnaFila(r)) {
+      /* a sinistra non c'è posto (o il «?» è proprio sul bordo, o è in
+         mezzo a una fila di tasti): si va sotto, e se sotto non c'è
+         posto, sopra */
+      lato = "sotto";
+      left = Math.min(Math.max(r.right - w, bordo), Math.max(bordo, vw - bordo - w));
+      top = r.bottom + gap;
+      if (top + h > vh - bordo) {
+        lato = "sopra";
+        top = r.top - h - gap;
+      }
+    }
+    if (top < bordo) top = bordo;
+    if (top + h > vh - bordo) top = Math.max(bordo, vh - bordo - h);
+    /* la punta guarda il «?»: quando si sta sotto o sopra, si sposta
+       sull'ascissa del bottone invece di restare a sinistra */
+    if (lato !== "sx") {
+      var freccia = r.left + r.width / 2 - left - 4;
+      if (freccia < 10) freccia = 10;
+      if (freccia > w - 18) freccia = w - 18;
+      nuvoletta.style.setProperty("--freccia-x", Math.round(freccia) + "px");
+    }
+    nuvoletta.style.left = Math.round(left) + "px";
+    nuvoletta.style.top = Math.round(top) + "px";
+    nuvoletta.style.right = "auto";
+    nuvoletta.style.bottom = "auto";
+    nuvoletta.setAttribute("data-lato", lato);
+  }
+
   /* ---- il richiamo: la prima volta che si entra nell'hub ----------
      Prima era un timer: venti secondi dopo l'apertura della pagina, e
      dopo dodici spariva da sola. Così compariva anche nelle terre —
@@ -1346,6 +1423,8 @@
     st.nudge = 1;
     scrivi(st);
     nuvoletta.hidden = false;
+    /* accanto al «?», non in fondo alla pagina */
+    posizionaNuvoletta();
   }
 
   /* ============================================================
@@ -1356,6 +1435,17 @@
     if (agganciato) return CH;
     agganciato = true;
     if (doc.addEventListener) doc.addEventListener("keydown", onTasto, true);
+    /* la nuvoletta è agganciata al «?»: se la finestra cambia misura
+       (telefono ruotato, tastiera, schermo intero) si riaggancia */
+    if (root.addEventListener) {
+      var tieni = function () {
+        if (nuvoletta && !nuvoletta.hidden) posizionaNuvoletta();
+      };
+      root.addEventListener("resize", tieni);
+      root.addEventListener("orientationchange", function () {
+        root.setTimeout(tieni, 140);
+      });
+    }
     /* l'hub non è detto che sia già quello: la pagina può nascere su
        una stanza e cambiare dopo. Si guarda per un po' — la prima
        volta che la stanza è l'hub la nuvoletta si fa viva, e poi basta

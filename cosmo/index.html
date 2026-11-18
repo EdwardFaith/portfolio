@@ -12,16 +12,18 @@
   display: none;
   position: fixed;
   left: 0; right: 0; bottom: 0;
-  padding: 10px 14px 18px;
+  padding: 8px calc(12px + env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) calc(12px + env(safe-area-inset-left, 0px));
   z-index: 50;
   pointer-events: none;
   justify-content: space-between;
   align-items: flex-end;
 }
+/* le misure dei comandi del dito: cambiano con l'altezza */
+#cosmoTouch { --t: 46px; --m: 52px; --f: 56px; --g: 6px; }
 @media (pointer: coarse) {
   #cosmoTouch { display: flex; }
-  #hint { font-size: 9px; bottom: 130px; letter-spacing: 0.08em; color: #8a9298; }
-  #ver { bottom: 145px; }
+  #hint { display: none; }
+  #ver { display: none; }
 }
 body.touch-device #cosmoTouch { display: flex; }
 body.desktop-device #cosmoTouch { display: none; }
@@ -136,6 +138,29 @@ body.desktop-device #cosmoTouch { display: none; }
   color: #cfd3d6;
 }
 
+/* ── i tasti del dito, misure definitive ───────────────────────
+   Erano 48px la croce, 58 il salto, 66 il fuoco, e la fila in alto
+   arrivava fino al bordo destro: sul telefono di traverso si
+   toccavano fra loro e coprivano il suggerimento. Adesso sono più
+   piccoli, più bassi, e la croce sta nell'angolo del pollice
+   sinistro. Le misure vengono dalle variabili di #cosmoTouch. */
+.c-dpad { gap: 5px; }
+.c-dpad-row { gap: var(--g); }
+.c-act-top, .c-act-bot { gap: var(--g); }
+.c-dir { width: var(--t); height: var(--t); font-size: 16px; }
+.c-jump { width: var(--m); height: var(--m); border-radius: 50%; font-size: 10px; }
+.c-fire { width: var(--f); height: var(--f); border-radius: 50%; font-size: 11px; }
+.c-enter { width: 48px; height: 48px; border-radius: 50%; font-size: 9px; }
+.c-run, .c-eye, .c-swap { width: 40px; height: 40px; border-radius: 50%; font-size: 8px; }
+
+/* di traverso con lo schermo basso: un giro più stretto, e le
+   istruzioni spariscono — a due righe finirebbero sotto i pollici */
+@media (max-height: 400px) {
+  #cosmoTouch { --t: 42px; --m: 46px; --f: 50px; --g: 5px; }
+  .c-enter { width: 44px; height: 44px; }
+  .c-run, .c-eye, .c-swap { width: 36px; height: 36px; font-size: 7px; }
+  #hint { display: none; }
+}
 </style></head><body>
 <canvas id="cv"></canvas><div id="crt"></div>
 <a id="back" href="../museo.html?stanza=cosmo">&larr; MEMORIE DEL COSMO</a>
@@ -4126,4 +4151,7 @@ window.COSMO_DBG={
 
 
 })();
-</script></body></html>
+</script>
+<!-- il telefono si gira: in verticale i comandi non ci stanno -->
+<script src="../museo/orienta.js?v=1"></script>
+</body></html>

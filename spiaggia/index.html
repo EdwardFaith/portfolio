@@ -10,9 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=4">
   <!-- il punto di domanda di Charles, lo stesso del museo -->
-  <link rel="stylesheet" href="../museo/charles.css?v=6">
+  <link rel="stylesheet" href="../museo/charles.css?v=9">
 </head>
 
 <body class="sez-spiaggia">
@@ -20,7 +20,7 @@
     <canvas id="cv" width="1600" height="900" aria-label="La spiaggia onirica, vista dall'alto" role="img"></canvas>
     <div id="crt"></div>
 
-    <!-- ── l'HUD: dove sei, cosa devi fare ─────────────────────── -->
+    <!-- â”€â”€ l'HUD: dove sei, cosa devi fare â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div id="hud">
       <div class="panel" id="hud-where">
         <span id="hud-mode">hub</span>
@@ -31,19 +31,19 @@
       </div>
     </div>
 
-    <!-- ── i quattro poteri: costruiti da powers.js ────────────── -->
+    <!-- â”€â”€ i quattro poteri: costruiti da powers.js â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div id="powers"></div>
 
     <div id="prompt"></div>
     <div id="toast"></div>
 
-    <!-- ── il foglio d'ingresso: solo il nome del gioco ─────────── -->
+    <!-- â”€â”€ il foglio d'ingresso: solo il nome del gioco â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div id="intro">
       <h1>LA SPIAGGIA ONIRICA</h1>
       <button id="btn-start">ENTRA NELLA SPIAGGIA</button>
     </div>
 
-    <a id="back" href="../museo.html?stanza=soffitta&amp;x=860" title="Torna alla soffitta, davanti alla grata della lumaca">◀ SOFFITTA</a>
+    <a id="back" href="../museo.html?stanza=soffitta&amp;x=860" title="Torna alla soffitta, davanti alla grata della lumaca">â—€ SOFFITTA</a>
   </div>
 
   <script src="sound.js?v=2"></script>
@@ -51,8 +51,10 @@
   <script src="beach.js"></script>
   <script src="arena.js"></script>
   <script src="game.js?v=2"></script>
-  <!-- Charles: per ultimo, così non si mette in mezzo all'avvio -->
-  <script src="../museo/charles.js?v=11"></script>
+  <!-- lo schermo del telefono: prima si gira, poi si gioca -->
+  <script src="../museo/orienta.js?v=1"></script>
+  <!-- Charles: per ultimo, cosÃ¬ non si mette in mezzo all'avvio -->
+  <script src="../museo/charles.js?v=13"></script>
 </body>
 
 </html>
