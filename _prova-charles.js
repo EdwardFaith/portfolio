@@ -134,6 +134,43 @@ ok("«fabbriche» è fra i luoghi", !!CH.LUOGHI.fabbriche);
 CH.setLuogo("fabbriche");
 ok("setLuogo cambia il posto", CH.luogo() === "fabbriche");
 
+/* ---- le due spiagge: non sono la stessa cosa -------------------
+   La porta della lumaca (`spiaggia/`) è un minigioco: i tavoli, i
+   quattro poteri, le arene. La spiaggia delle terre è la sabbia di
+   cenere, la fila con la valigia e i gradini della metropolitana.
+   Charles le teneva sotto lo stesso nome, e raccontava l'una per
+   l'altra. */
+ok("la spiaggia delle terre è fra i luoghi", !!CH.LUOGHI.spiaggia);
+ok("e la sua scheda è quella delle terre",
+  CH.LUOGHI.spiaggia.sez === "terre");
+ok("la spiaggia onirica è un posto suo", !!CH.LUOGHI.spiaggia_onirica);
+ok("e ha i suoi tasti, non quelli delle terre",
+  CH.LUOGHI.spiaggia_onirica.sez === "spiaggia_onirica" &&
+  !!CH.TASTI.spiaggia_onirica && !CH.TASTI.spiaggia);
+
+/* sul percorso /spiaggia/ il posto deve essere la spiaggia onirica:
+   per guardarlo si toglie di mezzo il motore delle terre, che
+   altrimenti risponde per primo */
+var terreFinte = window.MUSEO.TERRE;
+window.MUSEO.TERRE = null;
+window.location.pathname = "/spiaggia/index.html";
+CH.setLuogo(null);
+ok("su /spiaggia/ il posto è la spiaggia onirica",
+  CH.luogo() === "spiaggia_onirica", CH.luogo());
+ok("e la scheda parla dei tavoli, non della fila con la valigia",
+  CH.scheda().n.it.indexOf("ONIRICA") >= 0, CH.scheda().n.it);
+window.location.pathname = "/terre/index.html";
+CH.setLuogo("spiaggia");
+ok("in terre la spiaggia è quella delle terre",
+  CH.scheda().n.it.indexOf("TERRE") >= 0, CH.scheda().n.it);
+window.MUSEO.TERRE = terreFinte;
+CH.setLuogo(null);
+
+/* e la guida non inventa più un pagliaccio dove c'è un ufficio */
+ok("«chi sono» non ha nessun bambino pagliaccio",
+  CH.LUOGHI.bio.d.it.indexOf("pagliacc") < 0 &&
+  CH.LUOGHI.bio.d.it.indexOf("bambino") < 0, CH.LUOGHI.bio.d.it);
+
 if (errori.length) {
   WScript.Echo("\n" + errori.length + " problemi:");
   for (var q = 0; q < errori.length; q++) WScript.Echo(" - " + errori[q]);

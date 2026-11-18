@@ -99,6 +99,14 @@
 
   var treno = { stato: "vuoto", x: FERMO, v: 0, porte: 0, fermo: 0, attesa: 0 };
   var vicinoTreno = false, vicinoScala = false;
+  /* LA STATURA SULLA BANCHINA — qui il metro non è quello della strada.
+     Di sopra l'omino si misura col coniglio e con i muri delle case; qui
+     si misura con la bocca della galleria (trecento pixel) e con
+     l'alzata dei gradini (ventisei): a quella misura la statura del
+     corteo è troppo bassa, e sulla banchina la fila legge come un branco
+     di bambini. Il numero è locale e vale solo quaggiù: chi esce dalle
+     scale ritrova esattamente la statura di prima, sulla sabbia */
+  var SCALA_BANCHINA = 1.5;
   var andato = 0, preso = false;
   /* chi è appena sceso dal treno non ha sedici secondi di banchina:
      il vagone richiude le porte e rientra nel buio dopo un respiro */
@@ -1595,9 +1603,12 @@
          scale verso la sabbia. Sono gli stessi che si ritrovano di
          sopra, nel bosco, nelle rovine e in città: la strada comincia
          qui, e comincia da sotto. Non sono quattro sagome sparse per
-         le scale — è la fila vera, e sulle scale ce n'è una per volta,
-         della stessa misura che ha sulla sabbia e in città: chi esce
-         dalla metro entra nel corteo di sopra senza salti di statura */
+         le scale — è la fila vera, e sulle scale ce n'è una per volta.
+         La statura gliela dà il corteo (`T.CORTEO.scala`), ma quaggiù
+         c'è un correttivo locale (SCALA_BANCHINA): la banchina è
+         disegnata in pixel suoi, e a quella misura la fila spariva.
+         Chi sale le scale cambia misura una volta sola, in cima, sotto
+         l'inchiostro del passaggio di zona: non si vede */
       var WW = T.W();
       var fila = T.CORTEO.qui("stazione", t, 240, cimaScale() + 24);
       for (var ci = 0; ci < fila.length; ci++) {
@@ -1606,27 +1617,20 @@
         if (corS < -170 || corS > WW + 170) continue;
         /* il gradino sotto i piedi: sul piano è zero, sulla scala sale */
         var corGiu = gradinoSotto(corX);
-        /* la stessa misura degli altri tratti di strada. Di sopra, in
-           città e sulla sabbia, la sagoma esce da posto(0.72), che è
-           0.63 di scala: 138 unità per 0.63 sono un uomo, alto come
-           il coniglio. Prima qui si moltiplicava per l'altezza della
-           finestra, e sulla banchina passavano giganti alti il doppio
-           di chi li guardava — mentre di sopra erano quelli veri */
-        /* LA MISURA. Sulla sabbia, proprio sopra queste scale, gli
-           stessi omini escono da `posto(0.76..0.88).s * 0.62`, cioè
-           fra 0.69 e 0.76: chi aspetta lì è alto così. Qui il numero
-           era fisso a 0.63, e la fila che saliva le scale era più
-           bassa di quella che l'aspettava due passi sopra — la
-           stessa persona, due stature, e si vedeva. Adesso è 0.72,
-           il mezzo di quella misura: sulla banchina e sulla sabbia
-           sono uguali, e chi esce dalla metro entra nel corteo di
-           sopra senza salti. */
-        var corSc = 0.72;
+        /* LA MISURA — la statura la decide il corteo, come in tutte le
+           altre zone (`T.CORTEO.scala`), e un uomo è poco più alto del
+           coniglio. Quaggiù però si moltiplica per SCALA_BANCHINA,
+           perché questa stanza non è misurata in passi di coniglio:
+           è misurata in alzate di gradino e in bocche di galleria.
+           Prima il numero era scritto a mano in ogni zona, e in pixel:
+           la stessa persona cambiava statura passando le scale, e su
+           una finestra alta cresceva il coniglio e non la fila */
+        var corSc = T.CORTEO.scala() * SCALA_BANCHINA;
         T.orrore.sagomaLampada(c, corS, suolo() - corGiu + 2 * s, corSc,
           5.1 + fila[ci].i * 2.9, t, Math.abs(T.g.x - corX) < 100,
           T.CORTEO.passo(corX, t));
         if (T.luce) {
-          T.luce(c, corS + 16 * corSc, suolo() - corGiu, 76 * 1.05,
+          T.luce(c, corS + 16 * corSc, suolo() - corGiu, 76 * 1.05 * SCALA_BANCHINA,
             "255,196,124", 0.05, 0.22);
         }
       }

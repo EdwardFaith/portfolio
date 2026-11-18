@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
         rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=9">
   <!-- il punto di domanda di Charles: lo stesso foglio del museo -->
-  <link rel="stylesheet" href="../museo/charles.css?v=4">
+  <link rel="stylesheet" href="../museo/charles.css?v=6">
 </head>
 <body class="sez-terre">
   <div id="sala">
@@ -50,7 +50,7 @@
       <button class="t" type="button" data-k="run">»</button>
       <button class="t" type="button" data-k="jump">▲</button>
       <button class="t" type="button" data-k="fuoco">✦</button>
-      <button class="t" type="button" data-k="c" title="cambia quello che hai in mano">✎</button>
+      <button class="t" type="button" data-k="c" title="1 2 3 o C: cambia quello che hai in mano">✎</button>
       <button class="t" type="button" data-k="act">◦</button>
     </div>
 
@@ -67,15 +67,15 @@
   <!-- la radio: la stessa stazione del museo (RadioKaoSs), con lo stesso
        mazzo mescolato. Il tasto R la accende qui come nel corridoio, in
        tutte le zone. data.js è solo la scaletta dei pezzi -->
-  <script src="../museo/data.js?v=7"></script>
-  <script src="../museo/radio.js"></script>
+  <script src="../museo/data.js?v=8"></script>
+  <script src="../museo/radio.js?v=2"></script>
   <!-- le bestie che si trovano in tutte le zone: crocifissi-lampada,
        morti, alberi con gli occhi, ragni, nebbia. Vengono dopo
        mondo.js perché usano le sue utilità (T.u) -->
   <!-- il suono: un sintetizzatore, non un file. Viene prima di
        mondo.js perché il mondo lo chiama appena parte -->
   <script src="suono.js?v=2"></script>
-  <script src="mondo.js?v=27"></script>
+  <script src="mondo.js?v=28"></script>
   <script src="orrori.js?v=5"></script>
   <script src="spiaggia.js?v=24"></script>
   <!-- sotto la sabbia: la stazione, la banchina, e il treno che passa
@@ -89,7 +89,7 @@
        agenti (stanno tutti e due in oltrecitta.js) -->
   <script src="oltrecitta.js?v=13"></script>
   <script src="case.js?v=9"></script>
-  <script src="tempio.js?v=10"></script>
+  <script src="tempio.js?v=11"></script>
   <!-- il fondo delle terre: le fabbriche Latte Materno. Le balie di
        lamiera, gli operai con la lampada al posto della testa (che non
        attaccano), e la polizia del latte che spara: si risponde con la
@@ -100,11 +100,11 @@
        foglio nero forato dalle lampade, e le sagome lampadina si
        sciolgono con l'acqua. In città non c'è una scritta: le insegne
        sono figure, perché chi è nato qui non ha mai imparato a leggere -->
-  <script src="zoan.js?v=13"></script>
+  <script src="zoan.js?v=18"></script>
   <!-- Charles: il punto di domanda rosso. È la guida, e si parla con lui
        come con un personaggio: le domande sono lì sotto, e le risposte
        arrivano nel fumetto. Niente schede, niente tour -->
-  <script src="../museo/charles.js?v=8"></script>
+  <script src="../museo/charles.js?v=11"></script>
 
   <script>
     (function () {

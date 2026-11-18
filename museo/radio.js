@@ -1,6 +1,6 @@
 /* ============================================================
    MUSEO — Radio Kaoss.
-   Non sono le ventuno canzoni del museo: è la stazione vera, quella
+   Non sono le canzoni del museo: è la stazione vera, quella
    di RadioKaoSs, messa in fila come va in onda. Un solo lettore per
    tutto il sito: lo accendono il tasto R, il bottone ◉, il jukebox
    del corridoio e il pinguino del bar. Se suona lei, l'ambiente si
@@ -18,7 +18,13 @@
        mazzo finisce si rimescola. Qui la radio del corridoio fa la
        stessa cosa: le canzoni non tornano mai nello stesso ordine, e
        due volte di fila la stessa non capita quasi mai. */
-    order: [], at: 0, last: -1
+    order: [], at: 0, last: -1,
+    /* ---- play e pausa, non un interruttore --------------------
+       `cur` è l'url che sta dentro al lettore, `finito` dice che quel
+       pezzo è arrivato in fondo (o non si è potuto leggere), `cariche`
+       conta quante volte si è caricato un file: serve alla prova per
+       vedere che la pausa non ricarica niente. */
+    cur: null, finito: false, cariche: 0
   };
 
   R.list = function () {
@@ -57,11 +63,19 @@
     var a = new Audio();
     a.volume = R.vol;
     a.preload = "none";
-    a.addEventListener("ended", function () { R.next(); });
+    a.addEventListener("ended", function () {
+      /* la canzone è finita: si passa alla successiva, e la radio
+         resta accesa — il mazzo non si ferma mai. `finito` lo dice a
+         start(): questo pezzo, se ricapita, va ricominciato, non
+         ripreso a metà */
+      R.finito = true;
+      R.next();
+    });
     /* un file che non c'è non ferma la radio: si salta avanti. Ma non
        all'infinito: dopo qualche salto di fila si spegne, invece di
        girare a vuoto su una cartella vuota. */
     a.addEventListener("error", function () {
+      R.finito = true;
       if (R.failed++ > 5) { R.stop(); return; }
       R.next();
     });
@@ -80,7 +94,12 @@
 
   /* ---- far partire una traccia -------------------------------
      start() non tocca il mazzo: sa solo accendere la carta che le
-     passano. Chi decide quale carta è play/next/prev. */
+     passano. Chi decide quale carta è play/next/prev.
+
+     E non ricomincia da capo: se nel lettore c'è già questo pezzo, il
+     ▶ dopo un ❚❚ è una ripresa, non un'altra messa in onda. Prima
+     `src` si riassegnava sempre, e ogni pausa buttava via il punto in
+     cui si era arrivati. */
   function start(idx) {
     var l = R.list();
     if (!l.length) return false;
@@ -88,12 +107,27 @@
     R.i = ((idx % l.length) + l.length) % l.length;
     var tr = R.track(R.i);
     if (!tr) return false;
-    /* la stessa traccia che sta già suonando non si fa ripartire */
-    if (R.on && a.src && a.src.indexOf(encodeURI(tr.url)) >= 0 && !a.paused) {
+
+    /* ── lo stesso pezzo: si riprende da dove era ─────────────
+       `finito` è la sola eccezione: se è arrivato in fondo (o non si
+       è potuto leggere) play() lo fa ripartire da zero, ed è giusto —
+       è una canzone nuova, anche quando è la stessa */
+    if (R.cur === tr.url && !R.finito) {
+      if (a.paused) {
+        var q = a.play();
+        if (q && q.catch) q.catch(function () { /* il browser vuole un gesto: c'è stato */ });
+      }
+      R.on = true;
+      R.last = R.i;
       R.tell();
+      if (M.SOUND && M.SOUND.duck) M.SOUND.duck(true);
       return true;
     }
+
     a.src = tr.url;
+    R.cur = tr.url;
+    R.cariche++;
+    R.finito = false;
     var p = a.play();
     if (p && p.catch) p.catch(function () { /* il browser vuole un gesto: c'è stato */ });
     R.on = true;
@@ -139,6 +173,9 @@
     return start(k);
   };
 
+  /* stop() è una pausa, non uno spegnimento: il pezzo resta nel
+     lettore, fermo dov'è, e play() lo riprende da lì. Chi vuole
+     cambiare disco chiama play(i), next() o prev(). */
   R.stop = function () {
     if (R.audio) R.audio.pause();
     R.on = false;

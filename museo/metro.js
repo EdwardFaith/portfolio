@@ -2176,11 +2176,15 @@
      tutto, si disegna la scena per dieci secondi, e alla fine si va
      alle terre. La stazione, dietro, resta dov'era.
      ============================================================ */
-  /* opt.inverso — il viaggio al contrario. Non si va da nessuna parte:
-     è la stessa pellicola girata all'indietro, senza scritte, e alla
-     fine si resta sulla banchina da cui il treno è appena ripartito.
-     Lo usa chi torna dalle terre: là si sale, il treno parte in
-     retromarcia, e di qua il nastro si riavvolge. */
+  /* opt.inverso — il viaggio al contrario: la stessa pellicola girata
+     all'indietro, senza scritte, e alla fine si resta sulla banchina da
+     cui il treno è appena ripartito.
+     LO USAVA l'arrivo in hub di chi tornava dalle terre. Adesso no: chi
+     torna ha appena guidato il treno per tutta la galleria, e mettergli
+     davanti dieci secondi di film — dopo un lampo dell'hub com'era —
+     voleva dire rifare al rovescio un viaggio che era già stato gioco.
+     Il meccanismo resta (è la stessa pellicola, non costa niente), ma
+     l'arrivo lo salta: vedi museo/main.js, begin() */
   function parti(opt) {
     if (viaggio) return;
     stato = "viaggio";

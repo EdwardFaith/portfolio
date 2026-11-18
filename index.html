@@ -911,7 +911,11 @@
                 { src: "illustrazioni/12.jpeg", title: "Provocazione" },
                 { src: "illustrazioni/13.png", title: "Stretta" },
                 { src: "illustrazioni/14.jpg", title: "Funambolo" },
-                { src: "illustrazioni/15.jpg", title: "Persa nel bosco" }
+                { src: "illustrazioni/15.jpg", title: "Persa nel bosco" },
+                { src: "illustrazioni/impegno.jpeg", title: "Impegno" },
+                { src: "illustrazioni/pasaggio.jpeg", title: "Passaggio" },
+                { src: "illustrazioni/simboli.jpeg", title: "Sono solo simboli" },
+                { src: "illustrazioni/whisky.jpeg", title: "Whisky" }
             ];
 
             const handlePrev = (e) => {
@@ -1533,7 +1537,6 @@
             { title: "Icaro", url: "RadioKaoSs/canzoni/icaro.mpeg" },
             { title: "La paura di finire", url: "RadioKaoSs/canzoni/la paura di finire.mpeg" },
             { title: "Mortem", url: "RadioKaoSs/canzoni/mortem.MP3" },
-            { title: "Napoleone", url: "RadioKaoSs/canzoni/napoleone.mpeg" },
             { title: "Non voglio", url: "RadioKaoSs/canzoni/non voglio.mpeg" },
             { title: "Passami la cartapesta", url: "RadioKaoSs/canzoni/passami la cartapesta.mp3" },
             { title: "Sarà", url: "RadioKaoSs/canzoni/sarà.mp3" },
@@ -1541,7 +1544,45 @@
             { title: "Sei sicura", url: "RadioKaoSs/canzoni/sei sicura.MP3" }
         ];
 
-        const AudioTrack = ({ title, url }) => {
+        /* ---- gli spot, quelli del gioco -----------------------------
+           Stanno nelle cartelle `pub-*` di RadioKaoSs: dentro c'è
+           l'audio e l'immagine dello spot. Il gioco li manda in onda
+           quando gli pare; qui fanno la stessa cosa, in mezzo alle
+           canzoni. Ognuno si porta la sua immagine: si vede che è
+           pubblicità prima ancora di leggerlo. */
+        const adFiles = [
+            { title: "Latte Materno", url: "RadioKaoSs/pub-latte-materno/audio.MP3", img: "RadioKaoSs/pub-latte-materno/immagine.png" },
+            { title: "Purify", url: "RadioKaoSs/pub-purify/audio.MP3", img: "RadioKaoSs/pub-purify/immagine.png" },
+            { title: "Lucidus", url: "RadioKaoSs/pub-lucidus/audio.MP3", img: "RadioKaoSs/pub-lucidus/immagine.png" },
+            { title: "Spedizione su Venere", url: "RadioKaoSs/pub-spedizione-su-venere/audio.MP3", img: "RadioKaoSs/pub-spedizione-su-venere/immagine.jpg" },
+            { title: "Ciclette Interattiva", url: "RadioKaoSs/pub-ciclette-interattiva/audio.MP3", img: "RadioKaoSs/pub-ciclette-interattiva/0410 (3).png" }
+        ];
+
+        /* ---- la scaletta: quattro canzoni e poi uno spot ------------
+           Venti canzoni e cinque spot: ogni spot cade dopo quattro
+           canzoni, e in un giro intero ognuno va in onda una volta
+           sola. `ad` segna la riga: le canzoni si ascoltano, gli spot
+           si guardano anche in faccia. */
+        const OGNI_QUANTE = 4;
+        const radioSlots = [];
+        audioFiles.forEach((t, i) => {
+            radioSlots.push({ title: t.title, url: t.url, ad: false });
+            if ((i + 1) % OGNI_QUANTE === 0) {
+                const spot = adFiles[Math.floor(i / OGNI_QUANTE) % adFiles.length];
+                radioSlots.push({ title: spot.title, url: spot.url, img: spot.img, ad: true });
+            }
+        });
+
+        /* ---- una radio sola, in fila --------------------------------
+           Le canzoni non sono venti lettori indipendenti: sono una
+           scaletta, e la scaletta la tiene questo registro — così una
+           che finisce sa chi è la prossima, spot compresi. Play e pausa
+           non ricaricano niente: `src` non si tocca mai, `currentTime`
+           nemmeno. Il pezzo resta fermo dov'è e riparte da quel
+           secondo. */
+        const radioRow = { cards: [], playing: -1 };
+
+        const AudioTrack = ({ title, url, index, ad, img }) => {
             const [isPlaying, setIsPlaying] = useState(false);
             const [showPlayer, setShowPlayer] = useState(false);
             const [currentTime, setCurrentTime] = useState(0);
@@ -1549,16 +1590,28 @@
             const audioRef = React.useRef(null);
             const progressRef = React.useRef(null);
 
+            /* far suonare questa: la radio è una sola, quindi le altre
+               si mettono in pausa — ferme dov'erano, non azzerate */
+            const play = React.useCallback(() => {
+                const a = audioRef.current;
+                if (!a) return;
+                radioRow.cards.forEach((c, i) => {
+                    if (i !== index && c && c.pausa) c.pausa();
+                });
+                radioRow.playing = index;
+                const p = a.play();
+                if (p && p.catch) p.catch(() => { /* niente gesto: resta ferma */ });
+            }, [index]);
+
             const togglePlay = () => {
+                if (!audioRef.current) return;
                 if (!showPlayer) {
                     setShowPlayer(true);
-                    if (audioRef.current) audioRef.current.play().catch(e => console.error(e));
+                    play();
+                } else if (isPlaying) {
+                    audioRef.current.pause();
                 } else {
-                    if (isPlaying) {
-                        audioRef.current.pause();
-                    } else {
-                        audioRef.current.play().catch(e => console.error(e));
-                    }
+                    play(); /* riprende da dove era: nessun ricaricamento */
                 }
             };
 
@@ -1570,6 +1623,7 @@
                     setIsPlaying(false);
                     setShowPlayer(false);
                     setCurrentTime(0);
+                    radioRow.playing = -1;
                 }
             };
 
@@ -1594,7 +1648,14 @@
 
                 const onPlay = () => setIsPlaying(true);
                 const onPause = () => setIsPlaying(false);
-                const onEnded = () => setIsPlaying(false);
+                const onEnded = () => {
+                    setIsPlaying(false);
+                    /* finita: parte la successiva della fila. Dopo
+                       l'ultima si torna alla prima, e il giro non si
+                       ferma finché qualcuno non lo ferma */
+                    const next = radioRow.cards[(index + 1) % radioSlots.length];
+                    if (next && next.play) next.play();
+                };
                 const onTimeUpdate = () => setCurrentTime(audio.currentTime);
                 const onLoadedMetadata = () => setDuration(audio.duration);
 
@@ -1617,12 +1678,33 @@
                 };
             }, []);
 
+            /* il posto in fila: chi arriva in fondo chiama il prossimo
+               di qui, anche se il suo lettore è un altro */
+            useEffect(() => {
+                radioRow.cards[index] = {
+                    play: () => { setShowPlayer(true); play(); },
+                    pausa: () => {
+                        const a = audioRef.current;
+                        if (a && !a.paused) a.pause();
+                    }
+                };
+                return () => {
+                    radioRow.cards[index] = null;
+                    if (radioRow.playing === index) radioRow.playing = -1;
+                };
+            }, [index, play]);
+
             return (
                 <div
-                    className="flex flex-col bg-black border border-neutral-800 hover:border-white transition-colors cursor-pointer group p-4"
+                    className={`flex flex-col bg-black border transition-colors cursor-pointer group p-4 ${ad ? "border-red-900/50 hover:border-red-500" : "border-neutral-800 hover:border-white"}`}
                     onClick={!showPlayer ? togglePlay : undefined}
                 >
                     <div className="flex items-center gap-4">
+                        {ad && img && (
+                            <div className="w-10 h-10 shrink-0 bg-neutral-900 border border-red-900/40 overflow-hidden">
+                                <img src={img} alt={title} loading="lazy" decoding="async" className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                        )}
                         <button
                             onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                             className="w-10 h-10 shrink-0 bg-neutral-900 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-full"
@@ -1631,7 +1713,9 @@
                         </button>
                         <div className="flex-1 min-w-0">
                             <h4 className="text-white font-bold text-sm truncate" title={title}>{title}</h4>
-                            <p className="text-neutral-500 text-xs truncate">Audio Track</p>
+                            <p className={`text-xs truncate ${ad ? "text-red-600 font-mono uppercase tracking-wider" : "text-neutral-500"}`}>
+                                {ad ? "Pubblicità · sponsor" : "Audio Track"}
+                            </p>
                         </div>
                         {showPlayer && (
                             <button
@@ -1722,13 +1806,16 @@
 
                     {/* Canzoni */}
                     <div>
-                        <h3 className="text-xl text-white font-bold mb-8 flex items-center gap-3 border-b border-white/10 pb-4">
+                        <h3 className="text-xl text-white font-bold mb-3 flex items-center gap-3 border-b border-white/10 pb-4">
                             <Icons.Music className="text-red-600 w-6 h-6" />
                             <span className="uppercase tracking-widest">Canzoni & Audio</span>
                         </h3>
+                        <p className="text-neutral-500 text-xs font-mono uppercase tracking-wider mb-8">
+                            venti canzoni e cinque spot in una fila sola: play e pausa fermano il pezzo dov'è, e quando finisce parte il successivo — ogni quattro canzoni passa uno spot, e dopo l'ultimo si ricomincia dal primo
+                        </p>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {audioFiles.map((track, idx) => (
-                                <AudioTrack key={idx} title={track.title} url={track.url} />
+                            {radioSlots.map((track, idx) => (
+                                <AudioTrack key={idx} title={track.title} url={track.url} index={idx} ad={track.ad} img={track.img} />
                             ))}
                         </div>
                     </div>

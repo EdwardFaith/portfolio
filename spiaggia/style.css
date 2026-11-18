@@ -287,10 +287,14 @@ html, body {
   transform: translateY(-1px);
 }
 
-/* ── il ritorno: alla soffitta, davanti alla grata ────────── */
+/* ── il ritorno: alla soffitta, davanti alla grata ──────────────
+   L'angolo in basso a destra però è di Charles: il punto di domanda
+   galleggia lì in tutte le pagine, e prima ci finiva sopra a questo
+   link. Invece di spostare lui — che deve stare sempre nello stesso
+   posto — si è spostato il ritorno: accanto, con la stessa base. ── */
 #back {
   position: absolute;
-  right: 14px;
+  right: 66px;
   bottom: 16px;
   z-index: 50;
   font-size: 10px;

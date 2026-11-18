@@ -2660,7 +2660,7 @@
     var el = $("radio");
     if (el) el.classList.toggle("on", on);
     toast(on ? (say("hud.radio.on") || "radio kaoss accesa")
-      : (say("hud.radio.off") || "radio kaoss spenta"));
+      : (say("hud.radio.off") || "radio kaoss in pausa"));
     /* se il pannello è aperto, la riga e i tasti si aggiornano subito */
     if (M.PANEL && M.PANEL.radioRefresh) M.PANEL.radioRefresh();
   }
@@ -2687,6 +2687,16 @@
   function begin() {
     if (mode !== "boot") return;
     mode = "walk";
+    var qs = String((root.location && root.location.search) || "");
+    /* ?da=treno — si torna dalle terre avendo GUIDATO il treno. La
+       banchina è già vuota, il vagone è rientrato nel buio, e qui non
+       c'è niente da riavvolgere. Si mette a posto adesso, prima che il
+       sipario si alzi: prima il nastro partiva mezzo secondo dopo
+       l'ingresso, e si vedeva l'hub com'era, poi dieci secondi di
+       pellicola, poi l'hub di nuovo — un lampo, un film, e una
+       partenza che nessuno aveva chiesto, subito dopo aver guidato */
+    var daTreno = /[?&]da=treno(&|$)/i.test(qs);
+    if (daTreno && M.METRO && M.METRO.azzera) M.METRO.azzera();
     showBoot(false);
     M.SOUND.start();
     /* il ◉ si accende solo se la stazione sta davvero suonando */
@@ -2695,23 +2705,26 @@
     toast(txt(room.title, "room." + room.id) || "il museo");
     /* ?stanza=cosmo — chi torna da un minigioco rientra dove era
        (dalla spedizione si esce davanti al robot guasto, non al banco) */
-    var qs = String((root.location && root.location.search) || "");
     var hit = /[?&]stanza=([a-z0-9_]+)/i.exec(qs);
-    /* ?da=treno — si arriva dalle terre, in metropolitana. Si scende
-       sulla banchina della stazione, e il nastro del viaggio si riavvolge
-       per dieci secondi: il treno è appena ripartito all'indietro, e di
-       qua si vede tornare indietro quello che si era visto andare */
-    var daTreno = /[?&]da=treno(&|$)/i.test(qs);
     /* ?da=morte — si arriva dalle terre, rincarnati. Non è un ritorno
        da una porta: si rinasce al banco, davanti al pinguino, che ha
        la battuta pronta. Chi muore non riparte da dove è morto: da
        morti si finisce sempre qui. */
     var daMorte = /[?&]da=morte(&|$)/i.test(qs);
+    /* ?da=fanciullo — si arriva dal fondo del bosco, dove la sagoma ha
+       finito di parlare e il posto si è sfaldato. Non è un ritorno da
+       una porta e non è una morte: è il pinguino che ti trova qui lo
+       stesso, e ha la battuta pronta anche per questa */
+    var daFanciullo = /[?&]da=fanciullo(&|$)/i.test(qs);
     if (hit) {
       var rid = hit[1].toLowerCase();
       if (M.WORLD && M.WORLD.byId && M.WORLD.byId[rid]) {
         goRoom(rid, true);
         /* la battuta del ritorno: prima che la camera si posi */
+        if (daFanciullo) {
+          startAtBar("peng.fanciullo", 700);
+          return;
+        }
         if (daMorte) {
           startAtBar("peng.terre", 700);
           return;
@@ -2730,11 +2743,10 @@
             clampCam();
           }
         }
-        if (daTreno && M.METRO && M.METRO.parti) {
-          setTimeout(function () {
-            if (M.METRO && M.METRO.parti) M.METRO.parti({ inverso: true });
-          }, 520);
-        }
+        /* si arriva in banchina a piedi, dal vagone che non c'è più:
+           niente pellicola, niente seconda partenza. Il treno l'ha
+           già guidato chi è qui, e la stazione è già vuota (vedi
+           sopra, prima del sipario) */
         return;
       }
     }
@@ -2750,6 +2762,10 @@
        parta e si perda, il pinguino spiega in che posto è finito —
        cioè un portfolio, con le porte. Poi si cammina. E chi arriva
        morto dalle terre trova lui, con un'altra battuta. */
+    if (daFanciullo) {
+      startAtBar("peng.fanciullo", 700);
+      return;
+    }
     startAtBar(daMorte ? "peng.terre" : "peng.intro", daMorte ? 700 : 900);
   }
   G.begin = begin;

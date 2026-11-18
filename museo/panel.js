@@ -194,7 +194,7 @@
 
   /* ---- la radio ------------------------------------------------
      Una lista sola, quella vera di RadioKaoSs: l'intermezzo, i quindici
-     canali, le ventuno canzoni, gli spot, il TG del Cosmo. Non si apre
+     canali, le ventidue canzoni, gli spot, il TG del Cosmo. Non si apre
      un lettore per ogni pezzo: si sceglie, e suona quello — uno solo,
      per tutto il museo. La stessa lista la usano il jukebox del bar, il
      tasto R e il bottone ◉. */
@@ -243,13 +243,19 @@
     var tr = M.RADIO && M.RADIO.track ? M.RADIO.track() : null;
     var playing = !!(M.RADIO && M.RADIO.on);
     if (now) {
-      now.textContent = playing && tr ? tr.title : (M.lang.t("radio.off") || "spenta");
+      now.textContent = playing && tr ? tr.title : (M.lang.t("radio.off") || "in pausa");
       now.classList.toggle("on", playing);
     }
     var play = body.querySelector("[data-rk='play']");
     if (play) {
       play.textContent = playing ? "❚❚" : "▶";
       play.classList.toggle("on", playing);
+      /* il tasto è play E pausa: l'etichetta dice quale delle due
+         farà, così non sembra che ▶ ricominci la canzone */
+      var lab = M.lang.t(playing ? "radio.pause" : "radio.play") ||
+        (playing ? "pausa" : "suona");
+      play.setAttribute("aria-label", lab);
+      play.title = lab;
     }
     var list = body.querySelectorAll(".rk");
     Array.prototype.forEach.call(list, function (b) {

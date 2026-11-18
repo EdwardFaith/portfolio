@@ -182,7 +182,7 @@
     /* se suona lei, il mondo si abbassa: l'aria del posto non deve
        litigare con la radio. Nel museo lo fa SOUND.duck; qui il volume
        è uno solo, e si abbassa quello — e si rimette com'era quando la
-       radio si spegne */
+       radio va in pausa */
     if (SUONO && SUONO.volume) {
       try {
         if (RAD.on) {
@@ -197,8 +197,8 @@
     /* il fumetto dice cosa è successo: la radio non ha un HUD qui, e
        senza una riga R sembrerebbe non fare niente */
     T.parla(RAD.on
-      ? t2("Radio Kaoss. Tasto R per spegnere.", "Radio Kaoss. R to turn it off.")
-      : t2("Radio Kaoss spenta.", "Radio Kaoss off."), 3.0);
+      ? t2("Radio Kaoss. Tasto R per la pausa.", "Radio Kaoss. R to pause it.")
+      : t2("Radio Kaoss in pausa: R la riprende da dove era.", "Radio Kaoss paused: R picks up where it was."), 3.0);
     return true;
   }
 
@@ -237,6 +237,13 @@
          le terre. Se non c'è niente da suonare il tasto non fa niente,
          invece di cambiare arma di nascosto */
       if (on) accendiRadio();
+    }
+    else if (k === "1" || k === "2" || k === "3") {
+      /* i numeri scelgono l'arma e non la girano: 1 è la gomma, 2 le
+         forbici, 3 l'acqua — l'ordine in cui si trovano appese ai
+         chiodi. C resta il tasto che gira, per chi non vuole contare;
+         R è la radio, e non c'entra */
+      if (on) T.scegliArma(Number(k) - 1);
     }
     else if (k === "c") { if (on) T.cambiaArma(); }
   };
@@ -1141,7 +1148,39 @@
     },
     /* il passo: conta la strada E il tempo, così le gambe non
        pattinano e non restano ferme mentre il corpo avanza */
-    passo: function (x, t) { return x / 34 + t * 2.6; }
+    passo: function (x, t) { return x / 34 + t * 2.6; },
+
+    /* ============================================================
+       LA STATURA — di che misura è un uomo del corteo
+       `sagomaLampada` è alta 138 unità per ogni unità di scala, e la
+       scala la passava la zona, scritta a mano: 0.60 in città, 0.58
+       fra le rovine, 0.62 sulla sabbia, 0.72 sulle scale della metro.
+       Erano numeri in PIXEL, e il coniglio no: lui si misura in unità
+       di mondo (92 unità per un millesimo dell'altezza della
+       finestra), quindi su una finestra alta cresceva lui e non loro —
+       le sagome restavano ottantasette pixel, e accanto al coniglio
+       diventavano bambole. E la stessa persona cambiava statura
+       passando da una zona all'altra, che è peggio.
+
+       Adesso la statura la decide il corteo, una volta sola: un uomo è
+       poco più alto del coniglio, e lo è su qualunque schermo e in
+       tutte le zone. `ps` è la scala del posto (`posto(d).s`), cioè la
+       profondità: chi cammina più indietro è un po' più basso, e in
+       fila si vede — la fila ha uno spessore, non è un fregio.
+       ============================================================ */
+    statura: 1.34,      /* quante volte il coniglio è alto un uomo */
+    coniglio: 92,       /* l'altezza del coniglio, in unità di mondo */
+    disegno: 138,       /* quanto è alta `sagomaLampada` a scala 1 */
+    /* 1.10 è `posto(0.74).s`: la profondità della strada, quella su
+       cui si misurano tutti. Lì la scala è esattamente `scala()` */
+    fondoStrada: 1.10,
+    altezza: function () { return T.H() * (this.coniglio / 1000) * this.statura; },
+    /* la scala da dare al disegno: senza argomento è quella della
+       strada, con `ps` tiene conto di quanto è lontano chi cammina */
+    scala: function (ps) {
+      var k = this.altezza() / this.disegno;
+      return ps == null ? k : k * (ps / this.fondoStrada);
+    }
   };
   T.CORTEO = CORTEO;
 
@@ -1456,6 +1495,24 @@
     var dove = p.indexOf(T.arma());
     armaScelta = p[(dove + 1) % p.length];
     snd("arma");
+    return armaScelta;
+  };
+
+  /* QUALE ARMA, SENZA GIRARE. I tasti 1, 2 e 3 mettono in mano la
+     prima, la seconda o la terza cosa che hai staccato dai chiodi:
+     l'ordine è quello in cui le hai trovate — gomma, forbici, acqua —
+     e non cambia. Se il numero non c'è (o quell'arma non ce l'hai) la
+     mano resta com'è: non si passa a un'altra arma di nascosto. C
+     resta il tasto che gira, per chi non vuole contare. */
+  T.scegliArma = function (i) {
+    var p = possedute();
+    if (!p.length) return "niente";
+    i = Math.round(i);
+    if (!(i >= 0 && i < p.length)) return T.arma();
+    if (armaScelta !== p[i]) {
+      armaScelta = p[i];
+      snd("arma");
+    }
     return armaScelta;
   };
 

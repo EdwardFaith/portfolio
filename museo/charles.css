@@ -483,6 +483,18 @@ body > .ch-btn {
   .ch-nudge { right: 10px; bottom: 58px; max-width: 200px; font-size: 11px; }
 }
 
+/* ---------- dove l'angolo è già occupato ----------------------
+   Il punto di domanda galleggia in basso a destra, e ci resta: è
+   così che lo si trova senza cercarlo, in tutte le pagine. Quando
+   l'angolo è preso si sposta l'altra cosa, non lui.
+   Sulla spiaggia onirica il ritorno alla soffitta si è spostato di
+   lato (in `spiaggia/style.css`), perché in alto ci sono i pannelli
+   della partita e lì il punto di domanda li avrebbe coperti.
+   La nuvoletta non compare più nelle terre — si fa viva solo
+   nell'hub, e solo la prima volta (museo/charles.js) — quindi qui
+   non serve alzarla: una regola che non si applica mai è solo un
+   numero da tenere aggiornato per niente. */
+
 @media (prefers-reduced-motion: reduce) {
   .ch-crt, .ch-bolla, .ch-nudge { animation: none; }
   .ch-led { animation: none; }

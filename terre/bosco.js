@@ -416,11 +416,14 @@
         if (sx < -150 || sx > W + 150) continue;
         p = posto(0.76);
         var corVic = Math.abs(T.g.x - corX) < 100;
-        T.orrore.sagomaLampada(c, sx, p.y, p.s * 0.60, 9.4 + fila[i].i * 3.7, t,
+        /* la statura la dà il corteo: fra gli alberi è la stessa che
+           sulla sabbia e in città — qui cambia solo la profondità */
+        var corSc = T.CORTEO.scala(p.s);
+        T.orrore.sagomaLampada(c, sx, p.y, corSc, 9.4 + fila[i].i * 3.7, t,
           corVic, T.CORTEO.passo(corX, t));
         /* la lampadina si porta dietro la sua macchia di luce */
         if (T.luce) {
-          T.luce(c, sx + 16 * p.s * 0.60, p.y + 2, 78 * p.s, "255,196,124",
+          T.luce(c, sx + 16 * corSc, p.y + 2, 78 * p.s, "255,196,124",
             corVic ? 0.11 : 0.06, 0.22);
         }
       }

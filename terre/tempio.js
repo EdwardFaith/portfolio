@@ -316,14 +316,18 @@
     }
   }
 
-  /* ============================================================
-     LEI — la sagoma
+  /* ==== LEI — la sagoma =========================================
      Non ha un vestito nero: è nera. Una donna ritagliata nella luce
      rossa, senza faccia, e i capelli che le cadono davanti alle
      spalle. Gli occhi sono l'unica cosa accesa, e guardano chi
      parla. Non si muove: respira.
+
+     `dx` è di quanto chi guarda sta a destra di lei (serve agli
+     occhi), e `acceso` le accende l'alone come quando fa la domanda.
+     La stessa donna torna nel bosco dietro la luce, al posto del
+     fanciullo: la disegna `T.orrore.donnaNera`, che è questa qui.
      ============================================================ */
-  function lei(c, x, base, s, t, dx) {
+  function lei(c, x, base, s, t, dx, acceso) {
     var alt = 330 * s;
     var fl = Math.sin(t * 0.9) * 2.6 * s;
     var y = base + fl;
@@ -341,7 +345,9 @@
     /* l'alone: il rosso si stringe intorno a lei. Quando chiede
        qualcosa l'alone batte, come una luce che si ricorda di essere
        accesa */
-    var batte = domanda ? (0.55 + 0.45 * Math.sin(t * 3.4)) : (0.35 + 0.10 * Math.sin(t * 0.8));
+    var batte = (acceso == null ? domanda : acceso)
+      ? (0.55 + 0.45 * Math.sin(t * 3.4))
+      : (0.35 + 0.10 * Math.sin(t * 0.8));
     var al = c.createRadialGradient(x, testa + 120 * s, 10, x, testa + 120 * s, 300 * s);
     al.addColorStop(0, "rgba(255,90,54," + (0.16 * batte).toFixed(3) + ")");
     al.addColorStop(0.5, "rgba(216,48,26," + (0.07 * batte).toFixed(3) + ")");
@@ -423,7 +429,7 @@
     /* gli occhi: rossi, e seguono chi parla. Si chiudono di rado,
        perché chi è morto non ha fretta */
     var salta = ((t * 0.17 + 0.3) % 1) > 0.972 ? 1 : 0;
-    var oc = (T.g.x - LEI) * 0.004;
+    var oc = (dx == null ? (T.g.x - LEI) : dx) * 0.004;
     oc = oc < -1 ? -1 : (oc > 1 ? 1 : oc);
     for (i = 0; i < 2; i++) {
       var ex = x + (i ? 8.5 : -8.5) * s, ey = testa + 27 * s;
@@ -819,5 +825,10 @@
       if (domanda) domandaDisegno(c, t, s);
     }
   });
+
+  /* la stessa donna, per chi ne ha bisogno fuori di qui: il bosco
+     dietro la luce la mette al posto del fanciullo, dopo la scena
+     (terre/zoan.js). Non è un doppione: è questa funzione */
+  if (T.orrore) T.orrore.donnaNera = lei;
 })(typeof window !== "undefined" ? window : globalThis);
 

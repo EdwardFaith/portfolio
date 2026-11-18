@@ -541,100 +541,176 @@
   /* ============================================================
      I RAGNI DI METALLO
      Camminano sul muro, e non sono vivi: sono piccoli meccanismi con
-     otto zampe di filo e un guscio cromato. Si muovono a scatti —
-     otto passi al secondo, come un orologio che non ha voglia — e
-     quando il neon cala si fermano anche loro.
+     otto zampe di filo e un guscio cromato. Il passo è lento e
+     regolare, come un orologio che ha voglia: le zampe si alzano e si
+     posano a turno, e quando il neon cala si fermano anche loro.
      ============================================================ */
   C.ragni = function (ctx, room, t, cam) {
     if (room.ragni === 0) return;
     LOOP = room.loop || 0;
     var c = campo(cam), x0 = c.x0 - 220, x1 = c.x1 + 220;
     var f = room.floorY || 900, ceilY = room.ceilY || CEIL;
-    var passoA = passo(760, LOOP), a, s, corsia, dir, q, x, y;
+    var passoA = passo(760, LOOP), a, s, corsia, dir, x, y;
     for (a = Math.floor(x0 / passoA) * passoA; a < x1 + passoA; a += passoA) {
       s = cella(a, passoA, LOOP) + 311;
       if (hash(s * 2.1) > 0.78) continue;      /* non ogni tratto ha il suo */
       corsia = ceilY + 100 + hash(s * 3.7) * Math.max(80, f - 300 - ceilY);
       dir = hash(s * 4.3) > 0.5 ? 1 : -1;
-      /* il tempo dei ragni è a scatti: otto fotogrammi al secondo */
-      q = Math.floor(t * 8);
-      x = a + Math.sin(q * 0.055 * dir + s) * 95;
-      y = corsia + Math.sin(q * 0.085 + s * 1.7) * 16;
-      ragno(ctx, x, y, 1.05 + 0.55 * hash(s * 5.9), q, s, dir);
+      /* IL TEMPO È CONTINUO. Prima la posizione si calcolava su un
+         fotogramma intero (t * 8, otto scatti al secondo): il ragno
+         avanzava a saltelli di un pixel e le otto zampe cambiavano
+         posa tutte insieme, come un filo che si srotola. Adesso il
+         tempo entra com'è, e il passo lo fa il ragno (vedi ragno()):
+         si muove piano, senza tremare, e la sagoma resta leggibile. */
+      x = a + Math.sin(t * 0.42 * dir + s) * 95;
+      y = corsia + Math.sin(t * 0.7 + s * 1.7) * 12;
+      ragno(ctx, x, y, 1.05 + 0.55 * hash(s * 5.9), t, s, dir);
     }
   };
 
-  function ragno(ctx, x, y, sc, q, seed, dir) {
-    var i, k, ang, l1, l2, fx, fy, kx, ky;
+  /* LE ZAMPE, dal davanti al dietro: anca, ginocchio, punta. Il
+     ginocchio sta SOPRA il corpo — è quello che fa leggere la sagoma
+     come un ragno e non come un ciuffo di fili — e le punte si
+     aprono tutte intorno, larghe il doppio del guscio. Sono numeri
+     fissi, non conti: la posa si vede a occhio, e si aggiusta a
+     occhio. */
+  var ZAMPE = [
+    { hx: 4.6, hy: -0.4, kx: 12.8, ky: -11.2, fx: 19.6, fy: 0.6 },
+    { hx: 2.4, hy: -1.0, kx: 7.6, ky: -15.0, fx: 12.2, fy: 1.8 },
+    { hx: -0.2, hy: -1.0, kx: -5.6, ky: -14.6, fx: -10.4, fy: 1.8 },
+    { hx: -2.8, hy: -0.6, kx: -12.2, ky: -10.8, fx: -18.6, fy: 0.6 }
+  ];
+
+  /* gli occhi: quattro lampade piccole, in fila sul muso */
+  var OCCHI = [
+    { x: 10.4, y: -2.1, r: 1.00 },
+    { x: 8.4, y: -1.3, r: 0.82 },
+    { x: 10.1, y: -0.1, r: 0.78 },
+    { x: 8.2, y: 0.3, r: 0.66 }
+  ];
+
+  function ragno(ctx, x, y, sc, t, seed, dir) {
+    var i, k, z, lato, fase, alza, avanti, hx, hy, kx, ky, fx, fy;
+    var acceso = 0.55 + 0.45 * hash(seed);
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(sc * dir, sc);
 
     /* l'ombra sul muro: sta sotto, come se il muro fosse il muro */
-    ctx.fillStyle = "rgba(0,0,0,0.34)";
+    ctx.fillStyle = "rgba(0,0,0,0.30)";
     ctx.beginPath();
-    ctx.ellipse(2, 4, 15, 7, 0, 0, 6.3);
+    ctx.ellipse(1, 5, 17, 6, 0, 0, 6.3);
     ctx.fill();
 
-    /* le otto zampe: due pezzi, un ginocchio, e il piede che si
-       appoggia un passo sì e uno no */
+    /* LE OTTO ZAMPE. Il passo è un tetrapode: metà zampe tiene il
+       muro mentre l'altra metà si alza, e il turno si scambia fra i
+       due lati — così non balla tutta la bestia insieme. La zampa
+       si stacca dal muro (la punta sale) e scivola avanti di poco:
+       è un passo da insetto, non un tremolio. */
+    var giro = t * 2.4;
     for (i = 0; i < 8; i++) {
-      k = i % 4;
-      var lato = i < 4 ? -1 : 1;
-      var tick = ((q + i) % 2) ? 1 : -1;
-      ang = -1.15 + k * 0.78;
-      l1 = 13 + k * 1.4;
-      l2 = 15 + k * 1.1;
-      kx = Math.cos(ang) * l1 + lato * 4;
-      ky = Math.sin(ang) * l1 * 0.75 - 3;
-      fx = kx + Math.cos(ang + 0.5 * tick) * l2;
-      fy = ky + Math.sin(ang + 0.5 * tick) * l2 * 0.72 + 5;
-      ctx.strokeStyle = "rgba(196,206,210,0.62)";
-      ctx.lineWidth = 1.5;
+      z = ZAMPE[i % 4];
+      lato = i < 4 ? -1 : 1;
+      fase = giro + (i % 4) * 0.62 + (lato > 0 ? 3.1416 : 0);
+      alza = Math.max(0, Math.sin(fase));
+      avanti = Math.cos(fase);
+      hx = z.hx;
+      hy = z.hy;
+      kx = lato * z.kx + avanti * 1.2;
+      ky = z.ky - alza * 1.7;
+      fx = lato * (z.fx + avanti * 2.6);
+      fy = z.fy - alza * 3.4;
+
+      /* il filo di metallo: chiaro di sopra, scuro di sotto */
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "rgba(202,212,214,0.55)";
+      ctx.lineWidth = 1.45;
       ctx.beginPath();
-      ctx.moveTo(0, 0);
+      ctx.moveTo(hx, hy);
       ctx.lineTo(kx, ky);
       ctx.lineTo(fx, fy);
       ctx.stroke();
-      ctx.strokeStyle = "rgba(20,26,28,0.7)";
-      ctx.lineWidth = 0.7;
+      ctx.strokeStyle = "rgba(16,20,22,0.72)";
+      ctx.lineWidth = 0.6;
       ctx.beginPath();
-      ctx.moveTo(0, 1);
-      ctx.lineTo(kx, ky + 1);
-      ctx.lineTo(fx, fy + 1);
+      ctx.moveTo(hx, hy + 0.9);
+      ctx.lineTo(kx, ky + 0.9);
+      ctx.lineTo(fx, fy + 0.9);
       ctx.stroke();
-      ctx.fillStyle = "rgba(230,240,244,0.5)";
-      ctx.fillRect(kx - 0.7, ky - 0.7, 1.4, 1.4);
+
+      /* il ginocchio è un perno, la punta un chiodino */
+      ctx.fillStyle = "rgba(226,236,240,0.55)";
+      ctx.beginPath();
+      ctx.arc(kx, ky, 1.05, 0, 6.3);
+      ctx.fill();
+      ctx.fillStyle = "rgba(150,164,168,0.5)";
+      ctx.beginPath();
+      ctx.arc(fx, fy, 0.9, 0, 6.3);
+      ctx.fill();
     }
 
-    /* l'addome: cromato, con la luce in alto a sinistra */
-    var guscio = ctx.createRadialGradient(-3, -4, 1, 0, 0, 11);
+    /* L'ADDOME: cromato, con la luce in alto a sinistra */
+    var guscio = ctx.createRadialGradient(-6, -5, 1, -2, 0, 12);
     guscio.addColorStop(0, "#d6e0e2");
     guscio.addColorStop(0.42, "#8b999e");
     guscio.addColorStop(0.78, "#3a4448");
     guscio.addColorStop(1, "#12181a");
     ctx.fillStyle = guscio;
     ctx.beginPath();
-    ctx.ellipse(-4, -1, 9, 7, -0.2, 0, 6.3);
+    ctx.ellipse(-5, -0.4, 10, 7.6, -0.12, 0, 6.3);
     ctx.fill();
-    /* la testa, e due occhi che sono due viti */
-    var testa = ctx.createRadialGradient(3, -3, 0.6, 5, 0, 6);
+
+    /* la strozzatura: due pezzi, non un sasso solo */
+    ctx.fillStyle = "rgba(14,18,20,0.92)";
+    ctx.fillRect(3.4, -2.6, 2.4, 5.2);
+
+    /* IL CEFALOTORACE, e il muso */
+    var testa = ctx.createRadialGradient(6, -3, 0.6, 8, 0.5, 7);
     testa.addColorStop(0, "#e2eaea");
     testa.addColorStop(0.6, "#5d6a6e");
     testa.addColorStop(1, "#1a2224");
     ctx.fillStyle = testa;
     ctx.beginPath();
-    ctx.ellipse(5, 1, 5.4, 4.4, 0.2, 0, 6.3);
+    ctx.ellipse(7.4, 0.2, 5.6, 4.6, 0.18, 0, 6.3);
     ctx.fill();
-    ctx.fillStyle = "rgba(120,215,255," + (0.5 + 0.5 * hash(seed)).toFixed(2) + ")";
-    ctx.fillRect(5.4, -1.4, 1.8, 1.8);
-    ctx.fillRect(7.8, -0.6, 1.5, 1.5);
-    /* il segno del guscio: una vite, perché è un oggetto */
-    ctx.strokeStyle = "rgba(16,20,22,0.55)";
+
+    /* i due denti, corti e neri */
+    ctx.strokeStyle = "rgba(10,14,16,0.85)";
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(10.6, 2.7);
+    ctx.lineTo(11.9, 5.0);
+    ctx.moveTo(9.9, 3.0);
+    ctx.lineTo(10.3, 5.4);
+    ctx.stroke();
+
+    /* QUATTRO LAMPADE AL POSTO DEGLI OCCHI */
+    for (k = 0; k < 4; k++) {
+      var o = OCCHI[k];
+      ctx.fillStyle = "rgba(120,215,255,0.16)";
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, o.r * 2.4, 0, 6.3);
+      ctx.fill();
+      ctx.fillStyle = "rgba(150,226,255," + (acceso * (k === 0 ? 1 : 0.8)).toFixed(2) + ")";
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, o.r, 0, 6.3);
+      ctx.fill();
+    }
+
+    /* il segno del guscio: una cucitura, con due viti */
+    ctx.strokeStyle = "rgba(16,20,22,0.5)";
     ctx.lineWidth = 0.8;
     ctx.beginPath();
-    ctx.moveTo(-9, -1); ctx.lineTo(1, 0.5);
+    ctx.moveTo(-13, 0.4);
+    ctx.quadraticCurveTo(-8, 2.4, -1, 1.0);
     ctx.stroke();
+    ctx.fillStyle = "rgba(214,224,228,0.45)";
+    ctx.beginPath();
+    ctx.arc(-10.4, 1.4, 0.7, 0, 6.3);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-3.2, 1.5, 0.7, 0, 6.3);
+    ctx.fill();
     ctx.restore();
   }
 

@@ -104,7 +104,6 @@ const SONGS_CONFIG = [
     { cartella: "canzoni", audio: "icaro.mpeg", titolo: "Icaro", isSong: true },
     { cartella: "canzoni", audio: "la paura di finire.mpeg", titolo: "La Paura di Finire", isSong: true },
     { cartella: "canzoni", audio: "mortem.MP3", titolo: "Mortem", isSong: true },
-    { cartella: "canzoni", audio: "napoleone.mpeg", titolo: "Napoleone", isSong: true },
     { cartella: "canzoni", audio: "non voglio.mpeg", titolo: "Non Voglio", isSong: true },
     { cartella: "canzoni", audio: "passami la cartapesta.mp3", titolo: "Passami la Cartapesta", isSong: true },
     { cartella: "canzoni", audio: "sarà.mp3", titolo: "Sarà", isSong: true },

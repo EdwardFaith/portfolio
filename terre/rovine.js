@@ -212,10 +212,12 @@
         if (sx < -150 || sx > W + 150) continue;
         p = posto(0.74);
         var corVic = Math.abs(T.g.x - corX) < 100;
-        T.orrore.sagomaLampada(c, sx, p.y, p.s * 0.58, 13.2 + fila[i].i * 4.1, t,
+        /* la statura la dà il corteo, non la zona: qui la profondità */
+        var corSc = T.CORTEO.scala(p.s);
+        T.orrore.sagomaLampada(c, sx, p.y, corSc, 13.2 + fila[i].i * 4.1, t,
           corVic, T.CORTEO.passo(corX, t));
         if (T.luce) {
-          T.luce(c, sx + 15 * p.s * 0.58, p.y + 2, 74 * p.s, "255,196,124",
+          T.luce(c, sx + 15 * corSc, p.y + 2, 74 * p.s, "255,196,124",
             corVic ? 0.10 : 0.06, 0.22);
         }
       }

@@ -201,7 +201,10 @@ var FILE = [
   "museo\\device.js", "museo\\stato.js", "museo\\player.js",
   "terre\\suono.js", "terre\\mondo.js", "terre\\orrori.js", "terre\\spiaggia.js",
   "terre\\stazione.js", "terre\\bosco.js",
-  "terre\\rovine.js", "terre\\citta.js", "terre\\case.js", "terre\\tempio.js"
+  "terre\\rovine.js", "terre\\citta.js", "terre\\case.js", "terre\\tempio.js",
+  /* Lucidus City: le fogne, la scala, la città, la scalata, la luce, e
+     il bosco dietro la luce — dove c'è il fanciullo */
+  "terre\\zoan.js"
 ];
 ECHO("leggo da " + R);
 for (var i = 0; i < FILE.length; i++) {
@@ -1050,6 +1053,123 @@ if (SU) {
   ok("si riaccende", SU.toggle() === true);
   SU.stop();
 }
+
+/* ============================================================
+   13. IL BOSCO, E LA SAGOMA CHE HA UNA LAMPADA IN PANCIA
+   Si entra a metà bosco, si cammina fino al fanciullo, si aspetta
+   che parli, si preme E, e si guarda la scena intera: la pancia, il
+   coniglio, il morso, il ragno, lo sfaldamento, Charles che scrive,
+   il lampo. Alla fine si deve essere al banco, davanti al pinguino.
+   ============================================================ */
+segna("il bosco: il fanciullo, e quello che ha in pancia");
+var erroriPrima = errori;
+G.location.href = "";
+T.avvia("zoan_bosco", { x: 4000 });
+tick(6);
+dai("zona", zona());
+ok("si entra nel bosco dietro la luce", zona() === "zoan_bosco");
+
+/* ── LA PORTA A METÀ STRADA ──────────────────────────────────
+   La porta non porta più in soffitta: si passa, e di là c'è ancora
+   bosco. Quello che lascia è il segno nel quaderno — è il checkpoint
+   del ramo — e la pagina non se ne va. */
+T.g.x = 6000 - 100;
+tick(45);                       /* la soglia si accende da sola */
+G.location.href = "";
+provaAtto("bosco, la porta");
+tick(130);                      /* il giallo sale, si passa, scende */
+dai("dove porta la porta del bosco", G.location.href);
+ok("la porta non porta più fuori dal bosco", G.location.href === "" && zona() === "zoan_bosco");
+dai("x dopo la porta", Math.round(T.g.x));
+ok("si passa di là: la porta è a 6000 e adesso si è oltre", T.g.x > 6000);
+var cpb = STATO.checkpoint("bosco");
+dai("il posto nel quaderno", cpb ? cpb.stanza + " a " + cpb.x : "(nessuno)");
+ok("la porta è il checkpoint del ramo del bosco",
+  !!cpb && cpb.stanza === "zoan_bosco" && cpb.x === 6000);
+
+/* da lontano la sagoma sta zitta: parla solo a chi si avvicina */
+T.g.x = 6900;
+tick(4, 60);
+dai("didascalia lontano dalla sagoma", did());
+ok("da lontano la sagoma sta zitta", did().indexOf("chi sei") < 0);
+
+/* il fanciullo sta di là dalla porta (zoan.js, CONFIG.bosco.bimbo): a
+   7420, in fondo al secondo tratto di bosco. Ci si ferma a 120 e poi a
+   90 passi da lì, che è dentro al raggio in cui parla (150). */
+var SAGOMA = 7420;
+var vistaDomanda = "", mb;
+T.g.x = SAGOMA - 120;
+for (mb = 0; mb < 40; mb++) {
+  tick(1, 60);
+  if (did().length > vistaDomanda.length) vistaDomanda = did();
+}
+dai("la sagoma", vistaDomanda);
+ok("la sagoma chiede chi sei", vistaDomanda.indexOf("chi sei tu") >= 0);
+
+/* la risposta se la dà da sola: il coniglio non ha voce */
+var vistaRisposta = "";
+for (mb = 0; mb < 90; mb++) {
+  tick(1, 60);
+  if (did().indexOf("fanciullo") >= 0) { vistaRisposta = did(); break; }
+}
+dai("la risposta", vistaRisposta);
+ok("e poi dice di essere il fanciullo", vistaRisposta.indexOf("fanciullo") >= 0);
+
+/* E: la scena comincia. Non parte da sola, perché la strada è ancora
+   lunga. Appena parte, la camera si ferma sul fanciullo, e il coniglio
+   che si comanda non sparisce dal disegno: fa un passo indietro, dal
+   lato da cui è arrivato, e resta lì a guardare */
+T.g.x = SAGOMA - 90;
+tick(2, 60);
+provaAtto("bosco, il fanciullo");
+tick(3, 60);
+dai("didascalia appena parte la scena", did());
+ok("appena parte la scena il fumetto si chiude", did() === "");
+/* il passo indietro dura mezzo secondo: qualche fotogramma e si è
+   fermato, e da lì non si muove più */
+tick(20, 60);
+dai("x dopo il passo indietro", Math.round(T.g.x));
+var xScena = T.g.x;
+ok("il coniglio resta nel disegno: la scena non lo nasconde",
+  T.zona().mod.senzaConiglio !== true);
+ok("e s'indietra dal fanciullo, invece di finirgli sopra",
+  xScena <= SAGOMA - 200 && xScena > SAGOMA - 450);
+
+/* si campiona ogni fotogramma: un NaN nella scena lo fa saltare qui */
+for (mb = 0; mb < 1600; mb++) {
+  tick(1, 60);
+  if (G.location.href.indexOf("da=fanciullo") >= 0) break;
+  /* verso la fine E manda avanti Charles, invece di aspettarlo */
+  if (mb === 1100) provaAtto("bosco, Charles");
+}
+dai("fotogrammi della scena", mb);
+dai("x durante la scena", Math.round(T.g.x));
+ok("durante la scena il coniglio non cammina: sta fermo a guardare",
+  Math.abs(T.g.x - xScena) < 1);
+dai("dove porta la scena", G.location.href);
+ok("la scena finisce nell'hub, davanti al pinguino",
+  G.location.href.indexOf("museo.html?stanza=hub") >= 0 &&
+  G.location.href.indexOf("da=fanciullo") >= 0);
+ok("e il bosco non ha prodotto errori", errori === erroriPrima);
+G.location.href = "";
+
+/* ── IL BOSCO, DOPO ──────────────────────────────────────────
+   Se si torna nel bosco, al posto del fanciullo c'è la donna del bosco
+   rosso: nera, con gli occhi accesi, e parla solo se le si parla. */
+T.avvia("zoan_bosco", { x: SAGOMA - 500 });
+tick(6);
+T.g.x = SAGOMA - 90;
+tick(4, 60);
+dai("didascalia dalla donna, senza premere niente", did());
+ok("la donna non parla per prima", did().indexOf("conigli hanno le ali") < 0);
+provaAtto("bosco, la donna");
+tick(2, 60);
+var voceDonna = did();
+dai("la donna", voceDonna);
+ok("al posto del fanciullo c'è la donna, e se le parli risponde",
+  voceDonna.indexOf("conigli hanno le ali") >= 0);
+ok("e nemmeno la donna ha prodotto errori", errori === erroriPrima);
+G.location.href = "";
 
 } catch (e) {
   ECHO("  ECCEZIONE fuori dai fotogrammi: " + e.message +

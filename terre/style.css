@@ -224,6 +224,13 @@ html, body {
 #tocco .t[data-k="run"]   { left: calc(208px + env(safe-area-inset-left, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); width: 68px; height: 68px; font-size: 17px; }
 #tocco .t[data-k="jump"]  { right: calc(124px + env(safe-area-inset-right, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); width: 96px; height: 96px; color: rgba(226, 208, 160, 0.75); }
 #tocco .t[data-k="act"]   { right: calc(18px + env(safe-area-inset-right, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); width: 96px; height: 96px; color: rgba(240, 216, 160, 0.8); }
+/* il ✦ e il ✎ stavano senza coordinate: con `position: absolute` e
+   nessun `top/left/right/bottom` restavano nella loro posizione
+   statica — l'angolo in alto a sinistra — uno sopra l'altro, sopra il
+   simbolo del suono. Adesso stanno nella seconda fila, sopra il pollice
+   destro, dove il ✦ si trova senza guardare */
+#tocco .t[data-k="fuoco"] { right: calc(18px + env(safe-area-inset-right, 0px)); bottom: calc(180px + env(safe-area-inset-bottom, 0px)); width: 96px; height: 96px; color: rgba(240, 216, 160, 0.78); }
+#tocco .t[data-k="c"]     { right: calc(124px + env(safe-area-inset-right, 0px)); bottom: calc(194px + env(safe-area-inset-bottom, 0px)); width: 68px; height: 68px; font-size: 17px; }
 
 /* ── chi usa il dito, chi il mouse ─────────────────────────── */
 body.touch-device #tocco { display: block; }
