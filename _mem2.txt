@@ -1,0 +1,9 @@
+﻿104: function memory() {
+205: g.endX = 7860;
+252: room.maxX = g.endX;
+336: if (t.kind === "gk") { openGodkiller(); return; }
+409: CZ.goCity = goCity;
+413: function openGodkiller() {
+419: CZ.openGodkiller = openGodkiller;
+2746: if (x1 > g.endX - 200) {
+2747: var ex = g.endX - 40;

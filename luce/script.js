@@ -15,7 +15,16 @@
    quelle già presenti nel sito; se una non è ancora arrivata, quella
    immagine semplicemente non si vede.
 
+   Le foto della ricerca — la stanza buia, il pubblico, la città
+   proiettata, il ritratto, l'ultima notte — sono le prime a entrare
+   nella sequenza, una alla volta e in ordine: all'inizio lontane e
+   dritte, poi sempre più vicine, sempre più storte. L'ultima tappa
+   è il volto (immagini/io.png), e quando la macchina ha già capito
+   chi ha davanti, il volto si gira verso lo spettatore.
+
    Tasti: D pannello · F schermo intero · R bianco · K kaos.
+   Dallo schermo intero non si esce con un tasto: ESC va tenuto
+   premuto un secondo, e la barra dice quanto manca.
    ============================================================ */
 (function (root, doc) {
   "use strict";
@@ -43,6 +52,21 @@
     /* senza webcam la macchina non resta bianca: si muove da sola */
     PAUSA_AUTO_CADUTO: 6000,
     COOLDOWN: 1000,
+
+    /* lo schermo intero non si lascia con un dito: ESC va tenuto
+       premuto un secondo, e la barra dice quanto manca */
+    ESCI_TIENI_MS: 1000,
+    ESCI_AVVISO_MS: 4200,
+
+    /* la ricerca: quante foto entrano in un ciclo. A caos zero
+       entrano solo le prime, al massimo entrano tutte */
+    RICERCA_FOTO_MIN: 2,
+
+    /* lo spavento: arriva solo quando la macchina ha già capito
+       chi ha davanti, e non a ogni giro */
+    SPAVENTO_MIN_CHAOS: 0.45,
+    SPAVENTO_CHANCE: 0.35,
+    SPAVENTO_MS: 700,
 
     /* la sensibilità di partenza dello slider della camera */
     SENSIBILITA: 55,
@@ -269,6 +293,31 @@
     { url: "../immagini/personaggi/bigliettaia.png", titolo: "bigliettaia", categoria: "creature", peso: 1 },
     { url: "../immagini/lucidus_red_man.jpg", titolo: "lucidus red man", categoria: "creature", peso: 1 }
   ];
+
+  /* LA RICERCA — le foto vere del lavoro, nell'ordine in cui sono
+     state scattate: la stanza buia, il pubblico, la città proiettata,
+     il ritratto, l'ultima notte. La sequenza le fa entrare una alla
+     volta, dalla prima all'ultima: all'inizio sono lontane e dritte,
+     poi si avvicinano e si storgono. Il volto è l'ultima tappa, e
+     non è lì per caso. */
+  var FOTO_RICERCA = [
+    { url: "../immagini/1.jpeg", titolo: "la ricerca · la stanza buia", categoria: "ricerca", peso: 3 },
+    { url: "../immagini/2.jpeg", titolo: "la ricerca · il pubblico", categoria: "ricerca", peso: 3 },
+    { url: "../immagini/3.jpeg", titolo: "la ricerca · la città proiettata", categoria: "ricerca", peso: 3 },
+    { url: "../immagini/4.jpeg", titolo: "la ricerca · il ritratto", categoria: "ricerca", peso: 3 },
+    { url: "../immagini/5.jpeg", titolo: "la ricerca · l'ultima notte", categoria: "ricerca", peso: 3 }
+  ];
+
+  /* il volto: la stessa ricerca, guardata da troppo vicino */
+  var FOTO_VOLTO = "../immagini/io.png";
+
+  /* le foto della ricerca non entrano nel magazzino delle immagini
+     ferme: non sono rumore di fondo, sono l'ordine della sequenza.
+     Entrano una alla volta, dalla prima all'ultima (programmaRicerca),
+     e nessun intruso può mostrare una foto che la macchina non ha
+     ancora raggiunto. */
+  var ricercaImmagini = {};
+  var ricercaCorrente = -1;
 
   /* ============================================================
      6. LA PAGINA
@@ -863,6 +912,24 @@
     }
   }
 
+  /* le foto della ricerca si decodificano all'avvio: quando la
+     sequenza le chiama devono essere già lì, non arrivare dal disco
+     a metà ciclo */
+  function preriscaldaRicerca() {
+    var i;
+    for (i = 0; i < FOTO_RICERCA.length; i++) {
+      (function (url) {
+        if (ricercaImmagini[url]) return;
+        caricaImmagine(url).then(function (img) {
+          ricercaImmagini[url] = img;
+        }, function () { });
+      })(FOTO_RICERCA[i].url);
+    }
+    caricaImmagine(FOTO_VOLTO).then(function (img) {
+      ricercaImmagini[FOTO_VOLTO] = img;
+    }, function () { });
+  }
+
   /* ============================================================
      12. IL VOLTO — face-api: TinyFaceDetector + 320 px + 68 landmark.
      Ogni 400 ms, in background: dov'è la faccia, quanto è grande,
@@ -1376,11 +1443,170 @@
     return true;
   }
 
-  /* l'intruso di un monitor: quasi sempre una GIF che si muove,
-     ogni tanto un'immagine ferma che prende il posto del canale */
+  /* l'intruso di un monitor: prima la ricerca (mai più avanti di dove
+     è arrivata la sequenza), poi le GIF animate del sito, poi le
+     immagini ferme del magazzino */
   function intrusoInQuadrato(indice, durata) {
-    if (caso(0.72)) return gifInQuadrato(indice, durata);
+    if (caso(0.55) && fotoRicercaInQuadrato(indice, durata)) return true;
+    if (caso(0.7)) return gifInQuadrato(indice, durata);
     return fotoInQuadrato(indice, null, durata) ? true : gifInQuadrato(indice, durata);
+  }
+
+  /* ------------------------------------------------------------
+     LA RICERCA — una foto del lavoro dentro un monitor.
+     tappa va da 0 a 1: a zero la foto è dritta, intera, leggibile;
+     a uno è addosso, storta, strappata, col rosso che brucia. È
+     sempre la stessa immagine: è lo sguardo che cambia.
+     ------------------------------------------------------------ */
+  function ricercaInQuadrato(indice, numero, tappa, durata) {
+    var voce = FOTO_RICERCA[clamp(numero | 0, 0, FOTO_RICERCA.length - 1)];
+    var c = ctx[indice];
+    var img = voce ? ricercaImmagini[voce.url] : null;
+    if (!voce || !c || caduta) return false;
+
+    /* se la foto non è ancora arrivata si chiede adesso, e questa
+       volta il monitor resta com'è: nessun riquadro segnaposto */
+    if (!img) {
+      caricaImmagine(voce.url).then(function (im) {
+        ricercaImmagini[voce.url] = im;
+      }, function () { });
+      return false;
+    }
+
+    var t = clamp(typeof tappa === "number" ? tappa : caos, 0, 1);
+
+    tinta(indice, NERO);
+    c.save();
+    c.translate(CONFIG.LATO / 2, CONFIG.LATO / 2);
+    c.rotate((Math.random() * 2 - 1) * 0.09 * t);
+    c.translate(-CONFIG.LATO / 2, -CONFIG.LATO / 2);
+    copri(c, img, 1 + t * 0.55,
+      (Math.random() * 2 - 1) * 80 * t,
+      (Math.random() * 2 - 1) * 80 * t);
+    c.restore();
+
+    /* da metà in poi la foto si sdoppia: due esposizioni, una sopra
+       l'altra, come un fotogramma che non si è fermato */
+    if (t > 0.5 && caso(0.6)) {
+      c.save();
+      c.globalAlpha = 0.2 + t * 0.3;
+      c.globalCompositeOperation = "screen";
+      copri(c, img, 1 + t * 0.8, (Math.random() * 2 - 1) * 120 * t, 0);
+      c.restore();
+    }
+
+    if (t > 0.2 && caso(0.3 + t * 0.65)) {
+      applicaStrappi(c, 0.15 + t * 0.7, 1 + rand(1 + Math.round(2 * t)));
+    }
+    if (t > 0.45) posterizza(c, 6 - rand(3));
+    if (t > 0.7) {
+      c.save();
+      c.globalCompositeOperation = "multiply";
+      c.globalAlpha = 0.2 + (t - 0.7) * 1.4;
+      c.fillStyle = "#ff0000";
+      c.fillRect(0, 0, CONFIG.LATO, CONFIG.LATO);
+      c.restore();
+    }
+
+    var g = fantasmi[indice];
+    if (g) {
+      g.ctx.drawImage(c.canvas, 0, 0);
+      g.pieno = true;
+    }
+
+    if (durata) {
+      pianifica(durata, function () {
+        if (!sequenza || caduta) return;
+        tinta(indice, BIANCO);
+      });
+    }
+    return true;
+  }
+
+  /* la ricerca dentro un monitor, ma solo fino a dove è arrivata la
+     sequenza: un intruso può ripetere una foto già vista, mai
+     anticipare quella che deve ancora arrivare */
+  function fotoRicercaInQuadrato(indice, durata) {
+    var numero;
+    if (!FOTO_RICERCA.length) return false;
+    numero = rand(ricercaCorrente + 1);
+    if (numero < 0) numero = 0;
+    return ricercaInQuadrato(indice, numero, 0.1 + caos * 0.8,
+      durata || (2400 + rand(2600)));
+  }
+
+  /* ------------------------------------------------------------
+     LO SPAVENTO — l'ultima foto della ricerca non è una foto: è il
+     volto che si è girato verso chi guarda. I quattro monitor si
+     riempiono del volto, lo schermo si accende di un fotogramma
+     intero, la proiezione trema, e l'urlo arriva da sotto. Dura
+     meno di un secondo: il tempo di un battito.
+     ------------------------------------------------------------ */
+  function spavento() {
+    if (caduta) return false;
+    var img = ricercaImmagini[FOTO_VOLTO];
+    var n, c, g;
+
+    /* un solo spavento per volta */
+    togliSpavento();
+
+    if (img) {
+      for (n = 0; n < 4; n++) {
+        c = ctx[n];
+        if (!c) continue;
+        tinta(n, NERO);
+        c.save();
+        c.translate(CONFIG.LATO / 2, CONFIG.LATO / 2);
+        c.rotate((Math.random() * 2 - 1) * 0.08);
+        c.translate(-CONFIG.LATO / 2, -CONFIG.LATO / 2);
+        copri(c, img, 1.3 + caos * 0.8,
+          (Math.random() * 2 - 1) * 60,
+          (Math.random() * 2 - 1) * 60);
+        c.restore();
+        applicaStrappi(c, 0.4 + caos * 0.5);
+        if (caso(0.5)) posterizza(c, 3 + rand(3));
+        g = fantasmi[n];
+        if (g) {
+          g.ctx.drawImage(c.canvas, 0, 0);
+          g.pieno = true;
+        }
+      }
+    }
+
+    /* il fotogramma a tutto schermo: quello che i quattro monitor
+       non possono contenere. Se il pannello del setup è aperto, lo
+       spavento resta dentro i monitor: chi sta lavorando non deve
+       perdere il cursore sotto un volto */
+    if (debug && !debug.hidden) {
+      urlo();
+      return true;
+    }
+
+    var d = doc.createElement("img");
+    d.src = FOTO_VOLTO;
+    d.className = "spavento";
+    d.alt = "";
+    d.setAttribute("aria-hidden", "true");
+    doc.body.appendChild(d);
+    if (doc.body.classList) doc.body.classList.add("scuoti");
+
+    urlo();
+
+    /* si toglie da solo, anche se nel frattempo è arrivato un R */
+    root.setTimeout(togliSpavento, CONFIG.SPAVENTO_MS);
+
+    return true;
+  }
+
+  /* il volto sparisce: o perché è finito il battito, o perché
+     qualcuno ha interrotto tutto */
+  function togliSpavento() {
+    var nodi = doc.getElementsByClassName ? doc.getElementsByClassName("spavento") : null;
+    while (nodi && nodi.length) {
+      if (!nodi[0].parentNode) break;
+      nodi[0].parentNode.removeChild(nodi[0]);
+    }
+    if (doc.body && doc.body.classList) doc.body.classList.remove("scuoti");
   }
 
   /* la plastica e gli insetti sopra la faccia */
@@ -1472,6 +1698,58 @@
         });
       })(fasi[i]);
     }
+  }
+
+  /* ------------------------------------------------------------
+     LA RICERCA, IN ORDINE — le foto del lavoro entrano nella
+     sequenza una alla volta, dalla prima all'ultima. A caos basso ne
+     entrano due, dritte e brevi; salendo entrano tutte, sempre più
+     vicine, sempre più storte, sempre più a lungo. L'ultima tappa è
+     il volto: se la macchina ha già capito chi ha davanti, si gira
+     verso lo spettatore.
+     ------------------------------------------------------------ */
+  function programmaRicerca() {
+    var quante = Math.min(FOTO_RICERCA.length,
+      CONFIG.RICERCA_FOTO_MIN +
+      Math.round(caos * (FOTO_RICERCA.length - CONFIG.RICERCA_FOTO_MIN)));
+    if (quante < 1) return;
+
+    /* il giro ricomincia dalla prima foto */
+    ricercaCorrente = -1;
+
+    var prima = 1600 + rand(1400);
+    var ultima = T_FINE - 2800;
+    var passo = quante > 1 ? (ultima - prima) / (quante - 1) : 0;
+
+    /* la violenza della foto non dipende solo dal posto nell'ordine:
+       dipende da quanta strada ha fatto la macchina. A caos zero le
+       foto sono ferme e leggibili; a caos pieno l'ultima è un volto
+       addosso. In mezzo, il gradino. */
+    var intensita = 0.15 + caos * 0.85;
+
+    for (var i = 0; i < quante; i++) {
+      (function (n, quando) {
+        pianifica(quando, function () {
+          if (!sequenza || caduta || reazione.attivo) return;
+          var posizione = quante > 1 ? n / (quante - 1) : 1;
+          var tappa = clamp(intensita * (0.45 + 0.55 * posizione), 0, 1);
+          var durata = Math.round(2600 + caos * 1200 - 1500 * tappa);
+          if (ricercaInQuadrato(n % 4, n, tappa, durata)) {
+            if (n > ricercaCorrente) ricercaCorrente = n;
+            if (tappa > 0.55) suonaGlitch();
+          }
+        });
+      })(i, prima + Math.round(passo * i));
+    }
+
+    /* lo spavento arriva sull'ultimo bianco del ciclo, e non a ogni
+       giro: se ne accorge solo chi è ancora davanti allo schermo */
+    pianifica(Math.max(3000, T_FINE - 900), function () {
+      if (!sequenza || caduta || reazione.attivo) return;
+      if (caos < CONFIG.SPAVENTO_MIN_CHAOS) return;
+      if (!caso(CONFIG.SPAVENTO_CHANCE + caos * 0.4)) return;
+      spavento();
+    });
   }
 
   /* ============================================================
@@ -1572,6 +1850,7 @@
 
     /* gli intrusi */
     programmaExtra();
+    programmaRicerca();
     pianifica(1200 + rand(5000), function () { forseFrasePerturbante(); });
 
     return true;
@@ -1608,6 +1887,7 @@
     perturb.attivo = false;
     fermaTimers();
     pulisciExtra();
+    togliSpavento();
     sequenza = false;
     frameSopra = 0;
     tutte(BIANCO);
@@ -2286,6 +2566,51 @@
     }
   }
 
+  /* l'urlo dello spavento: due discese sporche, una sotto l'altra,
+     con la statica che le tiene insieme. Non è musica: è la macchina
+     che si accorge di essere guardata. */
+  function urlo() {
+    var ac = audio.contesto;
+    if (!ac || caduta) return;
+    var t = ac.currentTime;
+
+    var o = ac.createOscillator();
+    var g = ac.createGain();
+    var dist = ac.createWaveShaper();
+    var o2 = ac.createOscillator();
+    var g2 = ac.createGain();
+
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(1400, t);
+    o.frequency.exponentialRampToValueAtTime(90, t + 0.85);
+    dist.curve = curvaDistorsione(0.9);
+
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.95);
+
+    o.connect(dist);
+    dist.connect(g);
+    g.connect(audio.master);
+    o.start(t);
+    o.stop(t + 1);
+
+    /* il secondo tono arriva in ritardo: due voci, non una */
+    o2.type = "square";
+    o2.frequency.setValueAtTime(2200, t + 0.02);
+    o2.frequency.exponentialRampToValueAtTime(140, t + 0.7);
+    g2.gain.setValueAtTime(0.0001, t);
+    g2.gain.exponentialRampToValueAtTime(0.13, t + 0.03);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+    o2.connect(g2);
+    g2.connect(audio.master);
+    o2.start(t + 0.02);
+    o2.stop(t + 0.85);
+
+    scaricaStatica(1000);
+    subBasso(2.5);
+  }
+
   function silenzioTemporaneo(on) {
     var ac = audio.contesto;
     if (!ac || !audio.master) return;
@@ -2830,6 +3155,7 @@
     perturb.attivo = false;
     fermaTimers();
     pulisciExtra();
+    togliSpavento();
 
     if (reazione.spam) {
       root.clearInterval(reazione.spam);
@@ -3293,15 +3619,142 @@
     suonaGlitch();
   }
 
+  /* ------------------------------------------------------------
+     LO SCHERMO INTERO — si entra con F, e non se ne esce con un
+     tasto solo: ESC va tenuto premuto un secondo. La barra dice
+     quanto manca; se si molla il dito si ricomincia da capo.
+     Il browser, da solo, ESC lo consuma prima che la pagina lo
+     veda: per questo appena si entra si chiede il blocco della
+     tastiera. Dove il blocco non c'è resta l'avviso, e la speranza
+     che il browser lasci finire il secondo.
+     ------------------------------------------------------------ */
+
+  var congedoEl = $("congedo");
+  var congedoBarra = $("congedo-avanzamento");
+
+  var congedo = {
+    tenuto: false,
+    da: 0,
+    timer: 0,
+    avviso: 0,
+    passo: 0,
+    progresso: 0
+  };
+
+  function inSchermoIntero() {
+    return !!(doc.fullscreenElement || doc.webkitFullscreenElement);
+  }
+
+  function disegnaCongedo(p) {
+    congedo.progresso = clamp(p || 0, 0, 1);
+    if (congedoBarra) congedoBarra.style.width = (congedo.progresso * 100).toFixed(1) + "%";
+  }
+
+  function mostraCongedo(vero) {
+    if (!congedoEl) return;
+    congedoEl.hidden = !vero;
+  }
+
+  /* l'avviso che resta acceso quattro secondi appena si entra: chi
+     arriva allo schermo intero deve sapere come si esce */
+  function avvisoCongedo() {
+    if (congedo.tenuto) return;
+    mostraCongedo(true);
+    disegnaCongedo(0);
+    if (congedo.avviso) root.clearTimeout(congedo.avviso);
+    congedo.avviso = root.setTimeout(function () {
+      congedo.avviso = 0;
+      if (!congedo.tenuto) mostraCongedo(false);
+    }, CONFIG.ESCI_AVVISO_MS);
+  }
+
+  function bloccaTasti() {
+    try {
+      if (root.navigator && root.navigator.keyboard && root.navigator.keyboard.lock) {
+        var p = root.navigator.keyboard.lock(["Escape"]);
+        if (p && p["catch"]) p["catch"](function () { });
+      }
+    } catch (e) { }
+  }
+
+  function sbloccaTasti() {
+    try {
+      if (root.navigator && root.navigator.keyboard && root.navigator.keyboard.unlock) {
+        root.navigator.keyboard.unlock();
+      }
+    } catch (e) { }
+  }
+
+  /* mollare il tasto, cambiare scheda, perdere il fuoco: si ricomincia */
+  function fermaCongedo() {
+    congedo.tenuto = false;
+    if (congedo.timer) {
+      root.clearTimeout(congedo.timer);
+      congedo.timer = 0;
+    }
+    if (congedo.avviso) {
+      root.clearTimeout(congedo.avviso);
+      congedo.avviso = 0;
+    }
+    if (congedo.passo) {
+      root.clearInterval(congedo.passo);
+      congedo.passo = 0;
+    }
+    disegnaCongedo(0);
+    mostraCongedo(false);
+  }
+
+  /* ESC giù: parte il conto alla rovescia */
+  function tieniPerUscire() {
+    if (!inSchermoIntero() || congedo.tenuto) return false;
+    congedo.tenuto = true;
+    congedo.da = Date.now();
+    if (congedo.avviso) {
+      root.clearTimeout(congedo.avviso);
+      congedo.avviso = 0;
+    }
+    mostraCongedo(true);
+    disegnaCongedo(0);
+
+    congedo.passo = root.setInterval(function () {
+      disegnaCongedo((Date.now() - congedo.da) / CONFIG.ESCI_TIENI_MS);
+    }, 40);
+
+    congedo.timer = root.setTimeout(function () {
+      congedo.timer = 0;
+      esciSchermoIntero();
+    }, CONFIG.ESCI_TIENI_MS);
+    return true;
+  }
+
+  function esciSchermoIntero() {
+    if (congedo.passo) {
+      root.clearInterval(congedo.passo);
+      congedo.passo = 0;
+    }
+    congedo.tenuto = false;
+    disegnaCongedo(1);
+    sbloccaTasti();
+    try {
+      var esci = doc.exitFullscreen || doc.webkitExitFullscreen;
+      if (esci) {
+        var a = esci.call(doc);
+        if (a && a["catch"]) a["catch"](function () { });
+      }
+    } catch (e) { }
+    if (congedo.avviso) root.clearTimeout(congedo.avviso);
+    congedo.avviso = root.setTimeout(function () {
+      congedo.avviso = 0;
+      mostraCongedo(false);
+    }, 600);
+  }
+
+  /* F: si entra. Già dentro, F non è una scorciatoia per uscire:
+     serve solo a ricordare come si esce. */
   function schermoIntero() {
     try {
-      var attivo = doc.fullscreenElement || doc.webkitFullscreenElement;
-      if (attivo) {
-        var esci = doc.exitFullscreen || doc.webkitExitFullscreen;
-        if (esci) {
-          var a = esci.call(doc);
-          if (a && a["catch"]) a["catch"](function () { });
-        }
+      if (inSchermoIntero()) {
+        avvisoCongedo();
         return;
       }
       var el = doc.documentElement;
@@ -3313,9 +3766,32 @@
     } catch (e) { }
   }
 
+  /* entrare e uscire dallo schermo intero */
+  function cambioSchermo() {
+    if (inSchermoIntero()) {
+      bloccaTasti();
+      fermaCongedo();
+      avvisoCongedo();
+      return;
+    }
+    sbloccaTasti();
+    fermaCongedo();
+  }
+
   function onTasto(e) {
     if (!e || e.ctrlKey || e.metaKey || e.altKey) return;
     var tasto = String(e.key || "").toLowerCase();
+
+    /* ESC non chiude niente con un dito: va tenuto premuto, e la
+       barra dice quanto manca. Il tasto non arriva mai al browser
+       quando il blocco della tastiera è attivo, quindi la pagina
+       può permettersi di aspettare. */
+    if (tasto === "escape" || tasto === "esc") {
+      if (!inSchermoIntero()) return;
+      if (e.preventDefault) e.preventDefault();
+      if (!e.repeat) tieniPerUscire();
+      return;
+    }
 
     if (tasto === "d") {
       if (e.preventDefault) e.preventDefault();
@@ -3455,6 +3931,19 @@
   doc.addEventListener("touchstart", sbloccaAudio, true);
   doc.addEventListener("keydown", sbloccaAudio, true);
 
+  /* mollare ESC in tempo: il congedo si annulla e non esce nessuno */
+  doc.addEventListener("keyup", function (e) {
+    var t = String((e && e.key) || "").toLowerCase();
+    if (t === "escape" || t === "esc") fermaCongedo();
+  });
+  root.addEventListener("blur", fermaCongedo);
+
+  /* lo schermo intero lo può togliere anche il browser (F11, gesto
+     del sistema, uscita dalla scheda): in quel caso i tasti tornano
+     liberi e l'avviso sparisce */
+  doc.addEventListener("fullscreenchange", cambioSchermo);
+  doc.addEventListener("webkitfullscreenchange", cambioSchermo);
+
   /* ?debug — il pannello si apre da solo */
   if (String((root.location && root.location.search) || "").indexOf("debug") >= 0) alternaDebug();
 
@@ -3469,6 +3958,7 @@
   avviaVolti();
   avviaRilevamento();
   preriscaldaGif();
+  preriscaldaRicerca();
   riempiBuffer();
   root.setInterval(riempiBuffer, 20000);
   ciclo();
@@ -3489,6 +3979,7 @@
   /* l'appiglio per provare dalla console del browser:
      RGB.scatta() · RGB.occhi() · RGB.caos(0.8) · RGB.uscita() ·
      RGB.frase() · RGB.popup() · RGB.video() · RGB.gif() ·
+     RGB.ricerca(0, 3, 1) · RGB.spavento() ·
      RGB.kaos(false) · RGB.crash() */
   root.RGB = {
     scatta: function () { return scatta(true); },
@@ -3502,6 +3993,17 @@
     fotoInQuadrato: function (i) {
       return fotoInQuadrato(typeof i === "number" ? i : rand(4), null, 4500);
     },
+    /* RGB.ricerca(monitor, foto, tappa) — la foto numero N in un
+       monitor: tappa 0 è dritta, tappa 1 è addosso. Senza foto si
+       prende quella che la sequenza ha appena mostrato. */
+    ricerca: function (indice, numero, tappa) {
+      return ricercaInQuadrato(
+        typeof indice === "number" ? indice : rand(4),
+        typeof numero === "number" ? numero : (ricercaCorrente < 0 ? 0 : ricercaCorrente),
+        typeof tappa === "number" ? tappa : caos,
+        4500);
+    },
+    spavento: spavento,
     uscita: function (tipo) {
       return avviaReazione(typeof tipo === "number" ? tipo : rand(6));
     },
@@ -3533,6 +4035,8 @@
         fotoInBuffer: web.buffer.length,
         fotoCaricate: web.caricati,
         fotoFallite: web.errori,
+        ricerca: Object.keys(ricercaImmagini).length,
+        schermoIntero: inSchermoIntero(),
         gif: GIF_POOL.length,
         kaos: audio.kaos,
         livello: livello,

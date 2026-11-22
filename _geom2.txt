@@ -1,0 +1,17 @@
+﻿158: function geom(room) {
+198: g.doorX = [4800, 5130, 5460, 5790, 6120, 6450, 6780, 7110];
+203: for (i = 0; i < g.doorX.length - 1; i++) g.ports.push(g.doorX[i] + 265);
+221: for (i = 0; i < g.doorX.length; i++) {
+222: T({ kind: "mem", n: i + 1, x: g.doorX[i], y: f - g.doorH, w: g.doorW, h: g.doorH, reach: 160 });
+226: g.giftEye = { x: 7340, y: f - 240, w: 140, h: 240 };
+227: T({ kind: "gift_eye", x: g.giftEye.x - 20, y: g.giftEye.y - 20, w: g.giftEye.w + 40, h: g.giftEye.h + 40, reach: 220 });
+237: CZ.geom = geom;
+287: CZ.hitAt = function (room, wx, wy) {
+2733: for (i = 0; i < g.doorX.length; i++) {
+2734: x = g.doorX[i];
+2739: if (memory() >= 8 && g.giftEye && x1 > g.giftEye.x - 80 && x0 < g.giftEye.x + g.giftEye.w + 80) {
+2740: drawGiftEyePedestal(ctx, g, t);
+2757: function drawGiftEyePedestal(ctx, g, t) {
+2758: if (!g.giftEye) return;
+2759: var S = M.SCENE, f = g.f, p = g.giftEye;
+3152: tocca con CZ.pick / CZ.hitAt / CZ.interact e legge le etichette

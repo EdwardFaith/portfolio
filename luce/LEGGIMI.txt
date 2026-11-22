@@ -21,6 +21,15 @@ R   interrompe tutto e torna al bianco
 K   kaos: accende e spegne la radio, senza toccare gli impulsi
     dei canali e senza toccare il volume
 
+Dallo schermo intero non si esce con un tasto solo: ESC va tenuto
+premuto per un secondo. La barra in basso dice quanto manca, e se si
+molla il tasto si ricomincia da capo. Appena si entra, l'avviso resta
+acceso quattro secondi per ricordare come si esce. F, quando si è già
+dentro, non è una scorciatoia per uscire: serve solo a far riapparire
+l'avviso. Perché ESC non chiuda tutto subito, all'ingresso la pagina
+chiede il blocco della tastiera (Keyboard Lock, Chrome/Edge): dove non
+c'è, l'avviso resta lo stesso e il browser può ancora uscire da solo.
+
 
 3. LA WEBCAM
 ----------------------------------------------------------------
@@ -52,6 +61,15 @@ Le GIF piccole sono il pane quotidiano. Le grandi (occhi, astronauti,
 player) entrano solo quando il caos è alto, una alla volta per
 monitor: pesano troppo per un ciclo che sta ancora girando piano.
 Ogni monitor tiene al massimo due GIF insieme.
+
+La ricerca ha la precedenza: immagini/1.jpeg … 5.jpeg sono le foto
+vere del lavoro (la stanza buia, il pubblico, la città proiettata, il
+ritratto, l'ultima notte) e immagini/io.png è il volto. Stanno in
+FOTO_RICERCA, fuori dal magazzino delle foto ferme: non sono rumore
+di fondo, sono l'ordine della sequenza. Entrano una alla volta,
+dalla prima all'ultima, e nessun intruso può mostrare una foto che
+la macchina non ha ancora raggiunto. Le GIF arrivano dopo: quando un
+monitor si riempie di qualcosa, quel qualcosa è il lavoro.
 
 
 5. LA RADIO E IL KAOS
@@ -88,15 +106,35 @@ che sparisce, si rimpicciolisce o scivola verso il bordo — apre una
 delle sei reazioni: fischio, colpa, fermo immagine, volto, assalto
 di pop-up, blackout. La prima uscita è sempre quella dei pop-up.
 
+La ricerca entra in ordine, una foto alla volta, dalla prima
+all'ultima. A caos basso ne entrano due, dritte e leggibili, e i
+monitor tornano bianchi appena finiscono. Salendo il caos entrano
+tutte e cinque, sempre più vicine, sempre più storte, con le due
+esposizioni sovrapposte, gli strappi, la posterizzazione e il rosso
+che brucia sull'ultima. Non è un montaggio: è un avvicinamento.
+
+Quando il caos ha passato la soglia della contaminazione (45%), alla
+fine di un ciclo la macchina può girarsi: i quattro monitor si
+riempiono del volto, lo schermo si accende di un fotogramma intero,
+la proiezione trema e arriva l'urlo. Dura meno di un secondo, poi il
+bianco come se niente fosse. Non succede a ogni giro, e non succede
+con il pannello del setup aperto: lì resta dentro i monitor.
+
 
 7. LA CONSOLE
 ----------------------------------------------------------------
 In console c'è l'appiglio RGB:
   RGB.scatta() · RGB.occhi() · RGB.azzera() · RGB.glitch()
   RGB.gif() · RGB.gifInQuadrato(0) · RGB.fotoInQuadrato(0)
+  RGB.ricerca(0, 3, 1) · RGB.spavento()
   RGB.video() · RGB.popup(4) · RGB.frase() · RGB.uscita(4)
   RGB.kaos(false) · RGB.volume(0.5) · RGB.caos(0.8) · RGB.crash()
   RGB.stato() · RGB.config
+
+RGB.ricerca(monitor, foto, tappa) stampa la foto numero "foto" (0-4)
+in un monitor: tappa 0 è la foto dritta, tappa 1 è la foto addosso.
+Senza argomenti prende l'ultima che la sequenza ha mostrato.
+RGB.spavento() mostra il volto adesso, senza aspettare il ciclo.
 
 
 8. I FILE

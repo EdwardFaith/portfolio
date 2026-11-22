@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8"><title>PROBE4 START</title>
+<style>#overlay.hidden,#modChip.hidden{display:none}</style></head>
+<body>
+<canvas id="cv" width="480" height="270"></canvas>
+<div id="hearts"></div><div id="armor"></div><div id="credits"></div><div id="combo"></div>
+<span id="objName"></span><span id="objSub"></span>
+<div id="modChip" class="hidden"></div><div id="perkbar"></div><div id="hintBox"></div>
+<div id="toast"></div><div id="fade"></div>
+<div id="overlay" class="hidden"><div id="panel"></div></div>
+<div id="loading"><em id="loadMsg">boot</em></div>
+<button id="muteBtn"></button><input id="volMus" type="range"><input id="volSfx" type="range">
+<script>
+window.__probe = { errs: [], steps: [] };
+window.addEventListener('error', (e) => window.__probe.errs.push('global: ' + e.message));
+window.addEventListener('unhandledrejection', (e) => window.__probe.errs.push('reject: ' + e.reason));
+</script>
+<script type="module">
+import './src/main.js';
+
+const out = window.__probe;
+const step = (name, fn) => {
+  try {
+    const r = fn();
+    out.steps.push(name + ':' + (r === undefined ? 'ok' : r));
+  } catch (e) {
+    out.steps.push(name + ':THROW ' + (e && e.message));
+    out.errs.push(name + ': ' + (e && e.stack ? e.stack.split('\n').slice(0, 3).join(' | ') : e));
+  }
+};
+const tick = (g, n) => { for (let i = 0; i < n; i++) g.update(1 / 60); };
+const hud = (g) => { g.hudStamp = 0; g.updateHud(); };
+
+function mainProbe() {
+  const g = window.godkiller;
+  const d = g.dom;
+
+  step('dieAndResults', () => {
+    g.save.accepted = g.save.contracts[0];
+    g.startMission();
+    const p = g.player;
+    p.armor = 0; p.iframes = 0; p.hp = 1;
+    p.hit(g, { label: 'PROBE' });
+    const st = g.state;
+    hud(g);
+    const hearts = d.hearts.innerHTML;
+    g.openResults('dead', 0, false, 'PROBE');
+    const panel = d.panel.innerHTML;
+    return 'state=' + st + ' alive=' + p.alive + ' pips=' + (hearts.match(/<i/g) || []).length
+      + ' off=' + (hearts.match(/off/g) || []).length
+      + ' retry=' + /data-act="retry"/.test(panel) + ' hub=' + /data-act="hub"/.test(panel);
+  });
+
+  step('deadToHub', () => {
+    g.hideOverlay();
+    tick(g, 30);
+    hud(g);
+    g.render();
+    return 'state=' + g.state + ' contract=' + (g.contract ? 'set' : 'null')
+      + ' modChipHidden=' + d.modChip.classList.contains('hidden')
+      + ' obj=' + d.objName.textContent;
+  });
+
+  step('winOnce', () => {
+    g.save.accepted = g.save.contracts[0];
+    g.startMission();
+    for (const e of g.enemies) e.dead = true;
+    tick(g, 2);
+    const t0 = g.save.trophies.length;
+    g.player.x = g.map.pad.x; g.player.y = g.map.pad.y;
+    g.tryExtract();
+    const after1 = g.state;
+    const t1 = g.save.trophies.length;
+    g.tryExtract();
+    const t2 = g.save.trophies.length;
+    return 'state1=' + after1 + ' trophies+' + (t1 - t0) + ' secondCall+' + (t2 - t1)
+      + ' padArmed=' + g.padArmed;
+  });
+
+  step('winToHub', () => {
+    const pay = /data-act="hub"/.test(d.panel.innerHTML);
+    g.hideOverlay();
+    tick(g, 30);
+    hud(g);
+    g.render();
+    return 'hubBtn=' + pay + ' state=' + g.state + ' accepted=' + (g.save.accepted ? 'yes' : 'null');
+  });
+
+  step('hubRenderPixels', () => {
+    const px = g.ctx.getImageData(240, 135, 1, 1).data;
+    return 'center=' + px[0] + ',' + px[1] + ',' + px[2] + ',' + px[3];
+  });
+
+  step('perkActivate', () => {
+    g.save.accepted = g.save.contracts[0];
+    g.startMission();
+    tick(g, 5);
+    const before = g.state;
+    g.perks.activate(0, g);
+    tick(g, 90);
+    return 'state=' + before + '->' + g.state + ' timeStop=' + (g.timeStop || 0).toFixed(2);
+  });
+
+  step('finalRender', () => { tick(g, 120); g.render(); return g.state + ' enemies=' + g.enemies.length; });
+}
+
+if (window.godkiller) mainProbe();
+else out.errs.push('no window.godkiller');
+document.title = 'RESULT ' + JSON.stringify(out);
+</script>
+
+
+</body></html>

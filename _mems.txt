@@ -1,0 +1,13 @@
+﻿> C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:48:  var MEMS = [
+  C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:49:    { n: 1, it: "MEMORIE DEL COSMO", sub: "il risveglio di b-e-p-e · la memoria", yt: null, vt: "" },
+  C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:50:    { n: 2, it: "IL SOTTOSUOLO", sub: "la danza · non c'è dio nel ritmo", yt: "ljEb-Hk1RXM", vt: "LA DANZA" },
+  C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:51:    { n: 3, it: "IL DIAVOLO", sub: "presentazione · memorie del cosmo", yt: "J3xjF9M7McU", vt: "PRESENTAZIONE MEMORIE DEL COSMO" },
+  C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:52:    { n: 4, it: "LA GUERRA DEI CONIGLI", sub: "l'occhio nel cielo · la registrazione", yt: "ewnP55nij-w", vt: "L'OCCHIO NEL CIELO" },
+  C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:53:    { n: 5, it: "IL SEGNALE", sub: "frequenze interrotte", yt: null, vt: "" },
+  C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:54:    { n: 6, it: "LA TRASMISSIONE", sub: "archivio post-atomico", yt: null, vt: "" },
+  C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:55:    { n: 7, it: "L'ORBITA", sub: "distorsione stellare", yt: null, vt: "" },
+  C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:56:    { n: 8, it: "DOPO TIX", sub: "il corto sperimentale · anno 3013 dopo Tix", yt: "kdEGkCbDpNo", vt: "MEMORIE DEL COSMO · IL CORTO SPERIMENTALE" }
+  C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:57:  ];
+  C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:58:  /* se un giorno l'arsenale torna a caricarsi, è lui a comandare:
+  C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:59:     stesso numero, stesso nastro, stessi testi */
+  C:\Users\Emanuele Baccigalupi\Desktop\github\portfolio\museo\cosmo.js:60:  (function () {

@@ -1,0 +1,13 @@
+{
+  "name": "edward-godkiller",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Edward Industries — Operation Godkiller. Action roguelike top-down in HTML5 Canvas.",
+  "scripts": {
+    "dev": "vite",
+    "check": "node --check src/main.js",
+    "test": "node tools/smoke.mjs && node tools/headless.mjs",
+    "test:sim": "node tools/headless.mjs"
+  }
+}

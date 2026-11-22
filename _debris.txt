@@ -1,0 +1,6 @@
+﻿godkiller\tools\headless.mjs:9: const fail = (m) => { failures++; console.error('  x ' + m); };
+godkiller\tools\headless.mjs:541: console.log('OK — gioco eseguito headless: hub, negozio, contratti, muri, perk, boss, crediti.');
+godkiller\tools\headless.mjs:543: console.error('FALLITO: ' + failures + ' anomalie nel gioco headless.');
+godkiller\tools\smoke.mjs:15: const fail = (msg) => { failures++; console.error('  x ' + msg); };
+godkiller\tools\smoke.mjs:279: console.log(`OK — ${seeds.length} livelli, contratti e muri senza anomalie.`);
+godkiller\tools\smoke.mjs:281: console.error(`FALLITO: ${failures} anomalie.`);

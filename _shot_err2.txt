@@ -1,0 +1,1 @@
+[35612:30992:1122/174025.211:ERROR:components\headless\command_handler\headless_command_handler.cc:266] Failed to write file _shot_hub.png: Accesso negato. (0x5)

@@ -1,0 +1,90 @@
+﻿
+  function toast(m) { if (M.PANEL && M.PANEL.toast) M.PANEL.toast(m); }
+
+  /* ============================================================
+     DOVE STANNO LE COSE
+     Tutto quello che si disegna e tutto quello che si tocca parte da
+     qui: una sola tabella, cosÃ¬ pittura e bersagli non si scollano.
+     ============================================================ */
+  function geom(room) {
+    if (room._czG) return room._czG;
+    var f = room.floorY || 900;
+    var g = { f: f }, i;
+
+    /* ---- la cittÃ  -------------------------------------------- */
+    g.desk = { x: 540, y: f - 152, w: 640, h: 152 };
+    g.robot = { x: 860, y: f };
+    g.pcRig = { x: 1486, y: f - 126, w: 372, h: 126 };    /* il tavolo di ferro */
+    g.pc = { x: 1548, y: f - 126 - 268, w: 250, h: 268 };  /* il tubo catodico */
+    g.proj = { x: 2018, y: f - 646, w: 500, h: 336 };     /* il telo */
+    g.projector = { x: 2126, y: f - 128, w: 176, h: 128 };  /* la macchina da presa */
+    g.rocket = { x: 3040, y: f - 846, w: 330, h: 846 };
+    g.airlock = { x: 3170, y: f - 302, w: 150, h: 302 };
+    g.tunnel = { x: 3320, w: 94 };                        /* il budello d'ingresso */
+    g.shipIn = 3414;                                      /* qui comincia la nave */
+    /* le margherite: grandi, sdraiate, e nessuna in piedi */
+    g.daisies = [
+      { x: 300, y: f - 4, s: 1.55, r: -0.05, seed: 11 },
+      { x: 1276, y: f - 2, s: 2.10, r: 0.045, seed: 23 },
+      { x: 1892, y: f - 6, s: 0.92, r: 0.10, seed: 31 },
+      { x: 2576, y: f - 3, s: 1.78, r: -0.03, seed: 47 },
+      { x: 2806, y: f - 8, s: 1.10, r: 0.075, seed: 53 },
+      { x: 2972, y: f - 5, s: 1.34, r: -0.06, seed: 61 }
+    ];
+
+    /* ---- la nave -------------------------------------------- */
+    g.bench = { x: 3760, y: f - 132, w: (memory() >= 8 ? 820 : 620), h: 132 };    /* il banco dell'officina */
+    g.rackY = f - 442;                                    /* la rastrelliera */
+    g.rack = [
+      { id: "pistol", x: 3790 },
+      { id: "smg", x: 3946 },
+      { id: "flame", x: 4102 },
+      { id: "sword", x: 4258 }
+    ];
+    if (memory() >= 8) {
+      g.rack.push({ id: "eye", x: 4414 });
+    }                                                    /* ognuna Ã¨ 140Ã—100 */
+    g.dep = { x: 4468, y: f - 158, w: 302, h: 158 };      /* la consolle di partenza */
+    g.board = { x: 3440, y: f - 660, w: 262, h: 172 };    /* la targa d'ingresso */
+    g.doorX = [4800, 5130, 5460, 5790, 6120, 6450, 6780, 7110];
+    g.doorW = 200;
+    g.doorH = 330;
+    /* gli oblÃ²: due in officina, poi uno per intervallo fra i portelli */
+    g.ports = [3608, 3892, 4236, 4716];
+    for (i = 0; i < g.doorX.length - 1; i++) g.ports.push(g.doorX[i] + 265);
+    g.endX = 7620;
+
+    /* ---- i bersagli: quello che si puÃ² guardare e toccare ------ */
+    g.targets = [];
+    function T(o) { o.cz = true; g.targets.push(o); return o; }
+
+    T({ kind: "pc", x: g.pc.x - 16, y: g.pc.y - 14, w: g.pc.w + 32, h: g.pc.h + 34, reach: 210 });
+    T({
+      kind: "proj", x: g.proj.x, y: g.proj.y, w: g.proj.w,
+      h: (f - 220 - g.proj.y) + 220, reach: 230
+    });
+    /* la targa della nave e' puramente decorativa e non interattiva */
+    T({ kind: "dep", x: g.dep.x, y: g.dep.y, w: g.dep.w, h: g.dep.h, reach: 190 });
+    for (i = 0; i < g.rack.length; i++) {
+      T({ kind: "wpn", id: g.rack[i].id, x: g.rack[i].x, y: g.rackY, w: 140, h: 100, reach: 170 });
+    }
+    for (i = 0; i < g.doorX.length; i++) {
+      T({ kind: "mem", n: i + 1, x: g.doorX[i], y: f - g.doorH, w: g.doorW, h: g.doorH, reach: 160 });
+    }
+    /* Se le 8 memorie sono sbloccate, B-E-P-E fa il regalo all'ottava porta: l'Occhio del Tempo */
+    if (memory() >= 8) {
+      g.giftEye = { x: 7340, y: f - 240, w: 140, h: 240 };
+      T({ kind: "gift_eye", x: g.giftEye.x - 20, y: g.giftEye.y - 20, w: g.giftEye.w + 40, h: g.giftEye.h + 40, reach: 220 });
+    }
+    /* Il Varco del Gioco Eterno: SEMPRE ATTIVO sullo sportello del razzo (all'esterno in strada) */
+    T({ kind: "airlock", x: g.airlock.x - 20, y: g.airlock.y, w: g.airlock.w + 40, h: g.airlock.h, reach: 210 });
+
+    room._czG = g;
+    return g;
+  }
+  CZ.geom = geom;
+
+  /* ============================================================
+     LA STANZA
+     world.js lascia la sala a questo modulo: la allunga fino al fondo
+     della nave, mette il robot dietro la scrivania (la guida di sala,

@@ -1,0 +1,12 @@
+﻿cosmo.js:204: g.gkX = 7550;                                         /* la nona porta: operazione godkiller */
+cosmo.js:314: return "OPERAZIONE GODKILLER · la porta 9 · " + (isTouch ? "TOCCA PER SCENDERE" : "PREMI E PER SCENDERE");
+cosmo.js:336: if (t.kind === "gk") { openGodkiller(); return; }
+cosmo.js:413: function openGodkiller() {
+cosmo.js:416: toast("OPERAZIONE GODKILLER · porta 9 · si scende nel ministero");
+cosmo.js:417: try { loc.href = "godkiller/index.html"; return true; } catch (e) { return false; }
+cosmo.js:419: CZ.openGodkiller = openGodkiller;
+cosmo.js:2742: /* la nona porta: godkiller. Non e' una memoria, sta dopo il regalo
+cosmo.js:2911: /* ---- la nona porta: OPERAZIONE GODKILLER --------------------
+cosmo.js:3023: S.paint(ctx, "GODKILLER", cx, y + 170, 21, "rgba(236,232,216,0.68)",
+_probe_enter.html:45: line('label = "' + lab + '"', lab.indexOf('GODKILLER') >= 0);
+_probe_enter.html:58: out.push('--- chiamo interact(gk): la pagina deve andare su godkiller/index.html');

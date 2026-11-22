@@ -1,0 +1,9 @@
+﻿python => C:\Users\Emanuele Baccigalupi\AppData\Local\Microsoft\WindowsApps\python.exe
+py => MISSING
+python3 => C:\Users\Emanuele Baccigalupi\AppData\Local\Microsoft\WindowsApps\python3.exe
+perl => MISSING
+php => MISSING
+busybox => MISSING
+curl.exe => C:\WINDOWS\system32\curl.exe
+powershell => C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe
+PSVersion 5.1.26100.9818

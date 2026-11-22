@@ -1,0 +1,3 @@
+Windows PowerShell 5.1
+Copyright (C) Microsoft Corporation. Tutti i diritti sono riservati.
+

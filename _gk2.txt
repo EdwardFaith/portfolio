@@ -1,0 +1,130 @@
+﻿    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(d.x + 50, d.y + d.h - 10);
+    ctx.quadraticCurveTo(d.x - 30, f - 6, d.x - 90, f - 2);
+    ctx.stroke();
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(d.x + d.w - 50, d.y + d.h - 20);
+    ctx.quadraticCurveTo(d.x + d.w + 24, f - 10, d.x + d.w + 60, f - 4);
+    ctx.stroke();
+  }
+  /* ---- gli otto portelli -------------------------------------- */
+  function shipDoors(ctx, g, t, x0, x1) {
+    var i, x, w = g.doorW, y = g.f - g.doorH;
+    for (i = 0; i < g.doorX.length; i++) {
+      x = g.doorX[i];
+      if (x + w + 90 < x0 || x - 90 > x1) continue;
+      shipDoor(ctx, g, t, x, i + 1);
+    }
+    /* Se le 8 memorie sono complete, all'ottava porta appare il regalo di B-E-P-E: L'Occhio del Tempo */
+    if (memory() >= 8 && g.giftEye && x1 > g.giftEye.x - 80 && x0 < g.giftEye.x + g.giftEye.w + 80) {
+      drawGiftEyePedestal(ctx, g, t);
+    }
+    /* in fondo al corridoio: paratia finale dello scafo (la porta del Gioco Eterno e' solo all'esterno sul razzo) */
+    if (x1 > g.endX - 200) {
+      var ex = g.endX - 40;
+      ctx.fillStyle = "rgba(0,0,0,0.62)";
+      ctx.fillRect(ex, -80, x1 - ex + 60, g.f + 150);
+      ctx.fillStyle = "rgba(150,176,176,0.06)";
+      ctx.fillRect(ex, -80, 4, g.f + 150);
+      M.SCENE.paint(ctx, "FINE", ex + 20, 420, 34, "rgba(180,192,188,0.14)",
+        { drip: false, weight: 700 });
+    }
+  }
+
+  function drawGiftEyePedestal(ctx, g, t) {
+    if (!g.giftEye) return;
+    var S = M.SCENE, f = g.f, p = g.giftEye;
+    var has = chosen("eye");
+
+    // Ombra del piedistallo
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.beginPath();
+    ctx.ellipse(p.x + p.w / 2, f + 2, p.w * 0.55, 12, 0, 0, 6.3);
+    ctx.fill();
+
+    // Base del basamento in metallo brunito
+    ctx.fillStyle = "#181e22";
+    ctx.fillRect(p.x + 10, f - 110, p.w - 20, 110);
+    ctx.fillStyle = "#222a2e";
+    ctx.fillRect(p.x + 6, f - 116, p.w - 12, 10);
+    ctx.fillStyle = "rgba(192,132,252,0.18)";
+    ctx.fillRect(p.x + 12, f - 100, p.w - 24, 80);
+
+    // Pilastro stroboscopico con campo di stasi temporale
+    var pulse = 0.85 + 0.15 * Math.sin(t * 3.5);
+    var pGlow = ctx.createRadialGradient(p.x + p.w / 2, f - 175, 4, p.x + p.w / 2, f - 175, 95 * pulse);
+    pGlow.addColorStop(0, "rgba(192, 132, 252, 0.45)");
+    pGlow.addColorStop(0.5, "rgba(56, 189, 248, 0.22)");
+    pGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = pGlow;
+    ctx.fillRect(p.x - 30, f - 270, p.w + 60, 190);
+
+    // Strate temporali sospese
+    ctx.strokeStyle = "rgba(192, 132, 252, " + (0.45 * pulse) + ")";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(p.x + p.w / 2, f - 175, 42 * pulse, 0, 6.28);
+    ctx.stroke();
+
+    // Floating Eye Icon
+    var floatY = Math.sin(t * 2.8) * 8;
+    ctx.save();
+    wpnGlyph(ctx, "eye", p.x - 10, f - 225 + floatY, true);
+    ctx.restore();
+
+    // Targhetta
+    S.paint(ctx, "REGALO DI B-E-P-E", p.x + p.w / 2, f - 124, 9, "#c084fc", { align: "center", drip: false, weight: 700 });
+    S.paint(ctx, "L'OCCHIO DEL TEMPO", p.x + p.w / 2, f - 110, 11, "#f0e2c4", { align: "center", drip: false, weight: 900 });
+    S.paint(ctx, has ? "[ EQUIPAGGIATO ]" : "[ E ] PRENDI L'OCCHIO", p.x + p.w / 2, f - 24, 10, has ? "#4ade80" : "#38bdf8", { align: "center", drip: false, weight: 800 });
+  }
+
+  function shipDoor(ctx, g, t, dx, n) {
+    var S = M.SCENE, f = g.f, w = g.doorW, h = g.doorH, y = f - h, i;
+    var open = missionDone(n), armed1 = n === 1 && CZ.armed();
+
+    /* la soglia, e l'ombra che il portello fa sul pavimento */
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.fillRect(dx - 24, f, w + 48, 8);
+    ctx.fillStyle = "rgba(214,182,60,0.12)";
+    ctx.fillRect(dx - 24, f - 2, w + 48, 3);
+
+    /* il telaio: un blocco di ferro incassato nello scafo */
+    ctx.fillStyle = "#20282a";
+    ctx.fillRect(dx - 20, y - 20, w + 40, h + 20);
+    ctx.fillStyle = "rgba(150,178,178,0.07)";
+    ctx.fillRect(dx - 20, y - 20, w + 40, 4);
+    for (i = 0; i < 7; i++) {
+      ctx.fillStyle = "rgba(186,200,196,0.18)";
+      ctx.beginPath();
+      ctx.arc(dx - 12, y - 4 + i * (h / 7), 3, 0, 6.3);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(dx + w + 12, y - 4 + i * (h / 7), 3, 0, 6.3);
+      ctx.fill();
+    }
+
+    /* l'anta: due pannelli, e in mezzo la costola */
+    var dg3 = ctx.createLinearGradient(dx, y, dx + w, y + h);
+    if (open) {
+      dg3.addColorStop(0, "#3f5152");
+      dg3.addColorStop(0.5, "#2c3b3c");
+      dg3.addColorStop(1, "#1b2526");
+    } else {
+      dg3.addColorStop(0, "#333c3e");
+      dg3.addColorStop(0.45, "#242c2e");
+      dg3.addColorStop(1, "#161d1f");
+    }
+    ctx.fillStyle = dg3;
+    ctx.fillRect(dx, y, w, h);
+    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    ctx.fillRect(dx + w * 0.5 - 5, y, 10, h);
+    ctx.fillStyle = "rgba(170,196,194,0.10)";
+    ctx.fillRect(dx + w * 0.5 - 5, y, 2, h);
+    ctx.strokeStyle = "rgba(150,176,174,0.14)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(dx + 8, y + 8, w - 16, h - 16);
+    /* i rinforzi diagonali */
+    ctx.strokeStyle = "rgba(0,0,0,0.28)";
+    ctx.lineWidth = 5;

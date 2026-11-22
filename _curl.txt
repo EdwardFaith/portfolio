@@ -1,0 +1,2 @@
+﻿index http=200
+main.js http=200

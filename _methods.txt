@@ -1,0 +1,63 @@
+﻿32: constructor() {
+120: bindDom() {
+161: saveVolumes() {
+173: bindAudio() {
+182: bindKeys() {
+199: frame(now) {
+214: update(dt) {
+237: updateHub(dt) {
+248: hubInteract() {
+268: updateMission(dt) {
+326: updatePickups(p) {
+336: updateProjectiles(dt) {
+367: updatePools(dt) {
+381: updateEffects(dt) {
+403: armPad() {
+409: saveFlow() {
+444: flowDir(x, y) {
+496: raycastSight(x0, y0, x1, y1) {
+501: emitNoise(x, y, radius, source) {
+511: onEnemyAlert(e) {
+519: onDoorHit(tx, ty, res) {
+536: addBlood(x, y, amount, seed) {
+549: spawnSparks(x, y, n, color) {
+561: spawnBlink(from, x, y) {
+575: toast(msg, kind) {
+583: float(x, y, text, color) {
+587: fireWeapon(p, def) {
+629: rayEnemy(x, y, dx, dy, maxLen, skip) {
+645: enemyShoot(e, def) {
+675: enemyMelee(e) {
+685: meleeSwing(p, def) {
+718: makeItem(x, y, kind, id, ammo, amount) {
+722: dropItem(x, y, kind, id, ammo, amount) {
+728: nearestItem(x, y, r) {
+741: pickupItem(it) {
+773: tryPickupNearby(p, r) {
+779: throwPlayerWeapon(p) {
+799: dropEnemyWeapon(e) {
+806: playerInteract(p) {
+826: tryExtract() {
+859: onPlayerDeath(source) {
+879: spawnLoot(map) {
+898: startMission() {
+966: backToHub() {
+990: killEnemy(e, opts) {
+1032: bloomEnemy(e) {
+1053: showOverlay(html) {
+1061: hideOverlay() {
+1070: head(title, sub) {
+1075: openShop() {
+1113: openContracts() {
+1136: punch(p) {
+1154: openTrophies() {
+1187: openResults(kind, pay, lights, killer) {
+1215: onOverlayClick(e) {
+1282: render() {
+1294: renderHub(g) {
+1301: renderMission(g) {
+1373: renderScreenFx(g, px, py) {
+1401: drawItem(g, it) {
+1444: drawPools(g) {
+1463: drawPadBeacon(g) {
+1488: updateHud() {

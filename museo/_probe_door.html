@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>probe door</title>
+<style>
+  html, body { margin: 0; background: #05080a; }
+  canvas { display: block; }
+  #err { position: fixed; left: 0; top: 0; right: 0; font: 11px monospace; color: #ffd7d0;
+         background: #3b0d12; padding: 2px 6px; display: none; white-space: pre-wrap; z-index: 9; }
+</style>
+</head>
+<body>
+<div id="err"></div>
+<canvas id="cv" width="950" height="520"></canvas>
+<script src="lang.js?v=10"></script>
+<script src="gl.js"></script>
+<script src="fx.js"></script>
+<script src="scene.js"></script>
+<script src="panel.js?v=7"></script>
+<script src="cosmo.js?v=1"></script>
+<script>
+  window.__errs = [];
+  window.addEventListener('error', function (e) { window.__errs.push(e.message + ' @' + e.lineno); });
+  var cv = document.getElementById('cv'), c = cv.getContext('2d');
+  var room = { floorY: 900, id: 'cosmo' };
+  if (/full/.test(location.search)) {
+    try { localStorage.setItem('cosmo_memorie_v1', JSON.stringify({ memorieSbloccate: 8, beppe: true })); } catch (e) {}
+  }
+  c.save();
+  c.translate(-7000, -400);
+  try {
+    MUSEO.COSMO.paint(c, room, 3.3, { x: 7000, y: 400 }, 7000, 7950, 900);
+  } catch (err) {
+    window.__errs.push('paint: ' + (err && err.message));
+  }
+  c.restore();
+  if (window.__errs.length) {
+    var b = document.getElementById('err');
+    b.textContent = window.__errs.join('\n');
+    b.style.display = 'block';
+    document.title = 'DOOR ERR';
+  } else {
+    document.title = 'DOOR OK';
+  }
+</script>
+</body>
+</html>

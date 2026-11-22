@@ -1,0 +1,45 @@
+﻿  function shipScene(ctx, g, t, x0, x1, H) {
+    var S = M.SCENE, f = g.f, i, px;
+    var L = x0 - 60, R = x1 + 60, top = -80;
+    var lit = Math.min(1, memory() / 8);
+
+    /* ---- lo scafo: una lamiera curva, e il buio oltre i bordi --- */
+    var hull = ctx.createLinearGradient(0, top, 0, f + 60);
+    hull.addColorStop(0, "#080b0c");
+    hull.addColorStop(0.18, "#151b1e");
+    hull.addColorStop(0.62, "#1b2225");
+    hull.addColorStop(1, "#0d1214");
+    ctx.fillStyle = hull;
+    ctx.fillRect(L, top, R - L, f - top + 70);
+    /* l'ombra che scende dal soffitto: dentro non c'Ã¨ mai luce piena */
+    var vg = ctx.createLinearGradient(0, top, 0, top + 340);
+    vg.addColorStop(0, "rgba(0,0,0,0.72)");
+    vg.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = vg;
+    ctx.fillRect(L, top, R - L, 340);
+
+    /* ---- le costole: ogni 130 unitÃ  una nervatura --------------- */
+    var rib0 = Math.floor(L / 130) * 130;
+    for (px = rib0; px < R; px += 130) {
+      var ribR = S.rand(px * 0.017);
+      ctx.fillStyle = "rgba(0,0,0," + (0.22 + ribR * 0.16) + ")";
+      ctx.fillRect(px, top, 16, f - top);
+      ctx.fillStyle = "rgba(150,178,180,0.055)";
+      ctx.fillRect(px + 16, top, 3, f - top);
+      /* i rivetti della nervatura: due file, sempre le stesse */
+      for (i = 0; i < 9; i++) {
+        ctx.fillStyle = "rgba(170,196,196," + (0.05 + S.rand(px + i) * 0.06) + ")";
+        ctx.beginPath();
+        ctx.arc(px + 8, 60 + i * 104, 2.2, 0, 6.3);
+        ctx.fill();
+      }
+    }
+    /* i due longheroni orizzontali */
+    for (i = 0; i < 2; i++) {
+      var ly2 = 190 + i * 330;
+      ctx.fillStyle = "rgba(0,0,0,0.26)";
+      ctx.fillRect(L, ly2, R - L, 20);
+      ctx.fillStyle = "rgba(150,178,180,0.05)";
+      ctx.fillRect(L, ly2, R - L, 2);
+    }
+    /* i tubi che corrono sotto il soffitto, uno caldo e uno freddo */

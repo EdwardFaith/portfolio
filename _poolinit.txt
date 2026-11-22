@@ -1,0 +1,6 @@
+﻿20: import { modifierById } from './world/modifiers.js';
+66: this.pools = [];
+104: this.hudCache = {};
+957: this.audio.setAlarm(c.modifier === 'alarm');
+1026: if (this.contract && this.contract.modifier === 'acid') {
+1375: const eclipse = this.contract && this.contract.modifier === 'eclipse';

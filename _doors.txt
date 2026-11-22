@@ -1,0 +1,60 @@
+﻿11: piede: si entra dallo sportello, e dentro comincia la nave.
+15: girano piano dietro il vetro — con otto portelli: le otto memorie.
+16: La prima è la spedizione, ed è un gioco suo, in cosmo/index.html:
+43: /* ---- le otto memorie dietro gli otto portelli ----------------
+45: che la camera dava alle porte armate (arsenal.js), così il telo
+46: della strada e il portello della nave non possono raccontare due
+198: g.doorX = [4800, 5130, 5460, 5790, 6120, 6450, 6780, 7110];
+199: g.doorW = 200;
+200: g.doorH = 330;
+201: /* gli oblò: due in officina, poi uno per intervallo fra i portelli */
+203: for (i = 0; i < g.doorX.length - 1; i++) g.ports.push(g.doorX[i] + 265);
+220: for (i = 0; i < g.doorX.length; i++) {
+221: T({ kind: "mem", n: i + 1, x: g.doorX[i], y: f - g.doorH, w: g.doorW, h: g.doorH, reach: 160 });
+228: /* Il Varco del Gioco Eterno: SEMPRE ATTIVO sullo sportello del razzo (all'esterno in strada) */
+251: if (room.doorL) room.doorL.to = "hub";
+254: room.doorR = null;
+368: Cassetta N = gioco N: il portello N non apre "la memoria", apre
+369: cosmo/index.html?m=N, che è la stessa pagina con dentro la sua
+371: portello vuole due armi addosso; gli altri vogliono la memoria
+378: /* perché quel portello non si apre: "" se si apre */
+382: return "il portello è sigillato: prima si riporta a casa la memoria " + (nn - 1) +
+393: numero è l'indirizzo — cosmo/index.html?m=N legge il tempo, la
+399: try { loc.href = "cosmo/index.html?m=" + n; return true; } catch (e) { return false; }
+412: if (inside) toast("dentro il razzo · la nave delle memorie: otto portelli e l'officina");
+424: corti, la targa è il concept degli otto portelli. La faccia resta
+445: hai prese (cosmo/index.html le scrive in noteText insieme
+580: ? "Nessuna nota trovata sul campo. Entra nei portelli per trovare i frammenti del libro e decrittare i blocchi."
+598: stesso video), quindi telo e portello non possono raccontare
+691: sub: "otto portelli, un concept per portello",
+692: x: "sulla targa è inciso soltanto il concept: un gioco, una cassetta, otto portelli. Chi vuole " +
+698: "il concept degli otto portelli",
+715: ? "confermato: " + names.join(" e ") + ". Il portello della memoria 1 è aperto — una cassetta, un gioco: da qui si entra nel gioco 1."
+726: x: "una cassetta, un gioco: dal portello 1 al portello 8 si entra nel gioco di quel numero " +
+728: "cassetta. Le armi che hai addosso viaggiano con te. Se muori torni qui, e i portelli " +
+739: if (!CZ.armed()) { toast("due armi: il portello non si apre per uno disarmato"); return; }
+791: dal museo (world.js non disegna porte nelle stanze che si pitturano
+1778: IL RAZZO — in piedi in mezzo alla strada, con lo sportello
+1886: /* ---- lo sportello: la porta rotonda, e la ruota ---------- */
+1960: LA NAVE — il corridoio con gli otto portelli
+1964: fondo, otto porte con sopra un numero.
+2067: /* ---- le cose: oblò, targa, rastrelliera, banco, consolle, porte */
+2073: if (x1 > 4700) shipDoors(ctx, g, t, x0, x1);
+2233: S.paint(ctx, "otto portelli · otto memorie · una nave ferma", 14, 112, 11,
+2238: /* otto quadratini: uno per portello, accesi man mano */
+2681: ctx.fillText(n >= MAXSEL ? "2 ARMI · 1 PORTELLO" : n + " ARMI · TROPPO POCHE", 4, 20);
+2712: /* ---- gli otto portelli -------------------------------------- */
+2713: function shipDoors(ctx, g, t, x0, x1) {
+2714: var i, x, w = g.doorW, y = g.f - g.doorH;
+2715: for (i = 0; i < g.doorX.length; i++) {
+2716: x = g.doorX[i];
+2718: shipDoor(ctx, g, t, x, i + 1);
+2783: function shipDoor(ctx, g, t, dx, n) {
+2784: var S = M.SCENE, f = g.f, w = g.doorW, h = g.doorH, y = f - h, i;
+2787: /* la soglia, e l'ombra che il portello fa sul pavimento */
+2857: shipDoorFace(ctx, g, t, dx, n, open, armed1);
+2859: /* ---- la faccia del portello: il numero, e se si apre o no ----- */
+2860: function shipDoorFace(ctx, g, t, dx, n, open, armed1) {
+2861: var S = M.SCENE, f = g.f, w = g.doorW, h = g.doorH, y = f - h;
+2880: /* ---- l'oblò del portello: dietro non c'è niente da vedere ---- */
+2977: /* ---- armato: il primo portello aspetta solo te -------------- */

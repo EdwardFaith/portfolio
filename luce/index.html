@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#000000">
   <title>RGB (Baggata)</title>
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
@@ -39,6 +39,15 @@
   <div id="crash" hidden aria-hidden="true">
     <pre id="crash-testo"></pre>
     <div class="crash-barra"><i id="crash-avanzamento"></i></div>
+  </div>
+
+  <!-- IL CONGEDO — dallo schermo intero non si esce con un tasto:
+       ESC va tenuto premuto un secondo, e la barra dice quanto manca.
+       Compare da solo appena si entra, poi sparisce. -->
+  <div id="congedo" hidden aria-hidden="true">
+    <b>tieni premuto <em>ESC</em></b>
+    <div class="congedo-barra"><i id="congedo-avanzamento"></i></div>
+    <span class="congedo-nota">per uscire dallo schermo intero</span>
   </div>
 
   <!-- LA WEBCAM — non si vede mai: si vede solo quello che finisce
@@ -119,7 +128,8 @@
     </div>
 
     <p class="nota">
-      D pannello · F schermo intero · R torna al bianco · K kaos
+      D pannello · F schermo intero (per uscirne, tieni premuto ESC) ·
+      R torna al bianco · K kaos
     </p>
     <p class="nota">
       <span id="camera">camera: —</span>
@@ -132,6 +142,6 @@
   <!-- il rilevatore di volti: se il CDN o il backend non rispondono,
        restano il metro del movimento e tutto il resto -->
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
-  <script src="script.js?v=7"></script>
+  <script src="script.js?v=9"></script>
 </body>
 </html>

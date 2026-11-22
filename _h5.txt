@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8"><title>RESULT {"errs":[],"steps":["boot:game ok","t0:0.00","rafOnce:raf","t1:0.03 fade=0.93 acc=0.002","hudHearts:21 pips=1","hudArmor:0 pips=0","hudCredits:\"ÔéÁ 300\"","hudObj:EDWARD INDUSTRIES / nave madre ┬À settore di lancio","hudPerks:596 hint=\"muoviti con WASD\"","loadingClass:\"done\"","canvasCenter:27,32,38,255","manualFrames:dt=0.57 state=HUB","startMissionViaHub:MISSION enemies=15 hearts=21"]}</title>
+<style>#overlay.hidden,#modChip.hidden{display:none}</style></head>
+<body>
+<canvas id="cv" width="480" height="270"></canvas>
+<div id="hearts" class="pips"><i class="heart"></i></div><div id="armor" class="pips"></div>
+<div id="credits">ÔéÁ 300</div><div id="combo"></div>
+<span id="objName">EDWARD INDUSTRIES</span><span id="objSub">nave madre ┬À settore di lancio</span>
+<div id="modChip" class="hidden"></div><div id="perkbar"><div class="perk locked"><span class="k">1</span><span class="nm">TEMPO</span><span class="lvl">ÔÇö</span><i class="cd" style="width:100%"></i></div><div class="perk locked"><span class="k">2</span><span class="nm">BLINK</span><span class="lvl">ÔÇö</span><i class="cd" style="width:100%"></i></div><div class="perk locked"><span class="k">3</span><span class="nm">BALLETTO</span><span class="lvl">ÔÇö</span><i class="cd" style="width:100%"></i></div><div class="perk locked"><span class="k">4</span><span class="nm">MARGHERITE</span><span class="lvl">ÔÇö</span><i class="cd" style="width:100%"></i></div></div><div id="hintBox"><span class="key">E</span> BACHECA CONTRATTI</div>
+<div id="toast" class="on">OPERAZIONE LITURGIA FINALE ÔÇö Araldo Redd, il Digiunatore</div><div id="fade" style="opacity: 0.743;"></div>
+<div id="overlay" class="hidden"><div id="panel"></div></div>
+<div id="loading" class="done"><em id="loadMsg">boot</em></div>
+<button id="muteBtn"></button><input id="volMus" type="range"><input id="volSfx" type="range">
+<script>
+window.__probe = { errs: [], steps: [] };
+window.addEventListener('error', (e) => window.__probe.errs.push('global: ' + e.message));
+window.addEventListener('unhandledrejection', (e) => window.__probe.errs.push('reject: ' + e.reason));
+</script>
+<script type="module">
+import './src/main.js';
+
+const out = window.__probe;
+const step = (name, fn) => {
+  try {
+    const r = fn();
+    out.steps.push(name + ':' + (r === undefined ? 'ok' : r));
+  } catch (e) {
+    out.steps.push(name + ':THROW ' + (e && e.message));
+    out.errs.push(name + ': ' + (e && e.stack ? e.stack.split('\n').slice(0, 3).join(' | ') : e));
+  }
+};
+const withTimeout = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(() => r('timeout'), ms))]);
+
+async function main() {
+  const g = window.godkiller;
+  step('boot', () => (g ? 'game ok' : 'NO GAME'));
+  if (!g) { document.title = 'RESULT ' + JSON.stringify(out); return; }
+
+  step('t0', () => g.t.toFixed(2));
+  const raf = await withTimeout(new Promise((r) => requestAnimationFrame(() => r('raf'))), 600);
+  out.steps.push('rafOnce:' + raf);
+  await withTimeout(new Promise((r) => setTimeout(r, 1500)), 4000);
+  step('t1', () => g.t.toFixed(2) + ' fade=' + g.fade.toFixed(2) + ' acc=' + g.acc.toFixed(3));
+  step('hudHearts', () => d().hearts.innerHTML.length + ' pips=' + (d().hearts.innerHTML.match(/<i/g) || []).length);
+  step('hudArmor', () => d().armor.innerHTML.length + ' pips=' + (d().armor.innerHTML.match(/<i/g) || []).length);
+  step('hudCredits', () => JSON.stringify(d().credits.textContent));
+  step('hudObj', () => d().objName.textContent + ' / ' + d().objSub.textContent);
+  step('hudPerks', () => d().perkbar.innerHTML.length + ' hint=' + JSON.stringify(d().hintBox.textContent.slice(0, 42)));
+  step('loadingClass', () => JSON.stringify(d().loading.className));
+  step('canvasCenter', () => Array.from(g.ctx.getImageData(240, 135, 1, 1).data).join(','));
+  step('manualFrames', () => {
+    const t = g.t;
+    for (let i = 0; i < 30; i++) g.frame(performance.now() + i * 16.7);
+    return 'dt=' + (g.t - t).toFixed(2) + ' state=' + g.state;
+  });
+  step('startMissionViaHub', () => {
+    g.save.accepted = g.save.contracts[0];
+    g.startMission();
+    for (let i = 0; i < 120; i++) g.update(1 / 60);
+    g.render();
+    return g.state + ' enemies=' + g.enemies.length + ' hearts=' + d().hearts.innerHTML.length;
+  });
+  document.title = 'RESULT ' + JSON.stringify(out);
+}
+
+function d() { return window.godkiller.dom; }
+
+main().catch((e) => {
+  out.errs.push('main: ' + (e && e.message));
+  document.title = 'RESULT ' + JSON.stringify(out);
+});
+</script>
+
+
+</body></html>

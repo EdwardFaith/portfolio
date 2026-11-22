@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html lang="it"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>EDWARD INDUSTRIES ÔÇö OPERATION GODKILLER</title>
+  <meta name="description" content="Operation Godkiller: un action roguelike top-down pixel art della Edward Industries. Elimina la paranoia di Dio, contratto dopo contratto.">
+  <meta name="theme-color" content="#07080a">
+  <link rel="icon" type="image/png" sizes="32x32" href="../immagini/favicon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div id="stage">
+    <canvas id="cv" width="480" height="270" aria-label="Operation Godkiller ÔÇö gioco"></canvas>
+    <div id="crt" aria-hidden="true"><i class="scan"></i><i class="vig"></i><i class="grain"></i></div>
+
+    <div id="hud" aria-live="polite">
+      <div id="hudTop">
+        <div id="vitali">
+          <div id="hearts" class="pips"></div>
+          <div id="armor" class="pips"></div>
+        </div>
+        <div id="objective">
+          <span id="objName">EDWARD INDUSTRIES</span>
+          <span id="objSub">nave madre ┬À settore di lancio</span>
+        </div>
+        <div id="wallet">
+          <div id="credits">ÔéÁ 0</div>
+          <div id="combo"></div>
+          <div id="audioBox">
+            <button id="muteBtn" type="button" title="muto (M)" aria-label="muto">ÔÖ¬</button>
+            <label>MUS <input id="volMus" type="range" min="0" max="100" value="55" aria-label="volume musica"></label>
+            <label>SFX <input id="volSfx" type="range" min="0" max="100" value="80" aria-label="volume effetti"></label>
+          </div>
+        </div>
+      </div>
+
+      <div id="hudBottom">
+        <div id="modChip" class="hidden"></div>
+        <div id="perkbar"></div>
+        <div id="hintBox"></div>
+      </div>
+    </div>
+
+    <div id="toast" aria-live="polite"></div>
+    <div id="fade" aria-hidden="true"></div>
+
+    <div id="overlay" class="hidden" role="dialog" aria-modal="true">
+      <div id="panel"></div>
+    </div>
+
+    <div id="touch" aria-hidden="true">
+      <div id="stickL" class="stick"><i></i></div>
+      <div id="stickR" class="stick"><i></i></div>
+      <div id="tbtns">
+        <button type="button" data-touch="act">E</button>
+        <button type="button" data-touch="throw">LANCIA</button>
+      </div>
+    </div>
+
+    <div id="loading" class="done">
+      <div class="loadBox">
+        <b>EDWARD INDUSTRIES</b>
+        <span>OPERATION GODKILLER</span>
+        <em id="loadMsg">inizializzazione del modulo di lancioÔÇª</em>
+      </div>
+    </div>
+
+    <a id="back" href="../museo.html?stanza=cosmo">ÔåÉ MEMORIE DEL COSMO</a>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+  <noscript>
+    <div style="position:fixed;inset:0;display:grid;place-items:center;background:#07080a;color:#ff2d75;font-family:monospace;padding:2rem;text-align:center;">
+      Operation Godkiller richiede JavaScript attivo.<br><a href="../museo.html?stanza=cosmo" style="color:#38bdf8;">torna alle Memorie del Cosmo</a>
+    </div>
+  </noscript>
+
+
+
+</body></html>

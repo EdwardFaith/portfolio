@@ -1,0 +1,24 @@
+﻿godkiller\src\systems\shop.js:5: const KEY = 'edward_godkiller_save_v1';
+godkiller\src\world\generator.js:20: 'GODKILLER', 'ULTIMA CENA', 'FIORE NERO', 'CANTO SPEZZATO', 'MADRE VUOTA',
+godkiller\src\main.js:1609: console.error('[godkiller] avvio fallito', err);
+godkiller\src\main.js:1611: if (typeof window !== 'undefined') window.godkiller = game;
+godkiller\index.html:7: <title>EDWARD INDUSTRIES — OPERATION GODKILLER</title>
+godkiller\index.html:9: content="Operation Godkiller: un action roguelike top-down pixel art della Edward Industries. Elimina la paranoia di Dio, contratto dopo con
+godkiller\index.html:18: <canvas id="cv" width="480" height="270" aria-label="Operation Godkiller — gioco"></canvas>
+godkiller\index.html:68: <span>OPERATION GODKILLER</span>
+godkiller\index.html:79: Operation Godkiller richiede JavaScript attivo.<br><a href="../museo.html?stanza=cosmo" style="color:#38bdf8;">torna alle Memorie del Cosmo<
+godkiller\package.json:2: "name": "edward-godkiller",
+godkiller\package.json:6: "description": "Edward Industries — Operation Godkiller. Action roguelike top-down in HTML5 Canvas.",
+godkiller\style.css:2: EDWARD INDUSTRIES — OPERATION GODKILLER
+godkiller\_probe.html:53: const g = window.godkiller;
+godkiller\_probe.html:124: if (window.godkiller) mainProbe();
+godkiller\_probe.html:125: else out.errs.push('no window.godkiller');
+godkiller\_probe2.html:56: const g = window.godkiller;
+godkiller\_probe2.html:185: if (window.godkiller) mainProbe();
+godkiller\_probe2.html:186: else out.errs.push('no window.godkiller');
+godkiller\_probe3.html:36: const g = window.godkiller;
+godkiller\_probe3.html:115: if (window.godkiller) mainProbe();
+godkiller\_probe3.html:116: else out.errs.push('no window.godkiller');
+godkiller\_probe4.html:36: const g = window.godkiller;
+godkiller\_probe4.html:108: if (window.godkiller) mainProbe();
+godkiller\_probe4.html:109: else out.errs.push('no window.godkiller');

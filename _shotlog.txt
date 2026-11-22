@@ -1,0 +1,65 @@
+﻿hub.png exit=0 exists=True size=357813
+mission.png exit=0 exists=True size=411968
+win.png exit=0 exists=True size=211505
+dead.png exit=0 exists=True size=202597
+contracts.png exit=0 exists=True size=227604
+shop.png exit=0 exists=True size=231504
+trophies.png exit=0 exists=True size=204479
+perks.png exit=0 exists=True size=390273
+perf_hub.png exit=0 exists=True size=405355
+perf_mis.png exit=0 exists=True size=468756
+--- hub.png stderr ---
+357813 bytes written to file C:\Users\Public\gk\hub.png
+
+--- mission.png stderr ---
+411968 bytes written to file C:\Users\Public\gk\mission.png
+
+--- win.png stderr ---
+211505 bytes written to file C:\Users\Public\gk\win.png
+
+--- dead.png stderr ---
+202597 bytes written to file C:\Users\Public\gk\dead.png
+
+--- contracts.png stderr ---
+227604 bytes written to file C:\Users\Public\gk\contracts.png
+
+--- shop.png stderr ---
+231504 bytes written to file C:\Users\Public\gk\shop.png
+
+--- trophies.png stderr ---
+204479 bytes written to file C:\Users\Public\gk\trophies.png
+
+--- perks.png stderr ---
+390273 bytes written to file C:\Users\Public\gk\perks.png
+
+--- perf_hub.png stderr ---
+405355 bytes written to file C:\Users\Public\gk\perf_hub.png
+
+--- perf_mis.png stderr ---
+468756 bytes written to file C:\Users\Public\gk\perf_mis.png
+
+
+Name                  Length LastWriteTime      
+----                  ------ -------------      
+_shot_contracts.png   227604 22/11/2026 18:20:02
+_shot_dead.png        202597 22/11/2026 18:20:00
+_shot_door_after.png  127426 22/11/2026 18:04:01
+_shot_door_before.png  93519 22/11/2026 18:00:42
+_shot_door_full.png   151273 22/11/2026 18:04:46
+_shot_door_full3.png  157104 22/11/2026 18:11:41
+_shot_door_full4.png  157451 22/11/2026 18:14:05
+_shot_door_v2.png     129235 22/11/2026 18:04:45
+_shot_door_v3.png     134526 22/11/2026 18:11:41
+_shot_enter.png        16096 22/11/2026 18:11:41
+_shot_hub.png         357813 22/11/2026 18:19:54
+_shot_mission.png     411968 22/11/2026 18:19:56
+_shot_perf_hub.png    405355 22/11/2026 18:20:11
+_shot_perf_mis.png    468756 22/11/2026 18:20:13
+_shot_perks.png       390273 22/11/2026 18:20:08
+_shot_root_go.png     134672 22/11/2026 18:14:05
+_shot_shop.png        231504 22/11/2026 18:20:04
+_shot_trophies.png    204479 22/11/2026 18:20:06
+_shot_win.png         211505 22/11/2026 18:19:58
+
+
+

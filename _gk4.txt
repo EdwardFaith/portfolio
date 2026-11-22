@@ -1,0 +1,90 @@
+﻿    return best ? { d: bd, t: best } : null;
+  };
+
+  /* il dito: si tocca quello che si vede */
+  CZ.hitAt = function (room, wx, wy) {
+    if (!room || !room.cz) return null;
+    var g = geom(room), list = g.targets, i, t;
+    for (i = 0; i < list.length; i++) {
+      t = list[i];
+      if (wx < t.x - 20 || wx > t.x + t.w + 20) continue;
+      if (wy < t.y - 24 || wy > t.y + t.h + 44) continue;
+      return t;
+    }
+    return null;
+  };
+
+  CZ.label = function (t) {
+    if (!t) return "";
+    if (t.kind === "wpn") {
+      var w = wdef(t.id);
+      return (chosen(t.id) ? "posa " : "stacca ") + (w ? w.it.toLowerCase() : t.id);
+    }
+    if (t.kind === "mem") {
+      var why = memWhy(t.n), mm = memInfo(t.n);
+      var who = "memoria " + t.n + (mm ? " Â· " + mm.it.toLowerCase() : "");
+      if (why) return who + (t.n === 1 ? " Â· prima due armi" : " Â· sigillata");
+      return (missionDone(t.n) ? "rigioca la " : "entra nella ") + who;
+    }
+    if (t.kind === "pc") return awake() ? "il computer di bordo Â· " + noteList().length + " pagine" : "il computer di bordo Â· spento";
+    if (t.kind === "proj") return awake() ? "la videoproiezione Â· accesa" : "la videoproiezione Â· offline";
+    /* targa non interattiva */
+    if (t.kind === "dep") return "la consolle di partenza";
+    if (t.kind === "airlock") {
+      var isTouch = (M.DEVICE && M.DEVICE.touch) ? M.DEVICE.touch() : (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+      return "IL GIOCO ETERNO Â· LA MODALITÃ€ INFINITA " + (isTouch ? "(TOCCA PER ENTRARE)" : "(PREMI E PER ENTRARE)");
+    }
+    if (t.kind === "gift_eye") {
+      return chosen("eye")
+        ? "IL REGALO DI B-E-P-E: L'OCCHIO DEL TEMPO Â· IN MANO"
+        : ("IL REGALO DI B-E-P-E: L'OCCHIO DEL TEMPO " + (isTouch ? "(TOCCA PER PRENDERE)" : "(PREMI E PER PRENDERE)"));
+    }
+    return "";
+  };
+
+  CZ.interact = function (t) {
+    if (!t) return;
+    if (t.kind === "wpn") { pickWeapon(t.id); return; }
+    if (t.kind === "gift_eye") { pickWeapon("eye"); return; }
+    if (t.kind === "mem") { openMemory(t.n); return; }
+    if (t.kind === "pc") { panelPc(); return; }
+    if (t.kind === "proj") { panelProj(); return; }
+    /* targa non interattiva */
+    if (t.kind === "dep") { panelDep(); return; }
+    if (t.kind === "airlock") {
+      toast("AVVIO GIOCO ETERNO Â· ACCESSO ALLE ONDATE INFINITE...");
+      setTimeout(function(){
+        goCity(0);
+      }, 400);
+      return;
+    }
+  };
+
+  /* ---- staccare un'arma dal muro ------------------------------ */
+  function pickWeapon(id) {
+    var w = wdef(id);
+    var how = toggleArm(id), n = sel().length;
+    var name = w ? w.it : id;
+    if (id === "eye") {
+      if (how === "off") {
+        toast("L'Occhio del Tempo Ã¨ tornato sul piedistallo di B-E-P-E Â· ne porti " + n + " di " + MAXSEL);
+      } else {
+        toast("HAI EQUIPAGGIATO L'OCCHIO! Nel gioco selezionalo (1/2/3/Q o 'F') per bloccare il tempo per 10s: i proiettili restano sospesi e colpiscono tutti insieme!");
+      }
+      return;
+    }
+    if (how === "off") {
+      toast(name + " Ã¨ tornata sul muro Â· ne porti " + n + " di " + MAXSEL);
+      return;
+    }
+    if (how === "swap") {
+      toast("due armi e basta: " + name.toLowerCase() + " ha preso il posto di un'altra");
+      return;
+    }
+    toast(name + " â€” " + (w ? w.what : "") +
+      (n >= MAXSEL ? " Â· sei armato: si parte" : " Â· scegline un'altra"));
+  }
+
+  /* ---- le otto memorie ----------------------------------------
+     Cassetta N = gioco N: il portello N non apre "la memoria", apre
+     cosmo/index.html?m=N, che Ã¨ la stessa pagina con dentro la sua

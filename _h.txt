@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html lang="it" data-classic="ran" data-mod-a="ran" data-module="ran"><head>
+<meta charset="utf-8">
+<title>RESULT {"errs":[],"steps":["boot:game ok","dom:all dom ok","contracts:3","renderHub:ok","hubUpdate:hudNear=contracts","overlays:panel=0","startMission:MISSION enemies=16 items=7 boss=1","missionTicks:t=30.0 alive=16","combat:kills=16 credits=1530","acidPools:no enemy","extract:WIN overlayHidden=false","backToHub:HUB","death:DEAD-&gt;HUB","retry:MISSION map=ok","finalRender:ok"]}</title>
+<style>
+  #overlay.hidden, #modChip.hidden { display: none; }
+</style>
+</head>
+<body>
+<canvas id="cv" width="480" height="270"></canvas>
+<div id="hearts"><i class="heart"></i></div>
+<div id="armor"></div>
+<div id="credits">ÔéÁ 3090</div>
+<div id="combo"></div>
+<span id="objName">OPERAZIONE GODKILLER</span>
+<span id="objSub">Setta del Sole Nero ┬À Kepler-186f</span>
+<div id="modChip" class=""><b>ALLARME PERMANENTE</b><span>I sensori sanno dove sei. La setta non dorme mai.</span> <span class="bonus">BONUS +40%</span></div>
+<div id="perkbar"><div class="perk locked"><span class="k">1</span><span class="nm">TEMPO</span><span class="lvl">ÔÇö</span><i class="cd" style="width:100%"></i></div><div class="perk locked"><span class="k">2</span><span class="nm">BLINK</span><span class="lvl">ÔÇö</span><i class="cd" style="width:100%"></i></div><div class="perk locked"><span class="k">3</span><span class="nm">BALLETTO</span><span class="lvl">ÔÇö</span><i class="cd" style="width:100%"></i></div><div class="perk locked"><span class="k">4</span><span class="nm">MARGHERITE</span><span class="lvl">ÔÇö</span><i class="cd" style="width:100%"></i></div></div>
+<div id="hintBox"><b>PISTOLA</b> ┬À 12 ┬À bersaglio vivo</div>
+<div id="toast" class="on bad">CULTISTA TI HA VISTO ÔÇö non fermarti</div>
+<div id="fade" style="opacity: 0;"></div>
+<div id="overlay" class="hidden"><div id="panel"></div></div>
+<div id="loading" class="done"><em id="loadMsg">boot</em></div>
+<button id="muteBtn"></button>
+<input id="volMus" type="range">
+<input id="volSfx" type="range">
+<script>
+window.__probe = { errs: [], steps: [] };
+window.addEventListener('error', (e) => window.__probe.errs.push('global: ' + e.message));
+window.addEventListener('unhandledrejection', (e) => window.__probe.errs.push('reject: ' + e.reason));
+document.documentElement.setAttribute('data-classic', 'ran');
+</script>
+<script type="module">
+document.documentElement.setAttribute('data-mod-a', 'ran');
+</script>
+<script type="module">
+import './src/main.js';
+
+document.documentElement.setAttribute('data-module', 'ran');
+
+const out = window.__probe;
+const step = (name, fn) => {
+  try {
+    const r = fn();
+    out.steps.push(name + ':' + (r === undefined ? 'ok' : r));
+  } catch (e) {
+    out.steps.push(name + ':THROW ' + (e && e.message));
+    out.errs.push(name + ': ' + (e && e.stack ? e.stack.split('\n').slice(0, 3).join(' | ') : e));
+  }
+};
+function mainProbe() {
+  const g = window.godkiller;
+  step('boot', () => (g ? 'game ok' : 'NO GAME'));
+  if (!g) { document.title = 'RESULT ' + JSON.stringify(out); return; }
+
+  step('dom', () => Object.keys(g.dom).filter((k) => !g.dom[k]).join(',') || 'all dom ok');
+  step('contracts', () => String(g.save.contracts.length));
+  step('renderHub', () => { g.render(); return 'ok'; });
+  step('hubUpdate', () => { for (let i = 0; i < 120; i++) g.update(1 / 60); return 'hudNear=' + (g.hubNear ? g.hubNear.station.id : 'null'); });
+  step('overlays', () => {
+    g.openShop(); g.hideOverlay();
+    g.openContracts(); g.hideOverlay();
+    g.openTrophies(); g.hideOverlay();
+    return 'panel=' + g.dom.panel.innerHTML.length;
+  });
+
+  g.save.accepted = g.save.contracts[0];
+  step('startMission', () => {
+    g.startMission();
+    return g.state + ' enemies=' + g.enemies.length + ' items=' + g.items.length + ' boss=' + g.enemies.filter((e) => e.isBoss).length;
+  });
+  step('missionTicks', () => {
+    for (let i = 0; i < 1800; i++) g.update(1 / 60);
+    g.render();
+    return 't=' + g.missionTime.toFixed(1) + ' alive=' + g.enemies.length;
+  });
+  step('combat', () => {
+    const p = g.player;
+    p.weapon = { id: 'pistol', ammo: 12 };
+    p.aim = 0;
+    for (let i = 0; i < 40; i++) { g.fireWeapon(p, { rate: 0.2, dmg: 55, spread: 0.05 }); g.update(1 / 60); }
+    g.throwPlayerWeapon(p);
+    for (let i = 0; i < 120; i++) g.update(1 / 60);
+    for (const e of g.enemies.slice()) g.killEnemy(e, { execute: true });
+    for (let i = 0; i < 30; i++) g.update(1 / 60);
+    g.render();
+    return 'kills=' + g.kills + ' credits=' + g.save.credits;
+  });
+  step('acidPools', () => {
+    g.contract.modifier = 'acid';
+    const e = g.enemies[0];
+    if (!e) return 'no enemy';
+    g.killEnemy(e);
+    for (let i = 0; i < 90; i++) g.update(1 / 60);
+    return 'pools=' + g.pools.length;
+  });
+  step('extract', () => {
+    g.player.x = g.map.pad.x; g.player.y = g.map.pad.y;
+    g.playerInteract(g.player);
+    return g.state + ' overlayHidden=' + g.dom.overlay.classList.contains('hidden');
+  });
+  step('backToHub', () => { g.hideOverlay(); return g.state; });
+  step('death', () => {
+    g.save.accepted = g.save.contracts[0];
+    g.startMission();
+    g.onPlayerDeath(g.enemies[0] || null);
+    const st = g.state;
+    g.openResults('dead', 0, false, 'PROBE');
+    g.hideOverlay();
+    return st + '->' + g.state;
+  });
+  step('retry', () => {
+    g.save.accepted = g.save.contracts[0];
+    g.startMission();
+    for (let i = 0; i < 60; i++) g.update(1 / 60);
+    return g.state + ' map=' + (g.map ? 'ok' : 'null');
+  });
+  step('finalRender', () => { g.render(); return 'ok'; });
+
+  document.title = 'RESULT ' + JSON.stringify(out);
+}
+
+if (window.godkiller) mainProbe();
+else out.errs.push('no window.godkiller');
+document.title = 'RESULT ' + JSON.stringify(out);
+</script>
+
+
+</body></html>

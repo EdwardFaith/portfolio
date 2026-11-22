@@ -1,0 +1,22 @@
+﻿  function geom(room) {
+    if (room._czG) return room._czG;
+    var f = room.floorY || 900;
+    var g = { f: f }, i;
+
+    /* ---- la cittÃ  -------------------------------------------- */
+    g.desk = { x: 540, y: f - 152, w: 640, h: 152 };
+    g.robot = { x: 860, y: f };
+    g.pcRig = { x: 1486, y: f - 126, w: 372, h: 126 };    /* il tavolo di ferro */
+    g.pc = { x: 1548, y: f - 126 - 268, w: 250, h: 268 };  /* il tubo catodico */
+    g.proj = { x: 2018, y: f - 646, w: 500, h: 336 };     /* il telo */
+    g.projector = { x: 2126, y: f - 128, w: 176, h: 128 };  /* la macchina da presa */
+    g.rocket = { x: 3040, y: f - 846, w: 330, h: 846 };
+    g.airlock = { x: 3170, y: f - 302, w: 150, h: 302 };
+    g.tunnel = { x: 3320, w: 94 };                        /* il budello d'ingresso */
+    g.shipIn = 3414;                                      /* qui comincia la nave */
+    /* le margherite: grandi, sdraiate, e nessuna in piedi */
+    g.daisies = [
+      { x: 300, y: f - 4, s: 1.55, r: -0.05, seed: 11 },
+      { x: 1276, y: f - 2, s: 2.10, r: 0.045, seed: 23 },
+      { x: 1892, y: f - 6, s: 0.92, r: 0.10, seed: 31 },
+      { x: 2576, y: f - 3, s: 1.78, r: -0.03, seed: 47 },

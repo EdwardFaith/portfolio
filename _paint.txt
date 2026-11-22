@@ -1,0 +1,70 @@
+﻿     LA PITTURA
+     world.js chiama CZ.paint una volta per fotogramma, con la finestra
+     in campo (x0..x1): qui dentro c'Ã¨ tutto quello che si vede.
+     Prima la strada e la cittÃ , poi i mobili, poi il razzo, e infine
+     la nave â€” che si disegna sopra tutto perchÃ© il suo guscio Ã¨ pieno.
+     ============================================================ */
+  CZ.paint = function (ctx, room, t, cam, x0, x1, H) {
+    var g = geom(room), f = g.f, i;
+    var cityEnd = Math.min(x1 + 40, g.shipIn);
+
+    if (x0 < g.shipIn) {
+      skyCity(ctx, g, t, x0, cityEnd, H);
+      cityGround(ctx, g, t, x0, cityEnd, H);
+      /* le margherite stanno sulla strada, quindi prima dei mobili */
+      for (i = 0; i < g.daisies.length; i++) {
+        var d = g.daisies[i];
+        if (d.x + 320 < x0 || d.x - 320 > cityEnd) continue;
+        deadDaisy(ctx, d, t);
+      }
+      /* la strada comincia con quello che resta del museo: il muro, il
+         buco della porta, e la luce del corridoio che esce di lÃ  */
+      if (x1 > -60 && x0 < 470) streetExit(ctx, g, t);
+      if (x1 > 380 && x0 < 1320) deskScene(ctx, g, t);
+      if (x1 > 1400 && x0 < 1940) pcScene(ctx, g, t);
+      if (x1 > 1930 && x0 < 2600) projScene(ctx, g, t);
+      if (x1 > 2960) rocketScene(ctx, g, t);
+      M.SCENE.dust(ctx, { x: x0 - 40, y: -160, w: Math.min(x1, g.shipIn) - x0 + 80, h: f + 220 }, 0.055, t);
+    }
+    if (x1 > g.shipIn) shipScene(ctx, g, t, Math.max(x0, g.shipIn - 2), x1, H);
+  };
+
+  /* ---- da dove si Ã¨ entrati: il muro del museo ------------------
+     La strada non Ã¨ raggiungibile dal corridoio con una porta dipinta
+     dal museo (world.js non disegna porte nelle stanze che si pitturano
+     da sole), quindi l'uscita se la dipinge la strada: un pezzo di muro
+     superstite, il buco della porta dove il museo mette la sua
+     (x 96, w 120, h 300), e la luce calda del corridoio che esce. */
+  function streetExit(ctx, g, t) {
+    var S = M.SCENE, f = g.f, W = 268, top = f - 470, row, col;
+    var dx = 96, dy = f - 300, dw = 120, dh = 300;
+
+    /* il muro: mattoni avanzati, e sopra il cielo */
+    var wg = ctx.createLinearGradient(0, top, 0, f);
+    wg.addColorStop(0, "#262023");
+    wg.addColorStop(0.55, "#1a1617");
+    wg.addColorStop(1, "#0f0d0d");
+    ctx.fillStyle = wg;
+    ctx.fillRect(-40, top, W + 40, f - top);
+    for (row = 0; row < 15; row++) {
+      for (col = 0; col < 7; col++) {
+        var bx = -40 + col * 46 + (row % 2 ? 23 : 0), by = top + row * 32;
+        var v = S.rand(row * 11 + col * 3);
+        ctx.fillStyle = S.rgba(v > 0.62 ? "#312a2b" : "#221d1e", 0.85);
+        ctx.fillRect(bx + 1.5, by + 1.5, 43, 29);
+        if (v > 0.86) {
+          /* il mattone che manca */
+          ctx.fillStyle = "rgba(0,0,0,0.55)";
+          ctx.fillRect(bx + 1.5, by + 1.5, 43, 29);
+        }
+      }
+    }
+    /* la crepa che scende dal bordo, e le macerie ai piedi */
+    S.crack(ctx, 214, top + 12, 150, 3, "#221d1e");
+    S.crack(ctx, 44, top + 90, 110, 9, "#221d1e");
+    ctx.fillStyle = "#1b1718";
+    ctx.beginPath();
+    ctx.moveTo(-40, f);
+    ctx.lineTo(-40, f - 26);
+    ctx.lineTo(52, f - 12);
+    ctx.lineTo(120, f - 30);

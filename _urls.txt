@@ -1,0 +1,50 @@
+﻿arsenal.js:207: A.endX = END_X;
+arsenal.js:624: A.endX = END_X + AOFF;
+arsenal.js:645: room.maxX = Math.max(room.maxX || 0, A.endX + 240);
+arsenal.js:801: cosmo/index.html. Le due armi scelte viaggiano dentro al
+arsenal.js:807: try { loc.href = "cosmo/index.html?m=1"; return true; } catch (e) { return false; }
+camera.js:20: gioco dei pianeti, come in cosmo/index.html): quattro fasi da
+camera.js:24: (fps.js, la versione senza pianeti di cosmo/index.html): si entra,
+cosmo.js:16: La prima è la spedizione, ed è un gioco suo, in cosmo/index.html:
+cosmo.js:204: g.endX = 7620;
+cosmo.js:249: room.maxX = g.endX;
+cosmo.js:369: cosmo/index.html?m=N, che è la stessa pagina con dentro la sua
+cosmo.js:393: numero è l'indirizzo — cosmo/index.html?m=N legge il tempo, la
+cosmo.js:399: try { loc.href = "cosmo/index.html?m=" + n; return true; } catch (e) { return false; }
+cosmo.js:445: hai prese (cosmo/index.html le scrive in noteText insieme
+cosmo.js:2725: if (x1 > g.endX - 200) {
+cosmo.js:2726: var ex = g.endX - 40;
+cosmo.js:3005: cosmo/index.html, così quello che si sceglie qui viaggia là.
+data.js:60: kind: "portal", href: "RadioKaoSs/index.html", icon: "◉", live: true,
+data.js:245: kind: "portal", href: "cosmo/index.html", icon: ">>",
+data.js:431: kind: "image", img: "RadioKaoSs/giff/1.gif", href: "RadioKaoSs/index.html", icon: "◉", live: true,
+data.js:439: kind: "image", img: "lucidus/copertina-2.gif", href: "lucidus/index.html", icon: "⌀",
+data.js:444: kind: "image", img: "giff-presentazione/bg.gif", href: "sandpay/index.html", icon: "▚",
+data.js:450: kind: "image", img: "simbolo/player.gif/lv_0_20250613181641.gif", href: "simbolo/index.html", icon: "✦",
+data.js:455: kind: "image", img: "eyes-in-the-sky/bg.gif", href: "eyes-in-the-sky/index.html", icon: "◎",
+data.js:621: { kind: "portal", icon: "≡", href: "index.html", title: { it: "Versione classica", en: "Classic version" }, sub: { it: "il sito come era: si scorre, non si cammina", en: "the site as it was: you scroll, you don't walk" } }
+data.js:640: kind: "image", img: "immagini/lucidus_red_man.jpg", href: "lucidus/index.html", icon: "☢", live: true,
+data.js:649: kind: "image", img: "immagini/lucidus_red_man.jpg", href: "lucidus/index.html", icon: "▲", live: true,
+data.js:658: kind: "image", img: "immagini/lucidus_red_man.jpg", href: "lucidus/index.html", icon: "⚔", live: true,
+data.js:667: kind: "image", img: "immagini/lucidus_red_man.jpg", href: "lucidus/index.html", icon: "⌖", live: true,
+data.js:676: kind: "image", img: "immagini/lucidus_red_man.jpg", href: "lucidus/index.html", icon: "⧖", live: true,
+data.js:685: kind: "image", img: "immagini/lucidus_red_man.jpg", href: "lucidus/index.html", icon: "◎", live: true,
+main.js:1324: if (w.href && !w.external && w.href !== "index.html") gioco(w);
+main.js:1867: in cosmo/index.html — legge le stesse due chiavi del museo */
+main.js:2203: root.location.href = "index.html#" + dove;
+main.js:2230: site: "index.html",
+metro.js:17: alle terre — terre/index.html — con la stessa pagina del
+metro.js:1473: terre/index.html — con la stessa pagina del quaderno in tasca
+metro.js:2349: var dove = "terre/index.html?zona=stazione&da=treno";
+radio-fila.js:10: file, così la stessa riga vale da `index.html` (radice) e da
+radio-fila.js:11: `terre/index.html` (una cartella più giù). Prima ogni pagina
+soffitta.js:115: nav: "spiaggia/index.html",
+soffitta.js:160: nav: "../terre/index.html?zona=zoan_terra",
+soffitta.js:190: nav: "terza-porta/index.html",
+soffitta.js:1954: if (p && p.stanza) return "../terre/index.html?zona=" + p.stanza + "&x=" + p.x;
+soffitta.js:1957: return "../terre/index.html?zona=" + zona + (x == null ? "" : "&x=" + x);
+sotterraneo.js:376: else root.location.href = "index.html";
+world.js:1197: var mw = (mi % 2 === 1) ? { kind: "image", img: "immagini/lucidus_red_man.jpg", href: "lucidus/index.html", icon: ">", noise: true, title: "LUCIDUS GAME", sub: { it: "entra nel gioco", en: "enter the game" } } : mediaWorks[mi % mediaWorks.length];
+world.js:1361: room.exitHref = "index.html";
+world.js:1887: room.exitHref = "index.html";
+_viaggio-test.js:277: if (loc.href.indexOf("terre/index.html") !== 0 ||

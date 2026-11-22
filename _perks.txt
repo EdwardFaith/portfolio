@@ -1,0 +1,30 @@
+﻿main.js:12: import { Perks, PERKS } from './systems/perks.js';
+main.js:41: this.perks = new Perks();
+main.js:92: perkbar: document.getElementById('perkbar'),
+main.js:224: this.perks.update(dt);
+main.js:308: for (let k = 0; k < PERKS.length; k++) {
+main.js:309: if (this.input.hit(PERKS[k].key)) this.perks.activate(k, this);
+main.js:951: this.perks.reset();
+main.js:982: this.perks.reset();
+main.js:1563: const snap = this.perks.snapshot(this);
+main.js:1564: const keyPerks = snap.map((k) => k.level + ':' + Math.round(k.ratio * 40) + ':' + (k.ready ? 1 : 0) + ':' + (this.perks.flash[PERKS.indexOf(k.def)] > 0 ? 1 : 0)).join('|');
+main.js:1565: if (keyPerks !== this.hudCache.perks) {
+main.js:1566: this.hudCache.perks = keyPerks;
+main.js:1567: d.perkbar.innerHTML = snap.map((k) => {
+main.js:1568: const i = PERKS.indexOf(k.def);
+main.js:1569: const cls = 'perk' + (k.level ? ' owned' : ' locked') + (k.ready ? ' ready' : '') + (this.perks.flash[i] > 0 ? ' firing' : '');
+perks.js:2: // perks.js — abilità attive (1-4) con cooldown e potenziamenti.
+perks.js:8: export const PERKS = [
+perks.js:31: export class Perks {
+perks.js:43: return game.save.perks[PERKS[i].id] || 0;
+perks.js:47: const def = PERKS[i];
+perks.js:53: const def = PERKS[i];
+perks.js:76: const def = PERKS[i];
+perks.js:148: return PERKS.map((def, i) => {
+shop.js:92: perks: { time: 0, blink: 0, dance: 0, daisy: 0 },
+shop.js:109: out.perks = { ...base.perks, ...(raw.perks || {}) };
+shop.js:155: perks: save.perks || {},
+shop.js:162: if (item.type === 'perk') return save.perks[item.id] || 0;
+shop.js:200: save.perks[item.id] = level + 1;
+shop.js:218: export function hasPerk(save, id) {
+shop.js:219: return (save.perks[id] || 0) > 0;

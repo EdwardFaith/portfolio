@@ -1,0 +1,12 @@
+﻿python.exe : Python non Þ stato trovato; eseguire senza argomenti da installare 
+dal Microsoft Store o disabilitare questo collegamento da Impostazioni > App > 
+Impostazioni app avanzate > alias di esecuzione dell'app.
+In riga:1 car:106
++ ...  $env:PYTHONIOENCODING='utf-8'; (& python -c 'print(42)' 2>&1) | Out- ...
++                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Python non Þ st...zione dell'app.: 
+   String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+True

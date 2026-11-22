@@ -1,0 +1,30 @@
+﻿32: var MAXSEL = 2;   /* là dentro si entra in due, non in quattro */
+48: var MEMS = [
+62: for (i = 0; i < MEMS.length && i < src.length; i++) {
+64: if (!m || m.n !== MEMS[i].n) continue;
+65: MEMS[i].yt = m.yt || null;
+66: MEMS[i].vt = m.vt || MEMS[i].vt;
+67: MEMS[i].found = m.found;
+104: function memory() {
+120: return memory() >= 1
+140: function missionDone(n) {
+185: g.bench = { x: 3760, y: f - 132, w: (memory() >= 8 ? 820 : 620), h: 132 };    /* il banco dell'officina */
+193: if (memory() >= 8) {
+224: if (memory() >= 8) {
+302: if (t.kind === "mem") {
+306: return (missionDone(t.n) ? "rigioca la " : "entra nella ") + who;
+328: if (t.kind === "mem") { openMemory(t.n); return; }
+375: for (var i = 0; i < MEMS.length; i++) if (MEMS[i].n === nn) return MEMS[i];
+381: if (memory() >= nn - 1) return "";
+383: " (sei a " + memory() + " di 8)";
+385: function openMemory(nn) {
+388: if (missionDone(nn)) toast("memoria " + nn + " · " + (m ? m.it : "") + " — di nuovo in onda");
+677: var entries = [], i, m, done = memory(), v = videoMap(), have;
+678: for (i = 0; i < MEMS.length; i++) {
+679: m = MEMS[i];
+1429: for (mi = 0; mi < MEMS.length; mi++) if (memory(MEMS[mi].n)) mOpen++;
+1430: ctx.fillText("> memorie: " + mOpen + " / " + MEMS.length, gx + 12, gy + 44);
+1969: var lit = Math.min(1, memory() / 8);
+2181: var done = memory();
+2721: if (memory() >= 8 && g.giftEye && x1 > g.giftEye.x - 80 && x0 < g.giftEye.x + g.giftEye.w + 80) {
+2785: var open = missionDone(n), armed1 = n === 1 && CZ.armed();

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>probe enter</title>
+<style>
+  html, body { margin: 0; background: #05080a; color: #d8e2de; }
+  pre { font: 13px/1.45 monospace; margin: 12px; white-space: pre-wrap; }
+  .ko { color: #ffb3a4; }
+  .ok { color: #a8f0c8; }
+</style>
+</head>
+<body>
+<canvas id="cv" width="10" height="10" style="display:none"></canvas>
+<script src="lang.js?v=10"></script>
+<script src="gl.js"></script>
+<script src="fx.js"></script>
+<script src="scene.js"></script>
+<script src="panel.js?v=7"></script>
+<script src="cosmo.js?v=1"></script>
+<script>
+  var out = [], ok = true;
+  function line(s, good) { out.push((good ? 'OK  ' : 'KO  ') + s); if (!good) ok = false; }
+  window.addEventListener('error', function (e) { out.push('ERR ' + e.message + ' @' + (e.filename || '').split('/').pop() + ':' + e.lineno); ok = false; });
+
+  var CZ = window.MUSEO && window.MUSEO.COSMO;
+  if (!CZ) {
+    out.push('KO  MUSEO.COSMO non esiste: cosmo.js non e\' andato a capo');
+    ok = false;
+  } else {
+    var room = { floorY: 900, id: 'cosmo', cz: true };
+    var g = CZ.geom(room);
+    line('doorX = ' + g.doorX.join(',') + '  (doorW ' + g.doorW + ', doorH ' + g.doorH + ')', g.doorX.length === 8);
+    line('gkX = ' + g.gkX + '  endX = ' + g.endX, g.gkX > g.doorX[7] + g.doorW && g.endX > g.gkX + g.doorW);
+
+    var t = null, i;
+    for (i = 0; i < g.targets.length; i++) if (g.targets[i].kind === 'gk') t = g.targets[i];
+    line('target gk = ' + (t ? ('x=' + t.x + ' y=' + t.y + ' ' + t.w + 'x' + t.h + ' reach=' + t.reach) : 'MANCANTE'), !!t);
+
+    var hit = null;
+    if (t) hit = CZ.hitAt(room, t.x + t.w / 2, g.f - 165);
+    line('hitAt(centro porta) = ' + (hit ? hit.kind : 'null'), !!hit && hit.kind === 'gk');
+
+    var lab = t ? CZ.label(t) : '';
+    line('label = "' + lab + '"', lab.indexOf('GODKILLER') >= 0);
+
+    /* il regalo di B-E-P-E non deve cadere sopra la nona porta */
+    try {
+      localStorage.setItem('cosmo_memorie_v1', JSON.stringify({ memorieSbloccate: 8, beppe: true }));
+      var g2 = CZ.geom({ floorY: 900, id: 'cosmo8' });
+      var gift = g2.giftEye, gap = (gift && g2.gkX) ? (g2.gkX - 20) - (gift.x + gift.w) : -1;
+      line('regalo x=' + (gift ? gift.x + '..' + (gift.x + gift.w) : 'assente') +
+        '  distanza dal telaio della porta 9 = ' + gap, !gift || gap >= 0);
+      localStorage.removeItem('cosmo_memorie_v1');
+    } catch (e) { line('regalo: ' + e.message, false); }
+
+    if (/go/.test(location.search) && t) {
+      out.push('--- chiamo interact(gk): la pagina deve andare su godkiller/index.html');
+      setTimeout(function () {
+        try { CZ.interact(t); } catch (err) { out.push('ERR interact: ' + err.message); document.body.innerHTML = '<pre>' + out.join('\n') + '</pre>'; }
+      }, 60);
+    }
+  }
+  document.title = (ok ? 'ENTER OK' : 'ENTER KO');
+  document.body.innerHTML = '<pre class="' + (ok ? 'ok' : 'ko') + '">' + out.join('\n') + '</pre>';
+</script>
+</body>
+</html>

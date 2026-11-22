@@ -1,0 +1,4 @@
+﻿pid file: 26080
+process not alive
+tcp start ok
+script exists: True

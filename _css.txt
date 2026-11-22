@@ -1,0 +1,17 @@
+﻿154: #hudBottom {
+177: #perkbar { display: flex; gap: 6px; margin: 0 auto; pointer-events: none; }
+179: .perk {
+190: .perk .k { position: absolute; top: 2px; right: 4px; font-size: 0.85em; color: var(--paper); font-weight: 700; }
+191: /* il nome del perk è una parola sola: senza overflow-wrap non ha dove
+194: .perk .nm { display: block; font-size: 0.74em; line-height: 1.05; letter-spacing: 0.02em; color: #aab6b4; padding-right: 11px; overflow-wrap: anywhere; text-wrap: balance; }
+195: .perk .lvl { font-size: 0.68em; color: var(--gold); letter-spacing: 0.08em; }
+196: .perk .cd { position: absolute; left: 0; bottom: 0; height: 3px; width: 0%; background: var(--cyan); transition: width 0.1s linear; }
+197: .perk.owned { border-color: rgba(56, 189, 248, 0.45); color: var(--paper); }
+198: .perk.owned .nm { color: var(--paper); }
+199: .perk.locked { opacity: 0.45; }
+200: .perk.ready { box-shadow: 0 0 12px rgba(56, 189, 248, 0.22); }
+201: .perk.firing { border-color: var(--magenta); box-shadow: 0 0 16px rgba(255, 45, 117, 0.35); }
+345:    (in alto stanno crediti e volumi, in basso perk e suggerimenti).
+347: #back {
+363: #back:hover { opacity: 1; color: var(--cyan); border-color: rgba(56, 189, 248, 0.45); }
+370: body.touch #back { display: none; }

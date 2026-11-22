@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html lang="it"><head>
+<meta charset="utf-8">
+<title>RESULT {"errs":[],"steps":["boot:ok","state:HUB contracts=3 credits=300","shopBuy:clicked spent=250 toast=MANGANELLO acquistato. ├ê n","acceptAndLaunch:accepted -&gt; MISSION","heartsHitClass:hp=1/1 pips=1 hit=1 off=0 armorPips=0/0","autoPickupCredits:gain=250 items=7","acidPools:pools=1 hpLossEvents/3s=1 hp=0/1","poolExpiry:pools=1","eclipseRender:corner=2,2,2","bossPadGuard:afterKill=WIN afterTick=WIN","winOverlay:panelLen=673 hasHubBtn=true trophies=1 relics=1","creditFormat:text=ÔéÁ 1.234.567","backToHubClick:clicked state=HUB","trophyReset:confirm=true creditsAfter=300 trophies=0","perf:msPerUpdateRender=1.32","finalState:MISSION enemies=14 hp=1"]}</title>
+<style>
+  #overlay.hidden, #modChip.hidden { display: none; }
+  .heart.hit { color: #f00; }
+</style>
+</head>
+<body>
+<canvas id="cv" width="480" height="270"></canvas>
+<div id="hearts"><i class="heart"></i></div>
+<div id="armor"></div>
+<div id="credits">ÔéÁ 300</div>
+<div id="combo"></div>
+<span id="objName">OPERAZIONE MANDATO</span>
+<span id="objSub">Conclave dei Nove Occhi ┬À Ganimede Bassa</span>
+<div id="modChip" class=""><b>FRENESIA</b><span>Tutti corrono e sparano il 30% pi├╣ veloce. Anche tu.</span> <span class="bonus">BONUS +35%</span></div>
+<div id="perkbar"><div class="perk locked"><span class="k">1</span><span class="nm">TEMPO</span><span class="lvl">ÔÇö</span><i class="cd" style="width:100%"></i></div><div class="perk locked"><span class="k">2</span><span class="nm">BLINK</span><span class="lvl">ÔÇö</span><i class="cd" style="width:100%"></i></div><div class="perk locked"><span class="k">3</span><span class="nm">BALLETTO</span><span class="lvl">ÔÇö</span><i class="cd" style="width:100%"></i></div><div class="perk locked"><span class="k">4</span><span class="nm">MARGHERITE</span><span class="lvl">ÔÇö</span><i class="cd" style="width:100%"></i></div></div>
+<div id="hintBox"><b>PISTOLA</b> ┬À 12 ┬À bersaglio vivo</div>
+<div id="toast" class="on">OPERAZIONE MANDATO ÔÇö Araldo Voss, l'Ultimo Unto</div>
+<div id="fade" style="opacity: 0;"></div>
+<div id="overlay" class="hidden"><div id="panel"></div></div>
+<div id="loading" class="done"><em id="loadMsg">boot</em></div>
+<button id="muteBtn"></button>
+<input id="volMus" type="range">
+<input id="volSfx" type="range">
+<script>
+window.__probe = { errs: [], steps: [] };
+window.addEventListener('error', (e) => window.__probe.errs.push('global: ' + e.message));
+window.addEventListener('unhandledrejection', (e) => window.__probe.errs.push('reject: ' + e.reason));
+</script>
+<script type="module">
+import './src/main.js';
+
+const out = window.__probe;
+const step = (name, fn) => {
+  try {
+    const r = fn();
+    out.steps.push(name + ':' + (r === undefined ? 'ok' : r));
+  } catch (e) {
+    out.steps.push(name + ':THROW ' + (e && e.message));
+    out.errs.push(name + ': ' + (e && e.stack ? e.stack.split('\n').slice(0, 3).join(' | ') : e));
+  }
+};
+const click = (sel) => {
+  const el = document.querySelector(sel);
+  if (!el) return 'missing ' + sel;
+  el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  return 'clicked';
+};
+const tick = (g, n) => { for (let i = 0; i < n; i++) g.update(1 / 60); };
+
+function mainProbe() {
+  const g = window.godkiller;
+  const d = g.dom;
+
+  step('boot', () => (g ? 'ok' : 'NO GAME'));
+  step('state', () => g.state + ' contracts=' + g.save.contracts.length + ' credits=' + g.save.credits);
+
+  step('shopBuy', () => {
+    g.save.credits = 99999;
+    g.openShop();
+    const before = g.save.credits;
+    const r = click('#panel button[data-act^="buy:"]:not([disabled])');
+    const spent = before - g.save.credits;
+    const toastTxt = (d.toast.textContent || '').slice(0, 26);
+    g.hideOverlay();
+    return r + ' spent=' + spent + ' toast=' + toastTxt;
+  });
+
+  step('acceptAndLaunch', () => {
+    g.openContracts();
+    click('#panel button[data-act="accept:0"]');
+    const acc = g.save.accepted ? 'accepted' : 'none';
+    click('#panel button[data-act="launch"]');
+    return acc + ' -> ' + g.state;
+  });
+
+  step('heartsHitClass', () => {
+    const p = g.player;
+    p.hp = Math.max(1, p.maxHp - 1);
+    p.hurt = 1;
+    g.hudStamp = 0;
+    g.updateHud();
+    const html = d.hearts.innerHTML;
+    return 'hp=' + p.hp + '/' + p.maxHp + ' pips=' + (html.match(/<i/g) || []).length
+      + ' hit=' + (html.match(/hit/g) || []).length + ' off=' + (html.match(/off/g) || []).length
+      + ' armorPips=' + (d.armor.innerHTML.match(/<i/g) || []).length + '/' + p.maxArmor;
+  });
+
+  step('autoPickupCredits', () => {
+    const p = g.player;
+    const cr0 = g.save.credits;
+    g.items.push(g.makeItem(p.x, p.y, 'credits', null, null, 250));
+    tick(g, 2);
+    return 'gain=' + (g.save.credits - cr0) + ' items=' + g.items.length;
+  });
+
+  step('acidPools', () => {
+    g.contract.modifier = 'acid';
+    const victim = g.enemies.find((e) => !e.dead && !e.isBoss);
+    if (!victim) return 'no victim';
+    g.killEnemy(victim);
+    const pools = g.pools.length;
+    const p = g.player;
+    p.hp = p.maxHp; p.armor = 0; p.iframes = 0;
+    const pool = g.pools[g.pools.length - 1];
+    p.x = pool.x; p.y = pool.y;
+    let losses = 0;
+    let prev = p.hp;
+    for (let i = 0; i < 180; i++) {
+      g.update(1 / 60);
+      if (p.hp !== prev) { losses++; prev = p.hp; }
+      p.x = pool.x; p.y = pool.y;
+    }
+    return 'pools=' + pools + ' hpLossEvents/3s=' + losses + ' hp=' + p.hp + '/' + p.maxHp;
+  });
+
+  step('poolExpiry', () => { tick(g, 360); return 'pools=' + g.pools.length; });
+
+  step('eclipseRender', () => {
+    g.contract.modifier = 'eclipse';
+    g.render();
+    const px = g.ctx.getImageData(2, 2, 1, 1).data;
+    return 'corner=' + px[0] + ',' + px[1] + ',' + px[2];
+  });
+
+  step('bossPadGuard', () => {
+    g.contract.modifier = 'none';
+    g.startMission();
+    const boss = g.enemies.find((e) => e.isBoss);
+    if (!boss) return 'no boss';
+    g.player.x = g.map.pad.x; g.player.y = g.map.pad.y;
+    g.killEnemy(boss);
+    g.tryExtract();
+    const blocked = g.state;
+    tick(g, 1);
+    g.player.x = g.map.pad.x; g.player.y = g.map.pad.y;
+    g.tryExtract();
+    return 'afterKill=' + blocked + ' afterTick=' + g.state;
+  });
+
+  step('winOverlay', () => {
+    const html = d.panel.innerHTML;
+    return 'panelLen=' + html.length + ' hasHubBtn=' + /data-act="hub"/.test(html)
+      + ' trophies=' + g.save.trophies.length + ' relics=' + g.save.relics.length;
+  });
+
+  step('creditFormat', () => {
+    g.save.credits = 1234567;
+    g.hudStamp = 0;
+    g.updateHud();
+    return 'text=' + d.credits.textContent;
+  });
+
+  step('backToHubClick', () => {
+    const r = click('#panel button[data-act="hub"]');
+    tick(g, 30);
+    g.render();
+    return r + ' state=' + g.state;
+  });
+
+  step('trophyReset', () => {
+    g.openTrophies();
+    click('#panel button[data-act="reset"]');
+    const first = g.confirmReset;
+    click('#panel button[data-act="reset"]');
+    return 'confirm=' + first + ' creditsAfter=' + g.save.credits + ' trophies=' + g.save.trophies.length;
+  });
+
+  step('perf', () => {
+    g.save.accepted = g.save.contracts[0];
+    g.startMission();
+    tick(g, 30);
+    const t0 = performance.now();
+    for (let i = 0; i < 60; i++) { tick(g, 1); g.render(); }
+    return 'msPerUpdateRender=' + ((performance.now() - t0) / 60).toFixed(2);
+  });
+
+  step('finalState', () => g.state + ' enemies=' + g.enemies.length + ' hp=' + (g.player ? g.player.hp : '-'));
+}
+
+if (window.godkiller) mainProbe();
+else out.errs.push('no window.godkiller');
+document.title = 'RESULT ' + JSON.stringify(out);
+</script>
+
+
+</body></html>

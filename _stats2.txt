@@ -1,0 +1,3 @@
+﻿src\main.js:15: itemPrice, loadSave, persist, resetSave, statsFromSave,
+src\main.js:922: this.player = new Player(map.spawn.x, map.spawn.y, statsFromSave(this.save), this.save.equipped);
+src\systems\shop.js:147: export function statsFromSave(save) {

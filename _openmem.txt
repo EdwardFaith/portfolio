@@ -1,0 +1,22 @@
+﻿  }
+  function openMemory(nn) {
+    var m = memInfo(nn), why = memWhy(nn);
+    if (why) { toast("memoria " + nn + " Â· " + (m ? m.it : "") + " â€” " + why); return; }
+    if (missionDone(nn)) toast("memoria " + nn + " Â· " + (m ? m.it : "") + " â€” di nuovo in onda");
+    goCity(nn);
+  }
+
+  /* la cittÃ  Ã¨ un gioco suo: ogni cassetta ha il suo numero, e il
+     numero Ã¨ l'indirizzo â€” cosmo/index.html?m=N legge il tempo, la
+     vita, le pagine e la radio di quella memoria */
+  function goCity(nn) {
+    var loc = root.location, n = Math.floor(nn === 0 ? 0 : (nn || 1));
+    if (!loc || !loc.href) return false;
+    if (!(n >= 0 && n <= 8)) n = 1;
+    try { loc.href = "cosmo/index.html?m=" + n; return true; } catch (e) { return false; }
+  }
+  CZ.goCity = goCity;
+
+  /* ---- il cambio d'aria: dalla strada alla nave ---------------- */
+  CZ.tick = function (room) {
+    if (!room || !room.cz) return;

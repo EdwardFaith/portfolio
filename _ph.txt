@@ -1,0 +1,12 @@
+﻿10: constructor(x, y, stats, weaponId) {
+19: this.hp = stats.hearts;
+20: this.armor = stats.armor;
+21: this.maxArmor = stats.armor;
+61: if ((inp.hit('ShiftLeft') || inp.hit('ShiftRight')) && this.dodgeCd <= 0) {
+111: if (inp.hit('Space') || inp.hit('KeyE') || inp.touch.actPressed) game.playerInteract(this);
+157: hit(game, source) {
+159: if (this.armor > 0) {
+160: this.armor--;
+170: this.hp--;
+177: if (this.hp <= 0) {
+178: this.hp = 0;

@@ -1,0 +1,75 @@
+﻿  function shipDoor(ctx, g, t, dx, n) {
+    var S = M.SCENE, f = g.f, w = g.doorW, h = g.doorH, y = f - h, i;
+    var open = missionDone(n), armed1 = n === 1 && CZ.armed();
+
+    /* la soglia, e l'ombra che il portello fa sul pavimento */
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.fillRect(dx - 24, f, w + 48, 8);
+    ctx.fillStyle = "rgba(214,182,60,0.12)";
+    ctx.fillRect(dx - 24, f - 2, w + 48, 3);
+
+    /* il telaio: un blocco di ferro incassato nello scafo */
+    ctx.fillStyle = "#20282a";
+    ctx.fillRect(dx - 20, y - 20, w + 40, h + 20);
+    ctx.fillStyle = "rgba(150,178,178,0.07)";
+    ctx.fillRect(dx - 20, y - 20, w + 40, 4);
+    for (i = 0; i < 7; i++) {
+      ctx.fillStyle = "rgba(186,200,196,0.18)";
+      ctx.beginPath();
+      ctx.arc(dx - 12, y - 4 + i * (h / 7), 3, 0, 6.3);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(dx + w + 12, y - 4 + i * (h / 7), 3, 0, 6.3);
+      ctx.fill();
+    }
+
+    /* l'anta: due pannelli, e in mezzo la costola */
+    var dg3 = ctx.createLinearGradient(dx, y, dx + w, y + h);
+    if (open) {
+      dg3.addColorStop(0, "#3f5152");
+      dg3.addColorStop(0.5, "#2c3b3c");
+      dg3.addColorStop(1, "#1b2526");
+    } else {
+      dg3.addColorStop(0, "#333c3e");
+      dg3.addColorStop(0.45, "#242c2e");
+      dg3.addColorStop(1, "#161d1f");
+    }
+    ctx.fillStyle = dg3;
+    ctx.fillRect(dx, y, w, h);
+    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    ctx.fillRect(dx + w * 0.5 - 5, y, 10, h);
+    ctx.fillStyle = "rgba(170,196,194,0.10)";
+    ctx.fillRect(dx + w * 0.5 - 5, y, 2, h);
+    ctx.strokeStyle = "rgba(150,176,174,0.14)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(dx + 8, y + 8, w - 16, h - 16);
+    /* i rinforzi diagonali */
+    ctx.strokeStyle = "rgba(0,0,0,0.28)";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(dx + 14, y + h - 24);
+    ctx.lineTo(dx + w - 14, y + 30);
+    ctx.stroke();
+    /* le cerniere: tre, grosse, a sinistra */
+    for (i = 0; i < 3; i++) {
+      var hy3 = y + 40 + i * (h - 80) / 2;
+      ctx.fillStyle = "#4a5457";
+      ctx.fillRect(dx - 8, hy3, 18, 22);
+      ctx.fillStyle = "rgba(210,224,220,0.22)";
+      ctx.fillRect(dx - 8, hy3, 18, 3);
+    }
+    /* le strisce di pericolo sul basso */
+    ctx.save();
+    ctx.beginPath(); ctx.rect(dx, f - 26, w, 18); ctx.clip();
+    for (i = 0; i < 18; i++) {
+      ctx.fillStyle = i % 2 ? "rgba(206,176,58,0.30)" : "rgba(16,14,12,0.55)";
+      ctx.save();
+      ctx.translate(dx - 10 + i * 14, f - 26);
+      ctx.rotate(0.42);
+      ctx.fillRect(0, 0, 7, 30);
+      ctx.restore();
+    }
+    ctx.restore();
+    ctx.fillStyle = "rgba(170,196,192,0.10)";
+    ctx.fillRect(dx, f - 8, w, 2);
+    shipDoorFace(ctx, g, t, dx, n, open, armed1);

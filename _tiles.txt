@@ -1,0 +1,54 @@
+﻿generator.js:8: TS, tileAt, solidAt,
+generator.js:102: function carveTile(map, x, y) {
+generator.js:110: carveTile(map, x, y);
+generator.js:111: carveTile(map, x, y + 1);
+generator.js:116: carveTile(map, x, y);
+generator.js:117: carveTile(map, x + 1, y);
+generator.js:189: if (tileAt(map, tx, ty) !== T_FLOOR) continue;
+generator.js:194: if (tileAt(map, tx + d[0], ty + d[1]) !== T_FLOOR) continue;
+generator.js:213: if (tileAt(map, x, y) !== T_WALL) continue;
+generator.js:221: if (tileAt(map, x, y) !== T_WALL) continue;
+generator.js:284: function isFreeTile(map, tx, ty) {
+generator.js:316: if (!isFreeTile(map, tx, ty)) continue;
+generator.js:345: if (!isFreeTile(map, tx, ty)) continue;
+generator.js:367: if (!isFreeTile(map, sx, sy)) return false;
+generator.js:381: if (!isFreeTile(map, nx, ny)) continue;
+generator.js:477: export function buildLayers(map, assets) {
+generator.js:497: assets.drawTile(g, 'floor' + v, tx * TS, ty * TS);
+generator.js:511: assets.drawTile(g, neon ? 'wall_neon' : 'wall', tx * TS, ty * TS);
+generator.js:615: assets.drawTile(g, name, tx * TS, ty * TS);
+generator.js:663: map.staticCanvas = cvs;
+generator.js:670: export function drawDynamicTile(g, assets, map, d) {
+generator.js:677: assets.drawTile(g, 'door', x, y);
+generator.js:699: assets.drawTile(g, 'window', x, y);
+main.js:10: bakeCorpse, bakeSplat, damageTile, propAt, raycast, solidTile, T_DOOR, T_FLOOR, T_WINDOW, TS, tileAt,
+main.js:18: buildLayers, drawDynamicTile, generateMap, newRunSeed, rollContracts,
+main.js:62: this.projectiles = [];
+main.js:312: this.updateProjectiles(dt);
+main.js:336: updateProjectiles(dt) {
+main.js:337: const list = this.projectiles;
+main.js:348: if (solidTile(tileAt(this.map, cx, cy)) || propAt(this.map, cx, cy) !== 0) landed = true;
+main.js:436: if (solidTile(nt) && nt !== T_DOOR) continue;
+main.js:460: if (solidTile(t) && t !== T_DOOR) return false;
+main.js:602: if (wall.tile === T_DOOR) {
+main.js:603: this.onDoorHit(wall.tx, wall.ty, damageTile(this.map, wall.tx, wall.ty, Math.max(6, def.dmg * 0.35)));
+main.js:604: } else if (wall.tile === T_WINDOW) {
+main.js:605: this.onDoorHit(wall.tx, wall.ty, damageTile(this.map, wall.tx, wall.ty, 1));
+main.js:711: if (!hit && p.bumpTile && (p.bumpTile.tile === T_DOOR || p.bumpTile.tile === T_WINDOW)) {
+main.js:712: const t = p.bumpTile;
+main.js:713: const res = damageTile(this.map, t.tx, t.ty, def.stun ? 6 : 16);
+main.js:790: this.projectiles.push({
+main.js:817: if (p.bumpTile) {
+main.js:818: const t = p.bumpTile;
+main.js:819: const res = damageTile(this.map, t.tx, t.ty, 12);
+main.js:889: if (tileAt(map, tx, ty) !== T_FLOOR || propAt(map, tx, ty) !== 0) continue;
+main.js:919: buildLayers(map, this.assets);
+main.js:928: this.projectiles.length = 0;
+main.js:974: this.projectiles.length = 0;
+main.js:1305: if (!map || !map.staticCanvas) return;
+main.js:1313: g.drawImage(map.staticCanvas, 0, 0);
+main.js:1323: if (d) drawDynamicTile(g, this.assets, map, d);
+main.js:1434: this.assets.draw(g, def.sprite, it.x, it.y + bob, { rot: -0.7 + Math.sin((it.bob || 0) * 0.6) * 0.25, scale: 0.9 });
+assets.js:36: this.buildTiles();
+assets.js:43: buildTiles() {
+assets.js:385: drawTile(ctx, name, x, y) {

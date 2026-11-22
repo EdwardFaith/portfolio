@@ -1,0 +1,130 @@
+﻿    ctx.beginPath();
+    ctx.moveTo(dx + 14, y + h - 24);
+    ctx.lineTo(dx + w - 14, y + 30);
+    ctx.stroke();
+    /* le cerniere: tre, grosse, a sinistra */
+    for (i = 0; i < 3; i++) {
+      var hy3 = y + 40 + i * (h - 80) / 2;
+      ctx.fillStyle = "#4a5457";
+      ctx.fillRect(dx - 8, hy3, 18, 22);
+      ctx.fillStyle = "rgba(210,224,220,0.22)";
+      ctx.fillRect(dx - 8, hy3, 18, 3);
+    }
+    /* le strisce di pericolo sul basso */
+    ctx.save();
+    ctx.beginPath(); ctx.rect(dx, f - 26, w, 18); ctx.clip();
+    for (i = 0; i < 18; i++) {
+      ctx.fillStyle = i % 2 ? "rgba(206,176,58,0.30)" : "rgba(16,14,12,0.55)";
+      ctx.save();
+      ctx.translate(dx - 10 + i * 14, f - 26);
+      ctx.rotate(0.42);
+      ctx.fillRect(0, 0, 7, 30);
+      ctx.restore();
+    }
+    ctx.restore();
+    ctx.fillStyle = "rgba(170,196,192,0.10)";
+    ctx.fillRect(dx, f - 8, w, 2);
+    shipDoorFace(ctx, g, t, dx, n, open, armed1);
+  }
+  /* ---- la faccia del portello: il numero, e se si apre o no ----- */
+  function shipDoorFace(ctx, g, t, dx, n, open, armed1) {
+    var S = M.SCENE, f = g.f, w = g.doorW, h = g.doorH, y = f - h;
+    var cx = dx + w / 2, hot = armed1;
+    var pulse = 0.5 + 0.5 * Math.abs(Math.sin(t * 1.9 + n));
+
+    /* ---- il numero: vernice bianca, e sotto il nero che si vede -- */
+    S.paint(ctx, "MEMORIA", cx, y + 36, 13, "rgba(196,206,200,0.40)",
+      { align: "center", drip: false, weight: 600, font: "ui-monospace, monospace" });
+    S.paint(ctx, String(n), cx, y + 116, 82,
+      open ? "rgba(160,236,204,0.86)" : (hot ? "rgba(240,222,180,0.90)" : "rgba(214,210,196,0.62)"),
+      { align: "center", drip: true, weight: 800, seed: n * 3.1 });
+    /* il cerchio di gesso attorno al numero: qualcuno l'ha segnato */
+    if (n === 1) {
+      ctx.strokeStyle = "rgba(226,232,224,0.16)";
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.ellipse(cx, y + 88, 52, 46, 0.06, 0.2, 6.1);
+      ctx.stroke();
+    }
+
+    /* ---- l'oblÃ² del portello: dietro non c'Ã¨ niente da vedere ---- */
+    var oy = y + 186, orr = 23;
+    ctx.fillStyle = "#0a0e10";
+    ctx.beginPath(); ctx.arc(cx - 22, oy, orr, 0, 6.3); ctx.fill();
+    if (open) {
+      var ig = ctx.createRadialGradient(cx - 22, oy, 2, cx - 22, oy, orr);
+      ig.addColorStop(0, "rgba(150,236,206,0.55)");
+      ig.addColorStop(0.7, "rgba(60,140,120,0.30)");
+      ig.addColorStop(1, "rgba(6,12,12,0.9)");
+      ctx.fillStyle = ig;
+      ctx.beginPath(); ctx.arc(cx - 22, oy, orr, 0, 6.3); ctx.fill();
+      /* dentro si muove qualcosa: una cittÃ , vista da qui */
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx - 22, oy, orr - 2, 0, 6.3); ctx.clip();
+      ctx.fillStyle = "rgba(10,14,12,0.55)";
+      for (var b = 0; b < 4; b++) {
+        ctx.fillRect(cx - 40 + b * 10, oy - 24 + S.rand(b + n) * 14, 8, orr * 2);
+      }
+      ctx.restore();
+    }
+    ctx.strokeStyle = "rgba(196,210,206,0.28)";
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(cx - 22, oy, orr + 2, 0, 6.3); ctx.stroke();
+
+    /* ---- la ruota di chiusura: questa Ã¨ aperta, o bloccata ------ */
+    var wx2 = cx + 46, wy2 = oy;
+    ctx.strokeStyle = open ? "rgba(150,236,206,0.55)" : "rgba(186,198,194,0.42)";
+    ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.arc(wx2, wy2, 20, 0, 6.3); ctx.stroke();
+    ctx.lineWidth = 3;
+    for (var k = 0; k < 4; k++) {
+      var wa = (k / 4) * 6.283 + n * 0.5;
+      ctx.beginPath();
+      ctx.moveTo(wx2, wy2);
+      ctx.lineTo(wx2 + Math.cos(wa) * 20, wy2 + Math.sin(wa) * 20);
+      ctx.stroke();
+    }
+    ctx.fillStyle = "rgba(20,26,28,0.9)";
+    ctx.beginPath(); ctx.arc(wx2, wy2, 4, 0, 6.3); ctx.fill();
+
+    /* ---- la lampadina di stato, sopra il telaio ---------------- */
+    var lx = dx + w - 30, ly = y + 24;
+    var lcol = open ? "#7de2b8" : (hot ? "#ffb84a" : "#c4392c");
+    var lamt = open ? 0.85 : (hot ? 0.35 + 0.65 * pulse : 0.10 + 0.06 * pulse);
+    ctx.fillStyle = S.rgba(lcol, 0.20 + lamt * 0.5);
+    ctx.beginPath(); ctx.arc(lx, ly, 5, 0, 6.3); ctx.fill();
+    var lgl = ctx.createRadialGradient(lx, ly, 1, lx, ly, 26);
+    lgl.addColorStop(0, S.rgba(lcol, 0.30 * lamt));
+    lgl.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = lgl;
+    ctx.beginPath(); ctx.arc(lx, ly, 26, 0, 6.3); ctx.fill();
+    /* ---- sigillato: due cordoni di saldatura, e un lucchetto ----- */
+    if (!open && !hot) {
+      ctx.strokeStyle = "rgba(122,132,128,0.42)";
+      ctx.lineWidth = 4;
+      for (var q = 0; q < 2; q++) {
+        var qy = y + 214 + q * 34;
+        ctx.beginPath();
+        ctx.moveTo(dx + 10, qy);
+        for (var kk = 0; kk <= 180; kk += 20) ctx.lineTo(dx + 10 + kk, qy + Math.sin(kk * 0.2) * 3);
+        ctx.stroke();
+        /* le gocce di saldatura: piccole, e tutte diverse */
+        for (kk = 0; kk < 9; kk++) {
+          ctx.fillStyle = "rgba(170,180,176,0.20)";
+          ctx.beginPath();
+          ctx.arc(dx + 20 + kk * 18, qy + S.rr(kk + q * 3, -3, 6), 2, 0, 6.3);
+          ctx.fill();
+        }
+      }
+      /* il lucchetto appeso alla ruota */
+      ctx.fillStyle = "rgba(40,44,44,0.9)";
+      ctx.fillRect(wx2 - 8, wy2 + 24, 16, 14);
+      ctx.strokeStyle = "rgba(150,160,156,0.55)";
+      ctx.lineWidth = 2.4;
+      ctx.beginPath(); ctx.arc(wx2, wy2 + 24, 6, 3.14, 6.28); ctx.stroke();
+      S.paint(ctx, "SIGILLATA", cx, y + 296, 14, "rgba(196,120,96,0.55)",
+        { align: "center", drip: false, weight: 700, font: "ui-monospace, monospace" });
+    }
+
+    /* ---- aperto: la luce esce, e cade sul pavimento -------------- */
+    if (open) {

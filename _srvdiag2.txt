@@ -1,0 +1,2 @@
+﻿8123 bind ok
+nothing on 8123

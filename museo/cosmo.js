@@ -201,7 +201,8 @@
     /* gli oblò: due in officina, poi uno per intervallo fra i portelli */
     g.ports = [3608, 3892, 4236, 4716];
     for (i = 0; i < g.doorX.length - 1; i++) g.ports.push(g.doorX[i] + 265);
-    g.endX = 7620;
+    g.gkX = 7550;                                         /* la nona porta: il gioco eterno */
+    g.endX = 7860;
 
     /* ---- i bersagli: quello che si può guardare e toccare ------ */
     g.targets = [];
@@ -225,7 +226,13 @@
       g.giftEye = { x: 7340, y: f - 240, w: 140, h: 240 };
       T({ kind: "gift_eye", x: g.giftEye.x - 20, y: g.giftEye.y - 20, w: g.giftEye.w + 40, h: g.giftEye.h + 40, reach: 220 });
     }
-    /* Il Varco del Gioco Eterno: SEMPRE ATTIVO sullo sportello del razzo (all'esterno in strada) */
+    /* ---- la nona porta: IL GIOCO ETERNO -------------------------
+       Non e' una memoria e non si sigilla mai: e' l'arena a ondate,
+       in fondo al corridoio, dopo il regalo di B-E-P-E. */
+    T({ kind: "gk", x: g.gkX, y: f - g.doorH, w: g.doorW, h: g.doorH, reach: 170 });
+    /* ---- il portello del razzo: OPERAZIONE GODKILLER -------------
+       La porta rotonda in strada non apre piu' le ondate: da qui si
+       scende nel ministero. */
     T({ kind: "airlock", x: g.airlock.x - 20, y: g.airlock.y, w: g.airlock.w + 40, h: g.airlock.h, reach: 210 });
 
     room._czG = g;
@@ -295,6 +302,8 @@
 
   CZ.label = function (t) {
     if (!t) return "";
+    /* il dito o la tastiera: serve a tutti i bersagli, non solo all'airlock */
+    var isTouch = (M.DEVICE && M.DEVICE.touch) ? M.DEVICE.touch() : (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
     if (t.kind === "wpn") {
       var w = wdef(t.id);
       return (chosen(t.id) ? "posa " : "stacca ") + (w ? w.it.toLowerCase() : t.id);
@@ -305,13 +314,15 @@
       if (why) return who + (t.n === 1 ? " · prima due armi" : " · sigillata");
       return (missionDone(t.n) ? "rigioca la " : "entra nella ") + who;
     }
+    if (t.kind === "gk") {
+      return "IL GIOCO ETERNO · la porta 9 · " + (isTouch ? "TOCCA PER ENTRARE" : "PREMI E PER ENTRARE");
+    }
     if (t.kind === "pc") return awake() ? "il computer di bordo · " + noteList().length + " pagine" : "il computer di bordo · spento";
     if (t.kind === "proj") return awake() ? "la videoproiezione · accesa" : "la videoproiezione · offline";
     /* targa non interattiva */
     if (t.kind === "dep") return "la consolle di partenza";
     if (t.kind === "airlock") {
-      var isTouch = (M.DEVICE && M.DEVICE.touch) ? M.DEVICE.touch() : (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
-      return "IL GIOCO ETERNO · LA MODALITÀ INFINITA " + (isTouch ? "(TOCCA PER ENTRARE)" : "(PREMI E PER ENTRARE)");
+      return "OPERAZIONE GODKILLER · IL PORTELLO DEL RAZZO " + (isTouch ? "(TOCCA PER SCENDERE)" : "(PREMI E PER SCENDERE)");
     }
     if (t.kind === "gift_eye") {
       return chosen("eye")
@@ -326,15 +337,17 @@
     if (t.kind === "wpn") { pickWeapon(t.id); return; }
     if (t.kind === "gift_eye") { pickWeapon("eye"); return; }
     if (t.kind === "mem") { openMemory(t.n); return; }
+    if (t.kind === "gk") {
+      toast("AVVIO IL GIOCO ETERNO · ACCESSO ALLE ONDATE INFINITE...");
+      setTimeout(function () { goCity(0); }, 400);
+      return;
+    }
     if (t.kind === "pc") { panelPc(); return; }
     if (t.kind === "proj") { panelProj(); return; }
     /* targa non interattiva */
     if (t.kind === "dep") { panelDep(); return; }
     if (t.kind === "airlock") {
-      toast("AVVIO GIOCO ETERNO · ACCESSO ALLE ONDATE INFINITE...");
-      setTimeout(function(){
-        goCity(0);
-      }, 400);
+      openGodkiller();
       return;
     }
   };
@@ -399,6 +412,18 @@
     try { loc.href = "cosmo/index.html?m=" + n; return true; } catch (e) { return false; }
   }
   CZ.goCity = goCity;
+
+  /* la nona porta non e' una cassetta e non ha numero di memoria:
+     e' l'arena a ondate del museo, e si apre sempre — nessuna chiave,
+     nessun sigillo. Il ministero si apre dall'altra parte: dal
+     portello rotondo del razzo, in strada. */
+  function openGodkiller() {
+    var loc = root.location;
+    if (!loc || !loc.href) return false;
+    toast("OPERAZIONE GODKILLER · portello del razzo · si scende nel ministero");
+    try { loc.href = "godkiller/index.html"; return true; } catch (e) { return false; }
+  }
+  CZ.openGodkiller = openGodkiller;
 
   /* ---- il cambio d'aria: dalla strada alla nave ---------------- */
   CZ.tick = function (room) {
@@ -1906,17 +1931,17 @@ function panelPc() {
       ctx.stroke();
     }
     /* il telaio, con le strisce di pericolo */
-    /* il telaio con le strisce di pericolo e l'insegna del Gioco Eterno (sempre attivo) */
+    /* il telaio con le strisce di pericolo e l'insegna del Godkiller (sempre attivo) */
     ctx.strokeStyle = "rgba(255,45,115,0.85)";
     ctx.lineWidth = 8;
     if (ctx.roundRect) {
       ctx.beginPath(); ctx.roundRect(a.x, a.y, a.w, a.h, 22); ctx.stroke();
     } else ctx.strokeRect(a.x, a.y, a.w, a.h);
-    // Glow cyberpunk e insegna modalità infinita: sempre attivo
+    // Glow cyberpunk e insegna dell'operazione: sempre attivo
     ctx.fillStyle = "rgba(255,45,115,0.18)";
     ctx.fillRect(a.x + 8, a.y + 8, a.w - 16, a.h - 16);
-    S.paint(ctx, "GIOCO ETERNO", a.x + 12, a.y - 24, 11, "#ff2d75", { drip: false, weight: 900 });
-    S.paint(ctx, "[ E ] AVVIA ONDATE", a.x + 12, a.y - 10, 8, "#38bdf8", { drip: false, weight: 700 });
+    S.paint(ctx, "GODKILLER", a.x + 12, a.y - 24, 11, "#ff2d75", { drip: false, weight: 900 });
+    S.paint(ctx, "[ E ] SCENDI NEL MINISTERO", a.x + 12, a.y - 10, 8, "#38bdf8", { drip: false, weight: 700 });
     ctx.save();
     ctx.beginPath();
     ctx.rect(a.x - 12, a.y - 12, a.w + 24, 18);
@@ -2721,7 +2746,10 @@ function panelPc() {
     if (memory() >= 8 && g.giftEye && x1 > g.giftEye.x - 80 && x0 < g.giftEye.x + g.giftEye.w + 80) {
       drawGiftEyePedestal(ctx, g, t);
     }
-    /* in fondo al corridoio: paratia finale dello scafo (la porta del Gioco Eterno e' solo all'esterno sul razzo) */
+    /* la nona porta: il gioco eterno. Non e' una memoria, sta dopo il
+       regalo di B-E-P-E, e non si sigilla mai */
+    if (g.gkX && x1 > g.gkX - 120 && x0 < g.gkX + g.doorW + 120) gkDoor(ctx, g, t, g.gkX);
+    /* in fondo al corridoio: paratia finale dello scafo */
     if (x1 > g.endX - 200) {
       var ex = g.endX - 40;
       ctx.fillStyle = "rgba(0,0,0,0.62)";
@@ -2749,8 +2777,39 @@ function panelPc() {
     ctx.fillRect(p.x + 10, f - 110, p.w - 20, 110);
     ctx.fillStyle = "#222a2e";
     ctx.fillRect(p.x + 6, f - 116, p.w - 12, 10);
+    // la lastra di stasi non e' un rettangolo viola: e' vetro, e dentro c'e' il tempo
     ctx.fillStyle = "rgba(192,132,252,0.18)";
     ctx.fillRect(p.x + 12, f - 100, p.w - 24, 80);
+    ctx.fillStyle = "rgba(192,132,252,0.12)";
+    ctx.fillRect(p.x + 12, f - 100, p.w - 24, 24);
+    ctx.fillStyle = "rgba(238,236,255,0.07)";
+    ctx.fillRect(p.x + 18, f - 94, 7, 68);
+    ctx.strokeStyle = "rgba(190,200,224,0.22)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(p.x + 12, f - 100, p.w - 24, 80);
+    // dentro il vetro il tempo sta a strati, e si muove piano
+    for (var sk = 0; sk < 3; sk++) {
+      var sy = f - 86 + sk * 22 + Math.sin(t * 1.6 + sk * 1.7) * 3;
+      ctx.strokeStyle = "rgba(216,206,255," + (0.10 + 0.04 * sk).toFixed(3) + ")";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(p.x + 16, sy);
+      for (var sx = 0; sx <= 8; sx++) {
+        ctx.lineTo(p.x + 16 + sx * (p.w - 32) / 8, sy + Math.sin(sx * 1.3 + t * 2.2 + sk) * 2.4);
+      }
+      ctx.stroke();
+    }
+    // il bordo inferiore, e i bulloni che tengono su tutto
+    ctx.fillStyle = "#2b3438";
+    ctx.fillRect(p.x + 8, f - 16, p.w - 16, 16);
+    ctx.fillStyle = "rgba(186,200,196,0.16)";
+    ctx.fillRect(p.x + 8, f - 16, p.w - 16, 2);
+    for (var bk = 0; bk < 4; bk++) {
+      ctx.fillStyle = "rgba(196,208,204,0.20)";
+      ctx.beginPath();
+      ctx.arc(p.x + 16 + bk * (p.w - 32) / 3, f - 8, 2.2, 0, 6.3);
+      ctx.fill();
+    }
 
     // Pilastro stroboscopico con campo di stasi temporale
     var pulse = 0.85 + 0.15 * Math.sin(t * 3.5);
@@ -2856,6 +2915,161 @@ function panelPc() {
     ctx.fillRect(dx, f - 8, w, 2);
     shipDoorFace(ctx, g, t, dx, n, open, armed1);
   }
+  /* ---- la nona porta: IL GIOCO ETERNO -------------------------
+     Il ferro e' quello dello scafo, ma qui nessuno l'ha finita per
+     bene: due toppe saldate sopra, la vernice che cola, e le strisce
+     di pericolo al posto del giallo. Dietro non c'e' una memoria:
+     c'e' l'arena a ondate, e la porta resta accesa per sempre. */
+  function gkDoor(ctx, g, t, dx) {
+    var S = M.SCENE, f = g.f, w = g.doorW, h = g.doorH, y = f - h, i, k;
+    var cx = dx + w / 2;
+    var pulse = 0.5 + 0.5 * Math.sin(t * 2.6);
+    var isTouch = (M.DEVICE && M.DEVICE.touch) ? M.DEVICE.touch() : (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+
+    /* la soglia, e la luce rossa che resta sul pavimento */
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.fillRect(dx - 24, f, w + 48, 8);
+    ctx.fillStyle = "rgba(196,64,52,0.18)";
+    ctx.fillRect(dx - 24, f - 2, w + 48, 3);
+
+    /* il telaio: imbullonato, e piu' basso di quello dei portelli */
+    ctx.fillStyle = "#1d2325";
+    ctx.fillRect(dx - 20, y - 20, w + 40, h + 20);
+    ctx.fillStyle = "rgba(150,178,178,0.07)";
+    ctx.fillRect(dx - 20, y - 20, w + 40, 4);
+    for (i = 0; i < 8; i++) {
+      ctx.fillStyle = "rgba(186,200,196,0.16)";
+      ctx.beginPath();
+      ctx.arc(dx - 12, y - 4 + i * (h / 8), 3, 0, 6.3);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(dx + w + 12, y - 4 + i * (h / 8), 3, 0, 6.3);
+      ctx.fill();
+    }
+
+    /* l'anta: due pannelli, e in mezzo la costola */
+    var dg3 = ctx.createLinearGradient(dx, y, dx + w, y + h);
+    dg3.addColorStop(0, "#2c3436");
+    dg3.addColorStop(0.45, "#1e2527");
+    dg3.addColorStop(1, "#131a1c");
+    ctx.fillStyle = dg3;
+    ctx.fillRect(dx, y, w, h);
+    ctx.fillStyle = "rgba(0,0,0,0.35)";
+    ctx.fillRect(cx - 5, y, 10, h);
+    ctx.fillStyle = "rgba(170,196,194,0.09)";
+    ctx.fillRect(cx - 5, y, 2, h);
+    ctx.strokeStyle = "rgba(150,176,174,0.13)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(dx + 8, y + 8, w - 16, h - 16);
+    /* la vernice qui nessuno l'ha rifinita: le colature scendono dal
+       bordo alto, e sono gia' asciutte */
+    for (i = 0; i < 7; i++) {
+      var gx = dx + 14 + i * (w - 28) / 6;
+      ctx.fillStyle = "rgba(8,12,13," + (0.10 + 0.05 * (i % 3)) + ")";
+      ctx.fillRect(gx, y + 10, 2 + (i % 2), 26 + ((i * 37) % 90));
+    }
+
+    /* le cerniere: tre, come gli altri portelli */
+    for (i = 0; i < 3; i++) {
+      var hy3 = y + 40 + i * (h - 80) / 2;
+      ctx.fillStyle = "#4a5457";
+      ctx.fillRect(dx - 8, hy3, 18, 22);
+      ctx.fillStyle = "rgba(210,224,220,0.22)";
+      ctx.fillRect(dx - 8, hy3, 18, 3);
+    }
+
+    /* le due toppe saldate: qualcuno ha aperto questa porta a forza */
+    for (i = 0; i < 2; i++) {
+      var pl = i === 0
+        ? { x: dx + 16, y: y + 200, w: 78, h: 54, r: -0.045 }
+        : { x: dx + 106, y: y + 236, w: 78, h: 48, r: 0.06 };
+      /* la lamiera e' tagliata male e saldata storta: si vede che
+         qualcuno ha aperto questa porta e poi l'ha richiusa come
+         poteva. Sta sopra il pannello, con la sua ombra */
+      ctx.save();
+      ctx.translate(pl.x + pl.w / 2, pl.y + pl.h / 2);
+      ctx.rotate(pl.r);
+      var p0 = -pl.w / 2, p1 = -pl.h / 2;
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.fillRect(p0 + 3, p1 + 4, pl.w, pl.h);
+      var plg = ctx.createLinearGradient(p0, p1, p0, p1 + pl.h);
+      plg.addColorStop(0, "#333d3f");
+      plg.addColorStop(0.38, "#242d2f");
+      plg.addColorStop(1, "#161d1f");
+      ctx.fillStyle = plg;
+      ctx.fillRect(p0, p1, pl.w, pl.h);
+      ctx.fillStyle = "rgba(184,198,194,0.09)";
+      ctx.fillRect(p0, p1, pl.w, 2);
+      ctx.fillStyle = "rgba(0,0,0,0.32)";
+      ctx.fillRect(p0, p1 + pl.h - 2, pl.w, 2);
+      /* il cordone di saldatura: la toppa e' stata messa di fretta */
+      ctx.strokeStyle = "rgba(150,166,160,0.30)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(p0 + 3, p1 + pl.h - 3);
+      ctx.lineTo(p0 + pl.w - 3, p1 + 3);
+      ctx.stroke();
+      for (k = 0; k < 9; k++) {
+        ctx.fillStyle = "rgba(206,218,212," + (0.14 + 0.09 * (k % 3)) + ")";
+        ctx.beginPath();
+        ctx.arc(p0 + 4 + (k % 3) * (pl.w - 8) / 2, p1 + 4 + Math.floor(k / 3) * (pl.h - 8) / 2,
+          2.3, 0, 6.3);
+        ctx.fill();
+      }
+      /* la ruggine che esce da sotto il bordo */
+      ctx.fillStyle = "rgba(118,62,38,0.20)";
+      ctx.fillRect(p0 + 2, p1 + pl.h - 3, pl.w - 4, 3);
+      ctx.restore();
+    }
+
+    /* la faccia: non e' una memoria, e lo dice sopra il numero */
+    S.paint(ctx, "PORTA 9", cx, y + 44, 15, "rgba(126,196,178,0.62)",
+      { align: "center", drip: true, weight: 700, seed: 5.7, font: "ui-monospace, monospace" });
+    S.paint(ctx, "IX", cx, y + 132, 72, "rgba(226,120,74,0.76)",
+      { align: "center", drip: true, weight: 900, seed: 2.3 });
+    S.paint(ctx, "GIOCO ETERNO", cx, y + 170, 17, "rgba(236,232,216,0.72)",
+      { align: "center", drip: true, weight: 800, seed: 9.1, font: "ui-monospace, monospace" });
+    S.paint(ctx, "ONDATE INFINITE · EDWARD INDUSTRIES", cx, y + 192, 9, "rgba(196,206,202,0.42)",
+      { align: "center", drip: false, weight: 700, font: "ui-monospace, monospace" });
+
+    /* la lampadina di stato: qui e' sempre accesa, e lampeggia */
+    var lx = dx + w - 30, ly = y + 24, lcol = "#7de2b8";
+    ctx.fillStyle = S.rgba(lcol, 0.20 + 0.60 * pulse);
+    ctx.beginPath(); ctx.arc(lx, ly, 5, 0, 6.3); ctx.fill();
+    var lgl = ctx.createRadialGradient(lx, ly, 1, lx, ly, 28);
+    lgl.addColorStop(0, S.rgba(lcol, 0.34 * (0.4 + 0.6 * pulse)));
+    lgl.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = lgl;
+    ctx.beginPath(); ctx.arc(lx, ly, 28, 0, 6.3); ctx.fill();
+
+    /* sotto la porta c'e' qualcosa di acceso: la luce esce dalla fessura */
+    var seam = ctx.createRadialGradient(cx, f - 4, 2, cx, f - 4, 96);
+    seam.addColorStop(0, "rgba(125,226,184," + (0.12 + 0.07 * pulse).toFixed(3) + ")");
+    seam.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = seam;
+    ctx.fillRect(cx - 110, f - 64, 220, 70);
+
+    /* le strisce di pericolo: rosse, non gialle */
+    ctx.save();
+    ctx.beginPath(); ctx.rect(dx, f - 26, w, 18); ctx.clip();
+    for (i = 0; i < 18; i++) {
+      ctx.fillStyle = i % 2 ? "rgba(196,58,44,0.32)" : "rgba(12,12,12,0.58)";
+      ctx.save();
+      ctx.translate(dx - 10 + i * 14, f - 26);
+      ctx.rotate(0.42);
+      ctx.fillRect(0, 0, 7, 30);
+      ctx.restore();
+    }
+    ctx.restore();
+    ctx.fillStyle = "rgba(170,196,192,0.10)";
+    ctx.fillRect(dx, f - 8, w, 2);
+
+    /* si entra sempre: nessun lucchetto, nessuna saldatura */
+    S.paint(ctx, isTouch ? "TOCCA PER SCENDERE" : "PREMI E PER SCENDERE", cx, y + 296, 10,
+      "rgba(120,224,180,0.66)",
+      { align: "center", drip: false, weight: 700, font: "ui-monospace, monospace" });
+  }
+
   /* ---- la faccia del portello: il numero, e se si apre o no ----- */
   function shipDoorFace(ctx, g, t, dx, n, open, armed1) {
     var S = M.SCENE, f = g.f, w = g.doorW, h = g.doorH, y = f - h;

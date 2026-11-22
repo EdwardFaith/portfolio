@@ -1,0 +1,34 @@
+﻿157: dal corridoio: la stanza interattiva si raggiunge anche dalla
+166: /* la zona MEMORIE DEL COSMO è una stanza normale del museo */
+215: stanza: room.id, x: Math.round(rabbit ? rabbit.x : 0),
+225: /* se si cambia stanza sotto terra il ragno ti ritrova, e la preda
+243: tempo riprende adesso e il cartello torna quello della stanza */
+484: /* ---- la stanza del bere ------------------------------------
+671: dell'apocalisse e la stanza si resetta. */
+675: toast("\u26a0 APOCALISSE \u00b7 la stanza si resetta");
+1068: /* dialogo di Satan nella stanza Lucidus (l'uomo crocifisso).
+1070: ripete. Dice quello che c'è da sapere della stanza — com'era, e
+1072: della scheda di sala. Il resto lo dice la stanza, camminandoci. */
+1085: /* nella stanza exit non c'è una guida di sala: davanti alla sedia
+1117: /* la stanza exit non ha guida: lì, davanti alla sedia, parla lui */
+1607: Ogni stanza ha uno che la racconta. Non è il pinguino, non è una
+1612: stanno in data.js, uno per stanza, con la faccia e il cappello.
+1649: c'è sempre — quello che è appeso in questa stanza, in fila */
+1773: x: "\u00abun ambulatorio odontoiatrico abbandonato. e sotto, quello che resta della guerra contro Dio. pi\u00f9 restate, pi\u00f9 la stanza marcisce di sangue e budella; quando \u00e8 piena si apre l'orologio dell'apocalisse e torna tutto com'era.\u00bb"
+1782: stanza. Non è un cartello: è uno che ti risponde. */
+1820: nominato, senza doverla cercare nella stanza a piedi */
+1829: if (k === "whatHere") { toast("\u00abun ambulatorio odontoiatrico abbandonato. e sotto, la guerra contro Dio. pi\u00f9 restate, pi\u00f9 la stanza marcisce di sangue e budella; quando \u00e8 piena si apre l'orologio dell'apocalisse e torna com'era.\u00bb"); return; }
+1908: /* aprire uno schermo della stanza dal suo titolo: "GLI ESTRATTI",
+1929: /* la fila di quello che è appeso in questa stanza.
+2052: "«Il museo non conserva le opere: conserva la distanza che le rende visibili.»",
+2055: "«Non ho una faccia. Ho una margherita. È la stessa cosa, se ci pensi abbastanza a lungo.»",
+2333: /* la stanza del bere si prende i tasti: venti secondi, e il
+2647: uno schermo il clic sulla scala apriva lo schermo: la stanza
+2711: stessa distanza delle altre stanze */
+2799: /* nella stanza del bere la radio non entra: c'è la musica del
+2821: /* nella stanza del bere la radio non entra: c'è la musica del locale
+2863: /* ?stanza=cosmo — chi torna da un minigioco rientra dove era
+2865: var hit = /[?&]stanza=([a-z0-9_]+)/i.exec(qs);
+2894: grata da cui è uscito, non all'imbocco della stanza */
+3103: È l'uscita della stanza, e vince sul bersaglio che le sta
+3108: questa riga prendeva cento passi di stanza, porta compresa. */

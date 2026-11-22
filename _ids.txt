@@ -1,0 +1,25 @@
+﻿main.js:33: this.cv = document.getElementById('cv');
+main.js:85: hearts: document.getElementById('hearts'),
+main.js:86: armor: document.getElementById('armor'),
+main.js:87: credits: document.getElementById('credits'),
+main.js:88: combo: document.getElementById('combo'),
+main.js:89: objName: document.getElementById('objName'),
+main.js:90: objSub: document.getElementById('objSub'),
+main.js:91: modChip: document.getElementById('modChip'),
+main.js:92: perkbar: document.getElementById('perkbar'),
+main.js:93: hintBox: document.getElementById('hintBox'),
+main.js:94: toast: document.getElementById('toast'),
+main.js:95: overlay: document.getElementById('overlay'),
+main.js:96: panel: document.getElementById('panel'),
+main.js:97: fade: document.getElementById('fade'),
+main.js:98: loading: document.getElementById('loading'),
+main.js:99: loadMsg: document.getElementById('loadMsg'),
+main.js:100: muteBtn: document.getElementById('muteBtn'),
+main.js:101: volMus: document.getElementById('volMus'),
+main.js:102: volSfx: document.getElementById('volSfx'),
+main.js:1602: const el = document.getElementById('loadMsg');
+main.js:1607: const loading = document.getElementById('loading');
+input.js:98: const knob = el.querySelector('i');
+input.js:135: stick(document.getElementById('stickL'),
+input.js:138: stick(document.getElementById('stickR'),
+input.js:142: document.querySelectorAll('[data-touch]').forEach((b) => {

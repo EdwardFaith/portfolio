@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>probe root</title>
+<style>html,body{margin:0;background:#05080a;color:#d8e2de;font:13px/1.4 monospace}</style>
+</head>
+<body>
+<canvas id="cv" width="10" height="10" style="display:none"></canvas>
+<pre id="out">probe</pre>
+<script src="museo/lang.js?v=10"></script>
+<script src="museo/gl.js"></script>
+<script src="museo/fx.js"></script>
+<script src="museo/scene.js"></script>
+<script src="museo/panel.js?v=7"></script>
+<script src="museo/cosmo.js?v=1"></script>
+<script>
+  /* sta nella radice come museo.html: il percorso relativo di
+     openGodkiller deve risolvere qui come risolve li' */
+  var out = document.getElementById('out'), CZ = window.MUSEO && window.MUSEO.COSMO;
+  var room = { floorY: 900, id: 'cosmo' }, g = CZ.geom(room), t = null, i;
+  for (i = 0; i < g.targets.length; i++) if (g.targets[i].kind === 'gk') t = g.targets[i];
+  out.textContent = 'target=' + (t ? t.kind : 'MANCANTE') +
+    '\nurl risolto=' + new URL('godkiller/index.html', location.href).href +
+    '\nchiamo interact fra 50ms';
+  if (/no/.test(location.search)) { document.title = 'ROOT STOP'; }
+  else setTimeout(function () { CZ.interact(t); }, 50);
+</script>
+</body>
+</html>

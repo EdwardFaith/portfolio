@@ -1,0 +1,17 @@
+﻿2: // modifiers.js — le sei (più una) maledizioni planetarie.
+6: export const MODIFIERS = [
+8: id: 'none',
+15: id: 'eclipse',
+22: id: 'lowgrav',
+29: id: 'alarm',
+36: id: 'acid',
+37: name: 'SANGUE ACIDO',
+43: id: 'silence',
+50: id: 'frenzy',
+58: export const PLANETARY_MODIFIERS = MODIFIERS.filter((m) => m.id !== 'none');
+60: export function modifierById(id) {
+61: return MODIFIERS.find((m) => m.id === id) || MODIFIERS[0];
+64: export function rollModifier(rng, allowNone) {
+65: if (allowNone && rng() < 0.14) return MODIFIERS[0];
+66: return PLANETARY_MODIFIERS[Math.floor(rng() * PLANETARY_MODIFIERS.length)];
+74: return modifierById(id).bonus;
