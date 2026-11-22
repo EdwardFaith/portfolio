@@ -230,6 +230,7 @@ ok("«chi sono» non ha nessun bambino pagliaccio",
   CH.LUOGHI.bio.d.it.indexOf("pagliacc") < 0 &&
   CH.LUOGHI.bio.d.it.indexOf("bambino") < 0, CH.LUOGHI.bio.d.it);
 
+<<<<<<< HEAD
 /* ---- la pausa: con Charles aperto il gioco sotto si ferma ------- */
 function inElenco(a, v) { for (var i = 0; i < a.length; i++) if (a[i] === v) return true; return false; }
 var SOSTA = window.MUSEO.SOSTA;
@@ -285,6 +286,8 @@ ok("e la pausa torna", !!SOSTA && SOSTA.fermo() === true);
 CH.chiudi();
 ok("e si chiude per davvero", CH.eAperto() === false);
 
+=======
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
 if (errori.length) {
   WScript.Echo("\n" + errori.length + " problemi:");
   for (var q = 0; q < errori.length; q++) WScript.Echo(" - " + errori[q]);

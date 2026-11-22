@@ -1845,6 +1845,7 @@
             );
         };
 
+<<<<<<< HEAD
         /* ---- le canzoni: una fila sola ------------------------------
            La scaletta è quella della stazione (museo/radio-fila.js), la
            stessa che suona nella radio in basso a sinistra: ventidue
@@ -1884,16 +1885,79 @@
            canzoni, nell'ordine in cui sono state scritte, senza
            pubblicità in mezzo. */
         const radioSlots = audioFiles;
+=======
+        const audioFiles = [
+            { title: "La fantasia", url: "RadioKaoSs/canzoni/La fantasia.mp3" },
+            { title: "Nadia", url: "RadioKaoSs/canzoni/Nadia.mp3" },
+            { title: "Ughi bughi bughi", url: "RadioKaoSs/canzoni/Ughi bughi bughi.mp3" },
+            { title: "Charles", url: "RadioKaoSs/canzoni/charles.mp3" },
+            { title: "Corre il coniglio", url: "RadioKaoSs/canzoni/corre il coniglio.mpeg" },
+            { title: "Destino formicaio", url: "RadioKaoSs/canzoni/destino formicaio.MP3" },
+            { title: "Destino sgarbato", url: "RadioKaoSs/canzoni/destino sgarbato.mpeg" },
+            { title: "Diabolicus", url: "RadioKaoSs/canzoni/diabolicus.mp3" },
+            { title: "Dio", url: "RadioKaoSs/canzoni/dio.mpeg" },
+            { title: "Dove il tramonto brucia", url: "RadioKaoSs/canzoni/dove il tramonto brucia.mpeg" },
+            { title: "E ritorna il giorno", url: "RadioKaoSs/canzoni/e ritorna il giorno.mpeg" },
+            { title: "Fine del mondo", url: "RadioKaoSs/canzoni/fine del mondo.mp3" },
+            { title: "Icaro", url: "RadioKaoSs/canzoni/icaro.mpeg" },
+            { title: "La paura di finire", url: "RadioKaoSs/canzoni/la paura di finire.mpeg" },
+            { title: "Mortem", url: "RadioKaoSs/canzoni/mortem.MP3" },
+            { title: "Non voglio", url: "RadioKaoSs/canzoni/non voglio.mpeg" },
+            { title: "Passami la cartapesta", url: "RadioKaoSs/canzoni/passami la cartapesta.mp3" },
+            { title: "Sarà", url: "RadioKaoSs/canzoni/sarà.mp3" },
+            { title: "Satan", url: "RadioKaoSs/canzoni/satan.MP3" },
+            { title: "Sei sicura", url: "RadioKaoSs/canzoni/sei sicura.MP3" }
+        ];
+
+        /* ---- gli spot, quelli del gioco -----------------------------
+           Stanno nelle cartelle `pub-*` di RadioKaoSs: dentro c'è
+           l'audio e l'immagine dello spot. Il gioco li manda in onda
+           quando gli pare; qui fanno la stessa cosa, in mezzo alle
+           canzoni. Ognuno si porta la sua immagine: si vede che è
+           pubblicità prima ancora di leggerlo. */
+        const adFiles = [
+            { title: "Latte Materno", url: "RadioKaoSs/pub-latte-materno/audio.MP3", img: "RadioKaoSs/pub-latte-materno/immagine.png" },
+            { title: "Purify", url: "RadioKaoSs/pub-purify/audio.MP3", img: "RadioKaoSs/pub-purify/immagine.png" },
+            { title: "Lucidus", url: "RadioKaoSs/pub-lucidus/audio.MP3", img: "RadioKaoSs/pub-lucidus/immagine.png" },
+            { title: "Spedizione su Venere", url: "RadioKaoSs/pub-spedizione-su-venere/audio.MP3", img: "RadioKaoSs/pub-spedizione-su-venere/immagine.jpg" },
+            { title: "Ciclette Interattiva", url: "RadioKaoSs/pub-ciclette-interattiva/audio.MP3", img: "RadioKaoSs/pub-ciclette-interattiva/0410 (3).png" }
+        ];
+
+        /* ---- la scaletta: quattro canzoni e poi uno spot ------------
+           Venti canzoni e cinque spot: ogni spot cade dopo quattro
+           canzoni, e in un giro intero ognuno va in onda una volta
+           sola. `ad` segna la riga: le canzoni si ascoltano, gli spot
+           si guardano anche in faccia. */
+        const OGNI_QUANTE = 4;
+        const radioSlots = [];
+        audioFiles.forEach((t, i) => {
+            radioSlots.push({ title: t.title, url: t.url, ad: false });
+            if ((i + 1) % OGNI_QUANTE === 0) {
+                const spot = adFiles[Math.floor(i / OGNI_QUANTE) % adFiles.length];
+                radioSlots.push({ title: spot.title, url: spot.url, img: spot.img, ad: true });
+            }
+        });
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
 
         /* ---- una radio sola, in fila --------------------------------
            Le canzoni non sono venti lettori indipendenti: sono una
            scaletta, e la scaletta la tiene questo registro — così una
+<<<<<<< HEAD
            che finisce sa chi è la prossima. Play e pausa non ricaricano
            niente: `src` non si tocca mai, `currentTime` nemmeno. Il
            pezzo resta fermo dov'è e riparte da quel secondo. */
         const radioRow = { cards: [], playing: -1 };
 
         const AudioTrack = ({ title, url, index }) => {
+=======
+           che finisce sa chi è la prossima, spot compresi. Play e pausa
+           non ricaricano niente: `src` non si tocca mai, `currentTime`
+           nemmeno. Il pezzo resta fermo dov'è e riparte da quel
+           secondo. */
+        const radioRow = { cards: [], playing: -1 };
+
+        const AudioTrack = ({ title, url, index, ad, img }) => {
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
             const [isPlaying, setIsPlaying] = useState(false);
             const [showPlayer, setShowPlayer] = useState(false);
             const [currentTime, setCurrentTime] = useState(0);
@@ -1906,11 +1970,14 @@
             const play = React.useCallback(() => {
                 const a = audioRef.current;
                 if (!a) return;
+<<<<<<< HEAD
                 /* e se in basso a sinistra sta suonando la stazione, si
                    spegne lei: due musiche insieme non sono un mix */
                 if (window.MUSEO && MUSEO.RADIO && (MUSEO.RADIO.on || MUSEO.RADIO.armato)) {
                     MUSEO.RADIO.stop();
                 }
+=======
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
                 radioRow.cards.forEach((c, i) => {
                     if (i !== index && c && c.pausa) c.pausa();
                 });
@@ -2012,10 +2079,15 @@
 
             return (
                 <div
-                    className="flex flex-col bg-black border border-neutral-800 hover:border-white transition-colors cursor-pointer group p-4"
+                    className={`flex flex-col bg-black border transition-colors cursor-pointer group p-4 ${ad ? "border-red-900/50 hover:border-red-500" : "border-neutral-800 hover:border-white"}`}
                     onClick={!showPlayer ? togglePlay : undefined}
                 >
                     <div className="flex items-center gap-4">
+                        {ad && img && (
+                            <div className="w-10 h-10 shrink-0 bg-neutral-900 border border-red-900/40 overflow-hidden">
+                                <img src={img} alt={title} loading="lazy" decoding="async" className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                        )}
                         <button
                             onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                             className="w-10 h-10 shrink-0 bg-neutral-900 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-full"
@@ -2024,8 +2096,13 @@
                         </button>
                         <div className="flex-1 min-w-0">
                             <h4 className="text-white font-bold text-sm truncate" title={title}>{title}</h4>
+<<<<<<< HEAD
                             <p className="text-xs truncate text-neutral-500">
                                 Audio Track
+=======
+                            <p className={`text-xs truncate ${ad ? "text-red-600 font-mono uppercase tracking-wider" : "text-neutral-500"}`}>
+                                {ad ? "Pubblicità · sponsor" : "Audio Track"}
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
                             </p>
                         </div>
                         {showPlayer && (
@@ -2127,11 +2204,19 @@
                             <span id="radioPosto"></span>
                         </h3>
                         <p className="text-neutral-500 text-xs font-mono uppercase tracking-wider mb-8">
+<<<<<<< HEAD
                             venti canzoni in una fila sola: play e pausa fermano il pezzo dov'è, e quando finisce parte il successivo — dopo l'ultima si ricomincia dalla prima, senza fermarsi
                         </p>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {radioSlots.map((track, idx) => (
                                 <AudioTrack key={idx} title={track.title} url={track.url} index={idx} />
+=======
+                            venti canzoni e cinque spot in una fila sola: play e pausa fermano il pezzo dov'è, e quando finisce parte il successivo — ogni quattro canzoni passa uno spot, e dopo l'ultimo si ricomincia dal primo
+                        </p>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {radioSlots.map((track, idx) => (
+                                <AudioTrack key={idx} title={track.title} url={track.url} index={idx} ad={track.ad} img={track.img} />
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
                             ))}
                         </div>
                     </div>

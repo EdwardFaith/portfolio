@@ -165,6 +165,43 @@
      sopra il mondo era una cosa in più da spiegare, e nella spiaggia
      onirica faceva il paio con la musica del locale: via.
      ============================================================ */
+<<<<<<< HEAD
+=======
+  var radioPronta = false, radioVol = null;
+  function accendiRadio() {
+    var RAD = M.RADIO;
+    if (!RAD || !RAD.toggle) return false;
+    if (!radioPronta) {
+      radioPronta = true;
+      var l = M.DATA && M.DATA.radio, i;
+      for (i = 0; l && i < l.length; i++) {
+        if (l[i].url && l[i].url.indexOf("../") !== 0) l[i].url = "../" + l[i].url;
+      }
+    }
+    RAD.toggle();
+    /* se suona lei, il mondo si abbassa: l'aria del posto non deve
+       litigare con la radio. Nel museo lo fa SOUND.duck; qui il volume
+       è uno solo, e si abbassa quello — e si rimette com'era quando la
+       radio va in pausa */
+    if (SUONO && SUONO.volume) {
+      try {
+        if (RAD.on) {
+          if (radioVol == null) radioVol = SUONO.volume();
+          SUONO.volume(0.45);
+        } else {
+          SUONO.volume(radioVol == null ? 0.8 : radioVol);
+          radioVol = null;
+        }
+      } catch (e2) { }
+    }
+    /* il fumetto dice cosa è successo: la radio non ha un HUD qui, e
+       senza una riga R sembrerebbe non fare niente */
+    T.parla(RAD.on
+      ? t2("Radio Kaoss. Tasto R per la pausa.", "Radio Kaoss. R to pause it.")
+      : t2("Radio Kaoss in pausa: R la riprende da dove era.", "Radio Kaoss paused: R picks up where it was."), 3.0);
+    return true;
+  }
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
 
   var attoPremuto = false;
   T.premi = function (k, on) {
@@ -208,6 +245,13 @@
       /* i numeri scelgono l'arma e non la girano: 1 è la gomma, 2 le
          forbici, 3 l'acqua — l'ordine in cui si trovano appese ai
          chiodi. C resta il tasto che gira, per chi non vuole contare */
+      if (on) T.scegliArma(Number(k) - 1);
+    }
+    else if (k === "1" || k === "2" || k === "3") {
+      /* i numeri scelgono l'arma e non la girano: 1 è la gomma, 2 le
+         forbici, 3 l'acqua — l'ordine in cui si trovano appese ai
+         chiodi. C resta il tasto che gira, per chi non vuole contare;
+         R è la radio, e non c'entra */
       if (on) T.scegliArma(Number(k) - 1);
     }
     else if (k === "c") { if (on) T.cambiaArma(); }

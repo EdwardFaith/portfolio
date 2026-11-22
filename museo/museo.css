@@ -215,31 +215,52 @@ body.in-viaggio #vhs {
 
 /* ── il pollice ──────────────────────────────────────────────
    Due pollici, due angoli: a sinistra si cammina, a destra si salta
+<<<<<<< HEAD
    e si agisce. I tasti non sono più cerchi: il tasto dell'azione
    cambia parola — ENTRA, PARLA, LEGGI, USA — e una parola dentro a un
    cerchio da 48px non ci sta. Adesso sono pillole: larghe quanto
    serve, con la scritta sopra il carattere, leggibile col pollice
    davanti. */
+=======
+   e si agisce. I tasti sono scesi a 56px (erano 62) e stanno più
+   vicini al bordo: sul telefono di traverso lo schermo è basso, e
+   così il mondo resta visibile sopra le mani. */
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
 #touch {
     display: none;
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
     justify-content: space-between; align-items: flex-end;
+<<<<<<< HEAD
     padding: 8px calc(14px + env(safe-area-inset-right, 0px))
              calc(12px + env(safe-area-inset-bottom, 0px))
              calc(14px + env(safe-area-inset-left, 0px));
     gap: 10px;
     /* la striscia non prende i tocchi: solo i tasti li prendono,
+=======
+    padding: 8px calc(16px + env(safe-area-inset-right, 0px))
+             calc(12px + env(safe-area-inset-bottom, 0px))
+             calc(16px + env(safe-area-inset-left, 0px));
+    gap: 10px;
+    /* la striscia non prende i tocchi: solo i cerchi li prendono,
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
        il resto della scena resta cliccabile */
     pointer-events: none;
 }
 #touch .pad { display: flex; gap: 8px; pointer-events: auto; }
 #touch button {
+<<<<<<< HEAD
     pointer-events: auto; width: auto; min-width: 62px; height: 56px; padding: 0 14px;
     border-radius: 16px;
     border: 1px solid rgba(231,226,214,0.35); background: rgba(10,12,16,0.65);
     backdrop-filter: blur(8px);
     color: var(--ink); font-size: 11px; font-weight: 700; font-family: var(--font);
     letter-spacing: 0.10em; text-transform: uppercase; line-height: 1;
+=======
+    pointer-events: auto; width: 56px; height: 56px; border-radius: 50%;
+    border: 1px solid rgba(231,226,214,0.35); background: rgba(10,12,16,0.65);
+    backdrop-filter: blur(8px);
+    color: var(--ink); font-size: 16px; font-weight: 700; font-family: var(--font);
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     display: flex; align-items: center; justify-content: center;
     user-select: none; -webkit-tap-highlight-color: transparent;
     box-shadow: 0 4px 14px rgba(0,0,0,0.6);
@@ -255,6 +276,7 @@ body.in-viaggio #vhs {
     box-shadow: 0 0 16px rgba(239,68,68,0.5);
 }
 #touch .jump {
+<<<<<<< HEAD
     margin-left: auto; margin-right: 2px; min-width: 62px; height: 52px;
     font-size: 12px; border-color: rgba(231,226,214,0.35);
 }
@@ -262,12 +284,26 @@ body.in-viaggio #vhs {
     border-color: rgba(239,68,68,0.7); background: rgba(185,28,28,0.22);
     color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.06em;
     min-width: 84px; padding: 0 16px;
+=======
+    margin-left: auto; margin-right: 2px; width: 52px; height: 52px;
+    font-size: 16px; border-color: rgba(231,226,214,0.35);
+}
+#touch .act {
+    border-color: rgba(239,68,68,0.7); background: rgba(185,28,28,0.22);
+    color: #fff; font-size: 14px; font-weight: 900; letter-spacing: 0.04em;
+    min-width: 56px;
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
 }
 #touch .act.is-door {
     background: rgba(220,38,38,0.45);
     border-color: #ef4444;
+<<<<<<< HEAD
     font-size: 12px;
     letter-spacing: 0.10em;
+=======
+    font-size: 10px;
+    letter-spacing: 0.12em;
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     box-shadow: 0 0 18px rgba(239,68,68,0.6);
     animation: doorBtnGlow 1.2s infinite alternate ease-in-out;
 }
@@ -285,6 +321,7 @@ body.in-viaggio #vhs {
                  8px calc(12px + env(safe-area-inset-left, 0px));
         gap: 8px;
     }
+<<<<<<< HEAD
     #touch button { min-width: 54px; height: 48px; font-size: 10px; padding: 0 11px; }
     #touch .pad button { min-width: 54px; font-size: 17px; padding: 0; }
     #touch .jump { min-width: 54px; height: 46px; font-size: 10px; }
@@ -316,6 +353,12 @@ body.in-viaggio #vhs {
         width: calc(100vw - 24px); padding: 16px 16px 12px;
         max-height: 42dvh; overflow-y: auto;
     }
+=======
+    #touch button { width: 48px; height: 48px; font-size: 14px; }
+    #touch .jump { width: 46px; height: 46px; font-size: 14px; }
+    #touch .act { min-width: 48px; font-size: 12px; }
+    #touch .act.is-door { font-size: 9px; }
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
 }
 
 /* ── chi gioca col dito, chi col mouse ────────────────────────

@@ -277,9 +277,13 @@
       }
       R.on = true;
       R.last = R.i;
+<<<<<<< HEAD
       R.armato = false;
       R.tell();
       R.salva();
+=======
+      R.tell();
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
       if (M.SOUND && M.SOUND.duck) M.SOUND.duck(true);
       return true;
     }
@@ -288,7 +292,10 @@
     R.cur = tr.url;
     R.cariche++;
     R.finito = false;
+<<<<<<< HEAD
     zittisciAltri();
+=======
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     var p = a.play();
     if (p && p.catch) p.catch(function () { /* il browser vuole un gesto: c'è stato */ });
     R.on = true;

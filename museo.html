@@ -27,11 +27,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
         rel="stylesheet">
+<<<<<<< HEAD
     <link rel="stylesheet" href="museo/museo.css?v=9">
     <!-- il foglio che si apre in fondo a Radio Kaoss -->
     <link rel="stylesheet" href="museo/foglio.css">
     <!-- il punto di domanda rosso: Charles, in fila con gli altri bottoni -->
     <link rel="stylesheet" href="museo/charles.css?v=10">
+=======
+    <link rel="stylesheet" href="museo/museo.css?v=6">
+    <!-- il foglio che si apre in fondo a Radio Kaoss -->
+    <link rel="stylesheet" href="museo/foglio.css">
+    <!-- il punto di domanda rosso: Charles, in fila con gli altri bottoni -->
+    <link rel="stylesheet" href="museo/charles.css?v=9">
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
 </head>
 
 <body>
@@ -130,6 +138,7 @@
     </div>
 
     <!-- ── il motore: contenuti, lingue, shader, stanze, regia ── -->
+<<<<<<< HEAD
     <script src="museo/lang.js?v=10"></script>
     <script src="museo/auth.js?v=1"></script>
     <script src="museo/data.js?v=8"></script>
@@ -147,6 +156,20 @@
     <!-- lo schermo del telefono: niente più «gira il telefono». Si
          gioca in verticale, a schermo intero, con i tasti in fondo -->
     <script src="museo/orienta.js?v=8"></script>
+=======
+    <script src="museo/lang.js?v=9"></script>
+    <script src="museo/auth.js?v=1"></script>
+    <script src="museo/data.js?v=8"></script>
+    <script src="museo/panel.js?v=6"></script>
+    <script src="museo/quiz.js"></script>
+    <script src="museo/radio.js?v=2"></script>
+
+    <!-- il dispositivo: dito o mouse. Una risposta sola per tutto il museo -->
+    <script src="museo/device.js?v=1"></script>
+    <!-- il telefono si gira: in verticale non si gioca, si legge
+         «gira il telefono». Lo schermo largo spegne il velo da solo -->
+    <script src="museo/orienta.js?v=1"></script>
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
 
     <!-- il quaderno: inchiostro, armi, porte aperte, segnalibri.
          Lo leggono anche le terre, e la grata della soffitta si apre
@@ -188,6 +211,7 @@
     <!-- ── la memoria 1 non sta più qui dentro: è cosmo/index.html,
          e ci si arriva dal primo portello del razzo ── -->
 
+<<<<<<< HEAD
     <!-- ── la pausa: chi è aperto (Charles, la radio, il pannello)
          ferma il museo sotto. Va prima di main.js e di charles.js:
          ognuno si registra qui, e i cicli chiedono a questo se il
@@ -198,6 +222,12 @@
     <!-- Charles: il punto di domanda. Va per ultimo: si costruisce da
          solo, e legge la sala corrente dal motore quando lo apri -->
     <script src="museo/charles.js?v=17"></script>
+=======
+    <script src="museo/main.js?v=14"></script>
+    <!-- Charles: il punto di domanda. Va per ultimo: si costruisce da
+         solo, e legge la sala corrente dal motore quando lo apri -->
+    <script src="museo/charles.js?v=13"></script>
+>>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     <script>
         // Il museo si accende subito senza schermata iniziale di scelta
         window.addEventListener("load", function () {
