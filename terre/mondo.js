@@ -158,53 +158,25 @@
   T.tasti = tasti;
 
   /* ============================================================
-     LA RADIO — il tasto R, in tutte le terre
-     La stazione è quella del museo (`museo/radio.js`): stesso mazzo
-     mescolato, stesso lettore, le stesse canzoni di RadioKaoSs. Qui si
-     accende e si spegne come nel corridoio, e vale in ogni zona — la
-     spiaggia, il bosco, le fabbriche, Lucidus City.
-     I pezzi però sono scritti per la pagina di sopra, che sta nella
-     radice; le terre stanno un gradino più giù (`terre/index.html`), e
-     la strada si aggiusta una volta sola, al primo R.
+     LA MUSICA
+     Nelle terre non c'è una radio da accendere: c'è il suono del
+     posto (suono.js), che parte al primo gesto e si abbassa da solo
+     quando meni le mani. Un tasto che apriva una seconda stazione
+     sopra il mondo era una cosa in più da spiegare, e nella spiaggia
+     onirica faceva il paio con la musica del locale: via.
      ============================================================ */
-  var radioPronta = false, radioVol = null;
-  function accendiRadio() {
-    var RAD = M.RADIO;
-    if (!RAD || !RAD.toggle) return false;
-    if (!radioPronta) {
-      radioPronta = true;
-      var l = M.DATA && M.DATA.radio, i;
-      for (i = 0; l && i < l.length; i++) {
-        if (l[i].url && l[i].url.indexOf("../") !== 0) l[i].url = "../" + l[i].url;
-      }
-    }
-    RAD.toggle();
-    /* se suona lei, il mondo si abbassa: l'aria del posto non deve
-       litigare con la radio. Nel museo lo fa SOUND.duck; qui il volume
-       è uno solo, e si abbassa quello — e si rimette com'era quando la
-       radio si spegne */
-    if (SUONO && SUONO.volume) {
-      try {
-        if (RAD.on) {
-          if (radioVol == null) radioVol = SUONO.volume();
-          SUONO.volume(0.45);
-        } else {
-          SUONO.volume(radioVol == null ? 0.8 : radioVol);
-          radioVol = null;
-        }
-      } catch (e2) { }
-    }
-    /* il fumetto dice cosa è successo: la radio non ha un HUD qui, e
-       senza una riga R sembrerebbe non fare niente */
-    T.parla(RAD.on
-      ? t2("Radio Kaoss. Tasto R per spegnere.", "Radio Kaoss. R to turn it off.")
-      : t2("Radio Kaoss spenta.", "Radio Kaoss off."), 3.0);
-    return true;
-  }
 
   var attoPremuto = false;
   T.premi = function (k, on) {
     k = String(k || "").toLowerCase();
+    /* LA PAUSA — con Charles o la radio aperti i tasti sono della
+       finestra: il mondo non li ascolta, e quelli che erano giù si
+       lasciano andare (keydown e keyup, così non resta niente
+       premuto). Il perché sta in museo/sosta.js. */
+    if (M.SOSTA && M.SOSTA.fermo && M.SOSTA.fermo()) {
+      svuotaTasti();
+      return;
+    }
     /* il primo tasto non muove solo il coniglio: accende anche il
        posto in cui è */
     if (on) accendiSuono();
@@ -232,14 +204,26 @@
       tasti.fuoco = on;
       if (on) T.batte();
     }
-    else if (k === "r") {
-      /* R è la radio, come nel corridoio: la stessa stazione, in tutte
-         le terre. Se non c'è niente da suonare il tasto non fa niente,
-         invece di cambiare arma di nascosto */
-      if (on) accendiRadio();
+    else if (k === "1" || k === "2" || k === "3") {
+      /* i numeri scelgono l'arma e non la girano: 1 è la gomma, 2 le
+         forbici, 3 l'acqua — l'ordine in cui si trovano appese ai
+         chiodi. C resta il tasto che gira, per chi non vuole contare */
+      if (on) T.scegliArma(Number(k) - 1);
     }
     else if (k === "c") { if (on) T.cambiaArma(); }
   };
+
+  /* nessun tasto resta premuto: si usa quando si apre una finestra
+     (Charles, la radio) e quando si chiude — il coniglio non deve
+     partire di corsa perché la freccia era giù mentre si leggeva */
+  function svuotaTasti() {
+    tasti.left = tasti.right = tasti.run = false;
+    tasti.avanti = tasti.indietro = false;
+    tasti.strafeL = tasti.strafeR = false;
+    tasti.fuoco = false;
+    attoPremuto = false;
+  }
+  T.svuotaTasti = svuotaTasti;
 
   function inTreD() { return !!(zona && zona.mod && zona.mod.treD); }
 
@@ -1141,7 +1125,39 @@
     },
     /* il passo: conta la strada E il tempo, così le gambe non
        pattinano e non restano ferme mentre il corpo avanza */
-    passo: function (x, t) { return x / 34 + t * 2.6; }
+    passo: function (x, t) { return x / 34 + t * 2.6; },
+
+    /* ============================================================
+       LA STATURA — di che misura è un uomo del corteo
+       `sagomaLampada` è alta 138 unità per ogni unità di scala, e la
+       scala la passava la zona, scritta a mano: 0.60 in città, 0.58
+       fra le rovine, 0.62 sulla sabbia, 0.72 sulle scale della metro.
+       Erano numeri in PIXEL, e il coniglio no: lui si misura in unità
+       di mondo (92 unità per un millesimo dell'altezza della
+       finestra), quindi su una finestra alta cresceva lui e non loro —
+       le sagome restavano ottantasette pixel, e accanto al coniglio
+       diventavano bambole. E la stessa persona cambiava statura
+       passando da una zona all'altra, che è peggio.
+
+       Adesso la statura la decide il corteo, una volta sola: un uomo è
+       poco più alto del coniglio, e lo è su qualunque schermo e in
+       tutte le zone. `ps` è la scala del posto (`posto(d).s`), cioè la
+       profondità: chi cammina più indietro è un po' più basso, e in
+       fila si vede — la fila ha uno spessore, non è un fregio.
+       ============================================================ */
+    statura: 1.34,      /* quante volte il coniglio è alto un uomo */
+    coniglio: 92,       /* l'altezza del coniglio, in unità di mondo */
+    disegno: 138,       /* quanto è alta `sagomaLampada` a scala 1 */
+    /* 1.10 è `posto(0.74).s`: la profondità della strada, quella su
+       cui si misurano tutti. Lì la scala è esattamente `scala()` */
+    fondoStrada: 1.10,
+    altezza: function () { return T.H() * (this.coniglio / 1000) * this.statura; },
+    /* la scala da dare al disegno: senza argomento è quella della
+       strada, con `ps` tiene conto di quanto è lontano chi cammina */
+    scala: function (ps) {
+      var k = this.altezza() / this.disegno;
+      return ps == null ? k : k * (ps / this.fondoStrada);
+    }
   };
   T.CORTEO = CORTEO;
 
@@ -1448,14 +1464,31 @@
 
 
   /* C gira fra le tre cose che hai davvero: la gomma, le forbici e
-     la pistola ad acqua. (R è la radio, da quando la radio si sente
-     anche qui.) */
+     la pistola ad acqua. */
   T.cambiaArma = function () {
     var p = possedute();
     if (!p.length) return "niente";
     var dove = p.indexOf(T.arma());
     armaScelta = p[(dove + 1) % p.length];
     snd("arma");
+    return armaScelta;
+  };
+
+  /* QUALE ARMA, SENZA GIRARE. I tasti 1, 2 e 3 mettono in mano la
+     prima, la seconda o la terza cosa che hai staccato dai chiodi:
+     l'ordine è quello in cui le hai trovate — gomma, forbici, acqua —
+     e non cambia. Se il numero non c'è (o quell'arma non ce l'hai) la
+     mano resta com'è: non si passa a un'altra arma di nascosto. C
+     resta il tasto che gira, per chi non vuole contare. */
+  T.scegliArma = function (i) {
+    var p = possedute();
+    if (!p.length) return "niente";
+    i = Math.round(i);
+    if (!(i >= 0 && i < p.length)) return T.arma();
+    if (armaScelta !== p[i]) {
+      armaScelta = p[i];
+      snd("arma");
+    }
     return armaScelta;
   };
 
@@ -1809,6 +1842,67 @@
   };
 
   /* ============================================================
+     IL VETRO — il tubo del museo, sopra il disegno
+     Le terre avevano il velo CSS (style.css, #vhs) e basta: righe,
+     croma e grana, ma piatto, senza curvatura. Il museo no: lì il
+     fotogramma è una texture e passa in uno shader che lo piega come
+     un tubo — fosfori, aberrazione, scanline, polvere, vignetta. È la
+     stessa roba (museo/gl.js, museo/fx.js) chiamata con gli stessi
+     numeri del corridoio: nessuna taratura per zona, perché il sito
+     è uno.
+
+     Il composito non impasta niente: prende il fotogramma intero e ci
+     mette sopra il velo. Quindi ci passa dentro tutto — la zona, le
+     bestie, il coniglio, i fumetti — e nessuna zona lo sa.
+
+     Senza WebGL (o con ?vetro=0) VETRO.on resta falso, il canvas non
+     si vede, e resta il velo CSS di prima: identico a ieri, non un
+     ripiego diverso.
+     ============================================================ */
+  var vetroCv = doc.getElementById("vetro");
+  var VETRO = { on: false, provato: false, tex: null };
+
+  function vetroAccendi() {
+    if (VETRO.provato) return VETRO.on;
+    VETRO.provato = true;
+    if (!vetroCv || !M.GL || !M.FX) return false;
+    if (T.query && T.query("vetro") === "0") return false;
+    if (!M.GL.init(vetroCv)) return false;
+    if (!M.FX.init()) return false;
+    VETRO.tex = M.GL.fromCanvas(cv);
+    if (!VETRO.tex) return false;
+    VETRO.on = true;
+    return true;
+  }
+
+  /* i numeri sono quelli del corridoio (museo/main.js, il velo):
+     damage 0.38, scan 1, grain 0.03, vig 0.32, desat 0.12. Se il museo
+     cambia look, si cambia là e qui insieme — non sono due tarature */
+  function vetroDisegna(t) {
+    if (!vetroAccendi()) return;
+    try {
+      M.GL.resize(cv.width, cv.height);
+      M.GL.upload(VETRO.tex, cv);
+      M.FX.composite(VETRO.tex, {
+        time: t,
+        damage: 0.38,
+        scan: 1,
+        grain: 0.03,
+        vig: 0.32,
+        desat: 0.12,
+        zoom: 0
+      });
+      /* il vetro si fa vedere solo adesso: ha già un fotogramma dentro */
+      if (doc.body && doc.body.classList) doc.body.classList.add("vetro");
+    } catch (e) {
+      /* il tubo non regge: si torna al velo CSS, e non si riprova */
+      VETRO.on = false;
+      if (doc.body && doc.body.classList) doc.body.classList.remove("vetro");
+      if (root.console && console.warn) console.warn("[vetro]", e);
+    }
+  }
+
+  /* ============================================================
      IL CICLO
      Una zona, un fotogramma. Il tempo è di tutti, lo stato è della
      macchina: se una zona non c'è, non si disegna niente.
@@ -1819,6 +1913,19 @@
     var t = ts / 1000;
     var dt = ultimo ? Math.min(0.05, t - ultimo) : 0.016;
     ultimo = t;
+
+    /* LA PAUSA — Charles o la radio aperti: il tempo delle terre non
+       passa. Si continua a chiedere il fotogramma (l'ultimo disegno
+       resta dov'è, e non si vede un lampo nero), ma niente si muove:
+       né il coniglio, né le bestie, né le lampadine, né i proiettili.
+       `ultimo` è già aggiornato, quindi alla riapertura il primo dt è
+       quello di un fotogramma, non di dieci secondi. I tasti giù si
+       lasciano andare: chi chiude la finestra non si trova già
+       dall'altra parte della zona. */
+    if (M.SOSTA && M.SOSTA.fermo && M.SOSTA.fermo()) {
+      svuotaTasti();
+      return;
+    }
 
     passoFade(dt);
     if (mortoT > 0) mortoT = Math.max(0, mortoT - dt);
@@ -1836,8 +1943,8 @@
         if (m.update) m.update(dt, t);
         m.draw(t, dt);
       } else if (!fade.verso || fade.a < 1) {
-        /* dove il coniglio non c'è non si cammina: in cabina le gambe
-           stanno ferme, e i passi non si sentono */
+        /* dove il coniglio non c'è non si cammina: sul treno, o durante
+           una scena, le gambe stanno ferme e i passi non si sentono */
         if (!m.senzaConiglio) passoConiglio(dt);
         /* la vista torna al centro da sola, piano: chi guarda di lato
            sta guardando, non ha cambiato posto */
@@ -1900,6 +2007,9 @@
 
     /* e il puntatore, che il sistema non disegna più */
     mirino(t);
+
+    /* per ultimo il vetro: il fotogramma è finito, e passa nel tubo */
+    vetroDisegna(t);
   }
 
   /* ============================================================

@@ -120,27 +120,24 @@
        poi spariscono per minuti. Camminano sempre, e il giro si
        richiude quando sono già dentro il quadro: si vedono andare
        per l'orizzonte, uno dietro l'altro, oltre i palazzi — la
-       lumaca davanti e il carro dietro, che non la raggiunge mai. */
+       lumaca davanti e il carro dietro, che non la raggiunge mai.
+       A passo d'uomo ci mettevano un minuto e mezzo ad attraversare
+       lo schermo, e sembravano fermi: mo' vanno a trentaquattro
+       pixel al secondo, che è ancora piano per uno che scappa, e si
+       vede che si muovono. */
     var giro = W + 1800;
-    var lx = ((t * 11 + 620) % giro) - 900 - cx * 0.05;
-    var ly = or + 6;
+    var lx = ((t * 34 + 620) % giro) - 900 - cx * 0.05;
+    var ly = or + 4;
 
     if (lx < -900 * s * 0.5 || lx > W + 900 * s * 0.5) return;
-
-    /* la bava: una riga chiara che si perde nell'acqua, e non
-       finisce mai di arrivare */
-    var bava = c.createLinearGradient(lx - 620 * s, 0, lx, 0);
-    bava.addColorStop(0, "rgba(210,220,206,0)");
-    bava.addColorStop(1, "rgba(210,220,206,0.15)");
-    c.fillStyle = bava;
-    c.fillRect(lx - 620 * s, ly - 3, 620 * s, 5);
 
     /* il carro armato, DIETRO di lei e grande quanto lei: la canna
        è lunga una via, i cingoli alzano una polvere che non arriva
        a nessuno. Non la raggiunge mai — è l'unica caccia che si può
        seguire stando fermi a guardarla, e la si guarda passare
-       oltre i tetti */
-    carroArmato(c, lx - 210 * s, ly + 1.5 * s, s * 1.02, t, 2.3);
+       oltre i tetti. I cingoli toccano l'acqua come il piede di lei:
+       sono due sagome nere, e sotto la riga non si vede niente. */
+    carroArmato(c, lx - 210 * s, ly, s * 1.02, t, 2.3);
 
     T.orrore.lumacaOrizzonte(c, lx, ly, s, 1.9, t);
   }
@@ -398,60 +395,84 @@
      LA ZONA
      ============================================================ */
   /* il carro armato che insegue la lumaca: cingoli, torretta, canna
-     verso avanti, e la polvere dietro. Va piano, come lei. */
+     verso avanti, e la polvere dietro. È nero controluce come lei:
+     due sagome che attraversano l'orizzonte una dietro l'altra, e
+     non si raggiungono mai. Prima aveva il corpo grigio, le ruote
+     disegnate e la canna corta: sembrava un modellino appoggiato al
+     mare. Adesso è solo un buco nella luce — contano il profilo e la
+     polvere, che è l'unica cosa chiara perché è acqua alzata. */
   function carroArmato(c, x, y, s, t, seed) {
-    var rombo = Math.sin(t * 9 + seed) * 1.6 * s;
+    var rombo = Math.sin(t * 9 + seed) * 1.2 * s;
+    var nero = "rgba(3,3,5,0.98)";
+    var i, q;
+
     c.save();
     c.translate(x, y + rombo);
 
-    /* la polvere che alza */
-    for (var i = 0; i < 5; i++) {
-      var q = ((t * 0.5 + i * 0.2) % 1);
-      c.fillStyle = "rgba(180,170,150," + (0.12 * (1 - q)).toFixed(3) + ")";
+    /* la polvere: si stacca dietro i cingoli e resta indietro,
+       sempre più larga e sempre più spenta */
+    for (i = 0; i < 6; i++) {
+      q = (t * 0.34 + i / 6) % 1;
+      c.fillStyle = "rgba(172,166,150," + (0.13 * (1 - q)).toFixed(3) + ")";
       c.beginPath();
-      c.arc(-46 * s - q * 60 * s, -12 * s - q * 18 * s, (8 + q * 20) * s, 0, 6.3);
+      c.arc(-58 * s - q * 84 * s, -6 * s - q * 30 * s, (9 + q * 26) * s, 0, 6.3);
       c.fill();
     }
 
-    /* i cingoli, e le ruote che girano */
-    c.fillStyle = "#14120f";
+    /* i cingoli: una fascia piena. I denti non si contano, perché
+       il nero è nero: quello che si legge è il contorno */
+    c.fillStyle = nero;
     c.beginPath();
-    c.ellipse(0, -13 * s, 52 * s, 15 * s, 0, 0, 6.3);
+    c.ellipse(0, -13 * s, 54 * s, 16 * s, 0, 0, 6.3);
     c.fill();
-    c.strokeStyle = "rgba(200,196,180,0.18)";
+    c.strokeStyle = "rgba(198,196,182,0.09)";
     c.lineWidth = 2 * s;
-    for (var k = 0; k < 5; k++) {
-      var an = t * 3 + k * 1.26;
-      c.beginPath();
-      c.arc(Math.cos(an) * 34 * s, -13 * s, 6 * s, 0, 6.3);
-      c.stroke();
-    }
+    c.stroke();
 
-    /* il corpo */
-    c.fillStyle = "#2a2c26";
+    /* il corpo: la piastra davanti è più alta della coda */
+    c.fillStyle = nero;
     c.beginPath();
-    c.moveTo(-48 * s, -24 * s);
-    c.lineTo(46 * s, -24 * s);
-    c.lineTo(38 * s, -44 * s);
-    c.lineTo(-42 * s, -44 * s);
+    c.moveTo(-50 * s, -22 * s);
+    c.lineTo(48 * s, -22 * s);
+    c.lineTo(40 * s, -46 * s);
+    c.lineTo(-44 * s, -46 * s);
     c.closePath();
     c.fill();
 
-    /* la torretta, e la canna che punta avanti */
-    c.fillStyle = "#232520";
-    c.fillRect(-18 * s, -66 * s, 34 * s, 22 * s);
-    c.fillRect(14 * s, -60 * s, 56 * s, 6 * s);
-    c.fillStyle = "rgba(230,226,208,0.10)";
-    c.fillRect(-18 * s, -66 * s, 34 * s, 2 * s);
+    /* la torretta, con la schiena inclinata all'indietro */
+    c.beginPath();
+    c.moveTo(-22 * s, -46 * s);
+    c.lineTo(20 * s, -46 * s);
+    c.lineTo(14 * s, -68 * s);
+    c.lineTo(-16 * s, -68 * s);
+    c.closePath();
+    c.fill();
+    /* il portello, aperto: qualcuno è uscito, o non è mai entrato */
+    c.fillRect(-14 * s, -74 * s, 12 * s, 7 * s);
 
-    /* il fumo, che sale storto */
-    for (var f = 0; f < 3; f++) {
-      var q2 = ((t * 0.8 + f * 0.33) % 1);
-      c.fillStyle = "rgba(120,118,110," + (0.16 * (1 - q2)).toFixed(3) + ")";
+    /* la canna, lunga una via, e il freno di bocca in punta */
+    c.fillRect(12 * s, -62 * s, 78 * s, 5 * s);
+    c.fillRect(84 * s, -65 * s, 8 * s, 11 * s);
+
+    /* l'antenna, piegata all'indietro dal vento che non c'è */
+    c.strokeStyle = nero;
+    c.lineWidth = 2.2 * s;
+    c.lineCap = "round";
+    c.beginPath();
+    c.moveTo(-18 * s, -68 * s);
+    c.quadraticCurveTo(-34 * s, -96 * s, -52 * s, -104 * s);
+    c.stroke();
+    c.lineCap = "butt";
+
+    /* il fumo, che sale storto: l'unica cosa che dice che è vivo */
+    for (i = 0; i < 3; i++) {
+      q = (t * 0.7 + i / 3) % 1;
+      c.fillStyle = "rgba(118,116,108," + (0.14 * (1 - q)).toFixed(3) + ")";
       c.beginPath();
-      c.arc(-14 * s + q2 * 16 * s, -72 * s - q2 * 42 * s, (5 + q2 * 12) * s, 0, 6.3);
+      c.arc(-12 * s + q * 20 * s, -80 * s - q * 48 * s, (6 + q * 14) * s, 0, 6.3);
       c.fill();
     }
+
     c.restore();
   }
 
@@ -957,6 +978,10 @@
         sx = o.x - cx;
         if (sx < -140 || sx > W + 140) continue;
         p = posto(o.d);
+        /* la statura la dà il corteo: gli omini della sabbia sono alti
+           come quelli del bosco, delle rovine e della città — qui la
+           differenza è solo la profondità a cui camminano */
+        var sc = T.CORTEO.scala(p.s);
         if (o.bestia && !o.bestia.vivo) {
           /* cancellato: sulla sabbia resta il rettangolo di gomma,
              e la valigia resta dov'era */
@@ -974,14 +999,14 @@
           } else {
             T.orrore.pozza(c, sx, p.y, 60 * p.s, o.seed, t);
           }
-          valigia(c, sx + 30 * p.s * 0.6, p.y, p.s * 0.6, o.seed);
+          valigia(c, sx + 30 * sc, p.y, sc, o.seed);
           continue;
         }
         var vic = Math.abs(T.g.x - o.x) < 110;
-        T.orrore.sagomaLampada(c, sx, p.y, p.s * 0.62, o.seed, t, vic, o.passo);
+        T.orrore.sagomaLampada(c, sx, p.y, sc, o.seed, t, vic, o.passo);
         /* e la luce che si portano dietro si vede sulla sabbia */
         if (T.luce) {
-          T.luce(c, sx + 18 * p.s * 0.62, p.y + 2, 80 * p.s, "255,196,124",
+          T.luce(c, sx + 18 * sc, p.y + 2, 80 * p.s, "255,196,124",
             vic ? 0.13 : 0.07, 0.22);
         }
       }

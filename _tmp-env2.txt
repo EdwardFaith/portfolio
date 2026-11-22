@@ -1,9 +1,0 @@
-﻿41: (uscitaT), poi si rinasce (T.reincarna) */
-105: LA VOLTA — le chiome, in fondo: una massa nera e irregolare che
-660: T.registra("tempio", {
-666: fondo: suolo,
-685: T.parla(t2("«te la sei cercata.» dice il coniglio.", "«you asked for it.» says the rabbit."), 4);
-707: if (uscitaT <= 0) T.reincarna();
-743: T.parla(t2("«allora vieni.»", "«then come.»"), 0.9, LEI);
-750: T.parla(t2("«il bosco è grande. puoi restare quanto vuoi.» dice la donna.",
-753: T.parla(t2("«allora resta.» dice la donna, e non insiste.",

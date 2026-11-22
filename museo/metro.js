@@ -2176,15 +2176,93 @@
      tutto, si disegna la scena per dieci secondi, e alla fine si va
      alle terre. La stazione, dietro, resta dov'era.
      ============================================================ */
-  /* opt.inverso — il viaggio al contrario. Non si va da nessuna parte:
-     è la stessa pellicola girata all'indietro, senza scritte, e alla
-     fine si resta sulla banchina da cui il treno è appena ripartito.
-     Lo usa chi torna dalle terre: là si sale, il treno parte in
-     retromarcia, e di qua il nastro si riavvolge. */
+  /* opt.inverso — il viaggio al contrario: la stessa pellicola girata
+     all'indietro, senza scritte, e alla fine si resta sulla banchina da
+     cui il treno è appena ripartito.
+     LO USAVA l'arrivo in hub di chi tornava dalle terre. Adesso no: chi
+     torna ha appena guidato il treno per tutta la galleria, e mettergli
+     davanti dieci secondi di film — dopo un lampo dell'hub com'era —
+     voleva dire rifare al rovescio un viaggio che era già stato gioco.
+     Il meccanismo resta (è la stessa pellicola, non costa niente), ma
+     l'arrivo lo salta: vedi museo/main.js, begin() */
+  /* ============================================================
+     11d. IL VELO DEL CORRIDOIO, SOPRA IL VAGONE
+     Il viaggio era l'unica scena del sito senza l'aria del museo: un
+     disegno piatto, senza lampade che sfarfallano, senza polvere,
+     senza il nastro che perde la testa. Qui si stende sul fotogramma
+     la stessa materia dell'hub — il calore delle lampade al sodio, la
+     grana, le righe del tubo, la vignetta — e sopra la tela resta
+     acceso anche il velo CSS (#vhs), lo stesso del corridoio.
+     ============================================================ */
+  var righe = null;
+
+  function veloHub(c, s, t) {
+    var W = s.W, H = s.H, i;
+
+    /* le righe del tubo: un pattern, non un rettangolo per riga */
+    if (!righe) {
+      var pcv = root.document.createElement("canvas");
+      pcv.width = 4; pcv.height = 3;
+      var pc = pcv.getContext("2d");
+      pc.fillStyle = "rgba(0,0,0,0.13)";
+      pc.fillRect(0, 2, 4, 1);
+      righe = c.createPattern(pcv, "repeat");
+    }
+
+    /* il calore delle lampade al sodio: il corridoio è giallo */
+    c.save();
+    c.globalCompositeOperation = "overlay";
+    c.fillStyle = "rgba(207,161,74,0.12)";
+    c.fillRect(0, 0, W, H);
+    c.restore();
+
+    /* la lampada che sfarfalla: due periodi che non cadono insieme */
+    var flick = 0.5 + 0.5 * Math.sin(t * 7.3) * Math.sin(t * 2.1 + 0.7);
+    if (flick < 0.18) {
+      c.fillStyle = "rgba(0,0,0," + ((0.18 - flick) * 0.9).toFixed(3) + ")";
+      c.fillRect(0, 0, W, H);
+    }
+
+    /* la polvere del museo: puntini che scorrono col vagone */
+    c.fillStyle = "rgba(236,240,232,0.20)";
+    for (i = 0; i < 46; i++) {
+      var px2 = ((i * 97.3 + t * (18 + (i % 5) * 9)) % (W + 40)) - 20;
+      var py2 = (i * 61.7 + Math.sin(i + t * 0.7) * 18) % H;
+      c.fillRect(px2, py2, 1, 1);
+    }
+
+    /* le righe del tubo */
+    if (righe) {
+      c.fillStyle = righe;
+      c.fillRect(0, 0, W, H);
+    }
+
+    /* il nastro che perde la testa: una banda chiara che scende */
+    var banda = (((t * 0.14) % 1.4) - 0.2) * H;
+    var bg = c.createLinearGradient(0, banda - H * 0.16, 0, banda + H * 0.16);
+    bg.addColorStop(0, "rgba(255,255,255,0)");
+    bg.addColorStop(0.48, "rgba(255,255,255,0.028)");
+    bg.addColorStop(0.52, "rgba(255,255,255,0.070)");
+    bg.addColorStop(1, "rgba(255,255,255,0)");
+    c.fillStyle = bg;
+    c.fillRect(0, banda - H * 0.16, W, H * 0.32);
+
+    /* la vignetta: il tubo non è mai chiaro agli angoli */
+    var vg = c.createRadialGradient(W * 0.5, H * 0.5, Math.min(W, H) * 0.28,
+      W * 0.5, H * 0.5, Math.max(W, H) * 0.78);
+    vg.addColorStop(0, "rgba(0,0,0,0)");
+    vg.addColorStop(0.72, "rgba(0,0,0,0.10)");
+    vg.addColorStop(1, "rgba(0,0,0,0.52)");
+    c.fillStyle = vg;
+    c.fillRect(0, 0, W, H);
+  }
+
   function parti(opt) {
     if (viaggio) return;
     stato = "viaggio";
     viaggio = { inizio: 0, inverso: !!(opt && opt.inverso) };
+    /* ogni viaggio ha la sua tela: il pattern delle righe si rifà */
+    righe = null;
     rombo(true, 0.16);
     if (M.SOUND && M.SOUND.duck) { try { M.SOUND.duck(true); } catch (e) { } }
 
@@ -2193,9 +2271,12 @@
     tela.id = "metro-viaggio";
     tela.setAttribute("aria-hidden", "true");
     tela.style.cssText =
-      "position:fixed;inset:0;z-index:9999;width:100%;height:100%;" +
+      "position:fixed;inset:0;z-index:9998;width:100%;height:100%;" +
       "background:#000;pointer-events:auto;cursor:none";
     doc.body.appendChild(tela);
+    /* il velo VHS del museo resta acceso sopra il vagone: è la stessa
+       aria del corridoio (terre/style.css, body.in-viaggio #vhs) */
+    if (doc.body.classList) doc.body.classList.add("in-viaggio");
     var c2 = tela.getContext("2d");
     var W = 1, H = 1, dpr = 1;
 
@@ -2259,6 +2340,7 @@
       }
       if (bottone && bottone.parentNode) bottone.parentNode.removeChild(bottone);
       if (tela.parentNode) tela.parentNode.removeChild(tela);
+      if (doc.body && doc.body.classList) doc.body.classList.remove("in-viaggio");
       if (M.SOUND && M.SOUND.duck) { try { M.SOUND.duck(false); } catch (e) { } }
       if (vai) {
         /* il museo sta nella radice del sito: le terre sono una
@@ -2297,11 +2379,11 @@
          pagina è il bersaglio vero, la finestra no) */
       if (e.stopImmediatePropagation) e.stopImmediatePropagation();
       if (e.stopPropagation) e.stopPropagation();
-      if (k === "Escape" || k === "Esc") {
-        if (e.preventDefault) e.preventDefault();
-        scendi();
-        return;
-      }
+      /* ---- niente più ESC -------------------------------------
+         Si scende col bottone ✕, che c'è anche col dito: Esc era un
+         secondo modo di fare la stessa cosa, e su molte pagine è già
+         del browser (schermo intero, menu). Durante il viaggio i tasti
+         restano fermi qui e non arrivano al museo. */
       var verso = 0;
       if (k === "ArrowLeft" || k === "a" || k === "A") verso = -1;
       else if (k === "ArrowRight" || k === "d" || k === "D") verso = 1;
@@ -2311,9 +2393,10 @@
     }
     if (root.addEventListener) root.addEventListener("keydown", tasto, true);
 
-    /* il bottone per scendere: col dito non c'è l'ESC. È un glifo e
-       basta — nel viaggio non si legge una parola. Al ritorno non c'è:
-       quel nastro finisce da solo, e non porta da nessuna parte */
+    /* il bottone per scendere: è l'unico modo, ora che ESC non c'è
+       più. È un glifo e basta — nel viaggio non si legge una parola. Al
+       ritorno il bottone non c'è: quel nastro finisce da solo, e non
+       porta da nessuna parte */
     var bottone = null;
     if (!viaggio.inverso) {
       bottone = doc.createElement("button");
@@ -2322,7 +2405,7 @@
       bottone.setAttribute("aria-label", t2("scendi", "get off"));
       bottone.title = t2("scendi", "get off");
       bottone.style.cssText =
-        "position:fixed;right:18px;bottom:18px;z-index:10000;font:inherit;" +
+        "position:fixed;right:18px;bottom:18px;z-index:10001;font:inherit;" +
         "font-size:13px;line-height:1;width:34px;height:34px;padding:0;" +
         "color:rgba(231,226,214,0.42);background:rgba(8,8,10,0.34);" +
         "border:1px solid rgba(231,226,214,0.14);border-radius:50%;cursor:pointer";
@@ -2397,6 +2480,9 @@
       sagome(c2, s, el);
       pali(c2, s, el);
       sudiciume(c2, s);
+      /* e sopra tutto la materia del corridoio: lampade, polvere,
+         righe del tubo, nastro, vignetta */
+      veloHub(c2, s, el);
 
       /* il nero dei primi istanti: le porte si sono appena chiuse. Al
          ritorno il nero sta all'inizio del nastro, cioè adesso */

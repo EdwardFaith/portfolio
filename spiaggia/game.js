@@ -21,6 +21,52 @@
   var ctx = canvas.getContext("2d", { alpha: false });
   var dpr = 1;
 
+  /* ============================================================
+     IL VETRO — il tubo del museo (museo/gl.js, museo/fx.js)
+     La spiaggia aveva il velo CSS (#crt): righe, vignetta, un filo di
+     sfarfallio — piatto, senza curvatura. Il museo no: lì il
+     fotogramma è una texture e passa in uno shader che lo piega come
+     un tubo. È la stessa roba, chiamata con gli stessi numeri del
+     corridoio: nessuna taratura per sezione, perché il sito è uno.
+     Senza WebGL (o con ?vetro=0) VETRO.on resta falso e vale #crt.
+     ============================================================ */
+  var vetroCv = document.getElementById("vetro");
+  var VETRO = { on: false, provato: false, tex: null };
+
+  function vetroAccendi() {
+    if (VETRO.provato) return VETRO.on;
+    VETRO.provato = true;
+    var M = root.MUSEO;
+    if (!vetroCv || !M || !M.GL || !M.FX) return false;
+    if (String((root.location && root.location.search) || "").indexOf("vetro=0") >= 0) return false;
+    if (!M.GL.init(vetroCv)) return false;
+    if (!M.FX.init()) return false;
+    VETRO.tex = M.GL.fromCanvas(canvas);
+    if (!VETRO.tex) return false;
+    VETRO.on = true;
+    return true;
+  }
+
+  /* gli stessi numeri del corridoio (museo/main.js, il velo) */
+  function vetroDisegna(t) {
+    if (!vetroAccendi()) return;
+    var M = root.MUSEO;
+    try {
+      M.GL.resize(canvas.width, canvas.height);
+      M.GL.upload(VETRO.tex, canvas);
+      M.FX.composite(VETRO.tex, {
+        time: t, damage: 0.38, scan: 1, grain: 0.03,
+        vig: 0.32, desat: 0.12, zoom: 0
+      });
+      /* il vetro si fa vedere solo adesso: ha già un fotogramma dentro */
+      if (document.body && document.body.classList) document.body.classList.add("vetro");
+    } catch (e) {
+      VETRO.on = false;
+      if (document.body && document.body.classList) document.body.classList.remove("vetro");
+      if (root.console && console.warn) console.warn("[vetro]", e);
+    }
+  }
+
   var mode = "intro";              /* intro | hub | arena */
   var powers = SP.Powers.create();
   var arena = null;
@@ -359,7 +405,7 @@
     setScene("tavolo · " + slot.short.toLowerCase());
     setObjective("SOPRAVVIVI", "42 s");
     elObj.classList.add("is-fight");
-    setPrompt("SPAZIO / clic — spada · 1 2 3 4 — poteri · ESC — alzati");
+    setPrompt("SPAZIO / clic — spada · ESC — alzati");
     elPowers.classList.add("is-on");
     sfx("table");
 
@@ -394,7 +440,7 @@
     setScene("tavolo · la donna");
     setObjective("ONDATA 1", arena.waveTotal + " da stendere");
     elObj.classList.add("is-fight");
-    setPrompt("SPAZIO / clic — spada · 1 2 3 4 — tutti e quattro i poteri · ESC — alzati");
+    setPrompt("SPAZIO / clic — spada · ESC — alzati");
     elPowers.classList.add("is-on");
     sfx("table");
     if (SP.Sound && SP.Sound.duck) { try { SP.Sound.duck(true); } catch (e) { } }
@@ -415,7 +461,11 @@
     setPrompt("");
     setObjective("MINIGIOCHI CHIUSI", powers.wonCount() + " / 4");
     elObj.classList.remove("is-fight");
-
+    /* I QUATTRO TASTI TORNANO A CASA. I poteri si usano solo seduti a
+       un tavolo: alzandosi, la fila di riquadri in basso a sinistra
+       resta lì a dire «1 2 3 4» per niente, sopra la sabbia. Si
+       spengono, e si riaccendono al tavolo dopo. */
+    elPowers.classList.remove("is-on");
     /* si è alzati: il vento torna su */
     if (SP.Sound && SP.Sound.duck) { try { SP.Sound.duck(false); } catch (e) { } }
 
@@ -570,15 +620,17 @@
     elIntro.classList.add("is-off");
     window.setTimeout(function () { elIntro.style.display = "none"; }, 900);
     if (elStart.blur) elStart.blur();
-    elPowers.classList.add("is-on");
     setScene("hub");
     setObjective("MINIGIOCHI CHIUSI", powers.wonCount() + " / 4");
     if (SP.Sound) SP.Sound.unlock();
     windOn();
     sfx("ui");
-    var first = powers.nextIndex();
-    toast("WASD — muoversi · SPAZIO o clic — spada · E — tavoli e persone · 1 2 3 4 — poteri" +
-      (first >= 0 ? " · si comincia dal " + powers.slots[first].table.toLowerCase() : ""), 8);
+    /* una riga sola, e corta: chi ha bisogno del resto lo chiede a
+       Charles (il «?» in basso a destra). Prima qui si leggeva un
+       manuale — WASD, spada, tavoli, poteri, e perfino da quale tavolo
+       cominciare — e i quattro riquadri dei poteri si accendevano
+       subito, su una sabbia dove non servono a niente. */
+    toast("WASD — muoversi · E — tavoli · SPAZIO — spada", 6);
   }
 
   elStart.addEventListener("click", startGame);
@@ -752,6 +804,18 @@
     var dt = last ? (now - last) / 1000 : 0.016;
     last = now;
     if (dt > 0.05) dt = 0.05;
+
+    /* LA PAUSA — Charles o la radio aperti (museo/sosta.js): la
+       spiaggia sotto non si muove, le ombre non arrivano, il tempo
+       dell'arena non scende, e la musica del tavolo resta dov'è. Il
+       fotogramma si richiede lo stesso: l'ultimo disegno resta a
+       schermo, invece di un canvas fermo che nessuno ridisegna. `last`
+       è già aggiornato: quando si chiude, il primo dt è normale. */
+    if (root.MUSEO && root.MUSEO.SOSTA && root.MUSEO.SOSTA.fermo()) {
+      requestAnimationFrame(frame);
+      return;
+    }
+
     time += dt;
 
     if (mode !== "intro") {
@@ -805,6 +869,9 @@
 
     if (mode === "arena" && arena) drawArena(time);
     else drawHub(time);
+
+    /* per ultimo il vetro: il fotogramma è finito, e passa nel tubo */
+    vetroDisegna(time);
 
     requestAnimationFrame(frame);
   }

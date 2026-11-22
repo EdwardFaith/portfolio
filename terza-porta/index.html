@@ -5,11 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PORTA 03 // L'OCCHIO</title>
   <meta name="description" content="Un labirinto di carne, quattro occhi che ti cercano. Mangia i bulbi: per venti secondi la bocca si apre e chi ti tocca diventa un boccone. Raycasting in prima persona.">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=4">
+  <!-- la schermata della radio: lo stesso tubo del museo -->
+  <link rel="stylesheet" href="../museo/radio-schermo.css?v=1">
 </head>
 <body>
   <div id="sala">
     <canvas id="tela" aria-label="Un labirinto di carne visto in prima persona"></canvas>
+    <!-- il tubo del museo, sopra il disegno (game.js, IL VETRO).
+         Senza WebGL resta il velo CSS (#velo), cioè quello di prima -->
+    <canvas id="vetro" aria-hidden="true"></canvas>
 
     <!-- righe da tubo catodico: non è un filtro, è l'aria -->
     <div id="velo"></div>
@@ -43,9 +48,25 @@
     </div>
   </div>
 
+  <script src="../museo/orienta.js?v=8"></script>
+  <!-- la pausa: la radio aperta ferma il labirinto sotto.
+       Va prima di game.js, che la chiede a ogni fotogramma -->
+  <script src="../museo/sosta.js?v=1"></script>
   <script src="sound.js"></script>
   <script src="stage.js"></script>
   <script src="avatar.js"></script>
-  <script src="game.js"></script>
+  <!-- il vetro del museo: stesso motore, stessi shader, stessi numeri.
+       Va prima di game.js, che lo chiama alla fine di ogni giro -->
+  <script src="../museo/gl.js?v=1"></script>
+  <script src="../museo/fx.js?v=1"></script>
+  <script src="game.js?v=3"></script>
+  <!-- la radio del museo: la stessa fila, lo stesso secondo, e la stessa
+       schermata del corridoio — il ◉ apre la scaletta con i tasti
+       ⏮ ▶ ⏭. Il tasto R qui non si prende (data-tasto="-"): nel
+       labirinto R è già «ricomincia», e i comandi del gioco restano
+       quelli di prima -->
+  <script src="../museo/radio-fila.js?v=1"></script>
+  <script src="../museo/radio.js?v=5"></script>
+  <script src="../museo/radio-schermo.js?v=3" data-tasto="-" data-angolo="tr"></script>
 </body>
 </html>

@@ -39,6 +39,52 @@
 
   var raf = root.requestAnimationFrame || function () { return 0; };
 
+  /* ============================================================
+     IL VETRO — il tubo del museo (museo/gl.js, museo/fx.js)
+     Il labirinto aveva il velo CSS (#velo): righe e vignetta, piatto.
+     Il museo no: lì il fotogramma è una texture e passa in uno shader
+     che lo piega come un tubo. È la stessa roba, chiamata con gli
+     stessi numeri del corridoio: nessuna taratura per sezione, perché
+     il sito è uno. Senza WebGL (o con ?vetro=0) VETRO.on resta falso
+     e vale #velo.
+     ============================================================ */
+  var vetroCv = doc ? doc.getElementById("vetro") : null;
+  var VETRO = { on: false, provato: false, tex: null };
+
+  function vetroAccendi() {
+    if (VETRO.provato) return VETRO.on;
+    VETRO.provato = true;
+    var M = root.MUSEO;
+    if (!vetroCv || !canvas || !M || !M.GL || !M.FX) return false;
+    if (String((root.location && root.location.search) || "").indexOf("vetro=0") >= 0) return false;
+    if (!M.GL.init(vetroCv)) return false;
+    if (!M.FX.init()) return false;
+    VETRO.tex = M.GL.fromCanvas(canvas);
+    if (!VETRO.tex) return false;
+    VETRO.on = true;
+    return true;
+  }
+
+  /* gli stessi numeri del corridoio (museo/main.js, il velo) */
+  function vetroDisegna(t) {
+    if (!vetroAccendi()) return;
+    var M = root.MUSEO;
+    try {
+      M.GL.resize(canvas.width, canvas.height);
+      M.GL.upload(VETRO.tex, canvas);
+      M.FX.composite(VETRO.tex, {
+        time: t, damage: 0.38, scan: 1, grain: 0.03,
+        vig: 0.32, desat: 0.12, zoom: 0
+      });
+      /* il vetro si fa vedere solo adesso: ha già un fotogramma dentro */
+      if (doc && doc.body && doc.body.classList) doc.body.classList.add("vetro");
+    } catch (e) {
+      VETRO.on = false;
+      if (doc && doc.body && doc.body.classList) doc.body.classList.remove("vetro");
+      if (root.console && console.warn) console.warn("[vetro]", e);
+    }
+  }
+
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
 
   /* ============================================================
@@ -1801,9 +1847,24 @@
     if (!ultimo) ultimo = t;
     var dt = (t - ultimo) / 1000;
     ultimo = t;
+
+    /* LA PAUSA — la radio aperta (museo/sosta.js): il labirinto sotto
+       non si muove — le cose non ti vedono, il mouse non gira la
+       testa, il tempo non passa. `ultimo` è già aggiornato, quindi
+       alla chiusura il primo dt è di un fotogramma. Il disegno si
+       salta: quello che resta sul vetro è l'ultimo fotogramma. */
+    if (root.MUSEO && root.MUSEO.SOSTA && root.MUSEO.SOSTA.fermo()) {
+      raf(giro);
+      return;
+    }
+
     if (!buf) adatta();
     passo(dt > 0 ? dt : 0.016);
     disegna();
+
+    /* per ultimo il vetro: il fotogramma è finito, e passa nel tubo */
+    vetroDisegna(t / 1000);
+
     raf(giro);
   }
 

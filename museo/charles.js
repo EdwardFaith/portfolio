@@ -11,8 +11,11 @@
 
      · I COMANDI — quelli veri, letti dai motori: il museo cammina con
        le frecce, le terre con le frecce (e colpiscono con F), la
-       spiaggia con le frecce e la spada. Charles non li inventa: li
-       ha copiati dal codice, e li tiene divisi per sezione.
+       spiaggia onirica con le frecce e la spada. Charles non li
+       inventa: li ha copiati dal codice, e li tiene divisi per sezione.
+       E le spiagge sono due, e non si somigliano: `spiaggia/` è la
+       porta della lumaca — i tavoli, i quattro poteri, le arene — e le
+       terre cominciano dalla sabbia di cenere, dai gradini della metro.
      · IL POSTO — dove sei, cosa c'è intorno, e cosa conviene fare
        adesso. Anche questo viene dal codice: le stanze del museo, le
        zone delle terre (comprese la scalinata, il preingresso, le
@@ -97,7 +100,7 @@
         ["↑  ·  W  ·  SPAZIO", "salta, e apre le porte in alto", "jump, and open the high doors"],
         ["SHIFT", "tieni premuto e corri", "hold it down and run"],
         ["E  ·  INVIO", "parla, guarda, apri, prendi", "talk, look, open, take"],
-        ["R", "accende e spegne il suono", "sound on and off"],
+        ["R", "apre la radio (se è aperta, play e pausa)", "opens the radio (if it's open, play and pause)"],
         ["Q", "apre la mappa delle sezioni", "opens the map of sections"],
         ["M", "cambia lingua", "switch language"],
         ["ESC", "chiude il pannello aperto", "closes the open panel"],
@@ -118,7 +121,7 @@
         ["SHIFT", "corri", "run"],
         ["E  ·  INVIO", "agisci: parla, raccogli, apri", "act: talk, pick up, open"],
         ["F  ·  X", "colpisci con quello che hai in mano", "hit with whatever you're holding"],
-        ["R", "cambia arma: gomma, forbici, spada", "switch weapon: eraser, scissors, sword"],
+        ["1  2  3  ·  C", "cambia arma: gomma, forbici, acqua", "switch weapon: eraser, scissors, water"],
         ["trascina", "guarda avanti e indietro", "drag to look around"],
         ["?", "sono io. e adesso ti dico dove sei", "that's me. and now I'll tell you where you are"]
       ],
@@ -132,21 +135,21 @@
         ["?", "sono io", "that's me"]
       ]
     },
-    spiaggia: {
+    /* la porta della lumaca: la spiaggia onirica. Non si salta e non si
+       corre — si cammina in quattro direzioni sulla sabbia, e si mena la
+       spada dentro le arene dei quattro tavoli */
+    spiaggia_onirica: {
       righe: [
-        ["← →  ·  A / D", "cammina", "walk"],
-        ["↑  ·  W  ·  SPAZIO", "salta", "jump"],
+        ["← →  ↑ ↓  ·  W A S D", "cammini sulla sabbia, in tutte le direzioni", "walk on the sand, in every direction"],
         ["SPAZIO  ·  J  ·  K", "mena la spada", "swing the sword"],
-        ["E  ·  INVIO", "parla, guarda, entra", "talk, look, go in"],
+        ["E  ·  INVIO", "parla a un tavolo, e ti siedi", "talk to a table, and sit down"],
+        ["CLIC", "nell'arena: il fendente va dove hai toccato", "in the arena: the slash goes where you touch"],
         ["1  2  3  4", "nell'arena: tempo, salto, amore, scudo", "in the arena: time, warp, love, shield"],
         ["ESC", "esci dall'arena", "leave the arena"],
         ["?", "sono io", "that's me"]
       ],
       dito: [
-        ["◀  ▶", "cammina", "walk"],
-        ["▲", "salta", "jump"],
-        ["✦", "spada", "sword"],
-        ["◦", "parla, guarda, entra", "talk, look, go in"],
+        ["DITO", "cammini dove tocchi, e meni la spada", "walk where you touch, and swing the sword"],
         ["?", "sono io", "that's me"]
       ]
     },
@@ -203,47 +206,89 @@
       sez: "museo",
       n: { it: "IL CORRIDOIO", en: "THE CORRIDOR" },
       d: {
-        it: "Il corridoio del museo: nove porte, un tappeto rosso e un pinguino in fondo che ti vende il portfolio come una macchina usata.",
-        en: "The museum corridor: nine doors, a red carpet, and a penguin at the far end selling you the portfolio like a used car."
+        it: "Il corridoio: otto porte numerate, la botola del sotterraneo, la metropolitana in fondo e, al centro, il pinguino che ti vende il portfolio come un'auto usata.",
+        en: "The corridor: eight numbered doors, the basement hatch, the subway at the far end and, in the middle, the penguin selling you the portfolio like a used car."
       },
       fai: {
-        it: "Scegli una porta e entra: le stanze si aprono con ↑ o E davanti alla soglia.",
-        en: "Pick a door and go in: rooms open with ↑ or E when you're on the threshold."
+        it: "Cammina con → e entra con E davanti a una porta. Non serve altro, e infatti non c'è altro.",
+        en: "Walk with → and go in with E at a door. That's all it takes, and there is nothing else."
       }
     },
     ingresso: {
       sez: "museo",
       n: { it: "L'INGRESSO", en: "THE ENTRANCE" },
       d: {
-        it: "La home appesa al muro: una E.B. grande come una lavagna, una dedica, e sei portali in fila.",
-        en: "The home page on the wall: a huge E.B., a dedication, and six portals in a row."
+        it: "La home appesa al muro: una E.B. grande come una lavagna, una dedica e sei portali in fila.",
+        en: "The home page on the wall: a huge E.B., a dedication and six portals in a row."
       },
-      fai: { it: "Guarda i portali e prendi quello che ti riguarda.", en: "Look at the portals and take the one that concerns you." }
+      fai: { it: "Guarda i portali: uno riguarda te, gli altri riguardano lui.", en: "Look at the portals: one concerns you, the others concern him." }
     },
     kaoss: {
       sez: "museo",
       n: { it: "RADIO KAOSS", en: "RADIO KAOSS" },
       d: {
-        it: "La radio che trasmette dal pozzo: quattro puntate, ventuno canzoni, e gli sponsor che vendono biciclette che causano attacchi di panico.",
-        en: "The station broadcasting from the well: four episodes, twenty-one songs, and sponsors selling bikes that cause panic attacks."
+        it: "La radio che trasmette dal pozzo: quattro puntate, ventidue canzoni e gli sponsor che vendono biciclette che causano attacchi di panico.",
+        en: "The station broadcasting from the well: four episodes, twenty-two songs and sponsors selling bikes that cause panic attacks."
       },
-      fai: { it: "Metti una puntata e alza il volume: io ci lavoro, e mi senti.", en: "Play an episode and turn it up: I work there, you'll hear me." }
+      fai: { it: "Metti una puntata: io ci lavoro, e mi senti.", en: "Play an episode: I work there, you'll hear me." }
     },
     cosmo: {
       sez: "museo",
       n: { it: "MEMORIE DEL COSMO", en: "MEMORIES OF THE COSMOS" },
       d: {
-        it: "L'astronauta che ha ammazzato Dio e lo racconta coi file corrotti di suo padre; e B-E-P-E, che parla come un funerale.",
-        en: "The astronaut who killed God and tells it through his father's corrupted files; and B-E-P-E, who talks like a funeral."
+        it: "L'astronauta che ha ammazzato Dio e lo racconta coi file corrotti del padre; e B-E-P-E, che parla come un necrologio.",
+        en: "The astronaut who killed God and tells it through his father's corrupted files; and B-E-P-E, who talks like an obituary."
       },
       fai: { it: "Leggi, e non chiedere chi sia l'eroe: sei il fattorino.", en: "Read, and don't ask who the hero is: you're the delivery boy." }
     },
-    wide: {
+    visual: {
       sez: "museo",
-      n: { it: "WIDE ZONE", en: "WIDE ZONE" },
+      n: { it: "VISUAL & AI", en: "VISUAL & AI" },
       d: {
-        it: "La colonna dove racconti la storia di qualcun altro per non raccontare la tua: ritratti video di artisti che girano su sé stessi.",
-        en: "The column where you tell someone else's story so you don't have to tell your own: video portraits of artists spinning in place."
+        it: "Dodici visual generati: l'umano dà la direzione, la macchina dà i pixel, e nessuno dei due sa bene chi ha fatto cosa.",
+        en: "Twelve generated visuals: the human gives the direction, the machine gives the pixels, and neither quite knows who did what."
+      },
+      fai: { it: "Guardali come se fosse arte. Lo è — ma non dirlo in giro.", en: "Look at them as if it were art. It is — but don't spread it around." }
+    },
+    interattivo: {
+      sez: "museo",
+      n: { it: "INTERATTIVO", en: "INTERACTIVE" },
+      d: {
+        it: "Sei schermi che funzionano davvero: radio, lucidus, sandpay, simbolo, eyes in the sky, e il subconscio, che sta dietro il ragno.",
+        en: "Six screens that actually work: radio, lucidus, sandpay, simbolo, eyes in the sky, and the subconscious, which sits behind the spider."
+      },
+      fai: {
+        it: "Scegli uno schermo e aprilo con E: sono siti interi, e si giocano in un'altra scheda. Il mouse qui non serve a niente.",
+        en: "Pick a screen and open it with E: they're whole sites, and they run in another tab. The mouse is no use here."
+      }
+    },
+    illustrazioni: {
+      sez: "museo",
+      n: { it: "ILLUSTRAZIONI", en: "ILLUSTRATIONS" },
+      d: {
+        it: "Quindici disegni a carta e inchiostro, appesi in fila. Quello che era una serie è rimasto un pezzo solo: «Proteggi ciò che era».",
+        en: "Fifteen paper-and-ink drawings, hung in a row. What used to be a series stayed one piece: «Protect what was»."
+      },
+      fai: { it: "Passali tutti: sono corti, e non mordono.", en: "Go through them all: they're short, and they don't bite." }
+    },
+    materiali: {
+      sez: "museo",
+      n: { it: "ARCHIVIO MATERIALI", en: "MATERIAL ARCHIVE" },
+      d: {
+        it: "Un magazzino con un camion carico di schermi e un operaio di lamiera. Niente è appeso: si chiede, e lui va a prendere.",
+        en: "A warehouse with a truck full of screens and a sheet-metal worker. Nothing is on show: you ask, and he fetches."
+      },
+      fai: {
+        it: "Parlagli (E) e scegli una riga: attraversa il magazzino, stacca uno schermo e te lo accende davanti. Aspetta che sia acceso.",
+        en: "Talk to him (E) and pick a line: he crosses the warehouse, unplugs a screen and switches it on in front of you. Wait for it to light up."
+      }
+    },
+    zona: {
+      sez: "museo",
+      n: { it: "ZONA LARGA", en: "WIDE ZONE" },
+      d: {
+        it: "La rubrica dove si racconta qualcun altro per non raccontare sé: ritratti video di artisti, uno dopo l'altro.",
+        en: "The column where you tell someone else's story so you don't have to tell your own: video portraits of artists, one after another."
       },
       fai: { it: "Guarda, e fai finta di capire.", en: "Watch, and pretend to get it." }
     },
@@ -251,10 +296,10 @@
       sez: "museo",
       n: { it: "CHI SONO", en: "ABOUT" },
       d: {
-        it: "Il bancone, un bambino col naso rosso che ti insulta meglio di me, e sul muro la faccia dell'artista.",
-        en: "The counter, a kid with a red nose who insults you better than I do, and the artist's face on the wall."
+        it: "Un ufficio dismesso: scrivanie vuote in fila, monitor spenti impilati, e in fondo una donna che fuma davanti a una televisione in corto circuito.",
+        en: "A disused office: empty desks in a row, dead monitors stacked up, and at the far end a woman smoking in front of a short-circuiting TV."
       },
-      fai: { it: "È qui che capisci chi sta scrivendo tutto questo. Coraggio.", en: "This is where you find out who's writing all this. Good luck." }
+      fai: { it: "Vai dalla donna in fondo: è lei che parla, e dice chi sta scrivendo tutto questo.", en: "Go to the woman at the far end: she's the one who talks, and she tells you who's writing all this." }
     },
     contatti: {
       sez: "museo",
@@ -287,10 +332,10 @@
       sez: "museo",
       n: { it: "IL BAR", en: "THE BAR" },
       d: {
-        it: "Il bar: non esiste, è il bancone di «chi sono», e il pagliaccio serve bicchieri vuoti.",
-        en: "The bar: it doesn't exist, it's the counter of «about», and the clown serves empty glasses."
+        it: "Il banco del corridoio: il legno, i bicchieri, e dietro il pinguino che versa senza farti pagare. È il centro del giro, e infatti ci si torna sempre.",
+        en: "The counter in the corridor: wood, glasses, and behind it the penguin pouring without charging you. It's the centre of the loop, and you always end up back here."
       },
-      fai: { it: "Bere non è previsto. Paga lo stesso.", en: "Drinking isn't on the menu. Pay anyway." }
+      fai: { it: "Parlagli (E) quando sei perso: bere non è previsto, paga lo stesso.", en: "Talk to him (E) when you're lost: drinking isn't on the menu, pay anyway." }
     },
     foglio: {
       sez: "museo",
@@ -337,25 +382,41 @@
         it: "La strada unica che passa per la sabbia, il bosco rosso, le rovine, la città, la scalinata, il preingresso e le fabbriche. E sotto le fabbriche, se scendi, c'è Lucidus City: cinque strati di città che nessuno ha mai messo in una mappa. È tutta in fila: non ci si perde, si cammina.",
         en: "The single road through the beach, the red wood, the ruins, the city, the staircase, the check-in and the works. And under the works, if you go down, there's Lucidus City: five strata of city nobody ever put on a map. It's all in a row: you don't get lost, you walk."
       },
-      fai: { it: "Vai avanti con →. Apri con E. Colpisci con F. Cambia arma con R.", en: "Go on with →. Open with E. Hit with F. Switch weapon with R." }
+      fai: { it: "Vai avanti con →. Apri con E. Colpisci con F. Cambia arma con 1, 2 e 3 (o con C).", en: "Go on with →. Open with E. Hit with F. Switch weapon with 1, 2 and 3 (or C)." }
     },
     spiaggia: {
       sez: "terre",
-      n: { it: "LA SPIAGGIA", en: "THE BEACH" },
+      n: { it: "LA SPIAGGIA DELLE TERRE", en: "THE LANDS' BEACH" },
       d: {
-        it: "Sabbia, un mare che non fa rumore, e la fila con la valigia e la testa di lampada che passa e non ti guarda. All'inizio non hai niente in mano.",
-        en: "Sand, a sea that makes no sound, and the queue with suitcases and lamp heads passing by without looking at you. At first your hands are empty."
+        it: "Cenere al posto della sabbia, un mare nero che fa rumore statico, i grattacieli affondati, e la fila con la valigia e la testa di lampada che cammina in un verso solo e non ti guarda. I tavoli sono apparecchiati per tre e non c'è nessuno. All'inizio non hai niente in mano.",
+        en: "Ash instead of sand, a black sea that hisses like static, sunken skyscrapers, and the queue with suitcases and lamp heads walking one way and never looking at you. The tables are set for three and nobody is there. At first your hands are empty."
       },
-      fai: { it: "Segui la fila fino ai gradini della metro: da lì si scende, e si comincia.", en: "Follow the queue to the subway steps: that's where you go down and start." }
+      fai: { it: "In fondo alla sabbia si entra nel bosco rosso. Sotto la lampada, davanti ai gradini, E: si scende alla stazione della metropolitana.", en: "At the far end of the sand you walk into the red wood. Under the lamp, in front of the steps, E: you go down to the subway station." }
+    },
+    /* ---- la porta 01 della soffitta: la spiaggia onirica ----------
+       Non è la spiaggia delle terre, e non le somiglia: quella è il primo
+       pezzo del mondo della fantasia, questa è un minigioco dietro la
+       grata della lumaca. Due posti, due schede, due mappe di tasti. */
+    spiaggia_onirica: {
+      sez: "spiaggia_onirica",
+      n: { it: "LA SPIAGGIA ONIRICA", en: "THE DREAM BEACH" },
+      d: {
+        it: "La spiaggia della porta 01, dietro la grata della lumaca: notte, stelle, la luna, un mare che scorre di lato, e quattro tavoli piantati sulla sabbia — tempo, salto, amore, scudo. Ogni tavolo apre un'arena: dal buio arrivano ombre, ragni, lumache e occhi, e in mano hai una spada.",
+        en: "The beach behind door 01, past the snail grate: night, stars, the moon, a sea sliding sideways, and four tables stuck in the sand — time, warp, love, shield. Each table opens an arena: shadows, spiders, snails and eyes come out of the dark, and you're holding a sword."
+      },
+      fai: {
+        it: "Siediti ai quattro tavoli (E) e chiudi i quattro minigiochi: l'insegna in alto conta «0 / 4». Chiusi tutti, la donna dagli occhi rossi apre il quinto tavolo, la partita infinita. ESC esce dall'arena, non dalla spiaggia: per uscire si torna alla soffitta.",
+        en: "Sit at the four tables (E) and close the four minigames: the panel at the top counts «0 / 4». When all four are closed, the woman with red eyes opens the fifth table, the endless game. ESC leaves the arena, not the beach: to get out you go back to the attic."
+      }
     },
     stazione: {
       sez: "terre",
       n: { it: "LA STAZIONE", en: "THE STATION" },
       d: {
-        it: "La banchina, il treno fermo, e la scalinata in fondo. Le sagome con la lampada scendono dal treno e salgono i gradini, una per gradino.",
-        en: "The platform, the stopped train, and the stairs at the end. The lamp-headed figures get off and climb the steps, one per step."
+        it: "La banchina sotto la sabbia: piastrelle verdi, la galleria nera da cui esce il treno e, in fondo, le scale che risalgono alla spiaggia. Non c'è nessuno ad aspettare — nemmeno un controllore.",
+        en: "The platform under the sand: green tiles, the black tunnel the train comes out of and, at the far end, the stairs back up to the beach. Nobody is waiting — not even a conductor."
       },
-      fai: { it: "Sali le scale dietro di loro: ti portano alla sabbia.", en: "Climb the stairs behind them: they lead to the beach." }
+      fai: { it: "Il treno lo chiamano gli altoparlanti: aspetta le porte e sali (E). Porta nel corridoio del museo, dal pinguino. Se non sali, riparte da solo.", en: "The loudspeakers call the train: wait for the doors and get on (E). It goes to the museum corridor, to the penguin. If you don't, it leaves without you." }
     },
     bosco: {
       sez: "terre",
@@ -433,8 +494,8 @@
         en: "Under the works there's another city: dripping pipes, iron plates, and lamps that walk. They don't light for you: they're on because they're on."
       },
       fai: {
-        it: "Non toccarle: portano via una vita e non chiedono scusa. La pistola ad acqua le scioglie al primo colpo e da lontano — il getto arriva più lontano di loro, e l'acqua non costa inchiostro.",
-        en: "Don't touch them: they take a life and never apologise. The water pistol melts them in one shot and from a distance — the jet reaches farther than they do, and water costs no ink."
+        it: "Non colpirle, e passa sotto la loro luce: se le colpisci ti vengono addosso. La pistola ad acqua le scioglie al primo colpo e da lontano — il getto arriva più lontano di loro, e l'acqua non costa inchiostro.",
+        en: "Don't hit them, and walk under their light: hit one and it comes at you. The water pistol melts them in one shot and from a distance — the jet reaches farther than they do, and water costs no ink."
       }
     },
     zoan_scala: {
@@ -445,8 +506,8 @@
         en: "Between the sewers and the street there is no passage: there is a service stairwell. Three flights, landings with sheet-metal doors, and pipes climbing the wall along with whoever is climbing."
       },
       fai: {
-        it: "Si sale a piedi, e la città arriva dopo tre rampe. Le sagome lampadina stanno sui gradini come te: si spruzza prima che partano, perché il gradino non perdona.",
-        en: "You climb on foot, and the city comes after three flights. The bulb silhouettes stand on the steps like you do: spray before they charge, because a step forgives nothing."
+        it: "Si sale a piedi, e la città arriva dopo tre rampe. Le sagome lampadina stanno sui gradini come te, e finché non le colpisci non si muovono: si spruzza e basta, perché il gradino non perdona.",
+        en: "You climb on foot, and the city comes after three flights. The bulb silhouettes stand on the steps like you do, and they don't move until you hit them: just spray, because a step forgives nothing."
       }
     },
     zoan_terra: {
@@ -529,8 +590,8 @@
         en: "On the other side of the light there's no upper floor: there's a wood. The light is yellow and never sets, the grass is red, the trunks wear moss on their shoulders and eyes in their bark — violet, blue, yellow, green irises, with lids that close slowly. Orbs float in the air, and red mushrooms grow at the foot of the trees."
       },
       fai: {
-        it: "Si cammina e si guarda: gli occhi ti seguono, e non c'è nient'altro da fare. In fondo c'è una porta con un ragno dipinto sopra: si apre quando ci arrivi, e con E si passa dall'altra parte. Si arriva nella soffitta del museo, davanti alla grata col ragno — quella che, da aperta, tiene i due salvataggi: la città e il bosco. A sinistra si torna alla luce.",
-        en: "You walk and look: the eyes follow you, and there's nothing else to do. At the far end there's a door with a spider painted above it: it opens as you arrive, and E takes you across. You come out in the museum attic, in front of the spider grate — the one that, once open, holds both saves: the city and the wood. To the left you go back to the light."
+        it: "Si cammina e si guarda: gli occhi ti seguono, e per un pezzo non c'è nient'altro. Poi, prima della porta, nel rosso c'è una sagoma di bambino che non ha la lampadina al posto della testa: avvicinati e ti chiede chi sei. Con E rispondi — e quello che succede dopo non è più il bosco: è la fine del giro, e si finisce al banco dal pinguino. Dopo, davanti alla porta col ragno, E non è più un passaggio ma l'uscita: si torna in soffitta, davanti alla grata che tiene i due salvataggi.",
+        en: "You walk and look: the eyes follow you, and for a while there's nothing else. Then, before the door, there's a child-shaped silhouette in the red that hasn't got a bulb for a head: get close and he asks who you are. Answer with E — and what happens next isn't the wood any more: it's the end of the loop, and you end up at the counter with the penguin. After that, at the door with the spider, E isn't a passage any more: it's the way out, back to the attic, in front of the grate that holds both saves."
       }
     },
 
@@ -554,6 +615,63 @@
     }
   };
 
+  /* ============================================================
+     LA PRIMA VOLTA IN UN POSTO — una meccanica, una riga
+     Le istruzioni non stanno più scritte in fondo allo schermo: non le
+     legge nessuno, e quelle fisse restano lì anche quando hai già
+     imparato. Qui c'è una riga sola per ogni posto che introduce
+     QUALCOSA DI NUOVO — i primi passi, la spada, la cassetta — e la
+     nuvoletta la dice la prima volta che ci si arriva, insieme
+     all'offerta di spiegare il resto. Una per posto, per sempre: il
+     quaderno (localStorage) se le ricorda, e chi ha già imparato non
+     se le vede ripetere.
+     ============================================================ */
+  var NOVITA = {
+    hub: {
+      it: "← → si cammina, SPAZIO salta, E apre le porte.",
+      en: "← → to walk, SPACE to jump, E opens the doors."
+    },
+    cosmo: {
+      it: "A / D si cammina, SPAZIO salta, il mouse mira: la cassetta si prende con E.",
+      en: "A / D to walk, SPACE to jump, the mouse to aim: the tape is picked up with E."
+    },
+    spiaggia_onirica: {
+      it: "WASD si cammina, SPAZIO o un clic mena la spada, E ti siede a un tavolo.",
+      en: "WASD to walk, SPACE or a click swings the sword, E sits you at a table."
+    },
+    spiaggia: {
+      it: "→ si va avanti, E si apre, F si colpisce. 1 2 3 cambiano quello che hai in mano.",
+      en: "→ to walk on, E to open, F to hit. 1 2 3 change what's in your hands."
+    },
+    terre: {
+      it: "→ si va avanti, E si apre, F si colpisce. 1 2 3 cambiano quello che hai in mano.",
+      en: "→ to walk on, E to open, F to hit. 1 2 3 change what's in your hands."
+    },
+    casa: {
+      it: "in casa si cammina con W A S D e si guarda col mouse: si esce dalla porta con E.",
+      en: "inside a house you walk with W A S D and look with the mouse: you leave through the door with E."
+    },
+    fabbriche: {
+      it: "la polizia del latte spara: la gomma cancella i colpi, le forbici rispondono.",
+      en: "the milk police shoot: the eraser wipes out the bullets, the scissors answer."
+    },
+    zoan_sottosuolo: {
+      it: "le lampade si lasciano stare: colpite, ti vengono addosso. La pistola ad acqua le scioglie da lontano.",
+      en: "leave the lamps alone: hit one and it comes at you. The water pistol melts them from a distance."
+    },
+    zoan_apice: {
+      it: "la luce del portone si tocca con E. Da lì non si tocca nient'altro: solo la luce, la seconda volta.",
+      en: "the light above the door is touched with E. From there you touch nothing else: only the light, the second time."
+    }
+  };
+
+  /* l'offerta che chiude ogni nuvoletta: è Charles che si fa vivo, non
+     un cartello — e vale anche per chi non ha meccaniche da imparare */
+  var OFFERTA = {
+    it: "se hai bisogno sono qui e ti spiego.",
+    en: "if you need me I'm here to explain."
+  };
+
   /* ------------------------------------------------------------
      DOVE SEI — la stanza del museo, la zona delle terre, la pagina.
      Chi lo sa lo dice per primo (setLuogo); poi si chiede al motore;
@@ -570,7 +688,7 @@
   function sezione() {
     var p = pagina();
     if (p.indexOf("/terre/") >= 0) return "terre";
-    if (p.indexOf("/spiaggia/") >= 0) return "spiaggia";
+    if (p.indexOf("/spiaggia/") >= 0) return "spiaggia_onirica";
     if (p.indexOf("/terza-porta/") >= 0) return "terza-porta";
     if (p.indexOf("/cosmo/") >= 0) return "cosmo";
     if (p.indexOf("museo") >= 0) return "museo";
@@ -597,7 +715,7 @@
     } catch (e) { }
 
     var p = pagina();
-    if (p.indexOf("/spiaggia/") >= 0) return "spiaggia";
+    if (p.indexOf("/spiaggia/") >= 0) return "spiaggia_onirica";
     if (p.indexOf("/terza-porta/") >= 0) return "terza-porta";
     if (p.indexOf("/cosmo/") >= 0) return "cosmo";
     if (p.indexOf("/terre/") >= 0) return "terre";
@@ -668,16 +786,16 @@
       id: "armi",
       k: ["arma", "armi", "gomma", "forbici", "acqua", "pistola", "pistola ad acqua", "cambiare arma", "cambia arma", "inventario", "cosa ho in mano"],
       r: {
-        it: "Le armi delle terre sono tre, appese ai chiodi dell'armeria in fondo alla città, e si cambiano con R: la gomma cancella, le forbici aprono in due, la pistola ad acqua scioglie. L'acqua non costa inchiostro, spara lontano — è l'unica arma da distanza: gomma e forbici arrivano solo addosso — ed è l'unica cosa che spegne le sagome lampadina di Lucidus City: il vetro non si cancella e non si taglia, si bagna. Prima dell'armeria in mano hai l'aria.",
-        en: "The lands have three weapons, hanging on the nails of the armoury at the end of the city, and R cycles them: the eraser deletes, the scissors cut in half, the water pistol melts. Water costs no ink, it shoots far — it's the only ranged weapon: eraser and scissors only reach what you touch — and it's the only thing that turns off Lucidus City's bulb silhouettes: glass can't be erased or cut, only soaked. Before the armoury you're holding air."
+        it: "Le armi delle terre sono tre, appese ai chiodi dell'armeria in fondo alla città, e si scelgono con 1, 2 e 3 (o si girano con C): la gomma cancella, le forbici aprono in due, la pistola ad acqua scioglie. L'acqua non costa inchiostro, spara lontano — è l'unica arma da distanza: gomma e forbici arrivano solo addosso — ed è l'unica cosa che spegne le sagome lampadina di Lucidus City: il vetro non si cancella e non si taglia, si bagna. Prima dell'armeria in mano hai l'aria.",
+        en: "The lands have three weapons, hanging on the nails of the armoury at the end of the city, and 1, 2 and 3 pick them (C cycles them): the eraser deletes, the scissors cut in half, the water pistol melts. Water costs no ink, it shoots far — it's the only ranged weapon: eraser and scissors only reach what you touch — and it's the only thing that turns off Lucidus City's bulb silhouettes: glass can't be erased or cut, only soaked. Before the armoury you're holding air."
       }
     },
     {
       id: "zoan",
       k: ["zoan", "lampadina", "lampadine", "sagome", "buio", "lucidus", "reparto", "città sotto", "citta sotto", "sottosuolo"],
       r: {
-        it: "Lucidus City è la città sotto le fabbriche, e si visita dal basso verso l'alto: il sottosuolo coi tubi, la strada coi neon, il reparto 9 con l'agente, la scalata fuori dalla città, e in cima la luce grande — che non è una lampada: è il portone della Lucidus, ed è del ragno. Si vede poco, e quel poco lo fanno le lampade: le sagome lampadina ti vengono addosso nel buio, e si sciolgono con l'acqua. In cima si tocca la luce due volte, e si finisce nel bosco.",
-        en: "Lucidus City is the city under the works, and you visit it from the bottom up: the pipe undercity, the neon street, department 9 with its officer, the climb out of the city, and at the top the big light — which is not a lamp: it's the Lucidus door, and it belongs to the spider. You can't see much, and what little you see is made by the lamps: the bulb silhouettes come at you in the dark, and they melt with water. At the top you touch the light twice, and you end up in the wood."
+        it: "Lucidus City è la città sotto le fabbriche, e si visita dal basso verso l'alto: il sottosuolo coi tubi, la strada coi neon, il reparto 9 con l'agente, la scalata fuori dalla città, e in cima la luce grande — che non è una lampada: è il portone della Lucidus, ed è del ragno. Si vede poco, e quel poco lo fanno le lampade: le sagome lampadina stanno per conto loro nel buio, e vengono addosso solo se le colpisci — allora si sciolgono con l'acqua. In cima si tocca la luce due volte, e si finisce nel bosco.",
+        en: "Lucidus City is the city under the works, and you visit it from the bottom up: the pipe undercity, the neon street, department 9 with its officer, the climb out of the city, and at the top the big light — which is not a lamp: it's the Lucidus door, and it belongs to the spider. You can't see much, and what little you see is made by the lamps: the bulb silhouettes keep to themselves in the dark and only come at you if you hit them — then they melt with water. At the top you touch the light twice, and you end up in the wood."
       }
     },
     {
@@ -740,16 +858,16 @@
       id: "museo",
       k: ["museo", "mostra", "portfolio", "sito", "pagine", "sezioni"],
       r: {
-        it: "Il museo è il portfolio con le gambe: stanze che si attraversano, un corridoio centrale, e in fondo le tre grate che portano nei giochi. Le stanze sono: ingresso, radio, cosmo, wide, chi sono, contatti, lucidus, soffitta, bar, foglio, metro, sotterraneo e subconscio.",
-        en: "The museum is the portfolio with legs: rooms you walk through, a central corridor, and at the end the three grates that lead into the games. The rooms are: entrance, radio, cosmos, wide, about, contact, lucidus, attic, bar, paper, metro, basement and subconscious."
+        it: "Il museo è il portfolio con le gambe: stanze che si attraversano, un corridoio centrale, e in fondo le tre grate che portano nei giochi. Le stanze sono otto, numerate da I a VIII — ingresso, radio, cosmo, visual, interattivo, illustrazioni, materiali, zona larga — più il bar, la soffitta, il sotterraneo con la metro in fondo, e il subconscio che sta dietro il ragno.",
+        en: "The museum is the portfolio with legs: rooms you walk through, a central corridor, and at the end the three grates that lead into the games. There are eight rooms, numbered I to VIII — entrance, radio, cosmos, visual, interactive, illustrations, materials, wide zone — plus the bar, the attic, the basement with the metro at the far end, and the subconscious behind the spider."
       }
     },
     {
       id: "radio",
       k: ["radio", "kaoss", "canzoni", "puntate", "musica", "podcast", "mp3"],
       r: {
-        it: "Radio Kaoss: quattro puntate e ventuno canzoni, trasmesse dal pozzo. Io sono il conduttore, insieme a un uomo che ha smesso di dormire. Metti su una puntata e fai finta che sia normale.",
-        en: "Radio Kaoss: four episodes and twenty-one songs, broadcast from the well. I'm the host, along with a man who stopped sleeping. Play an episode and pretend it's normal."
+        it: "Radio Kaoss: quattro puntate e venti canzoni, trasmesse dal pozzo. Io sono il conduttore, insieme a un uomo che ha smesso di dormire. Metti su una puntata e fai finta che sia normale.",
+        en: "Radio Kaoss: four episodes and twenty songs, broadcast from the well. I'm the host, along with a man who stopped sleeping. Play an episode and pretend it's normal."
       }
     },
     {
@@ -875,7 +993,7 @@
   var aperto = false, costruito = false, agganciato = false;
   var pulsante = null, finestra = null, log = null;
   var campo = null, elLuogo = null, domande = null;
-  var nuvoletta = null, timerNuvoletta = null;
+  var nuvoletta = null;
   var storico = [];
 
   function crea(tag, cls, testo) {
@@ -911,6 +1029,37 @@
     }
     prova();
   }
+
+  /* ---- la faccia, una volta sola per tutti --------------------
+     Il pannello la mette dentro un <img>; il mondo la disegna su una
+     tela (il monitor che sale in mezzo al bosco). È la stessa foto, con
+     la stessa fila di ripieghi, scaricata una volta sola: chi la chiede
+     al bosco riceve *lui*, non un disegno che gli somiglia.
+     Se il browser non sa disegnare, torna null e chi la chiede si
+     arrangia — ma questo pannello funziona lo stesso. */
+  var FOTO_IMG = null, FOTO_I = 0;
+
+  CH.foto = function () {
+    if (FOTO_IMG) return FOTO_IMG;
+    if (typeof root.Image !== "function") return null;
+    FOTO_I = 0;
+    FOTO_IMG = new root.Image();
+    FOTO_IMG.decoding = "async";
+    FOTO_IMG.onerror = function () {
+      FOTO_I++;
+      if (FOTO_I < FOTO.length) {
+        FOTO_IMG.src = BASE + "immagini/personaggi/" + FOTO[FOTO_I];
+      }
+    };
+    FOTO_IMG.src = BASE + "immagini/personaggi/" + FOTO[0];
+    return FOTO_IMG;
+  };
+
+  /* se la foto è arrivata, e si può disegnare */
+  CH.fotoPronta = function () {
+    var im = CH.foto();
+    return !!(im && im.complete && im.naturalWidth > 0);
+  };
 
   /* la lista dei tasti, per la scheda «comandi» e per le risposte */
   function elencoTasti() {
@@ -1066,17 +1215,30 @@
     var tools = doc.getElementById("tools");
     (tools || doc.body).appendChild(pulsante);
 
-    /* la nuvoletta: si fa vivo una volta sola */
+    /* la nuvoletta: la prima volta che si entra in un posto che ha
+       qualcosa da insegnare. Resta il tempo di leggerla, non per
+       sempre: chi ci mette il dito o il mouse sopra la tiene ferma
+       quanto vuole (vedi mostraNuvoletta) */
     nuvoletta = crea("button", "ch-nudge", lingua() === "en"
-      ? "I'm here if you need me. Press me."
-      : "sono qui se hai bisogno. premimi");
+      ? "I'm here if you need me."
+      : "se hai bisogno sono qui.");
     nuvoletta.type = "button";
     nuvoletta.hidden = true;
+    /* la freccia della nuvoletta guarda il «?»: il lato lo scrive
+       posizionaNuvoletta(), questo è solo il ripiego del primo frame */
+    nuvoletta.setAttribute("data-lato", "sotto");
     nuvoletta.addEventListener("click", function (e) {
       e.preventDefault();
       e.stopPropagation();
       apri();
     });
+    /* la nuvoletta si legge, non si subisce: col dito o col mouse
+       sopra, il conto alla rovescia si ferma; quando si scosta,
+       riparte — ma corto, perché chi l'ha letta l'ha letta */
+    nuvoletta.addEventListener("mouseenter", tieniNuvoletta);
+    nuvoletta.addEventListener("mouseleave", scostatiDallaNuvoletta);
+    nuvoletta.addEventListener("focus", tieniNuvoletta);
+    nuvoletta.addEventListener("blur", scostatiDallaNuvoletta);
     doc.body.appendChild(nuvoletta);
 
     /* la finestra */
@@ -1088,9 +1250,15 @@
 
     var crt = crea("div", "ch-crt");
 
-    var x = crea("button", "ch-x", "✕");
+    /* LA X — che si veda. Era un quadratino di trenta pixel, bordo
+       quasi nero su fondo quasi nero: c'era, e non si trovava. Adesso
+       ha il bordo rosso del «?», la parola scritta accanto al segno, e
+       sta sopra tutto: chi entra e vuole uscire non deve indovinare. */
+    var x = crea("button", "ch-x");
     x.type = "button";
     x.setAttribute("aria-label", lingua() === "en" ? "close" : "chiudi");
+    x.appendChild(crea("b", "ch-x-segno", "✕"));
+    x.appendChild(crea("span", "ch-x-parola", lingua() === "en" ? "close" : "chiudi"));
     x.addEventListener("click", function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -1172,24 +1340,24 @@
   /* ---- le battute di apertura, una per sezione --------------- */
   var SALUTI = {
     museo: {
-      it: "Ah. Sei tu. Non alzarti, tanto qui l'unica cosa che si muove sei tu. Ti dico dove sei e come si cammina, poi torno a non fare niente: è un lavoro come un altro, e io lo faccio molto bene.",
-      en: "Ah. You. Don't get up; the only thing moving here is you anyway. I'll tell you where you are and how to walk, then I'll go back to doing nothing: it's a job like any other, and I'm very good at it."
+      it: "Ah, sei tu. Il museo è il portfolio con le gambe: invece di scorrere si cammina, si apre una porta con E e si ascolta una radio che non si spegne mai. Ti dico dove sei, poi torno a non fare niente: è un lavoro come un altro, e lo faccio bene.",
+      en: "Ah, you. The museum is the portfolio with legs: instead of scrolling you walk, open a door with E and listen to a radio that never switches off. I'll tell you where you are, then I'll go back to doing nothing: it's a job like any other, and I'm good at it."
     },
     terre: {
-      it: "Eccoti. Le terre non aspettano e io nemmeno: → per camminare, spazio per saltare, F per colpire. Il resto è paesaggio, e il paesaggio qui ha i denti. Chiedimi, se hai voglia: io ho tempo da buttare.",
-      en: "There you are. The lands don't wait and neither do I: → to walk, space to jump, F to hit. The rest is scenery, and the scenery here has teeth. Ask if you feel like it: I have time to waste."
+      it: "Eccoti. Le terre sono la strada unica che porta dalla sabbia alle fabbriche: → per camminare, spazio per saltare, F per colpire. Non ci si perde, si cammina. Il resto è paesaggio, e il paesaggio qui ha i denti.",
+      en: "There you are. The lands are the single road from the sand to the factories: → to walk, space to jump, F to hit. You don't get lost, you walk. The rest is scenery, and the scenery here has teeth."
     },
-    spiaggia: {
-      it: "La spiaggia: il mare non fa rumore, la sabbia sì, e i tavoli sono pieni di gente che ti insulta con educazione. → per camminare, J per menare. La sabbia non risponde, quindi non provarci.",
-      en: "The beach: the sea makes no sound, the sand does, and the tables are full of people insulting you politely. → to walk, J to swing. Sand doesn't answer, so don't try."
+    spiaggia_onirica: {
+      it: "La spiaggia onirica: la porta 01, dietro la grata della lumaca. Notte, luna, quattro tavoli e una spada. Frecce per camminare, spazio per menare, E per sederti; chiusi i quattro minigiochi, la donna dagli occhi rossi apre il quinto.",
+      en: "The dream beach: door 01, behind the snail grate. Night, moon, four tables and a sword. Arrows to walk, space to swing, E to sit down; close the four minigames and the woman with red eyes opens the fifth."
     },
     "terza-porta": {
       it: "La terza porta: prima persona, mouse in mano, click per sputare. Se ti giri e non c'è nessuno, non è un bug: è il posto, ed è fatto così.",
       en: "The third door: first person, mouse in hand, click to spit. If you turn around and nobody's there, it's not a bug: it's the place, and that's how it's made."
     },
     cosmo: {
-      it: "Il cosmo. Un astronauta che ha ammazzato Dio, un robot che parla come un necrologio, e tu che cammini con A e D. Non serve capire, serve restare: e non è la stessa cosa.",
-      en: "The cosmos. An astronaut who killed God, a robot that talks like an obituary, and you walking with A and D. No need to understand, you just have to stay: and that's not the same thing."
+      it: "Il cosmo: un astronauta che ha ammazzato Dio, un robot che parla come un necrologio, e tu che cammini con A e D. Non serve capire, serve restare — e non è la stessa cosa.",
+      en: "The cosmos: an astronaut who killed God, a robot who talks like an obituary, and you walking with A and D. No need to understand, you just have to stay — and that's not the same thing."
     },
     sito: {
       it: "Il sito classico: si scorre, si clicca, si ascolta. È la parte dove nessuno ti spara — approfittane, dura poco.",
@@ -1201,18 +1369,44 @@
     var s = scheda().sez || sezione();
     var l = scheda();
     var riga = (lingua() === "en" ? "Right now: " : "Adesso: ") + T(l.n) + ". " + T(l.fai);
-    battuta(T(SALUTI[s] || SALUTI.sito) + "\n\n" + riga + (lingua() === "en"
-      ? "\n\nAsk me what you want — the questions are on the right, or type your own. I don't get offended, I don't get moved."
-      : "\n\nChiedimi quello che vuoi: le domande sono qui accanto, oppure scrivine una tua. Non mi offendo, non mi emoziono."));
+    /* e basta. Le domande stanno scritte qui accanto, e chi le vuole le
+       preme: una riga di istruzioni in fondo a ogni risposta era la
+       terza cosa che si leggeva, e la meno utile */
+    battuta(T(SALUTI[s] || SALUTI.sito) + "\n\n" + riga);
   }
 
   /* ---- chiedere: la domanda, e la risposta ------------------- */
+
+  /* la parola che non è una domanda. «rgb» non compare in nessun menu,
+     in nessun link e in nessuna risposta: chi la scrive cambia stanza,
+     chi non la scrive non la trova. Charles non risponde e non si
+     scusa — sparisce la finestra, e dietro c'è un'altra cosa */
+  var PORTA = /(^|[^a-z0-9])rgb([^a-z0-9]|$)/i;
+
+  function proiezione() {
+    /* BASE finisce con la barra: «…/portfolio/». Se per qualche motivo
+       è vuota, si guarda se la pagina sta in una sottocartella */
+    var dove = BASE;
+    if (!dove) {
+      var p = pagina();
+      dove = p.charAt(p.length - 1) === "/" ? "../" : "";
+    }
+    try {
+      root.location.href = dove + "luce/";
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function chiedi(testo) {
     var q = String(testo || "").replace(/\s+/g, " ").replace(/^ | $/g, "");
     if (!q) {
       if (campo && campo.focus) { try { campo.focus(); } catch (e) { } }
       return;
     }
+    /* la porta: nessuna battuta, nessun saluto, nessun ritorno */
+    if (PORTA.test(q) && proiezione()) return;
     var r = rispondi(q);
     battuta(r.testo, !!(r.voce && r.voce.tasti), q);
     aggiornaDomande();
@@ -1239,8 +1433,9 @@
     var st = leggi();
     st.aperto = true;
     scrivi(st);
-    if (nuvoletta) nuvoletta.hidden = true;
-    if (timerNuvoletta) { root.clearTimeout(timerNuvoletta); timerNuvoletta = null; }
+    /* se era lì, la nuvoletta ha finito: si apre la finestra, non si
+       legge due volte la stessa cosa */
+    sgonfiaNuvoletta();
     dipingi();
     finestra.hidden = false;
     aperto = true;
@@ -1279,16 +1474,165 @@
     if (e.stopPropagation) e.stopPropagation();
   }
 
-  /* ---- il richiamo: dopo un po' che nessuno lo chiama, si fa
-          vivo. Poi sta zitto finché non lo apri davvero ---------- */
-  function richiamo() {
-    if (aperto) return;
-    if (leggi().aperto) return;
+  /* ---- dove sta la nuvoletta: accanto al punto di domanda ------
+     Prima stava in basso a destra, lontana dal «?» che la apre: la si
+     leggeva come un annuncio, non come Charles che si fa vivo. Adesso
+     si aggancia al bottone — a sinistra se c'è posto, altrimenti sotto
+     o sopra — e la freccia dice da che parte è il «?».
+     Si ricalcola a ogni apertura e a ogni cambio di misura: su un
+     telefono ruotato una posizione scritta una volta sola finirebbe
+     fuori schermo. */
+  /* il «?» sta in una fila di tasti (la barra del museo)? Allora di
+     fianco non c'è posto: la nuvoletta coprirebbe gli altri tasti, e
+     sotto il dito si perderebbe anche il «?». Lì si va sotto. */
+  function inUnaFila(r) {
+    var p = pulsante.parentNode;
+    if (!p || p === doc.body) return false;
+    var figli = p.children || [];
+    var stile = root.getComputedStyle;
+    for (var i = 0; i < figli.length; i++) {
+      var f = figli[i];
+      if (f === pulsante) continue;
+      if (stile) {
+        var s = stile(f);
+        if (!s || s.display === "none" || s.visibility === "hidden") continue;
+      }
+      var fr = f.getBoundingClientRect();
+      if (!fr.width && !fr.height) continue;
+      /* sulla stessa fascia verticale: è un fratello di fila */
+      if (Math.abs(fr.top - r.top) < r.height) return true;
+    }
+    return false;
+  }
+
+  function posizionaNuvoletta() {
+    if (!nuvoletta || !pulsante) return;
+    if (nuvoletta.hidden) return;
+    var r = pulsante.getBoundingClientRect();
+    if (!r.width && !r.height) return;
+    var vw = root.innerWidth || (doc.documentElement && doc.documentElement.clientWidth) || 0;
+    var vh = root.innerHeight || (doc.documentElement && doc.documentElement.clientHeight) || 0;
+    if (!vw || !vh) return;
+    var w = nuvoletta.offsetWidth;
+    var h = nuvoletta.offsetHeight;
+    var gap = 10, bordo = 8;
+    var lato = "sx";
+    var left = r.left - w - gap;
+    var top = r.top + (r.height - h) / 2;
+    if (left < bordo || inUnaFila(r)) {
+      /* a sinistra non c'è posto (o il «?» è proprio sul bordo, o è in
+         mezzo a una fila di tasti): si va sotto, e se sotto non c'è
+         posto, sopra */
+      lato = "sotto";
+      left = Math.min(Math.max(r.right - w, bordo), Math.max(bordo, vw - bordo - w));
+      top = r.bottom + gap;
+      if (top + h > vh - bordo) {
+        lato = "sopra";
+        top = r.top - h - gap;
+      }
+    }
+    if (top < bordo) top = bordo;
+    if (top + h > vh - bordo) top = Math.max(bordo, vh - bordo - h);
+    /* la punta guarda il «?»: quando si sta sotto o sopra, si sposta
+       sull'ascissa del bottone invece di restare a sinistra */
+    if (lato !== "sx") {
+      var freccia = r.left + r.width / 2 - left - 4;
+      if (freccia < 10) freccia = 10;
+      if (freccia > w - 18) freccia = w - 18;
+      nuvoletta.style.setProperty("--freccia-x", Math.round(freccia) + "px");
+    }
+    nuvoletta.style.left = Math.round(left) + "px";
+    nuvoletta.style.top = Math.round(top) + "px";
+    nuvoletta.style.right = "auto";
+    nuvoletta.style.bottom = "auto";
+    nuvoletta.setAttribute("data-lato", lato);
+  }
+
+  /* ---- il richiamo: la meccanica nuova, la prima volta che si arriva --
+     La nuvoletta dice una cosa sola e solo dove serve: quando si arriva
+     in un posto che introduce una meccanica che non si è mai vista
+     (NOVITA), la riga che la spiega — una volta, e il quaderno se la
+     ricorda. Altrove resta l'offerta secca, e solo per chi nell'hub non
+     ha mai aperto Charles.
+
+     E NON RESTA LÌ. Prima aspettava di essere premuta: chi non la
+     premeva se la portava dietro nella stanza dopo, e in quella dopo
+     ancora — un cartello, non Charles che si fa vivo. Adesso ha un tempo
+     suo, quello di leggerla — più largo per le righe della meccanica,
+     che sono lunghe — e chi ci tiene sopra il dito o il mouse lo ferma,
+     così nessuno se la vede sparire mentre la sta leggendo. Premuta,
+     sparisce subito. */
+  var ATTESA_NOVITA = 9000;   /* ms: una riga di meccanica, letta piano */
+  var ATTESA_OFFERTA = 6000;  /* ms: «se hai bisogno sono qui» */
+  var ATTESA_DOPO = 3200;     /* ms: quanto resta dopo che il dito si scosta */
+  var scadenza = 0;
+
+  function visto(id) {
+    var v = leggi().visti || {};
+    return !!v[id];
+  }
+
+  function segnaVisto(id) {
+    var st = leggi();
+    var v = st.visti || (st.visti = {});
+    v[id] = 1;
+    scrivi(st);
+  }
+
+  /* il conto alla rovescia: uno solo, e sempre quello nuovo */
+  function contaNuvoletta(quanto) {
+    if (scadenza) { root.clearTimeout(scadenza); scadenza = 0; }
     if (!nuvoletta) return;
+    scadenza = root.setTimeout(sgonfiaNuvoletta, quanto);
+  }
+
+  function sgonfiaNuvoletta() {
+    if (scadenza) { root.clearTimeout(scadenza); scadenza = 0; }
+    if (nuvoletta) nuvoletta.hidden = true;
+  }
+
+  /* il dito (o il mouse) sopra: il tempo si ferma. Non riparte da zero
+     quando si scosta: `scostatiDallaNuvoletta` gli dà un attimo corto */
+  function tieniNuvoletta() {
+    if (!nuvoletta || nuvoletta.hidden) return;
+    if (scadenza) { root.clearTimeout(scadenza); scadenza = 0; }
+  }
+
+  function scostatiDallaNuvoletta() {
+    if (!nuvoletta || nuvoletta.hidden || scadenza) return;
+    contaNuvoletta(ATTESA_DOPO);
+  }
+
+  function mostraNuvoletta(testo, quanto) {
+    if (!nuvoletta) return;
+    nuvoletta.textContent = testo;
     nuvoletta.hidden = false;
-    timerNuvoletta = root.setTimeout(function () {
-      if (nuvoletta) nuvoletta.hidden = true;
-    }, 12000);
+    /* accanto al «?», non in fondo alla pagina */
+    posizionaNuvoletta();
+    contaNuvoletta(quanto);
+  }
+
+  function diceNovita(id) {
+    if (!nuvoletta) return false;
+    var n = NOVITA[id];
+    if (!n || visto(id)) return false;
+    segnaVisto(id);
+    mostraNuvoletta(T(n) + " — " + T(OFFERTA), ATTESA_NOVITA);
+    return true;
+  }
+
+  function richiamo() {
+    if (aperto || !nuvoletta) return;
+    var id = luogo();
+    if (diceNovita(id)) return;
+    /* qui non c'è niente di nuovo da imparare: si fa vivo solo
+       nell'hub, solo per chi non l'ha mai aperto, e una volta sola */
+    if (id !== "hub") return;
+    var st = leggi();
+    if (st.nudge || st.aperto) return;
+    st.nudge = 1;
+    scrivi(st);
+    mostraNuvoletta(T(OFFERTA), ATTESA_OFFERTA);
   }
 
   /* ============================================================
@@ -1299,7 +1643,30 @@
     if (agganciato) return CH;
     agganciato = true;
     if (doc.addEventListener) doc.addEventListener("keydown", onTasto, true);
-    root.setTimeout(richiamo, 20000);
+    /* la nuvoletta è agganciata al «?»: se la finestra cambia misura
+       (telefono ruotato, tastiera, schermo intero) si riaggancia */
+    if (root.addEventListener) {
+      var tieni = function () {
+        if (nuvoletta && !nuvoletta.hidden) posizionaNuvoletta();
+      };
+      root.addEventListener("resize", tieni);
+      root.addEventListener("orientationchange", function () {
+        root.setTimeout(tieni, 140);
+      });
+    }
+    /* il posto cambia anche senza ricaricare la pagina: nel museo si
+       passa da una sala all'altra, nelle terre da una zona all'altra.
+       Ogni secondo e mezzo si guarda dove si è, e si parla solo quando
+       il posto è cambiato — la riga arriva quando si arriva, non
+       quando scade un orologio. Se la finestra è aperta non si dice
+       niente: non si parla sopra la propria voce. */
+    var dove = null;
+    root.setInterval(function () {
+      var id = luogo();
+      if (id === dove) return;
+      dove = id;
+      richiamo();
+    }, 1500);
     return CH;
   };
 
@@ -1313,6 +1680,16 @@
   CH.toggle = function () { if (aperto) chiudi(); else apri(); return CH; };
   CH.eAperto = function () { return aperto; };
 
+  /* LA PAUSA — con questa finestra aperta il gioco sotto si ferma
+     (museo/sosta.js): il coniglio non cammina, il treno non parte, le
+     lampadine non arrivano. Non c'è nessun gancio su `chiudi`: è
+     `aperto` che risponde, a ogni fotogramma, e finché dice sì il
+     mondo aspetta. Se la pagina non carica sosta.js, `M.SOSTA` non
+     c'è e non succede niente. */
+  if (M.SOSTA && M.SOSTA.fonte) {
+    M.SOSTA.fonte("charles", function () { return aperto; });
+  }
+
   /* chi sa dove sei lo dice qui: la zona delle terre, la stanza del
      museo. Senza, Charles lo chiede al motore o al percorso */
   CH.setLuogo = function (id) {
@@ -1325,6 +1702,7 @@
   CH.chiedi = function (q) { apri(); chiedi(q); return CH; };
   CH.LUOGHI = LUOGHI;
   CH.SAPERE = SAPERE;
+  CH.TASTI = TASTI;
 
   /* parte da solo: la finestra si costruisce appena c'è un body */
   if (doc.readyState === "loading") {

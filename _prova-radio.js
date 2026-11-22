@@ -121,6 +121,7 @@ function AudioFinta() {
   this.preload = "none";
   this.src = "";
   this.paused = true;
+  this.currentTime = 0;
   this.eventi = {};
   this.addEventListener = function (k, f) { this.eventi[k] = f; };
   this.play = function () { this.paused = false; return { then: function () { }, "catch": function () { } }; };
@@ -187,7 +188,7 @@ deve(String(elem("didascalia").textContent).indexOf("Radio Kaoss") === 0,
 /* ---- R di nuovo: si spegne ----------------------------------- */
 T.premi("r", true);
 deve(RAD.on === false, "R la spegne");
-deve(String(elem("didascalia").textContent).indexOf("spenta") > 0,
+deve(String(elem("didascalia").textContent).indexOf("pausa") > 0,
   "e il fumetto lo dice (" + elem("didascalia").textContent + ")");
 
 /* ---- C: l'arma, che prima stava su R ------------------------- */
@@ -195,6 +196,49 @@ T.premi("c", true);
 deve(T.arma() === "forbici", "C cambia l'arma (in mano: " + T.arma() + ")");
 T.premi("c", true);
 deve(T.arma() === "gomma", "e C ci riporta alla gomma (in mano: " + T.arma() + ")");
+
+/* ---- play e pausa: il pezzo non torna da capo ------------------ */
+/* La radio non è un interruttore. R (e il tasto ▶/❚❚ del pannello)
+   mette in pausa, e riaccendendo si riprende da dove si era fermata:
+   prima ogni play riassegnava `src` e la canzone ricominciava. */
+RAD.play(2);
+var pezzo = RAD.audio.src;
+var caricate = RAD.cariche;
+var nome = (MUSEO.DATA.radio[2] || {}).title;
+deve(!!pezzo, "si può mettere un pezzo (src: " + pezzo + ")");
+deve(RAD.on === true && RAD.audio.paused === false, "e parte davvero");
+RAD.audio.currentTime = 42;
+T.premi("r", true);
+deve(RAD.on === false, "R mette la radio in pausa");
+deve(RAD.audio.paused === true, "e il lettore si ferma");
+T.premi("r", true);
+deve(RAD.on === true, "R la fa ripartire");
+deve(RAD.audio.paused === false, "e il lettore riparte");
+deve(RAD.audio.src === pezzo, "senza cambiare pezzo (" + nome + ")");
+deve(RAD.cariche === caricate, "e senza ricaricarlo: niente ritorno da capo");
+deve(RAD.cur === pezzo, "il lettore sa che quel pezzo è già dentro");
+deve(RAD.audio.currentTime === 42,
+  "il punto resta dov'era (a " + RAD.audio.currentTime + "s)");
+
+/* ---- un pezzo alla volta, una dopo l'altra ---------------------
+   Quando una canzone finisce parte la successiva e la radio resta
+   accesa: il mazzo non si ferma, e quando è vuoto si rimescola. */
+var prima = RAD.audio.src;
+RAD.audio.eventi.ended();
+deve(RAD.on === true, "finita una canzone la radio resta accesa");
+deve(!!RAD.audio.src, "e carica la successiva");
+deve(RAD.audio.src !== prima, "che non è quella appena finita");
+deve(RAD.audio.paused === false, "e la fa partire da sola");
+var seconda = RAD.audio.src;
+RAD.audio.eventi.ended();
+deve(RAD.audio.src !== seconda, "e dopo quella ne parte un'altra ancora");
+/* due giri di mazzo interi: non deve restare muta nemmeno una volta */
+var quante = (MUSEO.DATA.radio || []).length, mute = 0, q;
+for (q = 0; q < quante * 2; q++) {
+  RAD.audio.eventi.ended();
+  if (!RAD.on || !RAD.audio.src || RAD.audio.paused) mute++;
+}
+deve(mute === 0, "per due giri di mazzo la radio non resta mai ferma (" + mute + " volte)");
 
 /* ---- il resoconto -------------------------------------------- */
 if (problemi.length) {

@@ -409,6 +409,30 @@
             border-color: #fff;
         }
 
+        /* ── i comandi del dito: solo dove c'è un dito ───────────
+           Erano accesi anche sul computer — un poligono di frecce
+           sempre in basso a sinistra — e lì si accavallavano al
+           registro di debug. Adesso compaiono soltanto col puntatore
+           grosso, stanno più stretti e più bassi, e il registro
+           sparisce: su un telefono non c'è niente da leggere lì. */
+        @media (pointer: fine) {
+            #eyes-touch { display: none; }
+        }
+        @media (pointer: coarse) {
+            #eyes-touch {
+                left: calc(12px + env(safe-area-inset-left, 0px));
+                bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+                gap: 5px;
+            }
+            #eyes-touch button { width: 50px; height: 50px; font-size: 18px; }
+            .eyes-mid { gap: 6px; }
+            #debug-log { display: none; }
+        }
+        /* di traverso lo schermo è basso: ancora un giro più stretto */
+        @media (max-height: 400px) {
+            #eyes-touch button { width: 44px; height: 44px; font-size: 16px; }
+        }
+
     </style>
 </head>
 

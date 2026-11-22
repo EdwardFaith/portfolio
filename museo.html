@@ -27,11 +27,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="museo/museo.css?v=5">
+    <link rel="stylesheet" href="museo/museo.css?v=9">
     <!-- il foglio che si apre in fondo a Radio Kaoss -->
     <link rel="stylesheet" href="museo/foglio.css">
     <!-- il punto di domanda rosso: Charles, in fila con gli altri bottoni -->
-    <link rel="stylesheet" href="museo/charles.css?v=4">
+    <link rel="stylesheet" href="museo/charles.css?v=10">
 </head>
 
 <body>
@@ -57,7 +57,7 @@
             <span class="icon">📄</span> <span id="foglioPagesCount" class="count"></span> <span id="foglioPagesLabel" class="label"></span>
         </div>
         <div id="tools">
-            <button id="back" type="button" title="torna al sito classico" aria-label="torna al sito classico" onclick="window.location.href='index.html'">↩</button>
+            <button id="back" type="button" title="torna al sito classico" aria-label="torna al sito classico">↩</button>
             <button id="radio" type="button" title="radio (R)" aria-label="radio kaoss">◉</button>
             <button id="menu" type="button" title="questionario (Q)" aria-label="questionario">≡</button>
         </div>
@@ -65,7 +65,6 @@
     </div>
 
     <div id="prompt" aria-live="polite"></div>
-    <div id="hint">A / D cammina · SPAZIO salta · SHIFT corre · E guarda o legge · ESC esce · R radio · Q mappa</div>
     <div id="toast" aria-live="polite"></div>
 
     <!-- ── l'ospite parla qui ─────────────────────────────────── -->
@@ -78,14 +77,14 @@
         <span class="k" id="dialogKeys">E · avanti &nbsp; ESC · basta</span>
     </div>
 
-    <!-- ── i comandi per il pollice ───────────────────────────── -->
+    <!-- i comandi per il pollice: ognuno dice cosa fa, non com'è fatto -->
     <div id="touch">
         <div class="pad">
-            <button type="button" data-k="left" aria-label="sinistra">←</button>
-            <button type="button" data-k="right" aria-label="destra">→</button>
+            <button type="button" data-k="left" aria-label="sinistra" title="sinistra"><span aria-hidden="true">←</span></button>
+            <button type="button" data-k="right" aria-label="destra" title="destra"><span aria-hidden="true">→</span></button>
         </div>
-        <button type="button" data-k="jump" class="jump" aria-label="salta">↑</button>
-        <button type="button" data-k="act" class="act" id="touchAct" aria-label="azione">E</button>
+        <button type="button" data-k="jump" class="jump" aria-label="salta" title="salta">SALTA</button>
+        <button type="button" data-k="act" class="act" id="touchAct" aria-label="usa" title="usa">USA</button>
     </div>
 
     <!-- ── nero di passaggio, fra una sala e l'altra ──────────── -->
@@ -113,7 +112,7 @@
     <div id="seo" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">
         <h2>Emanuele Baccigalupi — opere</h2>
         <ul>
-            <li>Radio Kaoss — Il Pozzo, Il Sottosuolo, Il Diavolo, La Guerra dei Conigli, ventuno canzoni</li>
+            <li>Radio Kaoss — Il Pozzo, Il Sottosuolo, Il Diavolo, La Guerra dei Conigli, venti canzoni</li>
             <li>Memorie del Cosmo — cortometraggio sperimentale, anno 3013 dopo Tix</li>
             <li>Visual &amp; AI — video generati: Tele KaOsS, Nadia, Il Pagliaccio, Destino Formicaio, Satan</li>
             <li>Interattivo / Codec — <a href="subconscio/subconscio.html">Subconscio</a>,
@@ -131,15 +130,23 @@
     </div>
 
     <!-- ── il motore: contenuti, lingue, shader, stanze, regia ── -->
-    <script src="museo/lang.js?v=7"></script>
+    <script src="museo/lang.js?v=10"></script>
     <script src="museo/auth.js?v=1"></script>
-    <script src="museo/data.js?v=7"></script>
-    <script src="museo/panel.js?v=5"></script>
+    <script src="museo/data.js?v=8"></script>
+    <script src="museo/panel.js?v=7"></script>
     <script src="museo/quiz.js"></script>
-    <script src="museo/radio.js"></script>
+    <!-- la fila delle canzoni: le ventidue di RadioKaoSs, con i percorsi
+         ricavati da dove sta lo script. Va prima di radio.js, che da qui
+         in poi pesca questa e non la copia dentro data.js: il museo suona
+         la stazione vera, la stessa del gioco e delle altre pagine -->
+    <script src="museo/radio-fila.js?v=1"></script>
+    <script src="museo/radio.js?v=5"></script>
 
     <!-- il dispositivo: dito o mouse. Una risposta sola per tutto il museo -->
     <script src="museo/device.js?v=1"></script>
+    <!-- lo schermo del telefono: niente più «gira il telefono». Si
+         gioca in verticale, a schermo intero, con i tasti in fondo -->
+    <script src="museo/orienta.js?v=8"></script>
 
     <!-- il quaderno: inchiostro, armi, porte aperte, segnalibri.
          Lo leggono anche le terre, e la grata della soffitta si apre
@@ -152,12 +159,12 @@
     <script src="museo/player.js?v=2"></script>
     <!-- la strada delle memorie: la città, il robot spento, il razzo, la nave -->
     <script src="museo/cosmo.js?v=1"></script>
-    <script src="museo/world.js?v=13"></script>
+    <script src="museo/world.js?v=14"></script>
     <!-- la carta da parati del corridoio, il linoleum, i ragni, i cavi -->
     <script src="museo/corridoio.js?v=2"></script>
     <!-- la stazione in mezzo al giro: la galleria, il treno, e il
          viaggio in prima persona dentro al vagone -->
-    <script src="museo/metro.js?v=4"></script>
+    <script src="museo/metro.js?v=5"></script>
     <!-- la sala d'armi e la camera del bambino sono state sostituite da
          cosmo.js: restano nel repository, ma non si caricano più -->
     <script src="museo/audio.js?v=5"></script>
@@ -181,10 +188,16 @@
     <!-- ── la memoria 1 non sta più qui dentro: è cosmo/index.html,
          e ci si arriva dal primo portello del razzo ── -->
 
-    <script src="museo/main.js?v=12"></script>
+    <!-- ── la pausa: chi è aperto (Charles, la radio, il pannello)
+         ferma il museo sotto. Va prima di main.js e di charles.js:
+         ognuno si registra qui, e i cicli chiedono a questo se il
+         tempo passa ── -->
+    <script src="museo/sosta.js?v=1"></script>
+
+    <script src="museo/main.js?v=21"></script>
     <!-- Charles: il punto di domanda. Va per ultimo: si costruisce da
          solo, e legge la sala corrente dal motore quando lo apri -->
-    <script src="museo/charles.js?v=8"></script>
+    <script src="museo/charles.js?v=17"></script>
     <script>
         // Il museo si accende subito senza schermata iniziale di scelta
         window.addEventListener("load", function () {

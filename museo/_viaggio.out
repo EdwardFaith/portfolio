@@ -6,7 +6,7 @@ stato a t=5: ferma dopo 21 passate
 pick sulle porte aperte: treno
 stato a t=40: vuota
 viaggio cominciato: stato=viaggio viaggio=true
-frame disegnati: 602, chiamate di disegno: 1168304
+frame disegnati: 602, chiamate di disegno: 1163298
 scritte durante il viaggio: 0
 destinazione: terre/index.html?zona=stazione&da=treno
 

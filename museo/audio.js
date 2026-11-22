@@ -4,7 +4,7 @@
    da solo. Rumore rosa filtrato (l'aria), un ronzio a 100 Hz (i
    neon), un jazz lento generativo e ogni tanto un frammento
    vocale fatto di formanti: qualcuno che parla in un'altra stanza.
-   Le ventuno canzoni vere restano su radio.js.
+   Le canzoni vere restano su radio.js.
    Tutto parte solo dopo un gesto dell'utente.
    ============================================================ */
 (function (root) {

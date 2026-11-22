@@ -31,6 +31,14 @@ html, body {
     position: fixed; inset: 0; pointer-events: none; z-index: 40;
     mix-blend-mode: screen; opacity: calc(0.5 - var(--zoom) * 0.35);
 }
+/* ── il viaggio in treno passa sotto lo stesso velo ──────────
+   museo/metro.js mette la tela del vagone a z-index 9998 e accende
+   `in-viaggio` sul body: il velo torna su, a 10000, e copre anche il
+   treno. Stessa regola in terre/style.css. */
+body.in-viaggio #vhs {
+    display: block;
+    z-index: 10000;
+}
 #vhs i { position: absolute; inset: 0; display: block; }
 #vhs .scan {
     background: repeating-linear-gradient(to bottom,
@@ -135,11 +143,6 @@ html, body {
     0%, 100% { box-shadow: 0 0 8px rgba(220, 38, 38, 0.35); }
     50% { box-shadow: 0 0 20px rgba(255, 60, 60, 0.85); }
 }
-#hint {
-    position: fixed; left: 26px; bottom: 18px; z-index: 30;
-    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--faint); pointer-events: none;
-}
 #prompt {
     position: fixed; left: 50%; bottom: 64px; z-index: 32;
     transform: translateX(-50%) translateY(8px);
@@ -210,24 +213,40 @@ html, body {
 }
 
 
-/* ── il pollice ────────────────────────────────────────────── */
+/* ── il pollice ──────────────────────────────────────────────
+   Due pollici, due angoli: a sinistra si cammina, a destra si salta
+   e si agisce. I tasti non sono più cerchi: il tasto dell'azione
+   cambia parola — ENTRA, PARLA, LEGGI, USA — e una parola dentro a un
+   cerchio da 48px non ci sta. Adesso sono pillole: larghe quanto
+   serve, con la scritta sopra il carattere, leggibile col pollice
+   davanti. */
 #touch {
     display: none;
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
     justify-content: space-between; align-items: flex-end;
-    padding: 16px 20px 24px; pointer-events: none;
-    gap: 8px;
+    padding: 8px calc(14px + env(safe-area-inset-right, 0px))
+             calc(12px + env(safe-area-inset-bottom, 0px))
+             calc(14px + env(safe-area-inset-left, 0px));
+    gap: 10px;
+    /* la striscia non prende i tocchi: solo i tasti li prendono,
+       il resto della scena resta cliccabile */
+    pointer-events: none;
 }
-#touch .pad { display: flex; gap: 10px; pointer-events: auto; }
+#touch .pad { display: flex; gap: 8px; pointer-events: auto; }
 #touch button {
-    pointer-events: auto; width: 62px; height: 62px; border-radius: 50%;
+    pointer-events: auto; width: auto; min-width: 62px; height: 56px; padding: 0 14px;
+    border-radius: 16px;
     border: 1px solid rgba(231,226,214,0.35); background: rgba(10,12,16,0.65);
     backdrop-filter: blur(8px);
-    color: var(--ink); font-size: 18px; font-weight: 700; font-family: var(--font);
+    color: var(--ink); font-size: 11px; font-weight: 700; font-family: var(--font);
+    letter-spacing: 0.10em; text-transform: uppercase; line-height: 1;
     display: flex; align-items: center; justify-content: center;
     user-select: none; -webkit-tap-highlight-color: transparent;
     box-shadow: 0 4px 14px rgba(0,0,0,0.6);
     transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+}
+#touch .pad button {
+    min-width: 60px; padding: 0; font-size: 19px; letter-spacing: 0;
 }
 #touch button:active {
     transform: scale(0.90);
@@ -236,25 +255,67 @@ html, body {
     box-shadow: 0 0 16px rgba(239,68,68,0.5);
 }
 #touch .jump {
-    margin-left: auto; margin-right: 10px; width: 56px; height: 56px;
-    font-size: 18px; border-color: rgba(231,226,214,0.35);
+    margin-left: auto; margin-right: 2px; min-width: 62px; height: 52px;
+    font-size: 12px; border-color: rgba(231,226,214,0.35);
 }
 #touch .act {
     border-color: rgba(239,68,68,0.7); background: rgba(185,28,28,0.22);
-    color: #fff; font-size: 16px; font-weight: 900; letter-spacing: 0.04em;
-    min-width: 62px;
+    color: #fff; font-size: 12px; font-weight: 900; letter-spacing: 0.06em;
+    min-width: 84px; padding: 0 16px;
 }
 #touch .act.is-door {
     background: rgba(220,38,38,0.45);
     border-color: #ef4444;
-    font-size: 11px;
-    letter-spacing: 0.12em;
+    font-size: 12px;
+    letter-spacing: 0.10em;
     box-shadow: 0 0 18px rgba(239,68,68,0.6);
     animation: doorBtnGlow 1.2s infinite alternate ease-in-out;
 }
 @keyframes doorBtnGlow {
     from { box-shadow: 0 0 12px rgba(239,68,68,0.4); transform: scale(1); }
     to { box-shadow: 0 0 22px rgba(239,68,68,0.85); transform: scale(1.05); }
+}
+
+/* di traverso lo schermo è ancora più basso: qui i tasti si
+   stringono di un altro giro, altrimenti salto e azione si toccano
+   e si preme quello sbagliato */
+@media (max-height: 420px) {
+    #touch {
+        padding: 6px calc(12px + env(safe-area-inset-right, 0px))
+                 8px calc(12px + env(safe-area-inset-left, 0px));
+        gap: 8px;
+    }
+    #touch button { min-width: 54px; height: 48px; font-size: 10px; padding: 0 11px; }
+    #touch .pad button { min-width: 54px; font-size: 17px; padding: 0; }
+    #touch .jump { min-width: 54px; height: 46px; font-size: 10px; }
+    #touch .act { min-width: 72px; font-size: 11px; }
+    #touch .act.is-door { font-size: 11px; }
+}
+
+/* in verticale c'è più spazio in basso e meno in alto: i tasti
+   crescono, l'HUD scende sotto alla tacca e il ritratto dell'ospite
+   sale sopra alle mani invece di finirci sotto */
+@media (orientation: portrait) {
+    body.touch-device #touch {
+        gap: 12px;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    }
+    body.touch-device #touch button { height: 60px; min-width: 68px; font-size: 12px; }
+    body.touch-device #touch .pad button { min-width: 68px; font-size: 21px; padding: 0; }
+    body.touch-device #touch .jump { min-width: 68px; height: 56px; }
+    body.touch-device #touch .act { min-width: 90px; }
+    body.touch-device #hud {
+        padding: calc(12px + env(safe-area-inset-top, 0px)) 14px 0;
+    }
+    body.touch-device #radioName {
+        right: 14px; top: calc(52px + env(safe-area-inset-top, 0px));
+    }
+    body.touch-device #prompt { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+    body.touch-device #dialog {
+        bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+        width: calc(100vw - 24px); padding: 16px 16px 12px;
+        max-height: 42dvh; overflow-y: auto;
+    }
 }
 
 /* ── chi gioca col dito, chi col mouse ────────────────────────
@@ -266,79 +327,16 @@ html, body {
    dopo. */
 @media (pointer: coarse) {
     #touch { display: flex; }
-    #hint { display: none; }
 }
 @media (pointer: fine) {
     #touch { display: none; }
-    #hint { display: block; }
 }
 body.touch-device #touch { display: flex; }
-body.touch-device #hint { display: none; }
 body.desktop-device #touch { display: none; }
-body.desktop-device #hint { display: block; }
 #prompt.on {
     cursor: pointer;
     pointer-events: auto;
 }
-
-/* ── il sipario d'ingresso ─────────────────────────────────── */
-#boot {
-    position: fixed; inset: 0; z-index: 70;
-    display: flex; align-items: center; justify-content: center;
-    background:
-        radial-gradient(ellipse at 50% 120%, rgba(220,38,38,0.10), transparent 60%),
-        linear-gradient(180deg, #08090b 0%, #050506 60%, #0a0a0c 100%);
-    opacity: 0; pointer-events: none; transition: opacity 0.7s ease;
-}
-#boot.on { opacity: 1; pointer-events: auto; }
-#boot::after {
-    content: ""; position: absolute; inset: 0; pointer-events: none;
-    background-image: radial-gradient(rgba(255,255,255,0.10) 0.5px, transparent 0.6px);
-    background-size: 3px 3px; opacity: 0.25;
-}
-.boot-inner {
-    width: min(680px, calc(100vw - 56px)); position: relative; z-index: 2;
-    padding: 8px 0;
-}
-.boot-kick {
-    margin: 0; font-size: 9px; letter-spacing: 0.4em;
-    text-transform: uppercase; color: var(--red);
-}
-.boot-title {
-    margin: 10px 0 0; font-size: clamp(56px, 12vw, 118px);
-    line-height: 0.9; letter-spacing: -0.03em; font-weight: 700;
-    color: #f2ede1;
-    text-shadow: 0 0 40px rgba(255,255,255,0.08), 3px 0 0 rgba(220,38,38,0.5),
-        -3px 0 0 rgba(40,90,160,0.5);
-}
-.boot-sub {
-    margin: 4px 0 22px; font-size: 11px; letter-spacing: 0.5em;
-    text-transform: uppercase; color: var(--dim);
-}
-.boot-text {
-    margin: 0 0 26px; font-size: clamp(12px, 1.5vw, 14px);
-    line-height: 1.75; color: rgba(231,226,214,0.66); font-weight: 300;
-    border-left: 1px solid rgba(220,38,38,0.4); padding-left: 16px;
-}
-.boot-text b { color: var(--ink); font-weight: 500; }
-.boot-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 26px; }
-.boot-btns button {
-    padding: 12px 26px; background: transparent;
-    border: 1px solid rgba(231,226,214,0.3); color: var(--ink);
-    font-family: var(--font); font-size: 10px; letter-spacing: 0.28em;
-    text-transform: uppercase; cursor: pointer;
-    transition: background 0.25s, border-color 0.25s, color 0.25s;
-}
-.boot-btns button:first-child {
-    background: var(--red); border-color: var(--red); color: #fff;
-}
-.boot-btns button:hover { background: rgba(220,38,38,0.16); border-color: var(--red); }
-.boot-foot {
-    display: flex; gap: 18px; flex-wrap: wrap;
-    font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
-}
-.boot-foot a { color: var(--faint); text-decoration: none; border-bottom: 1px solid transparent; }
-.boot-foot a:hover { color: var(--ink); border-bottom-color: var(--red); }
 
 /* ── il tubo catodico: pannello e questionario ─────────────── */
 #panel, #quiz {

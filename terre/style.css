@@ -59,6 +59,40 @@ html, body {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='12' cy='12' r='2' fill='%23ff1e1e'/%3E%3Cline x1='12' y1='1' x2='12' y2='6' stroke='%23ff1e1e' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='12' y1='18' x2='12' y2='23' stroke='%23ff1e1e' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='1' y1='12' x2='6' y2='12' stroke='%23ff1e1e' stroke-width='2' stroke-linecap='round'/%3E%3Cline x1='18' y1='12' x2='23' y2='12' stroke='%23ff1e1e' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='12' r='8' stroke='%23ff1e1e' stroke-width='1.6' fill='rgba(255,30,30,0.22)'/%3E%3C/svg%3E") 12 12, pointer;
 }
 
+/* ── IL VETRO — il tubo del museo, non un filtro delle terre.
+      Il fotogramma è una texture e passa in uno shader che lo piega
+      come un tubo: fosfori, aberrazione, scanline, polvere, vignetta
+      (museo/gl.js, museo/fx.js, gli stessi numeri del corridoio).
+      Ci passa dentro tutto quello che è disegnato — la zona, le bestie,
+      il coniglio, i fumetti — senza che nessuna zona lo sappia.
+      Quando c'è, il velo CSS qui sotto si spegne: scanline e grana le
+      fa lo shader, e due veli insieme sarebbero due arie diverse.
+      Senza WebGL (o con ?vetro=0) resta il velo CSS, cioè quello di
+      prima, identico. ───────────────────────────────────────────── */
+#vetro {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  pointer-events: none;
+  background: #000;
+}
+
+body.vetro #vetro { display: block; }
+
+body.vetro #vhs { display: none; }
+
+/* ── il treno passa sotto lo stesso velo del corridoio ─────────
+   Quando parte il viaggio (museo/metro.js) la tela del vagone sta a
+   z-index 9998 e questo velo torna su, a 10000: così il nastro, la
+   grana e le righe del museo coprono anche il treno. La regola viene
+   dopo `body.vetro #vhs` apposta: dentro il viaggio vince lei. */
+body.in-viaggio #vhs {
+  display: block;
+  z-index: 10000;
+}
+
 /* ── IL VELO VHS — lo stesso del museo, riga per riga.
       Quattro strati sopra tutto: le righe del tubo, il croma che
       sbarella ai bordi, la grana della pellicola, il nastro che ogni
@@ -195,35 +229,79 @@ html, body {
   pointer-events: none;
 }
 
-/* ── il dito ────────────────────────────────────────────────── */
+/* ── il dito ──────────────────────────────────────────────────
+   Due pollici, due compiti: a sinistra si cammina (◀ ▶ e la corsa),
+   a destra si salta, si agisce e si usano le due magie. Le misure
+   stanno in variabili perché cambiano con l'altezza: di traverso lo
+   schermo è basso, e la seconda fila non deve finire addosso all'HUD
+   né sul bordo. Erano cerchi da 84-96px: troppo grandi per stare
+   sotto due pollici senza toccarsi. */
 #tocco {
   position: absolute;
   inset: 0;
   z-index: 28;
   display: none;
   pointer-events: none;
+  --p: 64px;   /* il cerchio del movimento */
+  --a: 78px;   /* salto e azione: i due che si premono di più */
+  --s: 54px;   /* corsa e ✎: secondari */
+  --g: 8px;    /* fra un cerchio e l'altro */
+  --b: 54px;   /* quanto stanno su dal bordo */
 }
 
 #tocco .t {
   position: absolute;
-  width: 84px;
-  height: 84px;
+  width: var(--p);
+  height: var(--p);
   border: 1px solid rgba(226, 210, 170, 0.2);
   border-radius: 50%;
   background: rgba(30, 28, 20, 0.28);
   color: rgba(230, 220, 196, 0.6);
-  font: 20px/1 ui-monospace, monospace;
+  font: 17px/1 ui-monospace, monospace;
   pointer-events: auto;
   touch-action: none;
 }
 
 #tocco .t:active { background: rgba(120, 100, 60, 0.35); }
 
-#tocco .t[data-k="left"]  { left: calc(16px + env(safe-area-inset-left, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
-#tocco .t[data-k="right"] { left: calc(112px + env(safe-area-inset-left, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
-#tocco .t[data-k="run"]   { left: calc(208px + env(safe-area-inset-left, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); width: 68px; height: 68px; font-size: 17px; }
-#tocco .t[data-k="jump"]  { right: calc(124px + env(safe-area-inset-right, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); width: 96px; height: 96px; color: rgba(226, 208, 160, 0.75); }
-#tocco .t[data-k="act"]   { right: calc(18px + env(safe-area-inset-right, 0px)); bottom: calc(74px + env(safe-area-inset-bottom, 0px)); width: 96px; height: 96px; color: rgba(240, 216, 160, 0.8); }
+#tocco .t[data-k="left"]  { left: calc(12px + env(safe-area-inset-left, 0px)); bottom: calc(var(--b) + env(safe-area-inset-bottom, 0px)); }
+#tocco .t[data-k="right"] { left: calc(12px + var(--p) + var(--g) + env(safe-area-inset-left, 0px)); bottom: calc(var(--b) + env(safe-area-inset-bottom, 0px)); }
+#tocco .t[data-k="run"]   { left: calc(12px + (var(--p) + var(--g)) * 2 + env(safe-area-inset-left, 0px)); bottom: calc(var(--b) + 4px + env(safe-area-inset-bottom, 0px)); width: var(--s); height: var(--s); font-size: 15px; }
+#tocco .t[data-k="jump"]  { right: calc(14px + var(--a) + var(--g) + env(safe-area-inset-right, 0px)); bottom: calc(var(--b) + env(safe-area-inset-bottom, 0px)); width: var(--a); height: var(--a); color: rgba(226, 208, 160, 0.75); }
+#tocco .t[data-k="act"]   { right: calc(14px + env(safe-area-inset-right, 0px)); bottom: calc(var(--b) + env(safe-area-inset-bottom, 0px)); width: var(--a); height: var(--a); color: rgba(240, 216, 160, 0.8); }
+/* il ✦ e il ✎ stavano senza coordinate: con `position: absolute` e
+   nessun `top/left/right/bottom` restavano nella loro posizione
+   statica — l'angolo in alto a sinistra — uno sopra l'altro, sopra il
+   simbolo del suono. Adesso stanno nella seconda fila, sopra il pollice
+   destro, dove il ✦ si trova senza guardare */
+#tocco .t[data-k="fuoco"] { right: calc(14px + env(safe-area-inset-right, 0px)); bottom: calc(var(--b) + var(--a) + var(--g) + env(safe-area-inset-bottom, 0px)); width: var(--a); height: var(--a); color: rgba(240, 216, 160, 0.78); }
+#tocco .t[data-k="c"]     { right: calc(14px + var(--a) + var(--g) + env(safe-area-inset-right, 0px)); bottom: calc(var(--b) + var(--a) + var(--g) + 6px + env(safe-area-inset-bottom, 0px)); width: var(--s); height: var(--s); font-size: 15px; }
+
+/* telefono di traverso con lo schermo basso: tutto un giro più
+   stretto, o la fila delle magie esce dal cielo */
+@media (max-height: 400px) {
+  #tocco { --p: 56px; --a: 68px; --s: 48px; --g: 7px; --b: 40px; }
+  #tocco .t { font-size: 15px; }
+  #tocco .t[data-k="run"],
+  #tocco .t[data-k="c"] { font-size: 13px; }
+}
+
+/* ── il «?» di Charles ────────────────────────────────────────
+   Sulla tastiera sta in basso a destra, dove non c'è altro. Sul
+   telefono quell'angolo è del ◦, e il «?» ci finiva sopra: si sposta
+   in basso al centro, che resta libero fra i due pollici. */
+@media (pointer: coarse) {
+  body > .ch-btn {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  body > .ch-btn:hover,
+  body > .ch-btn:focus-visible {
+    transform: translateX(-50%) translateY(-1px);
+  }
+}
 
 /* ── chi usa il dito, chi il mouse ─────────────────────────── */
 body.touch-device #tocco { display: block; }
@@ -231,6 +309,19 @@ body.desktop-device #tocco { display: none; }
 
 @media (pointer: coarse) {
   #tocco { display: block; }
+}
+
+/* ── la radio, in basso a sinistra ───────────────────────────────
+   Il ◉ della stazione sta giù, dove non c'è più niente da leggere:
+   in alto c'erano il ♪, «in mano» e le tre vite, e il simbolo
+   finiva sopra le scritte. Sul telefono però in basso ci sono i due
+   tasti del pollice (54px dal bordo, 64px di cerchio): la radio sale
+   sopra la prima fila, a 126px, così il ◉ e il nome del pezzo
+   restano fuori dal dito. */
+@media (pointer: coarse) {
+  #radioHud[data-angolo="bl"] {
+    bottom: calc(126px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* ── quello che hai in mano ─────────────────────────────────── */
@@ -301,32 +392,8 @@ body.desktop-device #tocco { display: none; }
       assottiglia come quando si apre un foglio nel museo ──────── */
 body.in-3d #vhs { opacity: 0.12; }
 
-#tocco .t[data-k="r"] {
-  right: calc(240px + env(safe-area-inset-right, 0px));
-  bottom: calc(74px + env(safe-area-inset-bottom, 0px));
-  width: 64px;
-  height: 64px;
-  font-size: 16px;
-}
-
-/* il colpo: si può tirare dappertutto, se in mano c'è qualcosa */
-#tocco .t[data-k="fuoco"] {
-  right: calc(126px + env(safe-area-inset-right, 0px));
-  bottom: calc(186px + env(safe-area-inset-bottom, 0px));
-  width: 74px;
-  height: 74px;
-  font-size: 18px;
-  color: rgba(236, 224, 190, 0.72);
-}
-
 /* ── schermi stretti: quello che hai in mano si fa più piccolo ─ */
 @media (max-width: 620px) {
   #ritorno { font-size: 8px; }
   #arma .v { font-size: 11px; }
-}
-
-/* ── schermi bassi: il fumetto sta più in alto ──────────────── */
-@media (max-height: 520px) {
-  #tocco .t[data-k="act"],
-  #tocco .t[data-k="jump"] { width: 76px; height: 76px; }
 }

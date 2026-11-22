@@ -9,6 +9,13 @@ Un progetto artistico multimediale interattivo che fonde teatro, narrativa noir/
 1. **Portfolio Principale (`index.html`)**
    - Il sito-portfolio dell'artista.
    - **Easter Egg Dinamico**: un coniglio bianco (`🐇`) appare vicino alla home, insegue il cursore dell'utente per 10 secondi e fugge quando braccato da un ragno gigante che lo insegue fuori dallo schermo. Cliccandolo si accede al Museo!
+   - **Canzoni & Audio**: le venti canzoni di Radio Kaoss sono una fila sola
+     (`radioRow`, dentro `index.html`). Play e pausa fermano il pezzo dov'è — `src`
+     non si riassegna e `currentTime` resta quello — e quando una finisce parte la
+     successiva; dopo l'ultima si ricomincia dalla prima, senza fermarsi.
+   - **Gli spot nella fila**: ogni quattro canzoni passa una pubblicità (`adFiles`,
+     stesso `radioRow`): sono le cartelle `pub-*` di `RadioKaoSs/`, con il loro
+     `audio.MP3` e la loro immagine. Cinque spot per giro, poi si riparte.
 2. **Il Museo Interattivo (`gioco.html` / `museo.html`)**
    - Un museo esplorabile a scorrimento laterale in stile CRT retro-tecnologico.
    - Personaggi parlanti (NPC) con estetica cinematografica, schermi catodici in bianco e nero ed effetti scanline:
@@ -90,6 +97,25 @@ fare, così un portatile con lo schermo tattile resta un portatile.
   direzionale con il tasto «◦».
 - Se il puntatore cambia sotto (tavoletta staccata dalla tastiera, mouse
   collegato a caldo, schermo ruotato) i comandi si aggiornano da soli.
+- Nelle terre la croce del dito ha **sette** tasti, non cinque: sotto il
+  pollice sinistro ◀ ▶ », sotto il destro ▲ e ◦, e nella seconda fila ✦ e
+  ✎ (`terre/index.html`, `#tocco`). I due della seconda fila sono stati a
+  lungo senza coordinate — `position: absolute` senza `top` né `bottom` li
+  lasciava nell'angolo in alto a sinistra, uno sopra l'altro e sopra il
+  simbolo del suono; adesso hanno la loro riga (`terre/style.css`).
+- Il punto di domanda di Charles galleggia **sempre** in basso a destra
+  (`museo/charles.css`): dove quell'angolo era già preso si è spostata
+  l'altra cosa, non lui. Sulla spiaggia onirica il ritorno «◀ SOFFITTA» gli
+  è finito sopra, e adesso sta di fianco, con la stessa base
+  (`spiaggia/style.css`) — in alto non poteva andare, ci sono i pannelli
+  della partita.
+- La nuvoletta con cui Charles si fa vivo («se hai bisogno sono qui.»)
+  compare **solo nell'hub** e **solo la prima volta**: la chiave `nudge` in
+  `museo.charles.v2` se lo ricorda, e non compare nelle terre né nelle altre
+  sezioni. Non è più un timer: non sparisce da sola dopo dodici secondi,
+  resta lì finché non la si preme (e premendola si apre Charles). Prima
+  arrivava venti secondi dopo l'apertura di qualunque pagina, e se ne andava
+  proprio mentre la si stava per premere.
 
 ### La porta 02 della soffitta (le due partite)
 
@@ -122,22 +148,97 @@ dalla donna dagli occhi rossi, cioè dentro la morte.
 La porta si apre **sempre**, chiusa o no: il suo titolo è solo «Porta 02 🕷», e
 nel pannello non c'è nessuna scritta di grata sigillata («APERTA»/«SIGILLATA»
 resta solo per le altre due porte, nel pannello della serratura). Il segno che
-la grata è stata aperta resta nel quaderno: le due porte col ragno — quella in
-fondo al bosco e quella in fondo alla città — chiamano
+la grata è stata aperta resta nel quaderno: le due porte col ragno — quella a
+metà del bosco e quella in fondo alla città — chiamano
 `MUSEO.STATO.sblocca("ragno")`, e la soffitta se ne accorge da sola, senza
 ricaricare la pagina. E sono **la stessa porta**: stesso disegno
 (`T.orrore.portaRagno`, in `terre/orrori.js`), **stessa misura** — in città la
 porta sta su `posto(0.82)`, cioè `(0.40 + 0.82 · 0.90) · 0.94 = 1.070`, e nel
 bosco `PORTA_S` è 1.07 per lo stesso motivo: prima era 1.26 e la porta del bosco
 era un quinto più alta di quella in fondo alla strada —, stesso segnalibro («la
-porta col ragno»), stessa uscita — tutte e due salgono in soffitta, davanti alla
-grata, e lasciano lì i piedi. Il giro delle terre è `città → scalinata → apice →
-luce → bosco → porta → soffitta`: non si torna in città dalla porta, si esce.
+porta col ragno», a `6000`). Quella in fondo alla città è un'uscita: si apre e
+si sale in soffitta. Quella del bosco **non è più un'uscita**: è il checkpoint
+del ramo, si passa e il bosco continua (vedi la sezione qui sotto). Il giro
+delle terre è `città → scalinata → apice → luce → bosco → porta → bosco →
+fanciullo → hub`.
 
 Il quaderno (`museo/stato.js`) resta quello che era — inchiostro, armi,
 sblocchi, posti, segnalibri, in una chiave sola del `localStorage` — ma non ha
 più una pagina sua: la vecchia `salvataggi/index.html` è stata tolta
 (è in `cestino/salvataggi-quaderno/`).
+
+### La porta a metà bosco, e il fanciullo di là
+
+Il bosco dietro la luce è lungo `7900`, e la porta col ragno non è più la fine
+di niente: sta a `6000`, cioè a metà (`CONFIG.bosco` in `terre/zoan.js`). La
+strada è **bosco → porta → checkpoint → bosco → fanciullo**. Si arriva alla
+soglia, si preme **E**, il giallo sale, si passa, e il giallo scende — ma di là
+c'è ancora bosco, con i suoi tronchi e i suoi occhi, e in fondo, a `7420`, la
+sagoma del bambino. La porta è il **checkpoint** del ramo: `T.segna` scrive il
+posto nel quaderno (`la porta col ragno`, a `6000`) e apre la grata n.2 della
+soffitta, che è la strada per riprendere da lì — non un'uscita da qui. Chi
+vuole tornare indietro torna a sinistra, alla luce della lampada.
+
+Il fanciullo è l'unica figura di tutto il posto che non ha una lampadina al
+posto della testa: ha una faccia, due occhi chiari, e dentro una lampada. Non
+si muove, non ti segue, e **non parla per primo**: parla a chi si avvicina — a
+trecentoquaranta pixel chiede «chi sei tu?», e siccome il coniglio non ha voce si
+risponde da solo, «io sono il fanciullo.» Se ti fermi davanti (un metro e mezzo:
+`T.punta` accende il ◦) e premi **E**, comincia la scena: la felpa si apre in un
+taglio verticale, e dentro non ci sono le budella — c'è una lampada accesa. Dal
+taglio esce un **coniglio uguale a quello che comandi**: non una sagoma che gli
+somiglia, ma quello vero, disegnato da `M.RABBIT.draw` con la corporatura, la
+pelliccia e il costume che ha addosso (`coniglioVero`; se il mondo non sa
+disegnare il coniglio resta `coniglioSagoma`, la stessa forma scritta a mano).
+Il coniglio scende appeso a un filo di luce, le mani lo prendono, la bocca si
+apre quanto basta e se lo mangia: da lì la lampada non è più gialla, è rossa, e
+la pancia gocciola giù per la felpa fino ai piedi. Appena parte la scena il
+coniglio che si comanda **non sparisce dal disegno**: fa un passo indietro dal
+lato da cui è arrivato (`bIndietro`, fino a 460 pixel: tanto basta a uscire da
+dietro il monitor di Charles, che è largo metà schermo) e resta lì a guardare. Le
+zampe sono chiuse (`bloccaZampe`), quindi il passo lo porta la scena: è un
+saltino (`T.g.vy`, `T.g.aria`) la cui durata decide la velocità del passo, così
+si legge come un salto all'indietro e non come uno scivolamento. La camera si
+ferma sul fanciullo (`T.cam.x` su `BIMBO_X`), e quello che si guarda è la scena,
+non la schiena del proprio coniglio sopra il bambino. Prima il coniglio veniva
+tolto del tutto (`BOSCO.senzaConiglio = true`), e chi premeva E si ritrovava
+solo, con il proprio corpo sparito di colpo. Poi la felpa si apre in strisce, il
+rosso si sfalda, e al suo posto c'è un **ragno** che cresce da uno a tre metri e
+mezzo e si alza sulle zampe. Quando sta per arrivare, il quadro si
+corrompe (`sfaldamento`: bande che scivolano, crepe, rosso che sale, righe del
+tubo) e **Charles** compare su un monitor che sale dal basso: la faccia è la sua
+foto, la stessa del pannello (`CH.foto()`, in `museo/charles.js`: una volta
+sola, chiesta appena si entra nel bosco, ritagliata da ritratto — e finché non
+arriva c'è il disegno a codice come riserva), e le righe si scrivono da sole:
+«non è strano se non capisci, utente», «i segreti del foglio restano segreti»,
+«collega i puntini nell'hub», «questo è solo un brutto sogno». Ogni frase è una
+frase intera — soggetto, verbo, punto — e sta in una riga sola da 40 caratteri
+(prima erano sedici righe spezzate a 34, e qualcuna finiva appesa a un due punti
+che non annunciava niente). Il vetro del monitor si stringe su quello che c'è
+(`ph` = ultima riga scritta, minimo 178 unità per il ritratto): con quattro
+frasi si scrive fino a 147 unità, e non resta mezzo schermo nero sopra la scena.
+Con **E** si salta la scrittura ma non la lettura (restano `CHARLES_RESPIRO`
+secondi, `3.0`, prima del lampo), e alla fine il lampo bianco porta in
+`../museo.html?stanza=hub&da=fanciullo`: il pinguino è al banco, e la sua
+battuta è «la smetti di ficcare il naso in cose che non ti riguardano?»
+(`peng.fanciullo`, in `museo/lang.js`).
+
+La scena **si avvia con E, non da sola**, e questo è voluto: chi vuole passare
+senza guardare passa (la porta è a metà strada, non davanti a lui). Chi la fa,
+lascia il segno nel quaderno (`M.STATO.sblocca("fanciullo")`). E quando si torna
+nel bosco — se ci si torna — al posto del fanciullo c'è **la donna**: la stessa
+del bosco rosso, nera, alta, con gli occhi accesi (`T.orrore.donnaNera`, che è
+`lei()` di `terre/tempio.js`: non un doppione, la stessa funzione). Non parla per
+prima; se le si preme **E** davanti dice una cosa sola: «non avere paura,
+roditore: anche i conigli hanno le ali.» La prova automatica di tutto questo sta
+nella tredicesima sezione di `_prova-spiaggia.js` (che carica anche
+`terre/zoan.js`): attraversa la porta e controlla che non porti più via dal
+bosco e che il posto nel quaderno sia la porta a `6000`, aspetta le due battute
+del fanciullo, preme E, gioca la scena e controlla che la camera stia sul
+fanciullo, che il coniglio resti nel disegno (e s'indietri invece di finirgli
+sopra), che nessun numero diventi `NaN` e che si finisca esattamente in
+`museo.html?stanza=hub&da=fanciullo`; poi rientra nel bosco e verifica che al
+posto del fanciullo ci sia la donna, che non parli per prima, e che risponda.
 
 ### Il giro, la stazione, il treno
 
@@ -227,12 +328,11 @@ scrittura e che si arrivi alle terre.
 Il treno delle terre si prova uguale, e più a fondo: `cscript //nologo
 //E:jscript _prova-stazione.js` (l'esito finisce in `_prova-stazione.out`) carica
 `terre/mondo.js` e `terre/stazione.js` in un canvas finto e gioca la stazione
-intera — si arriva dalla buca, si sale in cabina, si prova a partire con le porte
-aperte, si chiudono, si tiene la leva del gas, si frena, si riaprono, si scende,
-si risale, si guida fino in fondo alla galleria. A ogni fotogramma controlla che
-niente sia `NaN`, che il treno non passi il paraurti, che le porte siano in asse,
-che la camera sia quella del muso e che alla fine si arrivi al museo. In fondo
-scrive `tutti i controlli passano`.
+intera — si arriva dalla buca, si aspetta il treno che entra dalla galleria, si
+sale dalla porta, le porte si chiudono da sole, il treno riparte e si arriva al
+museo. A ogni fotogramma controlla che niente sia `NaN`, che il treno non passi
+il paraurti, che le porte siano in asse e che alla fine si arrivi al museo. In
+fondo scrive `tutti i controlli passano`.
 
 ### Il foglio, e la luce che gli sta sopra
 
@@ -297,9 +397,12 @@ dentro. Il passo ha l'inerzia del corridoio ed è più svelto (390 piano, 720 di
 corsa): si accelera, si scivola, si frena. Si guida **senza mouse**: **A / D** o
 **← →** cammina, **SHIFT** corre, **SPAZIO** salta — e il salto si vede, perché la
 quota del salto entra nella posizione dei piedi, non solo nei conti — **F**
-colpisce con quello che si ha in mano, **E** entra e prende, **C** cambia arma,
+colpisce con quello che si ha in mano, **E** entra e prende, **1 2 3** scelgono
+l'arma (**C** le gira: gomma, forbici, acqua),
 **R** accende la radio — la stazione di RadioKaoSs, la stessa del corridoio,
 che qui suona in tutte le zone: spiaggia, bosco, fabbriche, Lucidus City.
+**R** di nuovo è una pausa, non uno spegnimento: il pezzo resta fermo dov'è, e
+riaccendendo riprende da quel secondo, non dall'inizio.
 Il mouse però **si vede lo stesso**: la tela se lo disegna da sola (`mirino()`,
 un cerchietto d'inchiostro col punto in mezzo) perché il cursore del sistema lì è
 spento, e compare col primo movimento — chi gioca coi tasti non se lo trova in
@@ -345,50 +448,47 @@ scalinata le armi non si raccolgono più: restano i **segni di gesso** di quelle
 che c'erano, e la voce manda all'armeria, che è l'unico posto dove si staccano
 dal chiodo. La porta col ragno, in città, è l'unica che porta **fuori**.
 
-### La cabina: il treno delle terre si guida
+### In stazione si sale, e si parte
 
-In stazione non si aspetta più. Si sale dalla porta con **E** e si è in cabina
-(`terre/stazione.js`): lo stato `guida` prende il posto dell'attesa, e il treno
-è tuo. **W / ↑** spinge la leva del gas, **S / ↓** tira il freno, **E** apre e
-chiude le porte. Il motore è vecchio, e i numeri lo dicono:
+In stazione non si aspetta più sedici secondi. Alla porta aperta si preme **E**
+(`terre/stazione.js`): il coniglio sale, e da lì non c'è niente da guidare. Le
+porte si chiudono da sole, il treno riparte all'indietro verso la galleria, e
+quando il buio se l'è mangiato si è nel museo
+(`museo.html?stanza=hub&x=11240&da=treno`), col viaggio che si riavvolge
+(`museo/metro.js`, inverso). Se nessuno sale il treno, dopo sedici secondi,
+riparte da solo e torna più tardi: in stazione il tempo non conta.
 
-| cosa | numero |
-| --- | --- |
-| gas a fondo, da fermo | 540 px/s² |
-| freno, tutto tirato | 900 px/s² |
-| fondo scala del quadrante | 660 px/s |
-| rotolamento, leve a posto | 90 px/s², e la velocità si smorza |
-| porte, da chiuse ad aperte | 0,87 s (`PORTA_VEL` a 1,15) |
-| rotaia dalla banchina al fondo della galleria | circa 2.950 px |
+La scena la fa il treno, non il giocatore: `sali()` mette lo stato `salita`, e
+`passo()` chiude le porte (`PORTA_CHIUDE`), fa partire il convoglio e arma il
+ritorno (`andato`, 3,6 s di buio). Durante il viaggio il coniglio non è più sulla
+banchina: `senzaConiglio` spegne il disegno e il passo (`terre/mondo.js`), così
+non si sentono zampe che camminano su un treno. E il tasto non serve più a
+niente: `act()` non ha nessun ramo per il viaggio, perché il viaggio non si
+comanda.
 
-Più va, meno spinge (a fondo scala spinge il 45% di quello che spingeva da
-fermo), quindi il fondo scala si avvicina e non si tocca: si arriva in fondo
-alla galleria in cinque secondi circa, tenendo la leva giù per tutto il tempo.
-Chi lascia la leva non si ferma di colpo, scorre. **Con le porte aperte il
-motore non prende**: si sente il colpo, lampeggia la spia rossa, e il treno non
-si muove — il blocco di sicurezza è vecchio e non si aggira, si chiudono le
-porte. E le porte si aprono solo da fermo: se il treno sta andando l'altoparlante
-dice «prima si ferma». Da fermo, con le porte aperte e la banchina di fuori,
-**il freno è anche il modo di scendere**: si torna a piedi dove si è saliti, e
-il coniglio ricompare sulla banchina.
+Chi arriva **col** treno (`?zona=stazione&da=treno`) scende davanti alla porta, e
+il vagone richiude le porte e rientra nel buio dopo un respiro: la banchina è
+muta, e non c'è nessuno da salutare.
 
-La camera non è più quella del coniglio: va **col muso del treno**
-(`testaTreno()`), tenuto a un terzo dello schermo, quindi davanti resta la
-galleria e dietro la cassa del convoglio. In fondo alla galleria — `ARRIVO`,
-−2.600 nelle coordinate del mondo, mentre la porta da cui si sale sta a 980 — il
-buio se l'è mangiato tutto: il treno si ferma, le leve non rispondono più
-(`guida.arrivato`), e si torna al museo
-(`museo.html?stanza=hub&x=11240&da=treno`) come sempre.
+### Il vetro: un solo tubo per tutto il sito
 
-La cabina si vede, e non ha una scritta: il **cruscotto** in fondo allo schermo
-(`cruscotto()`) è lamiera con i rivetti, **due leve col pomello d'ottone** — la
-punta davanti è il gas, il quadrato è il freno —, il quadrante con l'ago e
-l'arco rosso del fondo scala, due lampade delle porte (verde chiuso, ambra
-aperto, che lampeggiano mentre si muovono) e la spia rossa del blocco. Sopra il
-vetro corrono le righe d'aria, tanto più veloci quanto più si va, e il buio
-della galleria si mangia i bordi (`cabinaVista()`). In cabina il coniglio non
-c'è: `senzaConiglio` spegne anche il passo (`terre/mondo.js`), così non si
-sentono passi di nessuno mentre si guida.
+Le sezioni giocabili — le terre, la spiaggia onirica, la terza porta e il cosmo —
+non hanno un filtro loro: caricano il **vetro del museo** (`museo/gl.js` e
+`museo/fx.js`, gli stessi file del corridoio) e alla fine di ogni fotogramma
+passano il disegno in `FX.composite` con i **numeri del museo**, non con numeri
+tarati per sezione: curvatura, fosfori, aberrazione, scanline, grana, polvere,
+vignetta. Ci passa dentro tutto quello che è già disegnato — la zona, le bestie,
+il coniglio, i fumetti — senza che nessuna zona lo sappia.
+
+Ogni pagina ha un canvas `#vetro` sopra la tela. Quando lo shader parte il body
+prende `.vetro`, e il velo CSS che c'era prima (`#vhs` nelle terre, `#crt` nella
+spiaggia e nel cosmo, `#velo` nella terza porta) si spegne: due veli insieme
+sarebbero due arie diverse. Se WebGL non c'è — o se si chiede `?vetro=0` — il
+canvas resta spento e vale il velo CSS, cioè esattamente quello di prima.
+
+Charles e la radio non hanno un vestito loro: sono i fogli del museo
+(`museo/charles.css`, `museo/radio-schermo.css`), e stanno **sopra** il vetro,
+come nel corridoio — la scocca del tubo è quella, ma il testo si legge.
 
 Dentro le case non c'è niente in tre dimensioni: sono **cinque stanze in due
 dimensioni**, viste di profilo — la parete con la sua carta, il pavimento di assi,
@@ -421,8 +521,10 @@ vuoto; ad avvertire è sempre chi ha la faccia, mai il cartello «ALT», che non
 mai detto una parola.
 
 La porta col ragno è **una sola, in due posti**: quella in fondo alla città e
-quella in fondo al bosco si aprono allo stesso modo (`MUSEO.STATO.sblocca("ragno")`)
-e portano nello stesso posto — in soffitta, davanti alla grata n.2.
+quella a metà del bosco si aprono allo stesso modo
+(`MUSEO.STATO.sblocca("ragno")`). Quella in città porta in soffitta, davanti alla
+grata n.2; quella del bosco è il checkpoint del ramo, e di là il bosco continua
+(vedi «La porta a metà bosco»).
 
 Il **tempio** non è più un tempio, ed è il posto dove si finisce quando si muore:
 è un **bosco rosso** — non per le foglie, per la luce, che non ha una sorgente e
@@ -501,6 +603,11 @@ carica `museo/data.js`, `museo/radio.js` e `terre/mondo.js` come li carica la
 pagina, preme R e guarda che la stazione parta davvero (che i pezzi puntino a
 `../RadioKaoSs/…`, perché le terre stanno un gradino più giù), che il fumetto
 dica cosa è successo, che R **non** cambi più l'arma e che a cambiarla sia C.
+Poi controlla che R sia **play e pausa** e non un interruttore: il pezzo non si
+ricarica, il punto resta dov'era, e riaccendendo si riprende da lì. E che il
+mazzo non si fermi: finita una canzone parte la successiva, e per due giri di
+scaletta interi la radio non resta mai muta — quando le carte finiscono si
+rimescola e si continua.
 
 
 

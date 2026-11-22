@@ -104,7 +104,7 @@
           text: "La Guerra dei Conigli. chi ha rapito il Boogeyman? guardate la puntata e lo " +
             "scoprirete, io non lo so ancora."
         },
-        { kind: "audio", title: "JUKEBOX", sub: "21 canzoni · premi E", wide: true }
+        { kind: "audio", title: "JUKEBOX", sub: "20 canzoni · premi E", wide: true }
       ]
     },
     {
@@ -123,7 +123,11 @@
         { kind: "image", img: "illustrazioni/12.jpeg", title: "Provocazione" },
         { kind: "image", img: "illustrazioni/13.png", title: "Stretta" },
         { kind: "image", img: "illustrazioni/14.jpg", title: "Funambolo" },
-        { kind: "image", img: "illustrazioni/15.jpg", title: "Persa nel bosco" }
+        { kind: "image", img: "illustrazioni/15.jpg", title: "Persa nel bosco" },
+        { kind: "image", img: "illustrazioni/impegno.jpeg", title: "Impegno" },
+        { kind: "image", img: "illustrazioni/pasaggio.jpeg", title: "Passaggio" },
+        { kind: "image", img: "illustrazioni/simboli.jpeg", title: "Sono solo simboli" },
+        { kind: "image", img: "illustrazioni/whisky.jpeg", title: "Whisky" }
       ]
     },
     {
@@ -212,7 +216,6 @@
     { title: "Icaro", url: "RadioKaoSs/canzoni/icaro.mpeg" },
     { title: "La paura di finire", url: "RadioKaoSs/canzoni/la paura di finire.mpeg" },
     { title: "Mortem", url: "RadioKaoSs/canzoni/mortem.MP3" },
-    { title: "Napoleone", url: "RadioKaoSs/canzoni/napoleone.mpeg" },
     { title: "Non voglio", url: "RadioKaoSs/canzoni/non voglio.mpeg" },
     { title: "Passami la cartapesta", url: "RadioKaoSs/canzoni/passami la cartapesta.mp3" },
     { title: "Sarà", url: "RadioKaoSs/canzoni/sarà.mp3" },

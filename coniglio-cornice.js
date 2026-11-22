@@ -2,13 +2,18 @@
    coniglio-cornice.js
    - Icona del coniglio di fianco a "Home" nella barra in alto.
    - Il coniglio prende vita ed entra nello schermo seguendo il
-     cursore dell'utente per 10 secondi con andatura morbida.
-   - Allo scadere dei 10 secondi, compare il RAGNO DEL GIOCO:
-     il coniglio scappa via allarmato a tutta velocità e il ragno
-     lo insegue fuori dallo schermo!
-   - Poi il coniglio torna calmo di fianco a Home e il ciclo ricomincia.
+     cursore dell'utente. Quando lo raggiunge dice «clicca su di me,
+     non c'è tempo»: cliccandolo si entra nel museo.
+   - Poi compare il RAGNO DEL GIOCO: il coniglio scappa via
+     allarmato gridando «mi trovi nel codice…», e il ragno lo
+     insegue fuori dallo schermo.
+   - Il tutto succede una volta sola: la prossima processione è un
+     minuto dopo, non dieci secondi dopo.
+   - Coniglio e ragno hanno l'aria del museo: fendenti cromatici,
+     righe del tubo, nastro che scorre — è la stessa trasmissione.
    - Cliccando sul coniglio in qualunque momento si entra DIRETTAMENTE
-     nel gioco (gioco.html) senza alcun testo o modale intermedio.
+     nel museo, davanti al pinguino, a schermo intero: niente testo,
+     niente modale, e la sala interattiva non è un punto di partenza.
    ============================================================ */
 (function () {
   "use strict";
@@ -57,7 +62,7 @@
 
   var clickTarget = document.createElement("button");
   clickTarget.id = "rabbitClickTarget";
-  clickTarget.setAttribute("aria-label", "Entra nel gioco del Museo");
+  clickTarget.setAttribute("aria-label", "Entra nel museo: si comincia dal pinguino");
   document.body.appendChild(clickTarget);
 
   // Click diretto sia sul coniglio sullo schermo che sull'icona nella navbar
@@ -66,7 +71,12 @@
       e.preventDefault();
       e.stopPropagation();
     }
-    window.location.href = "museo.html";
+    /* il coniglio non promette più la sala interattiva: promette il
+       museo. Si entra davanti al pinguino, e a schermo intero — ?intero=1
+       lo dice a museo/orienta.js, che lo chiede al primo gesto e se lo
+       ricorda per tutta la visita (anche tornando dal cosmo o dalle
+       terre). Nessun testo di apertura: si è già dentro */
+    window.location.href = "museo.html?intero=1";
   }
   clickTarget.addEventListener("click", goToGame);
 
@@ -151,20 +161,29 @@
     eye: 1.2
   };
 
-  // Fumetto del coniglio ("sbrigati lui è qui!")
+  // Fumetto del coniglio: cambia testo con la fase (arrivo / fuga).
+  // `rosso` è la riga da accendere; `ttl` tiene la battuta in fuga
+  // un paio di secondi anche dopo che il coniglio è uscito.
   var bubble = {
     alpha: 0,
     scale: 0.75,
-    text: "sbrigati lui è qui!"
+    lines: ["clicca su di me", "non c'è tempo"],
+    rosso: 1,
+    ttl: 0
   };
 
   /* Fasi del ciclo:
-     "wait": coniglio nella navbar, aspetta 10 secondi
-     "seek": coniglio segue cursore per 10 secondi
+     "wait": coniglio nella navbar, aspetta (un minuto) la prossima volta
+     "seek": coniglio segue il cursore, e quando lo raggiunge parla
      "chase": arriva il ragno! il coniglio scappa veloce e il ragno lo insegue fuori
   */
   var stage = "wait";
-  var timer = 3.5; // Prima comparsa dopo 3.5s
+  var timer = 4.0; // Prima comparsa dopo 4s
+
+  /* Il riposo dopo la fuga: un minuto, come chiesto. La prima volta
+     il coniglio si fa vivo quasi subito, poi la processione torna
+     una volta al minuto. */
+  var ATTESA = 60.0;
 
   function leg(c, hx, hy, fx, fy, knee, thick, color) {
     var mx = (hx + fx) / 2, my = (hy + fy) / 2;
@@ -433,31 +452,50 @@
     c.restore();
   }
 
-  // Disegna il fumetto (speech bubble) sopra il coniglio
-  function drawSpeechBubble(c, R, b, time) {
-    if (b.alpha <= 0.005) return;
+  /* ============================================================
+     UN FILO DI VHS, SOLO SUI DUE CORPI
+     Nel museo il tubo c'è per davvero; nel sito normale basta un
+     accenno: un filo di rosso e ciano sul contorno, appena
+     percettibile. Niente righe, niente bande, niente riquadri:
+     tutto quello che si vedeva come un rettangolo attorno ai due
+     disegni è stato tolto.
+     ============================================================ */
+  var VHS_FILTER = "saturate(0.97) contrast(1.02) " +
+    "drop-shadow(0.8px 0 0 rgba(255,45,80,0.20)) " +
+    "drop-shadow(-0.8px 0 0 rgba(40,220,255,0.16))";
+
+  /* Disegna il fumetto (speech bubble) sopra il coniglio.
+     Due righe al massimo, carattere da macchina da scrivere.
+     `libero` (fuga): il fumetto non viene più trattenuto dentro lo
+     schermo, esce insieme al coniglio e si spegne sul bordo; `alfa`
+     permette di farlo svanire senza toccare lo stato del fumetto. */
+  function drawSpeechBubble(c, R, b, time, libero, alfa) {
+    var a0 = (alfa == null ? b.alpha : alfa);
+    if (a0 <= 0.005) return;
+    var righe = b.lines && b.lines.length ? b.lines : [""];
+    var fs = 12, lh = 15, padX = 13, padY = 8;
     c.save();
-    c.globalAlpha = Math.max(0, Math.min(1, b.alpha));
+    c.globalAlpha = Math.max(0, Math.min(1, a0));
 
-    c.font = "bold 12px 'Space Grotesk', system-ui, -apple-system, sans-serif";
-    var p1 = "sbrigati ";
-    var p2 = "lui è qui!";
-    var w1 = c.measureText(p1).width;
-    var w2 = c.measureText(p2).width;
-    var totalTextW = w1 + w2;
+    c.font = "bold " + fs + "px 'Courier New', 'Space Grotesk', monospace";
+    var largh = 0, i;
+    for (i = 0; i < righe.length; i++) largh = Math.max(largh, c.measureText(righe[i]).width);
 
-    var padX = 14, bh = 28;
-    var bw = totalTextW + padX * 2;
+    var bw = Math.max(96, largh + padX * 2);
+    var bh = righe.length * lh + padY * 2;
 
     // Posizione sopra la testa del coniglio
     var bx = R.x + (R.dir >= 0 ? 12 : -12);
-    var by = R.y - 74;
+    var by = R.y - 80 - (righe.length - 1) * lh * 0.5;
 
-    // Mantieni il fumetto all'interno dell'area visibile
-    var margin = 16;
-    if (bx - bw / 2 < margin) bx = margin + bw / 2;
-    if (bx + bw / 2 > cw - margin) bx = cw - margin - bw / 2;
-    if (by - bh / 2 < margin) by = margin + bh / 2;
+    // Dentro allo schermo il fumetto resta leggibile; in fuga no:
+    // deve poter uscire dal bordo insieme al coniglio
+    if (!libero) {
+      var margin = 16;
+      if (bx - bw / 2 < margin) bx = margin + bw / 2;
+      if (bx + bw / 2 > cw - margin) bx = cw - margin - bw / 2;
+      if (by - bh / 2 < margin) by = margin + bh / 2;
+    }
 
     // Lievissimo tremito di tensione/urgenza
     var trembleX = Math.sin(time * 24) * 0.7;
@@ -495,7 +533,7 @@
     c.closePath();
 
     // Sfondo fumetto trasparente (vetro / ghost comic)
-    c.fillStyle = "rgba(10, 10, 15, 0.45)";
+    c.fillStyle = "rgba(10, 10, 15, 0.62)";
     c.fill();
 
     // Contorno fumetto semi-trasparente
@@ -504,16 +542,20 @@
     c.lineWidth = 1.4;
     c.stroke();
 
-    // Testo: "sbrigati lui è qui!" (bianco e rosso luminoso)
+    // Testo: una riga bianca e una rossa, appena increspato
     c.textBaseline = "middle";
-    c.textAlign = "left";
-    var startX = -totalTextW / 2;
-
-    c.fillStyle = "#ffffff";
-    c.fillText(p1, startX, 0.5);
-
-    c.fillStyle = "#ff3b30"; // Rosso urgenza luminoso
-    c.fillText(p2, startX + w1, 0.5);
+    c.textAlign = "center";
+    for (i = 0; i < righe.length; i++) {
+      var ty = ry + padY + lh * (i + 0.5);
+      c.globalAlpha = Math.max(0, Math.min(1, a0)) * 0.30;
+      c.fillStyle = "rgba(255, 70, 90, 0.8)";
+      c.fillText(righe[i], 0.5, ty);
+      c.fillStyle = "rgba(80, 230, 255, 0.65)";
+      c.fillText(righe[i], -0.5, ty);
+      c.globalAlpha = Math.max(0, Math.min(1, a0));
+      c.fillStyle = i === b.rosso ? "#ff3b30" : "#ffffff";
+      c.fillText(righe[i], 0, ty);
+    }
 
     c.restore();
   }
@@ -540,6 +582,13 @@
         // Coniglio prende vita ed entra a cercare il cursore
         stage = "seek";
         timer = 10.0;
+        // la battuta dell'arrivo: è questa che il coniglio dice quando
+        // ti arriva addosso
+        bubble.lines = ["clicca su di me", "non c'è tempo"];
+        bubble.rosso = 1;
+        bubble.ttl = 0;
+        bubble.alpha = 0;
+        bubble.scale = 0.75;
         if (navIcon) navIcon.style.opacity = "0.2";
 
         // Compare dalla zona in alto della nav o dal bordo
@@ -614,11 +663,26 @@
         spider.y = rabbit.y;
         spider.dir = fleeRight ? 1 : -1;
         spider.speed = 270;
+
+        // il coniglio scappa dicendo dove si può trovarlo: la battuta
+        // lo segue fuori dall'inquadratura e si spegne con lui
+        bubble.lines = ["mi trovi nel codice..."];
+        bubble.rosso = 0;
+        bubble.ttl = 9;
+        bubble.alpha = 1;
+        bubble.scale = 1;
       }
     } else if (stage === "chase") {
-      // Scomparsa rapida del fumetto durante la fuga dal ragno
-      bubble.alpha = Math.max(0, bubble.alpha - dt * 7.0);
-      bubble.scale = Math.max(0.75, bubble.scale - dt * 5.0);
+      // La battuta della fuga resta su per il suo tempo: il fumetto
+      // accompagna il coniglio fino al bordo, poi si spegne
+      if (bubble.ttl > 0) {
+        bubble.ttl -= dt;
+        bubble.alpha = Math.min(1, bubble.alpha + dt * 8);
+        bubble.scale = Math.min(1, bubble.scale + dt * 6);
+      } else {
+        bubble.alpha = Math.max(0, bubble.alpha - dt * 3.2);
+        bubble.scale = Math.max(0.75, bubble.scale - dt * 3.0);
+      }
 
       // IL CONIGLIO SCAPPA VELOCE (più veloce del ragno per non farsi mai prendere)
       rabbit.state = "run";
@@ -654,7 +718,7 @@
 
       if (rabbitOut && spiderOut) {
         stage = "wait";
-        timer = 10.0; // Pausa di 10 secondi prima di riapparire
+        timer = ATTESA; // un minuto di silenzio: la processione torna dopo
         clickTarget.style.display = "none";
         spider.on = false;
         bubble.alpha = 0;
@@ -676,20 +740,37 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (stage !== "wait") {
+      var t = now / 1000;
       ctx.save();
       ctx.scale(dpr, dpr);
 
+      // fendente cromatico sui corpi: è il filtro del tubo, non della
+      // pagina — fuori dai due disegni non si vede niente
+      ctx.filter = VHS_FILTER;
+
       // Disegna Ragno se attivo
       if (spider.on && spider.alpha > 0.01) {
-        drawGameSpider(ctx, spider, now / 1000);
+        drawGameSpider(ctx, spider, t);
       }
 
       // Disegna Coniglio
-      drawPlayerRabbit(ctx, rabbit, now / 1000);
+      drawPlayerRabbit(ctx, rabbit, t);
 
-      // Disegna Fumetto ("sbrigati lui è qui!")
+      ctx.filter = "none";
+
+      // Disegna Fumetto: la battuta cambia con la fase. In fuga il
+      // fumetto non è più trattenuto dentro lo schermo: esce con il
+      // coniglio e si spegne mentre attraversa il bordo.
       if (bubble.alpha > 0.005) {
-        drawSpeechBubble(ctx, rabbit, bubble, now / 1000);
+        var fuga = stage === "chase";
+        var alfa = bubble.alpha;
+        if (fuga) {
+          var bordo = rabbit.dir > 0 ? cw - rabbit.x : rabbit.x;
+          alfa *= Math.max(0, Math.min(1, (bordo + 110) / 170));
+        }
+        if (alfa > 0.005) {
+          drawSpeechBubble(ctx, rabbit, bubble, t, fuga, alfa);
+        }
       }
 
       ctx.restore();

@@ -193,17 +193,25 @@
   };
 
   /* ---- la radio ------------------------------------------------
-     Una lista sola, quella vera di RadioKaoSs: l'intermezzo, i quindici
-     canali, le ventuno canzoni, gli spot, il TG del Cosmo. Non si apre
-     un lettore per ogni pezzo: si sceglie, e suona quello — uno solo,
-     per tutto il museo. La stessa lista la usano il jukebox del bar, il
-     tasto R e il bottone ◉. */
+     Una lista sola, quella vera di RadioKaoSs: le ventidue canzoni,
+     nell'ordine in cui il lettore le ha in mano. Non si apre un
+     lettore per ogni pezzo: si sceglie, e suona quello — uno solo,
+     per tutto il museo. È la stessa lista che suona il jukebox del
+     bar; il tasto R e il bottone ◉ aprono proprio questa schermata. */
   P.radioList = function () {
-    var lang = M.lang, list = (M.DATA && M.DATA.radio) || [], h = [], i, prev = "";
+    var lang = M.lang, h = [], i, prev = "";
+    /* la scaletta è quella del lettore, non una seconda copia: se la
+       radio pesca dalla fila di RadioKaoSs (radio-fila.js), il pannello
+       mostra le stesse carte e i numeri dei bottoni vogliono dire la
+       stessa cosa per M.RADIO.play(i) */
+    var list = (M.RADIO && M.RADIO.list && M.RADIO.list()) ||
+      (M.DATA && M.DATA.radio) || [];
     h.push('<ol class="radio-list">');
     for (i = 0; i < list.length; i++) {
       var tr = list[i];
-      if (tr.kind !== prev) {
+      /* i gruppi si intitolano solo se la fila li dichiara: la stazione
+         vera è una fila sola, senza testate in mezzo */
+      if (tr.kind && tr.kind !== prev) {
         prev = tr.kind;
         h.push('<li class="radio-sep">' +
           esc(lang.t("radio.kind." + tr.kind) || tr.kind) + "</li>");
@@ -243,13 +251,19 @@
     var tr = M.RADIO && M.RADIO.track ? M.RADIO.track() : null;
     var playing = !!(M.RADIO && M.RADIO.on);
     if (now) {
-      now.textContent = playing && tr ? tr.title : (M.lang.t("radio.off") || "spenta");
+      now.textContent = playing && tr ? tr.title : (M.lang.t("radio.off") || "in pausa");
       now.classList.toggle("on", playing);
     }
     var play = body.querySelector("[data-rk='play']");
     if (play) {
       play.textContent = playing ? "❚❚" : "▶";
       play.classList.toggle("on", playing);
+      /* il tasto è play E pausa: l'etichetta dice quale delle due
+         farà, così non sembra che ▶ ricominci la canzone */
+      var lab = M.lang.t(playing ? "radio.pause" : "radio.play") ||
+        (playing ? "pausa" : "suona");
+      play.setAttribute("aria-label", lab);
+      play.title = lab;
     }
     var list = body.querySelectorAll(".rk");
     Array.prototype.forEach.call(list, function (b) {

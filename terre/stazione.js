@@ -8,14 +8,13 @@
    aspettare: quella strada è chiusa. C'è un treno, e non c'è nessuno:
    la banchina è vuota — niente controllore, niente divisa, niente
    sangue per terra. Il treno passa quando passa, chiamato dagli
-   altoparlanti che non si vedono, e chi sale in cabina lo guida.
+   altoparlanti che non si vedono.
 
    Il treno arriva dalla galleria col muso avanti e si ferma con le
-   porte davanti a chi aspetta. Chi sale in cabina lo guida: la leva
-   del gas, il freno, e le porte che si aprono solo da fermo. Quando
-   il buio della galleria se l'è mangiato, il viaggio è finito: si
-   torna nel corridoio del museo, e il viaggio si riavvolge. Se
-   nessuno sale, il treno dopo un po' riparte all'indietro da solo.
+   porte davanti a chi aspetta. Chi sale non guida niente: le porte si
+   chiudono, il treno entra nel buio, e di là c'è il museo — il
+   corridoio, e il pinguino. Se nessuno sale, il treno dopo un po'
+   riparte all'indietro da solo.
    ============================================================ */
 (function (root) {
   "use strict";
@@ -51,20 +50,6 @@
   var VAGONI = 3, VAGONE = 420;
   var FERMO = PARTENZA - (VAGONE + VAGONE / 2);
 
-  /* ------------------------------------------------------------
-     LA CABINA — i numeri della guida
-     Il treno non aspetta più sedici secondi: spinge la leva, tira il
-     freno, apre e chiude le porte. Va verso la galleria, che è a
-     sinistra: quando il buio se l'è mangiato tutto, il viaggio è
-     finito e di là c'è il museo — il corridoio, e il pinguino.
-     ------------------------------------------------------------ */
-  var SPINTA = 540;            /* px/s² con la leva del gas a fondo */
-  var FRENATA = 900;           /* px/s² col freno tirato tutto */
-  var VEL_MAX = 660;           /* px/s: il fondo scala del quadrante */
-  var ROTOLA = 90;             /* px/s² che il treno perde da solo */
-  var PORTA_VEL = 1.15;        /* quanto ci mettono le porte, da 0 a 1 */
-  var ARRIVO = -2600;          /* dove la galleria se l'è mangiato tutto */
-
   function suolo() { return T.H() * 0.88; }
   /* il muro di fondo: finisce dove comincia la fossa dei binari */
   function muroBase() { return T.H() * 0.56; }
@@ -89,7 +74,7 @@
      è quella di chi cammina, e il gradino sotto i piedi lo mette
      fondo() — così la salita si vede tutta, gradino per gradino */
   function saliLeScale() {
-    if (salita || guida.attivo) return false;
+    if (salita || inTreno) return false;
     var x0 = T.g.x, x1 = cimaScale() + 26;
     salita = { p: 0, x0: x0, x1: x1, dur: Math.max(1.6, (x1 - x0) / 130) };
     T.g.dir = 1;
@@ -99,17 +84,22 @@
 
   var treno = { stato: "vuoto", x: FERMO, v: 0, porte: 0, fermo: 0, attesa: 0 };
   var vicinoTreno = false, vicinoScala = false;
+  /* LA STATURA SULLA BANCHINA — qui il metro non è quello della strada.
+     Di sopra l'omino si misura col coniglio e con i muri delle case; qui
+     si misura con la bocca della galleria (trecento pixel) e con
+     l'alzata dei gradini (ventisei): a quella misura la statura del
+     corteo è troppo bassa, e sulla banchina la fila legge come un branco
+     di bambini. Il numero è locale e vale solo quaggiù: chi esce dalle
+     scale ritrova esattamente la statura di prima, sulla sabbia */
+  var SCALA_BANCHINA = 1.5;
   var andato = 0, preso = false;
   /* chi è appena sceso dal treno non ha sedici secondi di banchina:
      il vagone richiude le porte e rientra nel buio dopo un respiro */
   var sceso = false, riparti = 0;
-
-  /* la cabina: dove vogliono stare le porte (0 chiuse, 1 aperte),
-     dove stanno le due leve, e quanto dura il cartello dei comandi */
-  var guida = {
-    attivo: false, gas: 0, freno: 1, porte: 1,
-    avviso: 0, rombo: false, cam: 0, arrivato: false
-  };
+  /* chi è salito: il coniglio non è più sulla banchina, e il viaggio lo
+     fa il treno. Imbarco conta i secondi delle porte che si chiudono */
+  var inTreno = false, imbarco = 0;
+  var PORTA_CHIUDE = 1.2;      /* quanto ci mettono le porte, da 1 a 0 */
 
   /* ============================================================
      IL TRENO — arriva, aspetta, riparte, e poi torna
@@ -142,6 +132,17 @@
       } else {
         treno.v = v;
         treno.x += v * dt;
+      }
+    } else if (treno.stato === "salita") {
+      /* si è saliti: le porte si chiudono, e poi il treno entra nel buio.
+         Non c'è niente da guidare — il viaggio è il treno che va */
+      imbarco += dt;
+      treno.porte = Math.max(0, treno.porte - dt * PORTA_CHIUDE);
+      if (imbarco > 1.05) {
+        treno.stato = "parte";
+        treno.v = 0;
+        T.suono("treno");
+        andato = 3.6;            /* il buio, e il ritorno al museo */
       }
     } else if (treno.stato === "parte") {
       treno.v = Math.min(1700, treno.v + 1000 * dt);
@@ -283,7 +284,7 @@
     /* la luce del segnale, sopra la bocca: rossa, e verde quando il
        treno c'è. Non c'è nessuno che la guardi */
     var verde = (treno.stato === "arrivo" || treno.stato === "fermo" ||
-      treno.stato === "guida");
+      treno.stato === "salita");
     var lx = x + 250, ly = base - 250;
     var acceso = 0.55 + 0.45 * Math.sin(t * (verde ? 6 : 1.7));
     c.fillStyle = verde
@@ -775,9 +776,9 @@
       vagone(c, x, y, VAGONE - 22, h, i, t);
     }
     /* il fanale che illumina la galleria: sta sul muso, cioè davanti,
-       nel senso in cui il treno sta entrando. In cabina è l'unica luce
-       che si porta dietro */
-    if (treno.stato === "arrivo" || treno.stato === "fermo" || treno.stato === "guida") {
+       nel senso in cui il treno sta entrando. Quando riparte è l'unica
+       luce che si porta dietro */
+    if (treno.stato === "arrivo" || treno.stato === "fermo" || treno.stato === "salita") {
       var muso = treno.x + (VAGONI - 1) * VAGONE + (VAGONE - 22);
       var fx = muso - 12 - cx, fy = y - h + 44;
       var alone = c.createRadialGradient(fx, fy, 4, fx, fy, 170);
@@ -1052,373 +1053,31 @@
   }
 
   /* ============================================================
-     LA ZONA
+     SI SALE, E SI PARTE
+     Non c'è nessuna cabina: chi sale dalla porta non guida niente.
+     Le porte si chiudono, il treno entra nel buio della galleria, e
+     di là c'è il museo — il corridoio, e il pinguino.
      ============================================================ */
-  /* ============================================================
-     LA CABINA — il gas, il freno e le porte
-     Chi sale non aspetta più: guida. La leva spinge il treno verso la
-     galleria, il freno lo tiene, e le porte si aprono solo da fermo —
-     il blocco di sicurezza è vecchio e non si aggira. Quando il buio
-     della galleria se l'è mangiato, il viaggio è finito.
-     ============================================================ */
-  function testaTreno() {
-    return treno.x + (VAGONI - 1) * VAGONE + (VAGONE - 22);
-  }
-
-  /* in cabina il coniglio non c'è: non cammina, non respira, e non si
-     disegna. La banchina la guarda il treno */
-  function coniglioInCabina(v) {
+  /* finché è sul treno il coniglio non è sulla banchina: non cammina,
+     non respira, e non si disegna */
+  function nienteConiglio(v) {
     var m = T.SCENE && T.SCENE.stazione;
-    if (m) m.senzaConiglio = !v;
+    if (m) m.senzaConiglio = v;
   }
 
   function sali() {
-    guida.attivo = true;
-    guida.gas = 0;
-    guida.freno = 1;             /* si sale col freno tirato */
-    guida.porte = 1;             /* e le porte aperte: si è appena saliti */
-    guida.avviso = 8;
-    guida.rombo = false;
-    guida.arrivato = false;
-    guida.cam = T.cam.x;
-    treno.stato = "guida";
+    inTreno = true;
+    imbarco = 0;
+    treno.stato = "salita";
     treno.v = 0;
-    preso = true;                /* c'è chi lo guida: non parte da solo */
+    preso = true;              /* c'è chi è salito: non riparte da solo */
     vicinoTreno = false;
     vicinoScala = false;
     T.g.x = PARTENZA;
-    coniglioInCabina(false);
+    nienteConiglio(true);
     T.suono("porta");
-    T.parla(t2("«le porte si chiudono con il tasto. poi la leva è sua.» dice l'altoparlante del vagone.",
-      "«the doors close with the button. then the lever is yours.» says the carriage speaker."), 4.6);
-  }
-
-  /* si scende dove si è saliti: da fermo, con le porte aperte, e la
-     banchina sotto i piedi */
-  function scendi() {
-    guida.attivo = false;
-    guida.gas = 0;
-    guida.freno = 1;
-    guida.porte = 1;
-    guida.avviso = 0;
-    treno.stato = "fermo";
-    treno.v = 0;
-    treno.fermo = 0;
-    preso = false;
-    sceso = false;
-    riparti = 0;
-    T.g.x = PARTENZA;
-    coniglioInCabina(true);
-    T.suono("porta");
-  }
-
-  /* il tasto, in cabina: apre e chiude le porte */
-  function porteLeva() {
-    if (treno.porte > 0.5) {
-      guida.porte = 0;
-      T.suono("porta");
-      return;
-    }
-    if (treno.v < -12) {
-      T.parla(t2("«prima si ferma.» dice l'altoparlante.",
-        "«stop first.» says the speaker."), 2.4);
-      return;
-    }
-    guida.porte = 1;
-    T.suono("porta");
-  }
-
-  function guidaPasso(dt) {
-    /* arrivati in fondo alla galleria il viaggio è finito: le leve non
-       rispondono più, e il treno resta dove si è fermato */
-    if (guida.arrivato) return;
-    var ta = T.tasti || {};
-    var chiuso = (guida.porte === 0) && (treno.porte < 0.06);
-    var gas = !!ta.avanti, freno = !!ta.indietro;
-
-    /* da fermo, con le porte aperte e la banchina di fuori, il freno è
-       il modo di scendere: sotto i piedi c'è il posto da dove si è
-       saliti. Dentro la galleria no: là non si scende, si guida */
-    if (freno && treno.v > -6 && treno.porte > 0.94 && treno.x > 20) {
-      scendi();
-      return;
-    }
-
-    /* le porte vanno dove si è deciso, e piano */
-    var manca = guida.porte - treno.porte;
-    var quanto = dt * PORTA_VEL;
-    if (Math.abs(manca) <= quanto) treno.porte = guida.porte;
-    else treno.porte += (manca > 0 ? 1 : -1) * quanto;
-
-    /* con le porte aperte il motore non prende: si sente il colpo, e
-       non succede niente */
-    if (gas && !chiuso) {
-      gas = false;
-      if (treno.v > -2) guida.avviso = 1.6;
-    }
-
-    if (gas) {
-      /* più va, meno spinge: il motore è vecchio, e si sente */
-      var spinta = SPINTA * (1 - 0.55 * Math.min(1, -treno.v / VEL_MAX));
-      treno.v -= spinta * dt;
-      if (treno.v < -VEL_MAX) treno.v = -VEL_MAX;
-      guida.gas = Math.min(1, guida.gas + dt * 3.4);
-      guida.freno = Math.max(0, guida.freno - dt * 4);
-      if (!guida.rombo && treno.v < -20) {
-        guida.rombo = true;
-        T.suono("campana");      /* la campana del capotreno, una volta sola */
-      }
-    } else if (freno) {
-      treno.v += FRENATA * dt;
-      if (treno.v > 0) treno.v = 0;
-      guida.freno = Math.min(1, guida.freno + dt * 4);
-      guida.gas = Math.max(0, guida.gas - dt * 3.4);
-    } else {
-      guida.gas = Math.max(0, guida.gas - dt * 2.4);
-      guida.freno = Math.max(0, guida.freno - dt * 2.4);
-      /* il rotolamento: chi lascia la leva non si ferma di colpo */
-      treno.v = Math.min(0, treno.v + ROTOLA * dt);
-      treno.v *= Math.max(0, 1 - 0.5 * dt);
-    }
-
-    treno.x += treno.v * dt;
-    /* il paraurti in fondo alla banchina: di là non si allunga */
-    if (treno.x > FERMO) {
-      treno.x = FERMO;
-      if (treno.v > 0) treno.v = 0;
-    }
-
-    /* la camera va col muso, e lo tiene a un terzo dello schermo:
-       davanti resta la galleria, dietro il resto del treno */
-    var voglia = Math.min(testaTreno() - T.W() * 0.30, LUNGO - T.W());
-    guida.cam += (voglia - guida.cam) * Math.min(1, dt * 4.5);
-    T.cam.x = guida.cam;
-
-    if (guida.avviso > 0) guida.avviso = Math.max(0, guida.avviso - dt);
-
-    /* e quando la galleria se l'è mangiato, il viaggio è finito: di
-       là c'è il museo, e il viaggio si riavvolge */
-    if (treno.x <= ARRIVO && !guida.arrivato) {
-      guida.arrivato = true;
-      guida.gas = 0;
-      guida.freno = 1;
-      treno.v = 0;               /* il treno si ferma: di là si scende */
-      T.suono("inchiostro");
-      andato = 1.8;
-    }
-  }
-
-  /* ------------------------------------------------------------
-     LE DUE LEVE — la feritoia, l'asta, e il pomello d'ottone
-     Il gas ha la punta davanti (si va), il freno ha il quadrato (si
-     smette): nessuna scritta, perché chi guida impara guardandole
-     ------------------------------------------------------------ */
-  function leva(c, x, y, h, quanto, gas) {
-    var corsa = h - 26;
-    var py = y + 13 + (1 - quanto) * corsa;
-
-    /* la feritoia */
-    c.fillStyle = "rgba(6,8,6,0.85)";
-    c.fillRect(x - 5, y, 10, h);
-    c.fillStyle = "rgba(150,158,140,0.10)";
-    c.fillRect(x - 5, y, 2, h);
-
-    /* l'asta */
-    c.strokeStyle = "rgba(178,182,158,0.55)";
-    c.lineWidth = 5;
-    c.beginPath();
-    c.moveTo(x, y);
-    c.lineTo(x, py);
-    c.stroke();
-
-    /* il pomello */
-    c.fillStyle = gas ? "#c8ab63" : "#8f7b4e";
-    c.beginPath();
-    c.arc(x, py, 9, 0, 6.3);
-    c.fill();
-    c.fillStyle = "rgba(255,246,206,0.35)";
-    c.beginPath();
-    c.arc(x - 2.6, py - 2.6, 3.2, 0, 6.3);
-    c.fill();
-    c.fillStyle = "rgba(20,18,12,0.85)";
-    if (gas) {
-      c.beginPath();
-      c.moveTo(x - 3, py - 4);
-      c.lineTo(x + 4, py);
-      c.lineTo(x - 3, py + 4);
-      c.closePath();
-      c.fill();
-    } else {
-      c.fillRect(x - 4, py - 4, 8, 8);
-    }
-  }
-
-  /* ============================================================
-     IL CRUSCOTTO — due leve, un quadrante, e le due lampade
-     Sotto il vetro c'è la lamiera del treno: a sinistra il gas, poi
-     il freno, in mezzo la velocità, a destra le porte. Il quadrante
-     non ha numeri: ha un ago, e un arco rosso dove non si arriva
-     ============================================================ */
-  function cruscotto(c, t) {
-    var W = T.W(), H = T.H(), i;
-    var s = Math.max(0.72, Math.min(1.2, H / 760));
-    var alto = H - Math.max(112, H * 0.175);
-    var f = Math.min(1, -treno.v / VEL_MAX);
-
-    c.save();
-    /* la scossa: a tavoletta il mondo trema, e il cruscotto con lui */
-    if (f > 0.02) c.translate(Math.sin(t * 26) * 1.7 * f, Math.cos(t * 19) * 1.1 * f);
-
-    /* la lamiera, e il bordo smussato */
-    var g = c.createLinearGradient(0, alto, 0, H);
-    g.addColorStop(0, "#29302a");
-    g.addColorStop(0.28, "#1c221c");
-    g.addColorStop(1, "#0e120d");
-    c.fillStyle = g;
-    c.fillRect(0, alto - 6, W, H - alto + 6);
-    c.fillStyle = "rgba(190,176,132,0.18)";
-    c.fillRect(0, alto - 6, W, 2);
-    c.fillStyle = "rgba(4,6,4,0.6)";
-    c.fillRect(0, alto - 4, W, 3);
-
-    /* i rivetti che tengono su il pannello */
-    for (i = 0; i < 16; i++) {
-      c.fillStyle = "rgba(168,172,150,0.16)";
-      c.beginPath();
-      c.arc((i + 0.5) * (W / 16), alto + 6, 2.2, 0, 6.3);
-      c.fill();
-    }
-
-    /* le leve: il gas, e il freno. La corsa è corta */
-    leva(c, W * 0.13, alto + 14, 74 * s, guida.gas, true);
-    leva(c, W * 0.25, alto + 14, 74 * s, guida.freno, false);
-
-    /* il quadrante */
-    var cx0 = W * 0.47, cy0 = alto + (H - alto) * 0.42, r = 40 * s;
-    c.fillStyle = "#0b0f0b";
-    c.beginPath();
-    c.arc(cx0, cy0, r + 4, 0, 6.3);
-    c.fill();
-    c.strokeStyle = "rgba(178,182,158,0.30)";
-    c.lineWidth = 2;
-    c.beginPath();
-    c.arc(cx0, cy0, r + 2, 0, 6.3);
-    c.stroke();
-    for (i = 0; i <= 10; i++) {
-      var an = Math.PI * 0.85 + 1.3 * Math.PI * (i / 10);
-      var lungo = (i % 5 === 0) ? 9 : 5;
-      c.strokeStyle = (i > 7) ? "rgba(214,84,58,0.75)" : "rgba(214,208,180,0.45)";
-      c.lineWidth = (i % 5 === 0) ? 2.4 : 1.4;
-      c.beginPath();
-      c.moveTo(cx0 + Math.cos(an) * (r - lungo), cy0 + Math.sin(an) * (r - lungo));
-      c.lineTo(cx0 + Math.cos(an) * r, cy0 + Math.sin(an) * r);
-      c.stroke();
-    }
-    /* l'ago */
-    var ang = Math.PI * 0.85 + 1.3 * Math.PI * f;
-    c.strokeStyle = "rgba(232,224,196," + (0.55 + 0.4 * f).toFixed(3) + ")";
-    c.lineWidth = 2.6;
-    c.beginPath();
-    c.moveTo(cx0 - Math.cos(ang) * 8, cy0 - Math.sin(ang) * 8);
-    c.lineTo(cx0 + Math.cos(ang) * (r - 8), cy0 + Math.sin(ang) * (r - 8));
-    c.stroke();
-    c.fillStyle = "rgba(198,170,92,0.8)";
-    c.beginPath();
-    c.arc(cx0, cy0, 3.4, 0, 6.3);
-    c.fill();
-
-    /* le due lampade delle porte: verde chiuso, ambra aperto. Nel
-       mezzo del movimento lampeggiano, perché niente è deciso */
-    var chiuso = treno.porte < 0.06;
-    var aperto = treno.porte > 0.94;
-    var battito = 0.55 + 0.45 * Math.sin(t * 7);
-    var lampX = W * 0.66, lampY = alto + (H - alto) * 0.5;
-    for (i = 0; i < 2; i++) {
-      var lx = lampX + i * 46 * s;
-      c.fillStyle = "rgba(6,8,6,0.9)";
-      c.beginPath();
-      c.arc(lx, lampY, 11 * s, 0, 6.3);
-      c.fill();
-      var acceso = (i === 0) ? chiuso : aperto;
-      var col = (i === 0) ? "120,214,132" : "236,190,96";
-      var al = acceso ? ((chiuso || aperto) ? 0.85 : battito) : 0.10;
-      c.fillStyle = "rgba(" + col + "," + al.toFixed(3) + ")";
-      c.beginPath();
-      c.arc(lx, lampY, 8 * s, 0, 6.3);
-      c.fill();
-      if (al > 0.2) {
-        var alone = c.createRadialGradient(lx, lampY, 2, lx, lampY, 26 * s);
-        alone.addColorStop(0, "rgba(" + col + "," + (al * 0.35).toFixed(3) + ")");
-        alone.addColorStop(1, "rgba(" + col + ",0)");
-        c.fillStyle = alone;
-        c.beginPath();
-        c.arc(lx, lampY, 26 * s, 0, 6.3);
-        c.fill();
-      }
-    }
-
-    /* il colpo del motore che non prende, con le porte aperte */
-    if (guida.avviso > 0) {
-      var bl = 0.35 + 0.65 * Math.sin(t * 12);
-      c.fillStyle = "rgba(214,74,52," + (0.55 * bl).toFixed(3) + ")";
-      c.beginPath();
-      c.arc(lampX + 92 * s, lampY, 8 * s, 0, 6.3);
-      c.fill();
-    }
-
-    c.restore();
-  }
-
-  /* ============================================================
-     IL VETRO DELLA CABINA — il buio che si mangia i bordi, e l'aria
-     che corre. Dentro la galleria il mondo si spegne: più si va,
-     più è nero, e quando è tutto nero il viaggio è finito
-     ============================================================ */
-  function cabinaVista(c, t) {
-    var W = T.W(), H = T.H(), i;
-    var f = Math.min(1, -treno.v / VEL_MAX);
-
-    /* la galleria: non è un filtro, è che là dentro non c'è luce */
-    var dentro = Math.max(0, -T.cam.x);
-    var buio = Math.min(0.72, dentro / 1500);
-    if (buio > 0.002) {
-      c.fillStyle = "rgba(3,4,3," + buio.toFixed(3) + ")";
-      c.fillRect(0, 0, W, H);
-    }
-
-    /* l'aria che corre: righe che passano, e passano più in fretta
-       quanto più si va */
-    if (f > 0.06) {
-      var giro = W + 300;
-      var corsa = 240 + 900 * f;
-      for (i = 0; i < 22; i++) {
-        var ly = H * 0.10 + hash(i * 3.7) * H * 0.60;
-        var lw = 40 + hash(i * 1.9) * 150;
-        var lx = ((hash(i * 5.1) * W - t * corsa * (0.6 + hash(i))) % giro + giro) % giro - 150;
-        c.fillStyle = "rgba(226,222,200," + (0.05 + 0.16 * f * hash(i * 2.3)).toFixed(3) + ")";
-        c.fillRect(lx, ly, lw * f + 8, 1.4);
-      }
-    }
-
-    /* il bordo del vetro: la lamiera in alto, e il suo spessore */
-    var alto = Math.max(10, H * 0.045);
-    var g = c.createLinearGradient(0, 0, 0, alto * 3);
-    g.addColorStop(0, "rgba(10,12,10,0.95)");
-    g.addColorStop(1, "rgba(10,12,10,0)");
-    c.fillStyle = g;
-    c.fillRect(0, 0, W, alto * 3);
-    c.fillStyle = "rgba(6,8,6,0.9)";
-    c.fillRect(0, 0, W, alto);
-    c.fillStyle = "rgba(150,160,140,0.14)";
-    c.fillRect(0, alto, W, 1.5);
-
-    /* il tergicristallo, fermo da anni dov'è stato lasciato */
-    c.strokeStyle = "rgba(8,10,8,0.75)";
-    c.lineWidth = 3;
-    c.beginPath();
-    c.moveTo(W * 0.14, alto);
-    c.lineTo(W * 0.52, H * 0.30);
-    c.stroke();
+    T.parla(t2("«le porte si chiudono.» dice l'altoparlante del vagone.",
+      "«the doors are closing.» says the carriage speaker."), 2.6);
   }
 
   T.registra("stazione", {
@@ -1434,13 +1093,12 @@
       return null;
     },
 
-    /* lo stato della cabina, per chi guarda da fuori: la prova lo usa
-       per sapere dove sono le porte e quanto va il treno */
-    cabina: function () {
+    /* lo stato del treno, per chi guarda da fuori: la prova lo usa per
+       sapere dove sono le porte, se si è saliti, e quanto va */
+    treno: function () {
       return {
-        guida: guida.attivo, v: treno.v, porte: treno.porte,
-        x: treno.x, gas: guida.gas, freno: guida.freno,
-        stato: treno.stato, cam: T.cam.x
+        salito: inTreno, v: treno.v, porte: treno.porte,
+        x: treno.x, stato: treno.stato
       };
     },
 
@@ -1454,17 +1112,11 @@
       sceso = false;
       riparti = 0;
 
-      /* la cabina torna com'era: nessuno guida, le leve a posto, e il
-         coniglio c'è di nuovo */
-      guida.attivo = false;
-      guida.gas = 0;
-      guida.freno = 1;
-      guida.porte = 0;
-      guida.avviso = 0;
-      guida.rombo = false;
-      guida.arrivato = false;
-      guida.cam = 0;
-      coniglioInCabina(true);
+      /* il viaggio torna com'era: nessuno sul treno, e il coniglio di
+         nuovo sulla banchina */
+      inTreno = false;
+      imbarco = 0;
+      nienteConiglio(false);
 
       if (opt.da === "treno") {
         /* si scende dal treno: il vagone è fermo con le porte aperte,
@@ -1497,14 +1149,10 @@
     update: function (dt, t) {
       if (andato > 0) {
         andato -= dt;
+        /* il treno se ne va lo stesso: si vede partire mentre il buio
+           se lo prende */
+        passo(dt);
         if (andato <= 0 && T.tornaAlMuseo) T.tornaAlMuseo(CENTRO_HUB, "treno");
-        return;
-      }
-
-      /* in cabina non si cammina: si guida. Il coniglio non c'è, la
-         banchina scorre fuori, e quello che conta è la leva */
-      if (guida.attivo) {
-        guidaPasso(dt);
         return;
       }
 
@@ -1547,15 +1195,8 @@
     act: function () {
       if (andato > 0) return;
 
-      /* in cabina il tasto è quello delle porte: si aprono e si
-         chiudono, e il resto lo fanno la leva e il freno */
-      if (guida.attivo) {
-        porteLeva();
-        return;
-      }
-
-      /* si sale in cabina, non si aspetta: il viaggio si guida, e
-         comincia quando le porte si chiudono */
+      /* si sale, e non si aspetta: le porte si chiudono da sole, e il
+         viaggio lo fa il treno */
       if (vicinoTreno) {
         sali();
         return;
@@ -1595,9 +1236,12 @@
          scale verso la sabbia. Sono gli stessi che si ritrovano di
          sopra, nel bosco, nelle rovine e in città: la strada comincia
          qui, e comincia da sotto. Non sono quattro sagome sparse per
-         le scale — è la fila vera, e sulle scale ce n'è una per volta,
-         della stessa misura che ha sulla sabbia e in città: chi esce
-         dalla metro entra nel corteo di sopra senza salti di statura */
+         le scale — è la fila vera, e sulle scale ce n'è una per volta.
+         La statura gliela dà il corteo (`T.CORTEO.scala`), ma quaggiù
+         c'è un correttivo locale (SCALA_BANCHINA): la banchina è
+         disegnata in pixel suoi, e a quella misura la fila spariva.
+         Chi sale le scale cambia misura una volta sola, in cima, sotto
+         l'inchiostro del passaggio di zona: non si vede */
       var WW = T.W();
       var fila = T.CORTEO.qui("stazione", t, 240, cimaScale() + 24);
       for (var ci = 0; ci < fila.length; ci++) {
@@ -1606,27 +1250,20 @@
         if (corS < -170 || corS > WW + 170) continue;
         /* il gradino sotto i piedi: sul piano è zero, sulla scala sale */
         var corGiu = gradinoSotto(corX);
-        /* la stessa misura degli altri tratti di strada. Di sopra, in
-           città e sulla sabbia, la sagoma esce da posto(0.72), che è
-           0.63 di scala: 138 unità per 0.63 sono un uomo, alto come
-           il coniglio. Prima qui si moltiplicava per l'altezza della
-           finestra, e sulla banchina passavano giganti alti il doppio
-           di chi li guardava — mentre di sopra erano quelli veri */
-        /* LA MISURA. Sulla sabbia, proprio sopra queste scale, gli
-           stessi omini escono da `posto(0.76..0.88).s * 0.62`, cioè
-           fra 0.69 e 0.76: chi aspetta lì è alto così. Qui il numero
-           era fisso a 0.63, e la fila che saliva le scale era più
-           bassa di quella che l'aspettava due passi sopra — la
-           stessa persona, due stature, e si vedeva. Adesso è 0.72,
-           il mezzo di quella misura: sulla banchina e sulla sabbia
-           sono uguali, e chi esce dalla metro entra nel corteo di
-           sopra senza salti. */
-        var corSc = 0.72;
+        /* LA MISURA — la statura la decide il corteo, come in tutte le
+           altre zone (`T.CORTEO.scala`), e un uomo è poco più alto del
+           coniglio. Quaggiù però si moltiplica per SCALA_BANCHINA,
+           perché questa stanza non è misurata in passi di coniglio:
+           è misurata in alzate di gradino e in bocche di galleria.
+           Prima il numero era scritto a mano in ogni zona, e in pixel:
+           la stessa persona cambiava statura passando le scale, e su
+           una finestra alta cresceva il coniglio e non la fila */
+        var corSc = T.CORTEO.scala() * SCALA_BANCHINA;
         T.orrore.sagomaLampada(c, corS, suolo() - corGiu + 2 * s, corSc,
           5.1 + fila[ci].i * 2.9, t, Math.abs(T.g.x - corX) < 100,
           T.CORTEO.passo(corX, t));
         if (T.luce) {
-          T.luce(c, corS + 16 * corSc, suolo() - corGiu, 76 * 1.05,
+          T.luce(c, corS + 16 * corSc, suolo() - corGiu, 76 * 1.05 * SCALA_BANCHINA,
             "255,196,124", 0.05, 0.22);
         }
       }
@@ -1651,7 +1288,7 @@
       c.fillStyle = vg;
       c.fillRect(0, 0, W, H);
 
-      if ((treno.stato === "fermo" || treno.stato === "guida") && treno.porte > 0.4) {
+      if ((treno.stato === "fermo" || treno.stato === "salita") && treno.porte > 0.4) {
         var gx = (FERMO + VAGONE + VAGONE / 2) - T.cam.x;
         var al = 0.10 + 0.06 * Math.sin(t * 2.2);
         var lg = c.createLinearGradient(gx, H * 0.62, gx, H * 0.96);
@@ -1660,13 +1297,6 @@
         lg.addColorStop(1, "rgba(210,222,186,0)");
         c.fillStyle = lg;
         c.fillRect(gx - 90, H * 0.62, 180, H * 0.34);
-      }
-
-      /* in cabina si guarda fuori da un vetro: il buio che si mangia i
-         bordi, l'aria che corre, e sotto le leve */
-      if (guida.attivo) {
-        cabinaVista(c, t);
-        cruscotto(c, t);
       }
 
       /* e per ultimo il corrimano delle scale: davanti a chi sale */

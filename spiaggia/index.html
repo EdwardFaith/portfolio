@@ -10,14 +10,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=7">
   <!-- il punto di domanda di Charles, lo stesso del museo -->
-  <link rel="stylesheet" href="../museo/charles.css?v=4">
+  <link rel="stylesheet" href="../museo/charles.css?v=10">
+  <!-- la schermata della radio: lo stesso tubo del museo -->
+  <link rel="stylesheet" href="../museo/radio-schermo.css?v=1">
 </head>
 
 <body class="sez-spiaggia">
   <div id="stage">
     <canvas id="cv" width="1600" height="900" aria-label="La spiaggia onirica, vista dall'alto" role="img"></canvas>
+    <!-- il tubo del museo, sopra il disegno: si accende se WebGL c'è
+         (game.js, IL VETRO). Se non c'è resta #crt, cioè il velo CSS -->
+    <canvas id="vetro" aria-hidden="true"></canvas>
     <div id="crt"></div>
 
     <!-- ── l'HUD: dove sei, cosa devi fare ─────────────────────── -->
@@ -50,9 +55,29 @@
   <script src="powers.js"></script>
   <script src="beach.js"></script>
   <script src="arena.js"></script>
-  <script src="game.js?v=2"></script>
-  <!-- Charles: per ultimo, così non si mette in mezzo all'avvio -->
-  <script src="../museo/charles.js?v=6"></script>
+  <!-- la pausa: Charles o la radio aperti fermano la spiaggia sotto.
+       Va prima di game.js, che la chiede a ogni fotogramma -->
+  <script src="../museo/sosta.js?v=1"></script>
+  <!-- il vetro del museo: stesso motore, stessi shader, stessi numeri.
+       Va prima di game.js, che lo chiama alla fine di ogni fotogramma -->
+  <script src="../museo/gl.js?v=1"></script>
+  <script src="../museo/fx.js?v=1"></script>
+  <script src="game.js?v=5"></script>
+  <!-- lo schermo del telefono: a tutto schermo, in verticale -->
+  <script src="../museo/orienta.js?v=8"></script>
+  <!-- la radio: la stessa stazione del museo (RadioKaoSs), la stessa
+       fila, lo stesso secondo, e la stessa schermata — il ◉ e il tasto R
+       aprono la scaletta con i tasti ⏮ ▶ ⏭, come nel corridoio.
+       radio-fila.js è la scaletta con i percorsi giusti per questa
+       cartella: la spiaggia sta un gradino più giù della radice. -->
+  <script src="../museo/radio-fila.js?v=1"></script>
+  <script src="../museo/radio.js?v=5"></script>
+  <!-- il ◉ scende di 54px per non finire sopra all'HUD della spiaggia;
+       qui R è libero, quindi apre la radio come nel museo -->
+  <script src="../museo/radio-schermo.js?v=3" data-tasto="r" data-angolo="tr" data-scarto="54"></script>
+  <!-- Charles: per ultimo, così non si mette in mezzo all'avvio.
+       Con lui o con la radio aperti la spiaggia si ferma -->
+  <script src="../museo/charles.js?v=17"></script>
 </body>
 
 </html>

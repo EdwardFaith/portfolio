@@ -36,6 +36,26 @@ html, body {
   display: block;
 }
 
+/* ── IL VETRO — il tubo del museo (museo/gl.js, museo/fx.js), sopra
+      il disegno. Stessa geometria di #cv: il fotogramma è la tela, e
+      il composito lo ripiega come uno schermo a tubo. Quando c'è, il
+      velo CSS (#crt) si spegne: scanline e vignetta le fa lo shader,
+      con gli stessi numeri del corridoio. Senza WebGL (o con
+      ?vetro=0) resta #crt, cioè quello di prima. ────────────────── */
+#vetro {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  pointer-events: none;
+  background: #000;
+}
+
+body.vetro #vetro { display: block; }
+
+body.vetro #crt { display: none; }
+
 /* ── il velo CRT: scanline, grana, vignetta ──────────────────── */
 #crt {
   position: absolute;
@@ -287,10 +307,14 @@ html, body {
   transform: translateY(-1px);
 }
 
-/* ── il ritorno: alla soffitta, davanti alla grata ────────── */
+/* ── il ritorno: alla soffitta, davanti alla grata ──────────────
+   L'angolo in basso a destra però è di Charles: il punto di domanda
+   galleggia lì in tutte le pagine, e prima ci finiva sopra a questo
+   link. Invece di spostare lui — che deve stare sempre nello stesso
+   posto — si è spostato il ritorno: accanto, con la stessa base. ── */
 #back {
   position: absolute;
-  right: 14px;
+  right: 66px;
   bottom: 16px;
   z-index: 50;
   font-size: 10px;
@@ -322,4 +346,21 @@ html, body {
   .pw { width: 96px; padding: 5px 7px 6px; }
   .pw-name { font-size: 8px; letter-spacing: 0.06em; }
   .pw-emoji { font-size: 13px; }
+}
+
+/* di traverso lo schermo è basso: la colonna scende e si stringe di
+   un altro giro, così la prima voce non finisce sotto i pannelli in
+   alto e resta sotto il pollice sinistro. In basso a sinistra non c'è
+   altro: il ritorno sta dall'altra parte, accanto a Charles. */
+@media (max-height: 420px) {
+  #powers {
+    top: auto;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    transform: none;
+    gap: 5px;
+  }
+  .pw { width: 92px; padding: 4px 6px 5px; }
+  .pw-name { font-size: 7.5px; letter-spacing: 0.05em; }
+  .pw-emoji { font-size: 12px; }
+  .pw-bar { margin-top: 4px; }
 }

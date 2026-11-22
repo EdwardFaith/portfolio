@@ -4,8 +4,10 @@
    città di sopra: è Lucidus City, e si visita dal basso verso l'alto.
 
      IL SOTTOSUOLO    le tubature, l'acqua che gocciola, le sagome
-                      lampadina: sono l'unica luce, e sono anche
-                      l'unico pericolo. La gomma le raschia e non le
+                      lampadina: sono l'unica luce. Non attaccano —
+                      chi le lascia stare passa sotto la loro luce —
+                      ma colpite si voltano, e allora sono il
+                      pericolo. La gomma le raschia e non le
                       scalfisce, le forbici peggio: l'unica che le
                       spegne è la pistola ad acqua.
      LA SCALA         la tromba di scale di servizio: tre rampe, i
@@ -27,12 +29,20 @@
                       più grande di quassù, e non è della Lucidus — è
                       del ragno. Si tocca, e arriva lui.
      IL BOSCO         dall'altra parte della lampada: luce gialla,
-                      erba rossa, occhi nella corteccia, e in fondo la
-                      porta col ragno — la stessa che c'è in fondo alla
-                      città, disegnata dallo stesso codice (orrori.js).
-                      Si apre come quella: la grata n.2 della soffitta,
-                      e di là si sale in soffitta. Il giro si chiude in
-                      museo, non in città.
+                      erba rossa, occhi nella corteccia, e a metà strada
+                      la porta col ragno — la stessa che c'è in fondo
+                      alla città, disegnata dallo stesso codice
+                      (orrori.js). Non è un'uscita: si apre, si passa, e
+                      di là il bosco continua. La porta è il checkpoint
+                      del ramo, e la grata n.2 della soffitta riprende
+                      da lì.
+                      Di là, in fondo, c'è una sagoma di bambino, e non
+                      ha la lampadina al posto della testa: è il
+                      fanciullo. Se gli si sta davanti chiede chi sei, e
+                      quello che ha in pancia è la fine — del bosco, del
+                      giro, e del gioco. Quando se n'è andato, al suo
+                      posto c'è la donna del bosco rosso: nera, con gli
+                      occhi accesi, e una cosa sola da dire.
 
    Le parole sono poche e stanno appiccicate a chi le dice: i conigli
    della resistenza, chi abita nelle case, e la donna delle pulizie.
@@ -380,15 +390,25 @@
     /* ── IL BOSCO DIETRO LA LUCE ────────────────────────────────
        Non è sotto e non è sopra: è dall'altra parte della lampada.
        Erba rossa, luce gialla che non ha mai smesso, e occhi nella
-       corteccia che ti seguono. In fondo, la porta del ragno: quella
-       che riporta in città, dal lato delle scale — il bosco è l'ultimo
-       strato, e la strada ricomincia da lì.
-       Non ci sono parole, qui. Ci sono occhi. */
+       corteccia che ti seguono. A metà strada c'è la porta del ragno:
+       non è l'uscita — è il posto di passaggio, e il posto si segna
+       nel quaderno. Di là il bosco continua, e in fondo c'è il
+       fanciullo. La strada è tutta qui: bosco, porta, checkpoint,
+       bosco, fanciullo. */
     bosco: {
       id: "zoan_bosco",
-      lungo: 4400,
+      /* il bosco è lungo due volte tanto: la porta non è la fine di
+         niente, è la metà */
+      lungo: 7900,
       partenza: 130,
-      porta: 4020
+      /* la porta col ragno: si passa, e quello che c'è di là è ancora
+         bosco. È il checkpoint del ramo, e una volta passati è anche
+         l'uscita: si torna alla soglia, si preme E, e si sale in
+         soffitta davanti alla grata n.2 (x=1520) */
+      porta: 6000,
+      /* il fanciullo: oltre la porta, dove il bosco si riapre e non
+         c'è più niente da attraversare */
+      bimbo: 7420
     },
 
     /* LE STANZE DIETRO LE PORTE DEL REPARTO.
@@ -792,13 +812,15 @@
   }
 
   /* ============================================================
-     LE SAGOME CHE ATTACCANO
+     LE SAGOME CHE ATTACCANO — SE LE SI ATTACCA
      Una lampadina non è un lampione: è una cosa con le gambe e un
-     vetro al posto della faccia. Ti vede da lontano e viene avanti
-     piano; arrivata a due passi si ferma e sfarfalla — quello è
-     l'avviso, ed è l'unica cortesia che ha — poi parte in linea retta
-     e prova a metterti la corrente addosso. Dopo lo scatto resta lì a
-     riprendere fiato, perché anche il filamento si scalda.
+     vetro al posto della faccia. Finché nessuno la tocca se ne sta
+     sulla sua marciapiede e non guarda nessuno (vedi passoLampadine).
+     Colpita, invece, ti vede da lontano e viene avanti piano; arrivata
+     a due passi si ferma e sfarfalla — quello è l'avviso, ed è l'unica
+     cortesia che ha — poi parte in linea retta e prova a metterti la
+     corrente addosso. Dopo lo scatto resta lì a riprendere fiato,
+     perché anche il filamento si scalda.
      L'acqua è la sola cosa che le spegne, e la pistola ad acqua
      arriva più lontano di loro: è tutta la tattica del posto.
      ============================================================ */
@@ -8174,7 +8196,22 @@
     { x: 1780, s: 1.32, seed: 5.1 },
     { x: 2560, s: 1.05, seed: 2.4 },
     { x: 3300, s: 1.40, seed: 7.9 },
-    { x: 4180, s: 1.62, seed: 4.2 }
+    { x: 4180, s: 1.62, seed: 4.2 },
+    /* la seconda metà del bosco: prima della sagoma si stringe, e dopo
+       si riapre — è il respiro che fa il posto quando qualcuno lo
+       attraversa */
+    { x: 4760, s: 1.24, seed: 8.8 },
+    { x: 5120, s: 1.48, seed: 6.1 },
+    /* questo stava davanti alla sagoma e le copriva la faccia: adesso
+       il bambino ha il suo varco, e l'albero è dall'altra parte */
+    { x: 5340, s: 1.10, seed: 2.2 },
+    /* di là dalla porta il bosco ricomincia: la soglia è a 6000, e i
+       tronchi tornano a fare la quinta fino al fanciullo. Nessuno di
+       questi è davanti a lui: a 7420 c'è il suo varco */
+    { x: 6180, s: 1.66, seed: 5.5 },
+    { x: 6760, s: 1.34, seed: 3.4 },
+    { x: 7180, s: 1.06, seed: 7.2 },
+    { x: 7760, s: 1.58, seed: 9.6 }
   ];
 
   /* le iridi: viola, azzurra, gialla, verde. Sono gli unici colori
@@ -8661,7 +8698,7 @@
 
   /* ============================================================
      LA PORTA DEL RAGNO
-     In fondo al bosco c'è la porta della città: non una che le
+     A metà del bosco c'è la porta della città: non una che le
      somiglia, la stessa. Il disegno sta in orrori.js
      (`T.orrore.portaRagno`), perché è lo stesso in fondo alla
      strada: qui si dice solo dove piantarla, e quanto grande.
@@ -8681,18 +8718,965 @@
   var SB_LONTANI = [
     { x: 300, s: 0.72, seed: 9.1 }, { x: 1100, s: 0.66, seed: 2.8 },
     { x: 1900, s: 0.78, seed: 6.3 }, { x: 2700, s: 0.70, seed: 8.5 },
-    { x: 3500, s: 0.74, seed: 3.2 }, { x: 4400, s: 0.68, seed: 7.4 }
+    { x: 3500, s: 0.74, seed: 3.2 }, { x: 4400, s: 0.68, seed: 7.4 },
+    { x: 5100, s: 0.76, seed: 1.6 }, { x: 5800, s: 0.64, seed: 4.9 },
+    /* di là dalla porta: il fondo non si interrompe sulla soglia,
+       altrimenti il bosco sembrerebbe finire lì */
+    { x: 6500, s: 0.80, seed: 6.8 }, { x: 7200, s: 0.72, seed: 2.1 },
+    { x: 7800, s: 0.78, seed: 5.7 }
   ];
 
   /* ============================================================
      LA ZONA — IL BOSCO
-     Non c'è niente da prendere e niente da aprire, tranne la porta in
-     fondo. Si cammina, si guarda, e gli alberi ti guardano: è tutto
-     quello che questo posto ha da dire, e lo dice bene.
+     Non c'è niente da prendere e niente da aprire, tranne la porta a
+     metà strada. Si cammina, si guarda, e gli alberi ti guardano. La
+     porta non porta fuori: si apre, si passa, e di là c'è il resto del
+     bosco — fino al fanciullo.
      ============================================================ */
   var vicinoPorta = false, portaT = 0, viaPorta = 0, viaT = 0;
+  /* il colpo dato troppo presto: la porta non lo butta via, lo tiene.
+     Il giallo sotto la soglia sale in un terzo di secondo, e chi arriva
+     di corsa preme prima che sia salito — la città apre subito, qui la
+     mano restava a mezz'aria e bisognava ripremere. Adesso la pressione
+     si ricorda, e la porta si apre da sé appena la soglia è accesa */
+  var premo = 0;
 
-  T.registra(SB.id, {
+  /* ============================================================
+     IL FANCIULLO
+     Un bambino, non un omino con la lampadina: la testa è grande, le
+     gambe due stecchi, e addosso ha una felpa larga. È nero contro la
+     luce — l'unica cosa chiara che ha sono due occhi, e la riga di
+     giallo che gli passa sul fianco. Dentro non ha le budella: ha una
+     lampada, e quando apre la pancia la si vede.
+
+     Le misure stanno in `bimboMisure` e le leggono tutti e due: chi lo
+     disegna e chi ci mette in mano il coniglio. Se fossero scritte due
+     volte, il coniglio uscirebbe da un'altra parte.
+     ============================================================ */
+  function cl01(v) { v = v || 0; return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function morbido(v) { v = cl01(v); return v * v * (3 - 2 * v); }
+
+  /* 1 = lo spessore di un piede. Tutto il bambino si misura da qui:
+     la testa a 196, la pancia a 104, la cintola a 67 */
+  function bimboMisure(y, s, t) {
+    var resp = Math.sin((t || 0) * 1.25) * 1.25 * s;
+    var h = 196 * s;
+    return {
+      alto: h,
+      testaY: y - h + 30 * s + resp,
+      raggio: 26 * s,
+      boccaY: y - h + 45 * s + resp,
+      spallaY: y - h + 62 * s + resp,
+      panciaY: y - h * 0.53 + resp * 0.4,
+      cintolaY: y - h * 0.34,
+      resp: resp
+    };
+  }
+
+  /* un arto: due segmenti, e il gomito si piega da solo dalla parte
+     giusta — la stessa idea delle zampe del coniglio */
+  function arto(c, ax, ay, bx, by, piega, lw, col) {
+    var mx = (ax + bx) / 2, my = (ay + by) / 2;
+    var dx = bx - ax, dy = by - ay, len = Math.sqrt(dx * dx + dy * dy) || 1;
+    var kx = mx + (-dy / len) * piega, ky = my + (dx / len) * piega;
+    c.strokeStyle = col;
+    c.lineWidth = lw;
+    c.lineCap = "round";
+    c.lineJoin = "round";
+    c.beginPath();
+    c.moveTo(ax, ay);
+    c.quadraticCurveTo(kx, ky, bx, by);
+    c.stroke();
+  }
+
+  /* la felpa: la stessa forma per il corpo intero e per le sette
+     strisce in cui si apre — se fossero due forme diverse si vedrebbe
+     la cucitura */
+  function felpaPath(c, x, m, s) {
+    c.beginPath();
+    c.moveTo(x - 21 * s, m.spallaY);
+    c.quadraticCurveTo(x - 33 * s, m.spallaY + 26 * s, x - 28 * s, m.cintolaY + 7 * s);
+    c.lineTo(x + 28 * s, m.cintolaY + 7 * s);
+    c.quadraticCurveTo(x + 33 * s, m.spallaY + 26 * s, x + 21 * s, m.spallaY);
+    c.quadraticCurveTo(x, m.spallaY - 8 * s, x - 21 * s, m.spallaY);
+    c.closePath();
+  }
+
+  /* ---- il bambino, tutto insieme ------------------------------
+     `st` non decide niente: dice solo cosa sta succedendo. La pancia
+     aperta, la bocca, dove sono le mani, le strisce che si staccano,
+     il colore che c'è dentro. Chi chiama ha già deciso. */
+  function bimboScena(c, x, y, s, t, st) {
+    st = st || {};
+    var m = bimboMisure(y, s, t);
+    var ap = cl01(st.pancia);
+    var morsi = cl01(st.morso);
+    var crepa = cl01(st.crepa);
+    var al = st.alpha == null ? 1 : cl01(st.alpha);
+    var strisce = cl01(st.strisce);
+    var calore = cl01(st.calore);
+    var lampada = st.lampada == null ? ap : cl01(st.lampada);
+    var sangue = cl01(st.sangue);
+    var i, n, q, x0, x1, dx, dy, giro;
+
+    c.save();
+    c.globalAlpha = al;
+
+    /* l'ombra: corta, perché è piccolo */
+    c.fillStyle = "rgba(0,0,0,0.34)";
+    c.beginPath();
+    c.ellipse(x, y + 2 * s, 34 * s, 6.5 * s, 0, 0, 6.3);
+    c.fill();
+
+    /* le gambe, e i piedi */
+    c.strokeStyle = "#0a0a0e";
+    c.lineCap = "round";
+    c.lineWidth = 12 * s;
+    c.beginPath();
+    c.moveTo(x - 10 * s, m.cintolaY); c.lineTo(x - 13 * s, y - 4 * s);
+    c.moveTo(x + 10 * s, m.cintolaY); c.lineTo(x + 13 * s, y - 4 * s);
+    c.stroke();
+    c.lineWidth = 7 * s;
+    c.beginPath();
+    c.moveTo(x - 13 * s, y - 4 * s); c.lineTo(x - 21 * s, y - 2 * s);
+    c.moveTo(x + 13 * s, y - 4 * s); c.lineTo(x + 21 * s, y - 2 * s);
+    c.stroke();
+
+    /* la felpa. Quando si apre in strisce si disegna sette volte, ognuna
+       dentro la sua banda: la banda si sposta, si inclina, e cade — in
+       mezzo resta il buio, che è quello che c'è dentro */
+    var gf = c.createLinearGradient(x - 36 * s, 0, x + 36 * s, 0);
+    gf.addColorStop(0, "#17161d");
+    gf.addColorStop(0.55, "#08080b");
+    gf.addColorStop(1, "#020203");
+    c.fillStyle = gf;
+    if (strisce < 0.02) {
+      felpaPath(c, x, m, s);
+      c.fill();
+    } else {
+      n = 7;
+      for (i = 0; i < n; i++) {
+        x0 = x - 31 * s + (62 * s / n) * i;
+        x1 = x0 + 62 * s / n;
+        q = cl01((strisce - i * 0.06) / 0.66);
+        dx = (i - 3) * 7 * s * q * q;
+        dy = 42 * s * q * q;
+        giro = (i - 3) * 0.055 * q;
+        c.save();
+        c.beginPath();
+        c.rect(x0 - 0.6, m.spallaY - 22 * s, x1 - x0 + 1.2, (m.cintolaY - m.spallaY) + 54 * s);
+        c.clip();
+        c.globalAlpha = al * (1 - 0.9 * q);
+        c.translate(x + dx, m.spallaY + dy);
+        c.rotate(giro);
+        c.translate(-x, -m.spallaY);
+        felpaPath(c, x, m, s);
+        c.fill();
+        c.restore();
+      }
+      c.fillStyle = gf;
+    }
+
+    /* la riga di luce sul fianco sinistro: la luce viene da dietro */
+    c.strokeStyle = "rgba(255,246,178,0.26)";
+    c.lineWidth = 1.9 * s;
+    c.beginPath();
+    c.moveTo(x - 20 * s, m.spallaY + 3 * s);
+    c.quadraticCurveTo(x - 32 * s, m.spallaY + 28 * s, x - 27 * s, m.cintolaY + 5 * s);
+    c.stroke();
+
+    /* LA PANCIA: non è una ferita, è una bocca. Si apre a taglio
+       verticale, e dentro c'è la lampada — la luce che si vede da tutto
+       il bosco. Dopo il pasto la lampada non è più gialla: è rossa. */
+    if (lampada > 0.01) {
+      var rw = (2.6 + 15 * ap) * s, rh = (4 + 20 * ap) * s;
+      var caldo = calore > 0.02;
+      /* il buio prima: la pancia è un buco, e non è fondo */
+      c.fillStyle = "rgba(4,2,3,0.97)";
+      c.beginPath();
+      c.ellipse(x, m.panciaY, rw + 1.7 * s, rh + 1.7 * s, 0, 0, 6.3);
+      c.fill();
+      /* il chiarore che esce, e si allarga sul muschio */
+      var raggio = (30 + 26 * ap) * s;
+      var gl = c.createRadialGradient(x, m.panciaY, 1, x, m.panciaY, raggio);
+      gl.addColorStop(0, "rgba(" + (caldo ? "255,138,86" : "255,252,226") + "," + (0.95 * lampada).toFixed(3) + ")");
+      gl.addColorStop(0.40, "rgba(" + (caldo ? "226,44,32" : "252,234,138") + "," + (0.50 * lampada).toFixed(3) + ")");
+      gl.addColorStop(1, "rgba(" + (caldo ? "150,8,12" : "246,214,90") + ",0)");
+      c.fillStyle = gl;
+      c.beginPath();
+      c.ellipse(x, m.panciaY, raggio, raggio * 1.1, 0, 0, 6.3);
+      c.fill();
+      /* i due lembi: la stoffa che si è aperta, e non si richiude */
+      c.strokeStyle = "rgba(6,4,6,0.96)";
+      c.lineWidth = 5.4 * s;
+      c.beginPath();
+      c.moveTo(x - 2.4 * s, m.panciaY - rh * 1.14);
+      c.quadraticCurveTo(x - rw * 0.92, m.panciaY, x - 2.4 * s, m.panciaY + rh * 1.14);
+      c.moveTo(x + 2.4 * s, m.panciaY - rh * 1.08);
+      c.quadraticCurveTo(x + rw * 0.92, m.panciaY, x + 2.4 * s, m.panciaY + rh * 1.08);
+      c.stroke();
+      /* il filamento della lampada: trema, e non si spegne mai */
+      var trem = Math.sin((t || 0) * 9) * 1.7 * s;
+      c.strokeStyle = "rgba(255,255,242," + (0.85 * lampada).toFixed(3) + ")";
+      c.lineWidth = 1.7 * s;
+      c.beginPath();
+      c.moveTo(x - 3 * s, m.panciaY - 6 * s + trem * 0.4);
+      c.lineTo(x + 2 * s, m.panciaY + 1 * s);
+      c.lineTo(x - 1 * s, m.panciaY + 8 * s - trem * 0.4);
+      c.stroke();
+    }
+
+    /* LA GOCCIA — dopo il pasto la pancia non è più gialla: è una
+       ferita. E gocciola giù per la felpa, fino ai piedi, senza
+       fretta: una goccia sola, che si allunga */
+    if (sangue > 0.01) {
+      var sgoc = sangue * (m.cintolaY + 8 * s - m.panciaY);
+      c.strokeStyle = "rgba(104,6,10," + (0.9 * Math.min(1, sangue * 2.6)).toFixed(3) + ")";
+      c.lineWidth = 3.4 * s;
+      c.lineCap = "round";
+      c.beginPath();
+      c.moveTo(x + 1.8 * s, m.panciaY + 11 * s);
+      c.lineTo(x + 1.8 * s, m.panciaY + 11 * s + sgoc);
+      c.stroke();
+      /* il rigagnolo, quando è arrivata in fondo */
+      if (sangue > 0.6) {
+        var pz = (sangue - 0.6) / 0.4;
+        c.fillStyle = "rgba(82,4,8," + (0.8 * pz).toFixed(3) + ")";
+        c.beginPath();
+        c.ellipse(x + 2 * s, y + 1 * s, (9 + 24 * pz) * s, (2.2 + 3.4 * pz) * s, 0, 0, 6.3);
+        c.fill();
+      }
+    }
+
+    /* le crepe: quando si sfalda si apre in strisce, e prima ancora si
+       sente che si sta aprendo */
+    if (crepa > 0.01) {
+      c.strokeStyle = "rgba(255,246,180," + (0.62 * crepa).toFixed(3) + ")";
+      c.lineWidth = 1.5 * s;
+      for (i = 0; i < 8; i++) {
+        q = hash(i * 4.3);
+        x0 = x + (q - 0.5) * 50 * s + Math.sin((t || 0) * 6 + i) * 4 * s * crepa;
+        var cy = m.alto > 0 ? y - m.alto + q * 22 * s : y;
+        c.beginPath();
+        c.moveTo(x0, cy);
+        c.lineTo(x0 + Math.sin(i * 2.1) * 9 * s * crepa, cy + m.alto * (0.35 + q * 0.55));
+        c.stroke();
+      }
+    }
+
+    /* il collo, e la testa: grande, tonda, senza lampadina */
+    c.strokeStyle = "#07070a";
+    c.lineWidth = 13 * s;
+    c.beginPath();
+    c.moveTo(x, m.spallaY - 4 * s);
+    c.lineTo(x, m.testaY + m.raggio * 0.7);
+    c.stroke();
+    c.fillStyle = "#05050a";
+    c.beginPath();
+    c.ellipse(x, m.testaY, m.raggio * 0.94, m.raggio, 0, 0, 6.3);
+    c.fill();
+
+    /* i capelli: nove punte, e non stanno giù */
+    c.fillStyle = "#030304";
+    for (i = 0; i < 9; i++) {
+      var an = Math.PI * (0.06 + i * 0.105);
+      var bx2 = x + Math.cos(an) * m.raggio * 0.88;
+      var by2 = m.testaY - Math.sin(an) * m.raggio * 0.92;
+      var tx2 = x + Math.cos(an) * m.raggio * (1.24 + (i % 2) * 0.14);
+      var ty2 = m.testaY - Math.sin(an) * m.raggio * (1.36 + (i % 2) * 0.14);
+      c.beginPath();
+      c.moveTo(bx2 - 3.6 * s, by2);
+      c.lineTo(tx2 + Math.sin((t || 0) * 2.1 + i) * 1.2 * s, ty2);
+      c.lineTo(bx2 + 3.6 * s, by2);
+      c.closePath();
+      c.fill();
+    }
+
+    /* gli occhi: l'unica cosa chiara. Guardano te, e non lampeggiano */
+    var oc = 0.56 + 0.20 * Math.sin((t || 0) * 1.7);
+    var ocY = m.testaY - 1 * s + morsi * 1.6 * s;
+    c.fillStyle = "rgba(216,228,186," + oc.toFixed(3) + ")";
+    c.beginPath();
+    c.ellipse(x - 8.5 * s, ocY, 2.7 * s, (3.7 - morsi * 1.1) * s, 0, 0, 6.3);
+    c.fill();
+    c.beginPath();
+    c.ellipse(x + 8.5 * s, ocY, 2.7 * s, (3.7 - morsi * 1.1) * s, 0, 0, 6.3);
+    c.fill();
+
+    /* la bocca: chiusa è una riga. Aperta è una fessura nera, e si apre
+       quanto basta per farci passare un coniglio */
+    if (morsi > 0.02) {
+      c.fillStyle = "rgba(1,1,2,0.97)";
+      c.beginPath();
+      c.ellipse(x, m.boccaY, (5 + 6.5 * morsi) * s, (1.4 + 8.5 * morsi) * s, 0, 0, 6.3);
+      c.fill();
+    } else {
+      c.strokeStyle = "rgba(126,140,124,0.32)";
+      c.lineWidth = 1.5 * s;
+      c.beginPath();
+      c.moveTo(x - 4 * s, m.boccaY);
+      c.lineTo(x + 4 * s, m.boccaY);
+      c.stroke();
+    }
+
+    /* le braccia: giù quando è fermo, in avanti quando prende. Se le
+       mani hanno un posto (`st.mani` è dove sta il coniglio) vanno lì:
+       sono due segmenti, e il gomito si trova la piega da solo */
+    var m0x, m0y, m1x, m1y;
+    if (st.mani) {
+      m0x = st.mani[0][0]; m0y = st.mani[0][1];
+      m1x = st.mani[1][0]; m1y = st.mani[1][1];
+    } else {
+      m0x = x - 23 * s; m0y = m.cintolaY + 5 * s;
+      m1x = x + 23 * s; m1y = m.cintolaY + 5 * s;
+    }
+    arto(c, x - 20 * s, m.spallaY + 7 * s, m0x, m0y, 17 * s, 9 * s, "rgba(9,9,12,0.99)");
+    arto(c, x + 20 * s, m.spallaY + 7 * s, m1x, m1y, -17 * s, 9 * s, "rgba(9,9,12,0.99)");
+    /* le mani: un pugno tondo, che è quello che stringe */
+    c.fillStyle = "rgba(9,9,12,0.99)";
+    c.beginPath(); c.arc(m0x, m0y, 5.2 * s, 0, 6.3); c.fill();
+    c.beginPath(); c.arc(m1x, m1y, 5.2 * s, 0, 6.3); c.fill();
+
+    c.restore();
+  }
+
+  /* ---- la bocca, ridisegnata sopra -------------------------------
+     Il coniglio si disegna dopo il bambino, quindi passerebbe davanti
+     alla bocca anche quando ci sta dentro. Questo pezzo di nero si
+     mette sopra: è la bocca che lo inghiotte, non lui che scappa. */
+  function bimboBocca(c, x, y, s, t, st) {
+    var m = bimboMisure(y, s, t);
+    var morsi = cl01(st && st.morso);
+    if (morsi <= 0.02) return;
+    c.save();
+    if (st && st.alpha != null) c.globalAlpha = cl01(st.alpha);
+    c.fillStyle = "rgba(1,1,2,0.98)";
+    c.beginPath();
+    c.ellipse(x, m.boccaY, (5 + 6.5 * morsi) * s, (1.4 + 8.5 * morsi) * s, 0, 0, 6.3);
+    c.fill();
+    /* il filo di sangue agli angoli */
+    if (morsi > 0.6) {
+      c.fillStyle = "rgba(112,6,12," + (0.75 * (morsi - 0.6) / 0.4).toFixed(3) + ")";
+      c.fillRect(x - 1.6 * s, m.boccaY + 2 * s, 3.2 * s, 16 * s);
+    }
+    c.restore();
+  }
+
+  /* ============================================================
+     LA SCENA, IN UN POSTO SOLO
+     `bimboStato` dice a che punto è: quanto è aperta la pancia, se la
+     bocca è aperta, se le strisce si stanno staccando, quanto è
+     cresciuto il ragno. `bimboPosizioni` dice dove stanno le cose: le
+     mani, e il coniglio. Il disegno non decide niente — legge. Così il
+     coniglio esce dalla pancia e non da un'altra parte, e la bocca si
+     apre dove il coniglio arriva.
+     ============================================================ */
+  function bimboStato() {
+    var st = {
+      fase: bFase, q: 0,
+      pancia: 0, lampada: 0, morso: 0, inghiotte: 0, sangue: 0,
+      strisce: 0, crepa: 0, alpha: 1, calore: 0,
+      ragno: 0, cordone: 0
+    };
+    var q;
+
+    if (bFase === 1) {
+      /* la pancia si apre: prima un filo di luce, poi il taglio */
+      q = cl01(bT / (BIMBO_FASI[1] * 0.68));
+      st.q = q;
+      st.pancia = morbido(q);
+      st.lampada = morbido(cl01(q * 1.4));
+    } else if (bFase === 2) {
+      /* il coniglio esce, e il filo che lo tiene si tende */
+      q = cl01(bT / BIMBO_FASI[2]);
+      st.q = q;
+      st.pancia = 1;
+      st.lampada = 1;
+      st.cordone = q < 0.72 ? 1 : Math.max(0, 1 - (q - 0.72) * 8);
+    } else if (bFase === 3) {
+      /* le mani lo alzano, la bocca si apre, e se lo mangia */
+      q = cl01(bT / BIMBO_FASI[3]);
+      st.q = q;
+      st.pancia = 1;
+      st.lampada = 1 - cl01((q - 0.66) / 0.34) * 0.42;
+      st.calore = cl01((q - 0.66) / 0.34);
+      st.morso = q < 0.78
+        ? morbido(cl01((q - 0.18) / 0.24))
+        : 1 - morbido(cl01((q - 0.78) / 0.20)) * 0.86;
+      st.inghiotte = morbido(cl01((q - 0.40) / 0.26));
+      st.sangue = cl01((q - 0.62) / 0.38);
+    } else if (bFase === 4) {
+      /* si apre in strisce: prima le crepe, poi le bande che cadono */
+      q = cl01(bT / BIMBO_FASI[4]);
+      st.q = q;
+      st.pancia = 1;
+      st.lampada = 0.45;
+      st.calore = 1;
+      st.sangue = 1;
+      st.morso = 0.12;
+      st.crepa = morbido(cl01(q * 1.7));
+      st.strisce = morbido(cl01((q - 0.14) / 0.82));
+      st.alpha = 1 - 0.52 * st.strisce;
+    } else if (bFase >= 5) {
+      /* il ragno: esce, e diventa una cosa che sta in piedi sugli alberi */
+      q = bFase === 5 ? cl01(bT / BIMBO_FASI[5]) : 1;
+      st.q = q;
+      st.pancia = 1;
+      st.calore = 1;
+      st.sangue = 1;
+      st.strisce = 1;
+      st.crepa = 1;
+      st.alpha = bFase === 5 ? (1 - cl01((q - 0.06) / 0.36)) * 0.5 : 0;
+      st.ragno = morbido(cl01((q - 0.04) / 0.96));
+    }
+    return st;
+  }
+
+  /* dove stanno il coniglio e le mani, in coordinate del mondo. Il
+     coniglio ha i piedi in `y` (come tutti: si disegna dall'origine in
+     giù) e la sua statura in `k`, che è la stessa misura del giocatore */
+  function bimboPosizioni(x, y, s, t, st) {
+    var m = bimboMisure(y, s, t);
+    var q = st.q;
+    var riposo = [[x - 23 * s, m.cintolaY + 5 * s], [x + 23 * s, m.cintolaY + 5 * s]];
+    var p = { m: m, con: null, mani: riposo };
+    var e, presa, cx = x, cy, ck, cal = 1, stato = "idle", dondola = 0;
+
+    if (st.fase === 2) {
+      /* esce dalla pancia: la testa resta appesa al buco, il corpo scende
+         e si allunga. I piedi arrivano a sfiorare il muschio — e non lo
+         toccano: è appeso, non è in piedi */
+      e = morbido(cl01((q - 0.10) / 0.70));
+      ck = 0.30 + 0.70 * e;
+      cy = m.panciaY + (18 + 84 * ck) * s;
+      stato = e < 0.94 ? "jump" : "idle";
+      dondola = (1 - e) * 0.6;
+      presa = morbido(cl01((q - 0.56) / 0.36));
+      p.con = { x: cx, y: cy, k: ck, al: 1, stato: stato, dondola: dondola };
+      /* le mani: dai fianchi ai fianchi del coniglio */
+      var h0x = riposo[0][0], h0y = riposo[0][1];
+      var t0x = cx - 15 * s, t0y = cy - 46 * s * Math.max(0.4, ck);
+      var nx = h0x + (t0x - h0x) * presa, ny = h0y + (t0y - h0y) * presa;
+      p.mani = [[nx, ny], [x * 2 - nx, ny]];
+    } else if (st.fase === 3) {
+      var a1 = cl01(q / 0.40), a2 = cl01((q - 0.40) / 0.28);
+      var base = m.panciaY + 102 * s;
+      var alto = m.boccaY + 86 * s;
+      if (q < 0.40) {
+        /* lo alza davanti alla faccia */
+        cy = base + (alto - base) * morbido(a1);
+        ck = 1 - 0.04 * morbido(a1);
+        stato = "jump";
+      } else {
+        /* se lo mangia: si rimpicciolisce dentro la bocca. I piedi
+           salgono con lui, e la bocca resta sul punto */
+        ck = Math.max(0.10, 1 - 0.90 * morbido(a2));
+        cy = m.boccaY + 86 * ck * s;
+        cal = 1 - cl01((a2 - 0.72) / 0.28);
+        stato = "jump";
+      }
+      p.con = { x: cx, y: cy, k: ck, al: cal, stato: stato, dondola: 0 };
+      var hy = q < 0.40 ? cy - 46 * s * Math.max(0.4, ck) : m.boccaY + 10 * s;
+      p.mani = [[cx - 17 * s, hy], [cx + 17 * s, hy]];
+    }
+    return p;
+  }
+
+  /* ============================================================
+     IL CONIGLIO — quello vero
+     Non una sagoma che gli somiglia: lo stesso coniglio che si comanda,
+     disegnato da MUSEO.RABBIT con la sua corporatura, la sua pelliccia e
+     il costume che ha addosso. Qui gli si dice solo dove stare, per un
+     fotogramma: si mettono da parte le sue coordinate, si disegna, si
+     rimettono. `k` è la sua statura (1 = quella che ha addosso adesso).
+     Se il mondo non ha un coniglio — succede solo nelle prove — si
+     ripiega sulla sagoma di riserva, che è la stessa forma in piccolo.
+     ============================================================ */
+  function coniglioVero(c, x, y, k, t, stato) {
+    var R = M.RABBIT;
+    var S0 = R && R.get ? R.get() : null;
+    if (!S0 || !R.draw) return false;
+    var salva = {
+      x: S0.x, y: S0.y, dir: S0.dir, state: S0.state, phase: S0.phase,
+      hop: S0.hop, speed: S0.speed, scale: S0.scale, w: S0.w, bodyY: S0.bodyY
+    };
+    var fatto = true;
+    try {
+      S0.x = x;
+      S0.y = y;
+      S0.dir = 1;
+      S0.state = stato || "idle";
+      S0.phase = (t || 0) * 2.6;
+      S0.hop = 0;
+      S0.speed = 0;
+      /* senza ombra: non è a terra, è in mano a qualcuno */
+      S0.w = 0;
+      S0.bodyY = 0;
+      S0.scale = (H() / 1000) * (k == null ? 1 : k);
+      R.draw(c, null, t || 0);
+    } catch (e) {
+      fatto = false;
+    }
+    S0.x = salva.x; S0.y = salva.y;
+    S0.dir = salva.dir; S0.state = salva.state; S0.phase = salva.phase;
+    S0.hop = salva.hop; S0.speed = salva.speed;
+    S0.scale = salva.scale; S0.w = salva.w; S0.bodyY = salva.bodyY;
+    return fatto;
+  }
+
+  /* la sagoma di riserva: serve solo se il mondo non sa disegnare il
+     coniglio. Stessa forma — corpo, testa, orecchie, zampe, un occhio —
+     ma qui è tutto scritto a mano */
+  function coniglioSagoma(c, x, y, s, k, t, penzola) {
+    k = k == null ? 1 : Math.max(0.02, k);
+    c.save();
+    c.translate(x, y);
+    if (penzola) c.rotate(penzola * 0.55);
+    c.scale(s * k, s * k);
+    var fal = Math.sin((t || 0) * 10) * 7 * Math.min(1, k);
+    c.strokeStyle = "#dcd8c6";
+    c.lineWidth = 6;
+    c.beginPath();
+    c.moveTo(-8, -22); c.lineTo(-10 + fal, -2);
+    c.moveTo(8, -22); c.lineTo(10 - fal, -2);
+    c.stroke();
+    c.fillStyle = "#e9e5d3";
+    c.beginPath(); c.ellipse(0, -40, 20, 24, 0, 0, 6.3); c.fill();
+    c.beginPath(); c.arc(-17, -34, 6, 0, 6.3); c.fill();
+    c.beginPath(); c.arc(4, -70, 15, 0, 6.3); c.fill();
+    c.beginPath(); c.ellipse(-1, -96, 5, 17, -0.16, 0, 6.3); c.fill();
+    c.beginPath(); c.ellipse(9, -97, 5, 17, 0.2, 0, 6.3); c.fill();
+    c.fillStyle = "rgba(190,150,150,0.5)";
+    c.beginPath(); c.ellipse(-1, -96, 2, 11, -0.16, 0, 6.3); c.fill();
+    c.beginPath(); c.ellipse(9, -97, 2, 11, 0.2, 0, 6.3); c.fill();
+    c.fillStyle = "rgba(18,16,14,0.9)";
+    c.beginPath(); c.arc(11, -72, 2.4, 0, 6.3); c.fill();
+    c.restore();
+  }
+
+  /* uno o l'altro: il vero, e se non c'è quello disegnato a mano */
+  function coniglio(c, x, y, s, k, t, stato, penzola) {
+    if (coniglioVero(c, x, y, k, t, stato)) return;
+    coniglioSagoma(c, x, y, s, k, t, penzola);
+  }
+
+  /* ============================================================
+     LO SFALDAMENTO
+     Quando il ragno sta per arrivare, il posto non smette di esistere:
+     si sposta. Ogni banda del quadro scivola di lato per conto suo, le
+     crepe partono dal punto in cui sta la bestia, il rosso sale da
+     sotto, e le righe del tubo passano sopra tutto. `k` è quanto è
+     andato avanti lo sfaldamento: 0 niente, 1 tutto.
+     ============================================================ */
+  function sfaldamento(c, t, k) {
+    var w = W(), h = H(), i, y, hh, dx, g, x0, y0, a, r;
+    if (k <= 0.001) return;
+    k = Math.min(1, k);
+
+    c.save();
+
+    /* 1. le bande: pezzi di quadro che scivolano di lato */
+    for (i = 0; i < 11; i++) {
+      y = (hash(i * 3.1) * h + t * (22 + i * 9)) % h;
+      hh = 4 + hash(i * 5.7) * 26;
+      dx = Math.sin(t * (5 + i) + i * 2) * (7 + 74 * k);
+      c.fillStyle = "rgba(6,5,4," + (0.08 + 0.24 * k).toFixed(3) + ")";
+      c.fillRect(0, y, w, hh);
+      c.fillStyle = "rgba(255,242,176," + (0.03 + 0.10 * k).toFixed(3) + ")";
+      c.fillRect(dx, y, w, 1.6);
+    }
+
+    /* 2. le crepe: partono da dove sta il ragno e se ne vanno ai bordi */
+    x0 = w * 0.5; y0 = h * 0.62;
+    c.strokeStyle = "rgba(255,250,214," + (0.10 + 0.40 * k).toFixed(3) + ")";
+    for (i = 0; i < 9; i++) {
+      a = -0.35 + (i / 8) * 2.3 + Math.sin(t * 3 + i) * 0.12;
+      r = (0.25 + hash(i * 7.7) * 0.9) * Math.max(w, h) * k;
+      c.lineWidth = 0.8 + hash(i * 2.9) * 1.8;
+      c.beginPath();
+      c.moveTo(x0 + Math.cos(a) * 60, y0 + Math.sin(a) * 40);
+      var px = 0, py = 0;
+      for (var q = 1; q <= 4; q++) {
+        px = x0 + Math.cos(a) * r * (q / 4) + Math.sin(t * 4 + i + q) * 16 * k;
+        py = y0 + Math.sin(a) * r * (q / 4) * 0.7 + Math.cos(t * 5 + i * q) * 12 * k;
+        c.lineTo(px, py);
+      }
+      c.stroke();
+    }
+
+    /* 3. il rosso che sale dal basso, come l'inchiostro */
+    g = c.createLinearGradient(0, h, 0, h * 0.55);
+    g.addColorStop(0, "rgba(112,8,10," + (0.34 * k).toFixed(3) + ")");
+    g.addColorStop(0.55, "rgba(86,6,10," + (0.14 * k).toFixed(3) + ")");
+    g.addColorStop(1, "rgba(70,4,8,0)");
+    c.fillStyle = g;
+    c.fillRect(0, h * 0.55, w, h * 0.45);
+
+    /* 4. le righe del tubo, e i bordi che si mangiano il quadro */
+    for (i = 0; i < 26; i++) {
+      y = ((i / 26) * h + (t * 40) % (h / 26)) % h;
+      c.fillStyle = "rgba(0,0,0," + (0.05 + 0.13 * k).toFixed(3) + ")";
+      c.fillRect(0, y, w, 1.4);
+    }
+    g = c.createRadialGradient(w * 0.5, h * 0.5, Math.min(w, h) * 0.22, w * 0.5, h * 0.5, Math.max(w, h) * 0.72);
+    g.addColorStop(0, "rgba(0,0,0,0)");
+    g.addColorStop(1, "rgba(0,0,0," + (0.55 * k).toFixed(3) + ")");
+    c.fillStyle = g;
+    c.fillRect(0, 0, w, h);
+
+    c.restore();
+  }
+
+  /* ============================================================
+     CHARLES — il monitor che appare a metà del bosco
+     Non è un pannello del museo: è lo stesso vetro, qui in mezzo alle
+     foglie. La faccia è disegnata a codice (la foto la carica il suo
+     pannello, non il mondo), il tubo ha le righe, e le righe di testo
+     si scrivono da sole, una lettera per volta: chi legge ha il tempo
+     di non crederci.
+     ============================================================ */
+  var CHARLES_ROWS = null, CHARLES_TOT = 0;
+
+  function righeCharles() {
+    if (CHARLES_ROWS) return CHARLES_ROWS;
+    /* Quattro frasi, e ognuna sta in piedi da sola: soggetto, verbo,
+       punto. Prima ce n'erano di più e qualcuna era appesa a un due punti
+       che non annunciava niente («collega i puntini nell'hub del sito:»),
+       e la frase finiva a vuoto. Adesso Charles dice la sua e chiude:
+       che confondersi non è strano, che i segreti del foglio restano
+       nel foglio, dove sono i lavori, e che questo è solo un sogno.
+       L'ultima riga chiude e basta: non chiede niente a chi legge. */
+    var testi = [
+      t2("non è strano se non capisci, utente.",
+        "it's not strange, user, if you're lost."),
+      t2("i segreti del foglio restano segreti.",
+        "the secrets of the sheet stay secrets."),
+      t2("collega i puntini nell'hub.",
+        "connect the dots in the hub."),
+      t2("questo è solo un brutto sogno.",
+        "this is only a bad dream.")
+    ];
+    var righe = [], i, j, parole, riga, parola;
+    /* quanto è larga una riga di questo monitor. Trentaquattro caratteri
+       andavano bene per sedici righe fitte; con quattro frasi si può
+       respirare, e a quaranta la frase più lunga ("non è strano se non
+       capisci, utente.") sta in una riga sola, senza spezzarsi sul
+       vocativo */
+    var LARGA = 40;
+    for (i = 0; i < testi.length; i++) {
+      parole = String(testi[i]).split(" ");
+      riga = "";
+      for (j = 0; j < parole.length; j++) {
+        parola = parole[j];
+        if (riga && (riga + " " + parola).length > LARGA) { righe.push(riga); riga = parola; }
+        else riga = riga ? riga + " " + parola : parola;
+      }
+      if (riga) righe.push(riga);
+      righe.push("");
+    }
+    CHARLES_TOT = 0;
+    for (i = 0; i < righe.length; i++) CHARLES_TOT += righe[i].length;
+    CHARLES_ROWS = righe;
+    return righe;
+  }
+
+  /* quanti caratteri al secondo, e quanto si aspetta prima di sparire */
+  var CHARLES_CPS = 42;
+  /* il respiro dopo l'ultima lettera: prima erano 2.8 secondi, e con
+     sedici righe addosso il lampo arrivava mentre si stava ancora
+     leggendo l'ultima. Poi sono diventati 4.2 per la stessa ragione al
+     contrario: con quattro frasi non c'è più niente da leggere, e
+     quattro secondi di faccia muta sono un'eternità. Lo stesso numero
+     serve al tasto E, che salta la scrittura ma non la lettura */
+  var CHARLES_RESPIRO = 3.0;
+  function durataCharles() {
+    righeCharles();
+    return 0.7 + CHARLES_TOT / CHARLES_CPS + CHARLES_RESPIRO;
+  }
+  function visibileCharles(t) {
+    righeCharles();
+    return Math.max(0, Math.min(CHARLES_TOT, Math.floor((t - 0.7) * CHARLES_CPS)));
+  }
+
+  /* ---- la foto di Charles, chiesta una volta sola --------------
+     charles.js la scarica e la tiene: qui si chiede a lui, così il
+     monitor del bosco e il pannello mostrano la stessa faccia. Si
+     comincia appena si entra nel bosco — a scaricarla ci vuole un
+     minuto buono di cammino, e quando si arriva al monitor è già lì.
+     Senza charles.js (o senza immagini) torna null, e resta il disegno. */
+  var CHARLES_FOTO = 0;
+  function fotoCharles() {
+    if (CHARLES_FOTO !== 0) return CHARLES_FOTO;
+    CHARLES_FOTO = null;
+    try {
+      var CH = M.CHARLES;
+      if (CH && CH.foto) CHARLES_FOTO = CH.foto();
+    } catch (e) {
+      CHARLES_FOTO = null;
+    }
+    return CHARLES_FOTO;
+  }
+
+  /* ============================================================
+     IL MONITOR — Charles, che scrive. Nel bosco non c'è un uomo
+     disegnato: c'è un tubo a raggi catodici con la sua faccia dentro,
+     che parla in righe verdi e fuma.
+     ============================================================ */
+  function charlesScrive(c, t, comparsa, vis) {
+    var w = W(), h = H(), b = base();
+    var s = Math.min(w / 1280, h / 800);
+    if (s < 0.62) s = 0.62;
+    var righe = righeCharles();
+    /* l'interlinea, e dove comincia il testo: 36 unità sotto il bordo
+       alto del vetro */
+    var lh = 18.6 * s, i, usati = 0, pezzo, ult = 0, conta = 0, ly;
+    /* quanto vetro serve davvero: la faccia chiede 165 unità (ritratto
+       più nome), il testo chiede l'ultima riga che si scrive. Charles
+       dice quattro frasi, quindi il monitor si stringe su quelle invece
+       di restare il rettangolo vuoto che serviva a sedici righe: così
+       non copre mezza scena per niente, e l'ultima riga si legge tutta
+       senza finire sotto la cornice */
+    var ultima = 0;
+    for (i = 0; i < righe.length; i++) if (righe[i]) ultima = i;
+    var serve = Math.max(178 * s, 36 * s + ultima * lh + 20 * s);
+    var pw = Math.min(w * 0.86, 800 * s);
+    var ph = Math.min(h * 0.56, 320 * s, serve);
+    var px = (w - pw) * 0.5, py = b - ph - 18 * s + (1 - comparsa) * 110 * s;
+
+    c.save();
+    c.globalAlpha = Math.max(0, Math.min(1, comparsa));
+
+    /* il mobile del monitor: la cornice, e il vetro curvo */
+    c.fillStyle = "rgba(7,9,8,0.95)";
+    c.fillRect(px - 12 * s, py - 12 * s, pw + 24 * s, ph + 24 * s);
+    c.strokeStyle = "rgba(150,190,160,0.30)";
+    c.lineWidth = 1.4 * s;
+    c.strokeRect(px - 12 * s, py - 12 * s, pw + 24 * s, ph + 24 * s);
+
+    var g = c.createLinearGradient(px, py, px + pw, py + ph);
+    g.addColorStop(0, "rgba(26,44,34,0.72)");
+    g.addColorStop(0.55, "rgba(12,20,16,0.86)");
+    g.addColorStop(1, "rgba(6,9,8,0.94)");
+    c.fillStyle = g;
+    c.fillRect(px, py, pw, ph);
+
+    /* la faccia: la sua, quella del pannello — non un disegno che gli
+       somiglia. La foto la dà charles.js, che la scarica una volta sola;
+       qui si ritaglia come un ritratto, riempiendo la cornice e senza
+       schiacciarla. Se non è ancora arrivata, resta il disegno: il
+       monitor non aspetta, ma quando è lui è lui. */
+    var fw = 112 * s, fh = 132 * s, fx0 = px + 16 * s, fy0 = py + 20 * s;
+    var fx = fx0 + fw * 0.5, fy = fy0 + fh * 0.56;
+    c.save();
+    c.beginPath();
+    c.rect(fx0, fy0, fw, fh);
+    c.clip();
+    c.fillStyle = "#1b1d1b";
+    c.fillRect(fx0, fy0, fw, fh);
+    var fo = fotoCharles();
+    var pronta = !!(fo && fo.complete && fo.naturalWidth > 0);
+    if (pronta) {
+      var na = fo.naturalWidth / fo.naturalHeight, ca = fw / fh;
+      var sw2, sh2, sx2, sy2;
+      if (na > ca) {
+        sh2 = fo.naturalHeight;
+        sw2 = sh2 * ca;
+        sx2 = (fo.naturalWidth - sw2) * 0.5;
+        sy2 = 0;
+      } else {
+        sw2 = fo.naturalWidth;
+        sh2 = sw2 / ca;
+        sx2 = 0;
+        /* in alto: la faccia sta nel terzo alto, il resto è maglietta */
+        sy2 = (fo.naturalHeight - sh2) * 0.16;
+      }
+      try {
+        c.drawImage(fo, sx2, sy2, sw2, sh2, fx0, fy0, fw, fh);
+      } catch (e) {
+        pronta = false;
+      }
+    }
+    if (!pronta) {
+      c.fillStyle = "#c9c6bb";
+      c.beginPath();
+      c.ellipse(fx, fy, 36 * s, 44 * s, 0, 0, 6.3);
+      c.fill();
+      c.fillStyle = "#0d0d0d";
+      c.beginPath();
+      c.ellipse(fx, fy - 36 * s, 38 * s, 23 * s, 0, 0, 6.3);
+      c.fill();
+      c.fillStyle = "#0b0b0b";
+      c.beginPath();
+      c.ellipse(fx - 13 * s, fy - 4 * s, 5 * s, 3.4 * s, 0, 0, 6.3);
+      c.fill();
+      c.beginPath();
+      c.ellipse(fx + 13 * s, fy - 4 * s, 5 * s, 3.4 * s, 0, 0, 6.3);
+      c.fill();
+      c.strokeStyle = "rgba(22,20,18,0.8)";
+      c.lineWidth = 2.2 * s;
+      c.beginPath();
+      c.moveTo(fx - 10 * s, fy + 20 * s);
+      c.quadraticCurveTo(fx, fy + 24 * s, fx + 10 * s, fy + 20 * s);
+      c.stroke();
+      /* la sigaretta, e la sua riga chiara */
+      c.fillStyle = "rgba(228,226,214,0.85)";
+      c.fillRect(fx + 22 * s, fy + 16 * s, 5 * s, 16 * s);
+    }
+    /* e sopra la faccia il verde del tubo: la trama, e le righe */
+    c.fillStyle = "rgba(28,68,50,0.26)";
+    c.fillRect(fx0, fy0, fw, fh);
+    for (i = 0; i < 26; i++) {
+      ly = fy0 + (i / 26) * fh;
+      c.fillStyle = "rgba(2,8,6,0.26)";
+      c.fillRect(fx0, ly, fw, 1.2 * s);
+    }
+    c.restore();
+
+    /* il nome, sotto la faccia */
+    c.textAlign = "left";
+    c.textBaseline = "middle";
+    c.font = "700 " + Math.round(10 * s) + "px 'Space Grotesk', ui-monospace, monospace";
+    c.fillStyle = "rgba(226,232,214,0.92)";
+    c.fillText("CHARLES", fx0, fy0 + fh + 13 * s);
+    c.fillStyle = "rgba(140,160,140,0.75)";
+    c.font = "500 " + Math.round(8 * s) + "px ui-monospace, monospace";
+    c.fillText("KAOSS", fx0 + 58 * s, fy0 + fh + 13 * s);
+    /* il puntino rosso: sta scrivendo */
+    if (Math.floor(t * 2.4) % 2 === 0) {
+      c.fillStyle = "rgba(190,40,36,0.9)";
+      c.beginPath();
+      c.arc(px + pw - 16 * s, py + 16 * s, 3.2 * s, 0, 6.3);
+      c.fill();
+    }
+
+    /* le righe: si scrivono da sole, e si fermano dove sono arrivate */
+    c.font = "500 " + Math.round(14 * s) + "px ui-monospace, 'Courier New', monospace";
+    var tx = px + 152 * s, ty = py + 36 * s;
+    for (i = 0; i < righe.length; i++) {
+      if (usati >= vis) break;
+      pezzo = righe[i].substring(0, Math.max(0, Math.min(righe[i].length, vis - usati)));
+      usati += righe[i].length + 1;
+      if (pezzo) {
+        c.fillStyle = "rgba(208,240,214,0.94)";
+        c.fillText(pezzo, tx, ty + i * lh);
+      }
+    }
+    /* il cursore: un rettangolo che batte, alla fine dell'ultima riga */
+    conta = 0;
+    for (i = 0; i < righe.length; i++) {
+      conta += righe[i].length + 1;
+      if (conta >= vis) { ult = i; break; }
+    }
+    if (vis < CHARLES_TOT && Math.floor(t * 3) % 2 === 0) {
+      c.fillStyle = "rgba(208,240,214,0.9)";
+      c.fillRect(tx + Math.min(40, righe[ult] ? righe[ult].length : 0) * 8.2 * s,
+        ty + ult * lh - 7 * s, 8 * s, 14 * s);
+    }
+
+    /* le righe del tubo, sopra tutto: è un monitor, non una finestra */
+    for (i = 0; i < 42; i++) {
+      ly = py + (i / 42) * ph;
+      c.fillStyle = "rgba(4,10,8,0.30)";
+      c.fillRect(px, ly, pw, 1.2 * s);
+    }
+    var vg = c.createRadialGradient(px + pw * 0.5, py + ph * 0.5, ph * 0.18,
+      px + pw * 0.5, py + ph * 0.5, pw * 0.62);
+    vg.addColorStop(0, "rgba(0,0,0,0)");
+    vg.addColorStop(1, "rgba(0,0,0,0.55)");
+    c.fillStyle = vg;
+    c.fillRect(px, py, pw, ph);
+
+    c.restore();
+  }
+
+
+  /* ── LA SAGOMA: la macchina a fasi ──────────────────────────────
+     `bFase` 0 è il bosco come era prima: la sagoma ferma, che chiede
+     chi sei a chi si avvicina. Da 1 in poi non si cammina più (le zampe
+     le chiude il mondo) e va in scena quello che ha in pancia: la
+     pancia, il coniglio, il morso, il ragno, la crepa, e lui che
+     scrive. `bT` è il tempo passato nella fase, `BIMBO_FASI` quanto ne
+     dura ognuna (la 6 la calcola Charles, la 0 non si usa). */
+  var BIMBO_X = SB.bimbo;
+  var bFase = 0, bT = 0, bDetto = 0, bAttesa = 0, bVicino = false, bFatto = false;
+  var bDurata = 0;
+  /* la porta è già stata attraversata: da quel momento non è più il
+     passaggio, è l'uscita (vedi sali()). Si riparte da "già passata"
+     anche quando si riprende dal posto nel quaderno, che sta
+     esattamente sulla soglia: chi riprende di lì vuole uscire, non
+     rifare il giallo e ritrovarsi dieci pixel più avanti */
+  var bPassato = false;
+  /* quanti pixel mancano al passo indietro, e a che velocità si fa: il
+     coniglio che si comanda non esce più dal disegno quando la scena
+     parte — si scosta dal fanciullo e resta lì a guardare (vedi act() e
+     update()) */
+  var bIndietro = 0, bPasso = 0;
+  /* quanto manca prima che la donna possa dire di nuovo la sua riga:
+     senza, E la ripeterebbe a raffica */
+  var donnaT = 0;
+  /* i tempi, in secondi: uno per fase. Non sono un dettaglio — sono il
+     respiro della scena. La pancia si apre piano, il coniglio esce e si
+     allunga, poi le mani lo alzano e la bocca lo prende (la fase più
+     lunga, perché è quella che fa male), poi le strisce, poi il ragno.
+     La 6 la calcola Charles: dura quanto le sue righe. */
+  var BIMBO_FASI = [0, 1.30, 1.70, 2.80, 2.60, 2.40, 0, 1.00];
+
+  function apri() {
+    /* la porta è quella della città, e si apre allo stesso modo. Non
+       porta in soffitta, però: porta di là, e di là c'è ancora
+       bosco. Quello che resta è il segno — la porta è il checkpoint
+       del ramo (T.segna), e la grata n.2 della soffitta diventa la
+       strada per riprendere da lì. La strada per uscire, invece, è
+       quella dopo: una volta passati, la porta è anche l'uscita
+       (vedi sali()) */
+    if (M.STATO && M.STATO.sblocca && !M.STATO.sbloccato("ragno")) {
+      try { M.STATO.sblocca("ragno"); } catch (e) { }
+    }
+    if (T.segna) {
+      T.segna(SB.id, SB.porta, t2("la porta col ragno", "the door with the spider"));
+    }
+    snd("ragno", 0.9);
+    premo = 0;
+    viaPorta = 1;
+    viaT = 0;
+  }
+
+  /* SU, IN SOFFITTA — la porta col ragno è la stessa porta in due
+     posti, e si esce dalla stessa parte: davanti alla grata n.2, a
+     `x=1520`, che è quella delle due partite. La città esce così
+     (`terre/citta.js`), e il bosco esce così: chi sale si trova dove
+     si scelgono i due rami, col posto del bosco già segnato — la
+     ripresa lo riporta qui, alla soglia, e non al principio della
+     zona. Prima questa strada non c'era: dal bosco si poteva solo
+     tornare indietro a piedi fino alla luce. */
+  function sali() {
+    if (T.segna) {
+      T.segna(SB.id, SB.porta, t2("la porta col ragno", "the door with the spider"));
+    }
+    snd("porta", 0.8);
+    try {
+      root.location.href = "../museo.html?stanza=soffitta&x=1520&da=bosco";
+    } catch (e) { }
+  }
+
+  /* LA SOGLIA, in un posto solo: la prima volta è un passaggio, dopo è
+     l'uscita. E `bFatto` conta come passaggio — chi ha già visto il
+     fanciullo ha già fatto il bosco, e davanti alla porta vuole tornare
+     al museo, non rifare il giro. Prima il caso «donna» si mangiava il
+     tasto (act() rispondeva con la sua riga e usciva), così davanti
+     alla porta con la donna nera non si usciva più: si restava lì a
+     sentirsi dire che anche i conigli hanno le ali. */
+  function soglia() {
+    if (bPassato || bFatto) { sali(); return; }
+    apri();
+  }
+
+  /* il modulo della zona, con un nome: la scena non nasconde più il
+     coniglio che si comanda — gli fa fare un passo indietro, e lui resta
+     nel disegno a guardare. `senzaConiglio` resta spento (lo usano altre
+     zone, la cabina del treno: là le zampe e il disegno si spengono
+     davvero) */
+  var BOSCO = {
     nome: "il bosco dietro la luce",
     lungo: SB.lungo,
     minX: 30,
@@ -8702,29 +9686,115 @@
     init: function (opt) {
       vicinoPorta = false;
       portaT = 0;
+      premo = 0;
       viaPorta = 0;
       viaT = 0;
+      bFase = 0;
+      bT = 0;
+      bDetto = 0;
+      bAttesa = 0;
+      bVicino = false;
+      bDurata = 0;
+      bIndietro = 0;
+      bPasso = 0;
+      donnaT = 0;
+      /* si riprende dalla soglia? allora la porta è già passata */
+      bPassato = !!(opt && opt.x != null && opt.x >= SB.porta);
+      /* il coniglio torna al suo posto: la scena lo scosta solo mentre
+         succede */
+      BOSCO.senzaConiglio = false;
+      /* e si comincia a scaricare la sua faccia: quando il monitor sale
+         in mezzo al bosco, la foto è già arrivata */
+      fotoCharles();
+      /* la sagoma è un posto, e i posti visitati restano visitati: se il
+         fanciullo si è già fatto vedere, al suo posto c'è la donna, e la
+         strada per la porta è libera come prima */
+      bFatto = !!(M.STATO && M.STATO.sbloccato && M.STATO.sbloccato("fanciullo"));
       if (opt && opt.x != null) T.g.x = opt.x;
       else T.g.x = SB.partenza;
-      /* il bosco non si segna entrando: il suo posto è la porta, come in
-         città il posto è la porta col ragno. Le due partite del quaderno
-         si leggono uguali — stessa porta, stesso nome, stesso posto dove
-         si mettono i piedi quando si riprende */
+      /* il bosco non si segna entrando: il suo posto è la porta, che è il
+         checkpoint del ramo. Le due partite del quaderno si leggono
+         uguali — stessa porta, stesso nome, stesso posto dove si
+         mettono i piedi quando si riprende */
     },
 
     update: function (dt, t) {
       if (viaPorta) {
         viaT += dt;
-        /* la porta fa quello che fa in città: si apre, il giallo si
-           mangia tutto, e si è in soffitta, davanti alla grata. Lo
-           stesso tempo della porta in fondo alla strada: poco meno di
-           due secondi */
-        if (viaT > 1.8) {
-          viaPorta = 0;
-          try {
-            root.location.href = "../museo.html?stanza=soffitta&x=1520&da=terra";
-          } catch (e) { }
+        /* la porta si apre, il giallo sale, si passa, e il giallo
+           scende. Il coniglio non attraversa il quadro a piedi:
+           attraversa la porta, che è un'altra cosa. A metà del giallo
+           si è di là, e il bosco è quello di prima — solo dall'altra
+           parte della soglia */
+        if (viaPorta === 1 && viaT > 0.85) {
+          /* si è di là. La porta resta dietro le spalle, e il posto nel
+             quaderno è già segnato: da lì si riprende, se si muore. Da
+             adesso la porta è anche l'uscita: tornandoci e premendo E
+             si sale in soffitta, davanti alla grata n.2 */
+          viaPorta = 2;
+          bPassato = true;
+          T.g.x = SB.porta + 190;
+          T.g.dir = 1;
         }
+        if (viaT > 1.8) { viaPorta = 0; viaT = 0; }
+        return;
+      }
+
+      /* ── LA SCENA: da qui in poi non si cammina più ──────────── */
+      if (bFase > 0) {
+        /* la scena è finita e la pagina non se n'è andata (succede solo
+           in una prova, senza browser): il bosco resta com'è, e le zampe
+           sono già libere */
+        if (bFase >= 8) { T.punta(false); return; }
+        bT += dt;
+        /* il passo indietro: il coniglio si scosta dal fanciullo e poi
+           resta fermo a guardare. Le zampe sono chiuse (bloccaZampe),
+           quindi non lo porta la fisica: lo porta la scena, un pezzo per
+           fotogramma, alla velocità decisa in act() */
+        if (bIndietro) {
+          var vai = dt * (bPasso || 520);
+          if (Math.abs(bIndietro) <= vai) { T.g.x += bIndietro; bIndietro = 0; bPasso = 0; }
+          else {
+            T.g.x += bIndietro > 0 ? vai : -vai;
+            bIndietro += bIndietro > 0 ? -vai : vai;
+          }
+        }
+        if (bFase === 1 && bT > BIMBO_FASI[1]) {
+          bFase = 2; bT = 0; snd("scricchiolio", 0.7);
+        } else if (bFase === 2 && bT > BIMBO_FASI[2]) {
+          bFase = 3; bT = 0; snd("presa", 0.6);
+        } else if (bFase === 3 && bT > BIMBO_FASI[3]) {
+          bFase = 4; bT = 0; snd("taglia", 0.9); snd("grido", 0.45);
+        } else if (bFase === 4 && bT > BIMBO_FASI[4]) {
+          bFase = 5; bT = 0; snd("ragno", 1);
+        } else if (bFase === 5 && bT > BIMBO_FASI[5]) {
+          bFase = 6; bT = 0; bDurata = durataCharles(); snd("rimbombo", 0.9);
+        } else if (bFase === 6 && bT > bDurata) {
+          bFase = 7; bT = 0; snd("inchiostro");
+        } else if (bFase === 7 && bT > BIMBO_FASI[7]) {
+          /* il lampo: e si è al banco, davanti al pinguino. Il posto
+             resta segnato nel quaderno, così chi torna nel bosco non
+             ritrova il fanciullo: al suo posto c'è la donna del bosco
+             rosso */
+          bFase = 8;
+          bT = 0;
+          if (T.bloccaZampe) T.bloccaZampe(false);
+          BOSCO.senzaConiglio = false;
+          try {
+            if (M.STATO && M.STATO.sblocca) M.STATO.sblocca("fanciullo");
+          } catch (e) { }
+          try {
+            root.location.href = "../museo.html?stanza=hub&da=fanciullo";
+          } catch (e) { }
+          return;
+        }
+        /* la camera addosso al fanciullo. Il conto normale la farebbe
+           seguire il coniglio (che adesso è su di lui), ma sui fondi
+           del bosco si ferma prima: su uno schermo largo il bordo
+           arriva prima del centro, e la scena si vedrebbe spostata a
+           destra. Qui la si mette lei, dove serve */
+        T.cam.x = Math.max(0, Math.min(SB.lungo - W(), BIMBO_X - W() * 0.5));
+        T.punta(false);
         return;
       }
 
@@ -8734,6 +9804,44 @@
       portaT = vicinoPorta ? Math.min(1, portaT + dt * 1.4)
         : Math.max(0, portaT - dt * 1.1);
 
+      /* la pressione messa da parte: se si è ancora davanti alla porta
+         si apre appena la soglia è accesa, se si è andati via si butta */
+      if (premo) {
+        if (!vicinoPorta) premo = 0;
+        else if (portaT >= 0.5) { soglia(); return; }
+      }
+
+      /* ── LA SAGOMA: parla a chi si avvicina, e aspetta ───────── */
+      bVicino = Math.abs(T.g.x - BIMBO_X) < 150;
+      if (!bFatto) {
+        var db = Math.abs(T.g.x - BIMBO_X);
+        if (!bDetto && db < 340) {
+          /* il coniglio non ha voce: la domanda la fa lui, e la
+             risposta se la dà da solo. È l'unico, qui, che ti parla
+             senza una lampadina al posto della testa */
+          bDetto = 1;
+          bAttesa = 2.0;
+          T.parla(t2("«chi sei tu?»", "«who are you?»"), 3.2, BIMBO_X);
+        } else if (bDetto === 1) {
+          bAttesa -= dt;
+          if (bAttesa <= 0) {
+            bDetto = 2;
+            bAttesa = 4.6;
+            T.parla(t2("«io sono il fanciullo.»", "«i am the child.»"), 3.6, BIMBO_X);
+          }
+        } else if (bDetto === 2) {
+          bAttesa -= dt;
+          if (bVicino && bAttesa <= 0) {
+            bDetto = 3;
+            T.parla(t2("«guardami.»", "«look at me.»"), 3.0, BIMBO_X);
+          }
+        }
+      } else if (donnaT > 0) {
+        /* al posto del fanciullo c'è lei, e non parla per prima: sta
+           zitta finché qualcuno non le si mette davanti e preme E */
+        donnaT -= dt;
+      }
+
       if (T.tensione) T.tensione(0);
 
       /* a sinistra si torna alla luce, che è ancora aperta */
@@ -8741,24 +9849,81 @@
         T.vai(S5.id, { x: S5.luce + 300, dir: 1 });
         return;
       }
-      T.punta(vicinoPorta);
+      T.punta(vicinoPorta || (bVicino && bDetto >= 2 && !bFatto) || (bVicino && bFatto));
     },
 
     act: function () {
-      if (!vicinoPorta || portaT < 0.5 || viaPorta) return;
-      /* la porta è quella della città, e fa quello che fa là: apre la
-         grata n.2 della soffitta e porta su. Anche il posto si segna con
-         lo stesso nome, perché è lo stesso posto — e le due partite del
-         quaderno dicono la stessa cosa */
-      if (M.STATO && M.STATO.sblocca && !M.STATO.sbloccato("ragno")) {
-        try { M.STATO.sblocca("ragno"); } catch (e) { }
+      /* dentro la scena il tasto E non apre niente: manda avanti lui */
+      if (bFase > 0) {
+        if (bFase === 6) {
+          if (bT < bDurata - CHARLES_RESPIRO) bT = bDurata - CHARLES_RESPIRO + 0.01;
+          else { bFase = 7; bT = 0; snd("inchiostro"); }
+        }
+        return;
       }
-      if (T.segna) {
-        T.segna(SB.id, SB.porta, t2("la porta col ragno", "the door with the spider"));
+      /* LA PORTA VIENE PRIMA DI TUTTO. Davanti alla soglia E è la
+         porta, e basta: la donna del bosco sta a due passi dalla
+         soglia (BIMBO_X è poco più avanti), e prima era lei a
+         rispondere per prima — con la sua riga, e con un `return` che
+         si portava via il tasto. Risultato: passato il fanciullo, la
+         porta non si apriva più, e dalla donna nera non si tornava in
+         soffitta. */
+      if (vicinoPorta && !viaPorta) {
+        /* se la soglia non è ancora accesa la porta aspetta: tiene il
+           colpo e si apre da sé, invece di lasciarlo cadere */
+        if (portaT < 0.5) { premo = 1; return; }
+        soglia();
+        return;
       }
-      snd("ragno", 0.9);
-      viaPorta = 1;
-      viaT = 0;
+      /* al posto del fanciullo c'è la donna: non parla per prima, e la
+         sua riga non si ripete a raffica */
+      if (bFatto && bVicino) {
+        if (donnaT <= 0) {
+          donnaT = 6.5;
+          T.parla(t2("«non avere paura, roditore: anche i conigli hanno le ali.»",
+            "«don't be afraid, rodent: rabbits have wings too.»"), 4.2, BIMBO_X);
+        }
+        return;
+      }
+      /* la sagoma: ci si mette davanti, e si aspetta. Non parte da
+         sola, perché la strada è ancora lunga: chi vuole passare passa */
+      if (bVicino && bDetto >= 2 && !bFatto) {
+        bFase = 1;
+        bT = 0;
+        T.zitto();
+        if (T.bloccaZampe) T.bloccaZampe(true);
+        if (T.vistaZero) T.vistaZero();
+        /* la scena è del fanciullo, e si guarda in mezzo al quadro: la
+           camera si ferma dove sta lui. Il coniglio che si comanda però
+           non esce più dal disegno — prima lo si toglieva
+           (BOSCO.senzaConiglio), e chi premeva E si ritrovava solo, con
+           il proprio corpo sparito di colpo. Adesso fa un passo
+           indietro, dal lato da cui è arrivato, e resta lì a guardare:
+           la scena si vede lo stesso, e si vede anche lui.
+           Quanto indietro lo decide il quadro: il monitor di Charles, che
+           arriva dopo, è largo la metà dello schermo meno qualcosa. Se il
+           coniglio restasse più vicino ci finirebbe dietro, e sarebbe come
+           averlo tolto un'altra volta. Un saltino, perché le zampe sono
+           chiuse e non lo porta la fisica: la durata del volo decide la
+           velocità del passo, così si atterra dove ci si è fermati (e non
+           si scivola per terra a zampe ferme) */
+        var lato = T.g.x <= BIMBO_X ? -1 : 1;
+        var sc = Math.min(W() / 1280, H() / 800);
+        if (sc < 0.62) sc = 0.62;
+        var scosto = Math.min(W() * 0.42, 400 * sc + 60);
+        bIndietro = (BIMBO_X + lato * scosto) - T.g.x;
+        T.g.dir = -lato;
+        if (Math.abs(bIndietro) > 1) {
+          var volo = 2 * 600 / 1900;               /* quanto sta in aria */
+          bPasso = Math.abs(bIndietro) / volo;
+          T.g.vy = 600;
+          T.g.aria = true;
+        } else {
+          bIndietro = 0;
+        }
+        snd("vuoto", 0.8);
+        return;
+      }
     },
 
     draw: function (t) {
@@ -8792,6 +9957,107 @@
         luci.push({ x: sx, y: b - 210 * q.s, r: 210, i: 0.16, col: "226,236,186" });
       }
 
+      /* ── LA SAGOMA, E POI QUELLO CHE DIVENTA ─────────────────────
+         Si disegna prima della porta, così la luce che esce da sotto
+         gli passa davanti. Dalla fase 4 in poi al suo posto c'è il
+         ragno, e cresce: prima è grande come lui, poi sta in piedi
+         sopra gli alberi. */
+      if (!bFatto) {
+        var bs = H() / 900;
+        var bx = BIMBO_X - cx;
+        if (bx > -640 && bx < w + 640) {
+          /* la scena, letta in un posto solo: a che punto è la pancia, se
+             la bocca è aperta, dove stanno le mani e dove sta il coniglio */
+          var stt = bimboStato();
+          var pos = bimboPosizioni(bx, b, bs, t, stt);
+          var q5 = stt.ragno;
+
+          /* IL RAGNO — esce dalla pancia, e cresce.
+             Finché è dentro si vede solo quello che sporge sopra la
+             linea della pancia: la linea scende con lui, e le zampe
+             escono una dopo l'altra invece di comparire tutte insieme */
+          if (bFase >= 5) {
+            var ss = (0.26 + 3.10 * q5) * bs;
+            var dentro = bFase === 5 && q5 < 0.999;
+            c.save();
+            if (dentro) {
+              var clipY = b - (b - pos.m.panciaY + 12 * bs) * (1 - morbido(q5));
+              c.beginPath();
+              c.rect(bx - 1200, -2400, 2400, clipY + 2400);
+              c.clip();
+            }
+            T.orrore.ragnoCammina(c, bx, b, ss, t, 3.3,
+              bFase === 5 ? 1 : 0.18, t * 2.6,
+              bFase === 5 ? 0.35 + 0.65 * q5 : 1);
+            c.restore();
+            luci.push({ x: bx - 26 * ss, y: b - 84 * ss, r: 190, i: 0.50, col: "255,88,66" });
+            luci.push({ x: bx + 26 * ss, y: b - 84 * ss, r: 170, i: 0.42, col: "255,56,48" });
+          }
+
+          /* il bambino: la pancia, il morso, le strisce */
+          if (stt.alpha > 0.01) bimboScena(c, bx, b, bs, t, stt);
+
+          /* il coniglio: quello vero, quello che si comanda. Dopo il
+             bambino, perché è in mano sua; dopo la pancia, perché da lì
+             esce */
+          if (pos.con && pos.con.al > 0.01) {
+            c.save();
+            c.globalAlpha = pos.con.al;
+            coniglio(c, pos.con.x, pos.con.y, bs, pos.con.k, t,
+              pos.con.stato, pos.con.dondola);
+            c.restore();
+          }
+
+          /* il filo di luce che lo tiene attaccato allo stomaco: si
+             tende, e poi si strappa */
+          if (stt.cordone > 0.02 && pos.con) {
+            var fy0 = pos.m.panciaY;
+            var fy1 = pos.con.y - 84 * bs * Math.max(0.4, pos.con.k);
+            c.strokeStyle = "rgba(255,244,182," + (0.75 * stt.cordone).toFixed(3) + ")";
+            c.lineWidth = 2.4 * bs;
+            c.lineCap = "round";
+            c.beginPath();
+            c.moveTo(bx - 1 * bs, fy0);
+            c.quadraticCurveTo(bx + 11 * bs, (fy0 + fy1) / 2, bx, fy1);
+            c.stroke();
+            c.fillStyle = "rgba(255,250,214," + (0.8 * stt.cordone).toFixed(3) + ")";
+            c.beginPath();
+            c.arc(bx, fy1, 2.6 * bs, 0, 6.3);
+            c.fill();
+          }
+
+          /* la bocca, ridisegnata sopra: il coniglio è dentro la bocca,
+             non davanti alla faccia */
+          if (stt.inghiotte > 0.02) {
+            bimboBocca(c, bx, b, bs, t, { morso: stt.morso, alpha: 1 });
+          }
+
+          /* la luce: la lampada nella pancia, che diventa brace */
+          luci.push({
+            x: bx, y: pos.m.panciaY,
+            r: 120 + 320 * stt.lampada,
+            i: 0.18 + 0.55 * stt.lampada,
+            col: stt.calore > 0.4 ? "255,96,60" : "255,248,196"
+          });
+        }
+      } else {
+        /* ── E DI LÀ DALLA SCENA: LA DONNA ─────────────────────────
+           Al posto del fanciullo, quando ci si torna, c'è lei: la donna
+           del bosco rosso, nera dentro la luce, con gli occhi accesi.
+           Non si muove, e non parla per prima: se le si preme E davanti
+           dice una cosa sola. È la stessa funzione del tempio
+           (T.orrore.donnaNera, in terre/tempio.js) */
+        if (T.orrore && T.orrore.donnaNera) {
+          var dw = Math.max(0.52, H() / 760 * 0.72);
+          var dx2 = BIMBO_X - cx;
+          if (dx2 > -420 && dx2 < w + 420) {
+            T.orrore.donnaNera(c, dx2, b + 2, dw, t, T.g.x - BIMBO_X);
+            luci.push({ x: dx2, y: b - 300 * dw, r: 210, i: 0.36, col: "255,70,50" });
+            luci.push({ x: dx2, y: b - 40 * dw, r: 160, i: 0.14, col: "186,24,16" });
+          }
+        }
+      }
+
       /* la porta in fondo, e la luce che ne esce. È la porta della città:
          stessa pietra, stesso ragno sopra, stessa fessura che si allarga
          quando la grata è aperta */
@@ -8812,14 +10078,71 @@
          far capire che la luce viene da un posto solo */
       buio(c, luci, 0.09);
 
-      /* il passaggio: il giallo che si mangia tutto, e poi le travi
-         della soffitta */
+      /* il passaggio: il giallo che sale, si passa, e il giallo che
+         scende. A metà si è di là dalla porta, e non si vede: è il
+         momento in cui cambia il posto, non il coniglio */
       if (viaPorta) {
-        var a = Math.min(1, viaT / 1.2);
+        var a = viaT < 0.85 ? Math.min(1, viaT / 0.85)
+          : Math.max(0, 1 - (viaT - 0.85) / 0.95);
         c.fillStyle = "rgba(255,248,206," + a.toFixed(3) + ")";
         c.fillRect(0, 0, w, H());
       }
+    },
+
+    /* ── SOPRA IL CONIGLIO: lo sfaldamento e Charles ───────────────
+       Queste cose si disegnano dopo il coniglio, perché gli stanno
+       davanti: il posto che si crepa, il vetro che scrive, il lampo.
+       Il mondo resta sotto, e si vede che è ancora lì. */
+    sopra: function (t) {
+      var c = T.ctx(), w = W(), h = H(), k, q5, comp, vis, s2, a2;
+      if (bFatto || bFase < 5 || bFase > 7) return;
+
+      /* lo sfaldamento: parte con l'attacco, e non smette più */
+      k = bFase === 5 ? Math.min(1, bT / BIMBO_FASI[5]) : 1;
+      sfaldamento(c, t, k);
+
+      /* il ragno che sta per arrivare: un'ombra enorme sopra tutto */
+      if (bFase === 5) {
+        q5 = Math.min(1, bT / BIMBO_FASI[5]);
+        c.save();
+        c.globalAlpha = 0.26 * q5;
+        c.fillStyle = "#07050a";
+        c.beginPath();
+        c.ellipse(w * 0.5, h * 0.30, w * (0.20 + 0.30 * q5), h * (0.10 + 0.14 * q5), 0, 0, 6.3);
+        c.fill();
+        c.restore();
+      }
+
+      /* Charles: il monitor sale, e le righe si scrivono da sole */
+      if (bFase === 6 || bFase === 7) {
+        comp = bFase === 7 ? 1 : Math.min(1, bT / 0.7);
+        vis = bFase === 7 ? CHARLES_TOT : visibileCharles(bT);
+        charlesScrive(c, t, comp, vis);
+      }
+
+      /* la scritta in basso, quando tocca a te: E per andare avanti */
+      if (bFase === 6 && bT > 1.2) {
+        s2 = Math.min(w / 1280, h / 800);
+        c.save();
+        c.textAlign = "right";
+        c.textBaseline = "middle";
+        c.font = "500 " + Math.round(11 * s2) + "px ui-monospace, monospace";
+        c.fillStyle = "rgba(226,236,214,0.55)";
+        c.fillText("E", w - 30 * s2, h - 26 * s2);
+        c.restore();
+      }
+
+      /* il lampo: bianco, e poi si è da un'altra parte */
+      if (bFase === 7) {
+        a2 = Math.min(1, bT / 0.55);
+        c.fillStyle = "rgba(255,250,240," + a2.toFixed(3) + ")";
+        c.fillRect(0, 0, w, h);
+        c.fillStyle = "rgba(140,10,12," + (0.32 * (1 - a2)).toFixed(3) + ")";
+        c.fillRect(0, 0, w, h);
+      }
     }
-  });
+  };
+
+  T.registra(SB.id, BOSCO);
 
 })(typeof window !== "undefined" ? window : globalThis);

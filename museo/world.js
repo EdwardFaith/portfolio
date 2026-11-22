@@ -1632,6 +1632,14 @@
       });
       for (i = 0; i < 4; i++) {
         var bx = 1300 + i * 700;
+        /* ---- l'uscita in fondo non si copre --------------------
+           I chip erano piantati a quote fisse (1300, 2000, 2700,
+           3400), ma la sala interattiva è lunga quanto le sue opere:
+           quando misurava meno di 3500 l'ultimo chip cadeva sopra la
+           porta di destra, e la stanza sembrava murata. Adesso la fila
+           si ferma prima della porta: la parete può essere corta, la
+           via d'uscita no. */
+        if (room.doorR && bx + 260 > room.doorR.x - 90) break;
         prop("chip", bx, f - 300, 260, 170, { seed: s + i });
         solid(bx, f - 300, 260, 300, i % 2 === 0);
         prop("heatsink", bx + 330, f - 220, 180, 220);
@@ -2279,16 +2287,6 @@
       S2.floor(ctx, { x: x0 - 200, y: room.floorY, w: cam.w + 400, h: H - room.floorY + 120 }, pal, t, room.kind);
     }
 
-    /* ---- le porte, che stanno sempre in piedi -----------------
-       La porta in fondo non porta più alla sala dopo: porta al
-       corridoio. Si esce sempre da dove si è entrati.
-       Tranne nella strada delle memorie: lì non ci sono porte del
-       museo, c'è la città — e le porte della nave le dipinge cosmo.js. */
-    if (!room.cz) {
-      if (room.doorL) S2.door(ctx, room.doorL.x, room.doorL.y, room.doorL.w, room.doorL.h, pal, { num: "↩", title: "corridoio" });
-      if (room.doorR) S2.door(ctx, room.doorR.x, room.doorR.y, room.doorR.w, room.doorR.h, pal, { num: "↩", title: "corridoio" });
-    }
-
     /* ---- quello che sta in mezzo alla stanza ------------------
        Il corridoio si disegna per giri interi: le sue cose passano tre
        volte, una per il giro di prima, una per adesso, una per il giro
@@ -2372,6 +2370,20 @@
       }
       if (p.x + (p.w || 0) < x0 - 300 || p.x > x1 + 300) continue;
       drawProp(ctx, room, p, t, pal);
+    }
+
+    /* ---- le porte, per ultime --------------------------------
+       La porta in fondo non porta più alla sala dopo: porta al
+       corridoio. Si esce sempre da dove si è entrati.
+       Tranne nella strada delle memorie: lì non ci sono porte del
+       museo, c'è la città — e le porte della nave le dipinge cosmo.js.
+       Si dipingono DOPO le opere e i mobili: prima la porta finiva
+       sotto il primo schermo o il primo chip che le stava davanti, e
+       la sala sembrava senza uscita (succedeva nella interattiva).
+       Una porta è l'unica cosa che non si può coprire. */
+    if (!room.cz) {
+      if (room.doorL) S2.door(ctx, room.doorL.x, room.doorL.y, room.doorL.w, room.doorL.h, pal, { num: "↩", title: "corridoio" });
+      if (room.doorR) S2.door(ctx, room.doorR.x, room.doorR.y, room.doorR.w, room.doorR.h, pal, { num: "↩", title: "corridoio" });
     }
 
     /* ---- il sotterraneo: la botola, e quello che c'è sotto ----

@@ -3,9 +3,9 @@
    Finta pagina, finto canvas, finto requestAnimationFrame: serve a
    far girare davvero la stazione sotto la sabbia — la buca nella
    sabbia, la banchina, il treno che arriva, aspetta, riparte e
-   torna, e la cabina dove si guida: il gas, il freno, le porte — e a
-   guardare che si torni al museo, alla sabbia, e da dove si era
-   scesi.
+   torna, e la salita dalla porta: le porte che si chiudono, il buio,
+   e il museo — e a guardare che si torni al museo, alla sabbia, e da
+   dove si era scesi.
 
    cscript //nologo //E:jscript _prova-stazione.js
    il resoconto finisce in _prova-stazione.out
@@ -329,7 +329,7 @@ dai("zona", zona());
 ok("camminando fino in cima alle scale si torna alla sabbia", zona() === "spiaggia");
 
 /* ============================================================
-   3. IL TRENO — il treno entra da solo, e si guida dalla cabina
+   3. IL TRENO — il treno entra da solo, e si sale dalla porta
    Senza il treno non si va da nessuna parte: la stazione è un
    corridoio che aspetta.
    ============================================================ */
@@ -381,88 +381,50 @@ T.g.x = 980;
 tick(4, 17);
 
 /* ============================================================
-   5. LA CABINA — si sale e non si aspetta più: si guida. La leva del
-   gas (W), il freno (S), le porte col tasto (E) — e le porte si
-   aprono solo da fermo. La banchina scorre, la galleria se lo mangia,
-   e di là c'è il museo: il viaggio si riavvolge (metro.js, inverso)
+   5. SI SALE, E SI PARTE — non c'è nessuna cabina da guidare. Alla
+   porta aperta si preme E, e il viaggio lo fa il treno: le porte si
+   chiudono, il convoglio entra nel buio, e di là c'è il museo
+   (metro.js, inverso)
    ============================================================ */
-segna("si sale in cabina, e si guida");
+segna("si sale, e si parte: il treno fa tutto da solo");
 var Z = T.zona().mod;
 provaAtto("stazione, la porta");
 tick(4, 17);
 dai("didascalia salendo", did());
-ok("salendo si resta in stazione: il treno non parte da solo",
+ok("salendo si resta in stazione: il viaggio non è ancora finito",
   zona() === "stazione" && G.location.href === "");
-ok("l'altoparlante spiega le porte", did().indexOf("porte") >= 0);
-ok("il treno è in guida", Z.cabina().guida === true && Z.cabina().stato === "guida");
-ok("in cabina il coniglio non c'è", !!Z.senzaConiglio);
-dai("porte salendo", Z.cabina().porte.toFixed(2));
-ok("salendo le porte sono aperte", Z.cabina().porte > 0.9);
+ok("l'altoparlante dice che le porte si chiudono", did().indexOf("porte") >= 0);
+ok("si è saliti sul treno", Z.treno().salito === true && Z.treno().stato === "salita");
+ok("e sulla banchina il coniglio non c'è più", !!Z.senzaConiglio);
+dai("porte salendo", Z.treno().porte.toFixed(2));
+ok("salendo le porte sono aperte", Z.treno().porte > 0.8);
 
-/* con le porte aperte il motore non prende */
-var partito = Z.cabina().x;
-T.tasti.avanti = true;
-tick(40, 17);
-dai("velocità con le porte aperte", Math.round(Z.cabina().v));
-ok("con le porte aperte il treno non si muove",
-  Z.cabina().v === 0 && Math.abs(Z.cabina().x - partito) < 0.01);
+/* le porte si chiudono da sole: nessun tasto le governa più */
+var partito = Z.treno().x;
+tick(24, 34);                      /* 0,88 s: porte chiuse, treno ancora fermo */
+dai("porte", Z.treno().porte.toFixed(2));
+ok("le porte si chiudono da sole, senza premere niente", Z.treno().porte < 0.05);
+ok("e finché le porte si chiudono il treno non si muove",
+  Math.abs(Z.treno().x - partito) < 0.01);
 
-/* il tasto, in cabina: le porte */
-provaAtto("cabina, le porte (chiudere)");
-tick(36, 34);
-dai("porte", Z.cabina().porte.toFixed(2));
-ok("il tasto chiude le porte", Z.cabina().porte < 0.05);
+/* e adesso il treno parte: senza che nessuno prema niente */
+tick(30, 34);                      /* 1,02 s dopo: è partito, e va */
+dai("velocità del treno", Math.round(Z.treno().v));
+dai("di quanto si è spostato", Math.round(Z.treno().x - partito));
+ok("il treno riparte da solo verso la galleria", Z.treno().v > 100);
+ok("e la banchina scorre", Z.treno().x < partito - 40);
 
-/* e adesso si va */
-var prima = Z.cabina().x;
-tick(30, 17);
-dai("velocità dopo mezzo secondo di gas", Math.round(Z.cabina().v));
-dai("di quanto si è spostato", Math.round(Z.cabina().x - prima));
-ok("col gas il treno va verso la galleria", Z.cabina().v < -100);
-ok("e la banchina scorre", Z.cabina().x < prima - 20);
-ok("la camera è quella del muso, non quella del coniglio",
-  Math.abs(Z.cabina().cam - (T.g.x - T.W() * 0.5)) > 40);
-
-/* il freno */
-T.tasti.avanti = false;
-T.tasti.indietro = true;
-tick(30, 34);
-dai("velocità col freno tirato", Z.cabina().v.toFixed(1));
-ok("il freno ferma il treno", Math.abs(Z.cabina().v) < 1);
-
-/* da fermo le porte si riaprono, e col freno si scende: si scende
-   solo dove si è saliti, con la banchina sotto i piedi */
-provaAtto("cabina, le porte (aprire)");
-tick(36, 34);
-dai("porte", Z.cabina().porte.toFixed(2));
-ok("da fermo le porte si riaprono", Z.cabina().porte > 0.9);
-tick(3, 17);                       /* col freno e le porte aperte: si scende */
-dai("stato dopo essere sceso", Z.cabina().stato);
-ok("col freno, alla banchina, si scende", Z.cabina().guida === false);
-ok("e si resta davanti alla porta", Math.abs(T.g.x - 980) < 1);
-ok("il coniglio torna a camminare", !Z.senzaConiglio);
-T.tasti.indietro = false;
-tick(3, 17);
-
-/* si risale, e questa volta fino in fondo: la galleria */
-provaAtto("stazione, la porta (risalire)");
-tick(4, 17);
-ok("si risale in cabina", Z.cabina().guida === true);
-provaAtto("cabina, le porte (richiudere)");
-tick(36, 34);
-ok("le porte si richiudono", Z.cabina().porte < 0.05);
-T.tasti.avanti = true;
-tick(260, 34);                     /* otto secondi e mezzo a tavoletta */
-T.tasti.avanti = false;
+/* il buio se lo prende, e si arriva al museo: nessuna leva, nessun
+   freno, nessuna camera da tenere */
+tick(160, 34);                     /* cinque secondi e mezzo di buio */
 dai("dove porta il treno", G.location.href);
-dai("x del treno", Math.round(Z.cabina().x));
 ok("in fondo alla galleria si torna al museo", G.location.href.indexOf("museo.html") >= 0);
 ok("e si arriva nella stazione del giro del museo",
   G.location.href.indexOf("stanza=hub") >= 0);
 ok("nel punto in cui il viaggio si riavvolge",
   G.location.href.indexOf("x=11240") >= 0);
 ok("e il museo sa che si arriva dal treno", G.location.href.indexOf("da=treno") >= 0);
-ok("in cabina non si è rotto niente", errori === 0);
+ok("sul treno non si è rotto niente", errori === 0);
 
 /* ============================================================
    6. CHI ARRIVA COL TRENO — scende davanti alla porta e il vagone
@@ -492,21 +454,16 @@ dai("dove porta la porta, col treno ripartito", G.location.href);
 ok("il treno riparte all'indietro da solo, senza aspettare sedici secondi",
   G.location.href.indexOf("museo.html") < 0);
 
-/* e in stazione il tempo non conta: il treno torna, e riporta al
-   museo. Si risale in cabina, si chiudono le porte, e si guida */
+/* e in stazione il tempo non conta: il treno torna, si risale, e si
+   torna al museo. Le porte, la partenza e il buio: nessuno guida */
 tick(300, 50);                     /* quindici secondi: torna, e aspetta */
 G.location.href = "";
 T.g.x = 980;
 tick(4, 17);
 provaAtto("stazione, la porta, col treno tornato");
 tick(4, 17);
-ok("tornato il treno si risale in cabina", T.SCENE.stazione.cabina().guida === true);
-provaAtto("cabina, le porte (chiudere)");
-tick(36, 34);
-T.tasti.avanti = true;
-tick(260, 34);                     /* a tavoletta, fino alla galleria */
-T.tasti.avanti = false;
-tick(50, 50);                      /* la dissolvenza, e via */
+ok("tornato il treno si risale", T.SCENE.stazione.treno().salito === true);
+tick(230, 34);                     /* porte, partenza, e il buio */
 dai("dove porta la porta, col treno tornato", G.location.href);
 ok("tornato il treno, si risale e si torna al museo",
   G.location.href.indexOf("museo.html") >= 0);

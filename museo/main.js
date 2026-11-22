@@ -32,12 +32,6 @@
   var workerJob = null;           /* cosa sta staccando l'operaio */
   var look = null;
 
-  var HINT = {
-    walk: "hint.keys",
-    hub: "hint.hub"
-  };
-
-
   function $(id) { return document.getElementById(id); }
   function txt(o, key) { return M.lang ? M.lang.x(o, key) : (typeof o === "string" ? o : ""); }
   function say(key) { return M.lang ? M.lang.t(key) : ""; }
@@ -80,7 +74,6 @@
     resize();
     G.goRoom("hub", true);
     mode = "boot";
-    showBoot(true);
     last = performance.now();
     requestAnimationFrame(loop);
   };
@@ -160,6 +153,13 @@
      dal punto di partenza. Senza questa memoria si tornava sempre
      all'inizio del giro, e sembrava che il corridoio fosse un altro. */
   var doorBack = null;
+  /* E LA SALA DA CUI SI ENTRA. Le stanze del museo non si aprono tutte
+     dal corridoio: la stanza interattiva si raggiunge anche dalla
+     botola della soffitta, e le sue porte portavano sempre nell'hub —
+     chi saliva dalla soffitta si ritrovava nel corridoio, come se il
+     museo l'avesse spostato di peso. Qui si tiene la sala lasciata
+     (con il punto in cui si stava) e la porta riporta là. */
+  var entrata = null;
 
   function goRoom(id, instant) { return G.goRoom(id, instant); }
   G.goRoom = function (id, instant) {
@@ -167,6 +167,12 @@
     var r = M.WORLD.byId[id] || (id === "interattivo" ? M.WORLD.byId["codec"] : (id === "codec" ? M.WORLD.byId["interattivo"] : null));
     if (!r) return;
     var from = room ? room.id : null;
+    /* da dove si entra, e dove si stava: si legge adesso, prima che il
+       coniglio sia già di là. Se la "sala" è la stessa (gli alias
+       `codec` e `interattivo` sono lo stesso posto) non è un ingresso */
+    if (from && from !== id && r !== room) {
+      entrata = { id: from, x: rabbit && rabbit.x != null ? rabbit.x : null };
+    }
     /* se si cambia sala mentre il camion sta girando, il viaggio
        salta: il camion torna al suo posto e aspetta la prossima volta */
     /* se si cambia sala con qualcosa ancora aperto, si chiude prima:
@@ -194,6 +200,9 @@
       if (id === "hub" && !instant && doorBack != null) rabbit.x = doorBack;
       if (from === "soffitta" && id === "interattivo") rabbit.x = 380;
       else if (from === "interattivo" && id === "soffitta") rabbit.x = 240;
+      /* si torna da dove si è entrati: si riapre nel punto in cui si
+         stava, non allo spawn della sala */
+      else if (entrata && entrata.id === id && entrata.x != null && !instant) rabbit.x = entrata.x;
       if (room.loop && rabbit.x >= room.loop) rabbit.x -= room.loop;
       rabbit.y = room.floorY;
       rabbit.vx = 0;
@@ -238,8 +247,48 @@
     try { hud(); } catch (e) { note(e, "hud"); }
   };
 
-  G.next = function () { if (room.next) go(room.next); };
-  G.prev = function () { go(room.prev || "hub"); };
+  /* DA CHE PARTE SI ESCE. Se si è entrati in questa sala da un'altra
+     sala (e non dal corridoio), la porta riporta là: è la stessa cosa
+     che dire «si esce da dove si è entrati». Il corridoio resta il
+     ripiego, e per tutte le sale che si aprono da lui non cambia
+     niente. `ripiego` è quello che la porta farebbe da sola.
+     (Il nome sulla porta lo mette già labelOf, leggendo la sala in cui
+     si finisce: non serve scriverlo qui.) */
+  function uscita(ripiego) {
+    if (room && room.id !== "hub" && entrata && entrata.id && entrata.id !== "hub") {
+      return entrata.id;
+    }
+    return ripiego || "hub";
+  }
+
+  /* ---- dove sta una porta nel corridoio -----------------------
+     Il giro ha otto porte, e ognuna sa in che sala porta (`to`): la
+     porta della sala interattiva sta in un punto solo. Serve a uscire
+     da una sala e ritrovarsi lì davanti, invece che dove capita. */
+  function hubDoorOf(id) {
+    var hb = (M.WORLD && M.WORLD.byId) ? M.WORLD.byId["hub"] : null;
+    if (!hb || !hb.props || !id) return null;
+    for (var i = 0; i < hb.props.length; i++) {
+      var p = hb.props[i];
+      if (p.kind === "door" && p.to === id) return p.x + p.w / 2;
+    }
+    return null;
+  }
+
+  /* ---- la porta di sinistra è la porta del corridoio ----------
+     Non è «si torna da dove si è entrati»: quella regola vale per la
+     porta in fondo, che porta in un'altra sala. La porta di sinistra
+     porta nel corridoio, sempre — chi è sceso dalla soffitta nella sala
+     interattiva deve poter uscire nel corridoio davanti alla sua porta,
+     non risalire nella soffitta. */
+  function esciInCorridoio() {
+    var x = hubDoorOf(room && room.id);
+    if (x != null) doorBack = x;
+    go("hub");
+  }
+
+  G.next = function () { go(uscita(room.next || "hub")); };
+  G.prev = function () { go(uscita(room.prev || "hub")); };
 
   function go(id) {
     if (mode !== "walk") return;
@@ -250,12 +299,11 @@
   G.go = go;
 
   function hud() {
-    var n = $("roomNum"), t = $("roomTitle"), h = $("hint");
+    var n = $("roomNum"), t = $("roomTitle");
     /* sotto terra l'HUD non dice il nome della sala: dice a che piano sei */
     var sot = M.SOT ? M.SOT.hud() : null;
     if (n) n.textContent = sot ? sot.num : (room.num === "0" ? "0" : room.num);
     if (t) t.textContent = sot ? sot.title : txt(room.title, "room." + room.id);
-    if (h) h.textContent = sot ? sot.hint : say(room.arch === "hub" ? HINT.hub : HINT.walk);
     document.body.setAttribute("data-room", room.id);
     if (sot) document.body.setAttribute("data-sot", String(sot.num));
     else document.body.removeAttribute("data-sot");
@@ -309,10 +357,22 @@
     var dt = Math.min(0.05, (ts - last) / 1000);
     if (!isFinite(dt) || dt <= 0) dt = 0.016;
     last = ts;
-    time += dt;
+    /* LA PAUSA — Charles o la radio aperti: il museo sotto non si
+       muove. `last` è già stato aggiornato, quindi quando la finestra
+       si chiude il primo fotogramma non è un salto di dieci secondi;
+       il disegno continua, col tempo fermo, e quello che si vede resta
+       quello che c'era. I tasti tenuti giù si lasciano andare: chi
+       chiude la finestra non deve trovarsi il coniglio già dall'altra
+       parte della sala. */
+    var fermo = !!(M.SOSTA && M.SOSTA.fermo && M.SOSTA.fermo());
+    if (fermo) {
+      keys.left = keys.right = keys.run = keys.jump = false;
+    } else {
+      time += dt;
+    }
     /* un errore non deve spegnere il museo: si annota e si va avanti */
-    try { step(dt); } catch (e) { note(e, "step"); }
-    try { draw(dt); } catch (e) { note(e, "draw"); }
+    try { step(fermo ? 0 : dt); } catch (e) { note(e, "step"); }
+    try { draw(fermo ? 0 : dt); } catch (e) { note(e, "draw"); }
     requestAnimationFrame(loop);
   }
 
@@ -323,6 +383,29 @@
     if (root.console) console.error("[museo/" + where + "]", e);
   }
   G.errors = function () { return RUNTIME; };
+
+  /* ---- LA PAUSA: chi è aperto lo dice qui ---------------------
+     Il pannello del museo è uno solo e fa tre mestieri: la radio, le
+     schede delle opere, la mappa. Quando è aperto, il museo sotto
+     resta com'è — chi legge non deve ritrovare il coniglio dall'altra
+     parte della sala — e la pausa la chiede `loop` a ogni fotogramma,
+     al registro di museo/sosta.js.
+
+     LE STANZE CHE HANNO IL LORO TEMPO NON SI FERMANO. Il bere, il
+     foglio, la memoria 1 e la camera si muovono da sole dentro `step`
+     e hanno i loro tasti: metterle in pausa perché un pannello è
+     aperto vorrebbe dire congelare un minigioco a metà. Lì la
+     risposta è no, e il pannello fa il suo mestiere come prima. */
+  if (M.SOSTA && M.SOSTA.fonte) {
+    M.SOSTA.fonte("pannello", function () {
+      if (mode === "boot") return false;
+      if (M.BAR && M.BAR.isOn && M.BAR.isOn()) return false;
+      if (M.FOGLIO && M.FOGLIO.isOn && M.FOGLIO.isOn()) return false;
+      if (M.FPS && M.FPS.isOn && M.FPS.isOn()) return false;
+      if (M.CAMERA && M.CAMERA.isOn && M.CAMERA.isOn()) return false;
+      return !!(M.PANEL && M.PANEL.isOpen && M.PANEL.isOpen());
+    });
+  }
 
   /* cosa si può fare, detto in una riga sola */
   function labelOf(t) {
@@ -375,6 +458,10 @@
 
   function step(dt) {
     var i, p;
+
+    /* LA PAUSA — Charles o la radio aperti: il tempo del museo non
+       passa (il perché sta in `loop`, la regola in museo/sosta.js) */
+    if (dt <= 0 || (M.SOSTA && M.SOSTA.fermo && M.SOSTA.fermo())) return;
 
     /* se il Foglio è aperto, il museo resta fermo sotto: chi si muove
        è solo il coniglio di carta */
@@ -670,11 +757,12 @@
         actBtn.classList.remove("is-door");
       } else if (target && target.work) {
         /* non "guarda": la stazione e le opere non si guardano soltanto,
-           si usano. Il tasto dice cosa fa, non cosa sembra. */
-        actBtn.textContent = (target.work.kind === "note") ? "LEGGI" : "INTERAGISCI";
+           si usano. Il tasto dice cosa fa, non cosa sembra — e dice
+           una parola corta: dentro a un pollice ci sta solo quella */
+        actBtn.textContent = (target.work.kind === "note") ? "LEGGI" : "USA";
         actBtn.classList.remove("is-door");
       } else {
-        actBtn.textContent = "E";
+        actBtn.textContent = "USA";
         actBtn.classList.remove("is-door");
       }
     }
@@ -1072,7 +1160,15 @@
     if (target.metro) { if (M.METRO && M.METRO.interact) M.METRO.interact(target); return; }
     if (target.jukebox) { openJukebox(); return; }
     if (target.talk) { speakProp(target.prop); return; }
-    if (target.door) { go(target.door); return; }
+    if (target.door) {
+      /* la porta del corridoio riporta davanti alla propria porta,
+         anche se si è arrivati in sala dalla soffitta */
+      if (target.corridoio) {
+        var hx0 = hubDoorOf(room && room.id);
+        if (hx0 != null) doorBack = hx0;
+      }
+      go(target.door); return;
+    }
     if (target.work) openItem(target);
   }
   G.interact = interact;
@@ -1249,8 +1345,11 @@
       if (gv && gv.yt) video(gv.yt, gv.ytTitle, gv.ytSub, null, nm(gd[id].name, "guide." + id) || id);
     }
 
-    /* l'audio: una riga per brano, più il lettore che li suona di fila */
-    songs = (M.DATA && M.DATA.radio) || [];
+    /* l'audio: una riga per brano, più il lettore che li suona di fila.
+       La fila è quella del lettore (radio-fila.js), non una copia: così
+       il numero della riga è il numero che M.RADIO.play() conosce */
+    songs = (M.RADIO && M.RADIO.list && M.RADIO.list()) ||
+      (M.DATA && M.DATA.radio) || [];
     for (i = 0; i < songs.length; i++) {
       if (!songs[i] || !songs[i].title) continue;
       AU.push({
@@ -1378,12 +1477,16 @@
   G.penguin = openPenguin;
 
   /* ---- il banco: dove si comincia, e dove si torna -------------
-     Il pinguino è la prima cosa che si vede entrando — spiega il
-     posto prima che uno cominci a camminare e si perda — ed è anche
-     l'ultima, dopo che il foglio ti ha mangiato. In mezzo, il museo.
-     line: quale battuta dire; wait: quanti ms prima di aprirsi (che
-     il museo si veda arrivare); retry: la funzione del sesto tasto. */
-  function startAtBar(line, wait, retry, terse) {
+     Si entra e si è già qui: davanti al pinguino, che è la prima cosa
+     che si vede — non un cartello in fondo allo schermo. Parla solo se
+     lo si guarda (E): chi arriva per la prima volta non trova
+     un'istruzione, trova qualcuno che risponde. Ed è anche l'ultima
+     cosa che si vede, dopo che il foglio ti ha mangiato.
+     alBanco(): solo la posizione, muta.
+     startAtBar(line, wait, retry, terse): la posizione e poi la
+     battuta — line: quale; wait: quanti ms prima di aprirsi (che il
+     museo si veda arrivare); retry: la funzione del sesto tasto. */
+  function alBanco() {
     var bar = room.bar || null, bx = bar ? hubXOf(bar) : null;
     if (rabbit && bx != null) {
       rabbit.x = bx - 210;
@@ -1393,6 +1496,10 @@
       cam.x = room.loop ? rabbit.x - cam.w / 2 : Math.max(0, rabbit.x - cam.w / 2);
       clampCam();
     }
+  }
+
+  function startAtBar(line, wait, retry, terse) {
+    alBanco();
     setTimeout(function () {
       if (mode === "boot") return;
       if (M.FOGLIO && M.FOGLIO.isOn && M.FOGLIO.isOn()) return;
@@ -2064,11 +2171,36 @@
      portano in una sala: si esce dal museo, si vede il museo intero
      dall'alto, si entra nei file di Memorie del Cosmo. */
 
-  /* la scritta ESCI del corridoio: si torna al sito normale */
+  /* ── da che porta si esce ──────────────────────────────────────
+     Ogni sala del museo è una sezione del sito: chi esce dalla sala
+     interattiva torna sulla sezione interattiva, chi esce dalla sala
+     della radio torna sulla radio. Prima si usciva sempre dal tetto —
+     la cima della pagina — e chi aveva aperto una porta si ritrovava
+     a ricominciare il giro da capo. Le sale che una sezione del sito
+     non ce l'hanno (il corridoio, lucidus) escono dalla porta grande:
+     la home. La soffitta sta dietro gli schermi della sala
+     interattiva, e da lì si esce. */
+  var SITE_DOOR = {
+    kaoss: "kaoss",
+    cosmo: "cosmo",
+    visual: "visual-ai",
+    interattivo: "interattivo",
+    codec: "interattivo",
+    illustrazioni: "illustrations",
+    materiali: "materials",
+    zona: "portfolio",
+    bio: "bio",
+    contatti: "contact",
+    soffitta: "interattivo"
+  };
+
+  /* la scritta ESCI del corridoio: si torna al sito normale, dalla
+     porta della sala in cui si è */
   function leaveToSite() {
+    var dove = SITE_DOOR[room && room.id] || "home";
     toast(say("hud.out.going") || "si esce dal museo");
     setTimeout(function () {
-      root.location.href = "index.html";
+      root.location.href = "index.html#" + dove;
     }, 150);
   }
   G.exit = leaveToSite;
@@ -2214,7 +2346,7 @@
         if (dialog) closeDialog();
         else if (M.PANEL.isOpen()) M.PANEL.close();
         else if (mode === "focus") closeFocus();
-      } else if (k === "r" || k === "R") toggleSound();
+      } else if (k === "r" || k === "R") { e.preventDefault(); openRadio(); }
       else if (k === "q" || k === "Q") {
         /* Q non apre più il questionario: quello lo dà solo il bar.
            Qui si apre la mappa — tutte le sezioni, in fila. */
@@ -2251,7 +2383,7 @@
     if (q1) q1.addEventListener("click", function () { begin(); openQuiz(); });
     var back = $("back"), radio = $("radio"), menu = $("menu");
     if (back) back.addEventListener("click", function () { leaveToSite(); });
-    if (radio) radio.addEventListener("click", toggleSound);
+    if (radio) radio.addEventListener("click", openRadio);
     /* ≡ apre la mappa, non il questionario: il questionario sta al bar */
     if (menu) menu.addEventListener("click", openMap);
 
@@ -2488,11 +2620,11 @@
       }
     }
     if (room && room.doorR && wx >= room.doorR.x - 45 && wx <= room.doorR.x + room.doorR.w + 45 && wy >= room.doorR.y - 70 && wy <= room.doorR.y + room.doorR.h + 70) {
-      go(room.next);
+      go(uscita(room.next || "hub"));
       return;
     }
     if (room && room.doorL && wx >= room.doorL.x - 45 && wx <= room.doorL.x + room.doorL.w + 45 && wy >= room.doorL.y - 70 && wy <= room.doorL.y + room.doorL.h + 70) {
-      go("hub");
+      esciInCorridoio();
       return;
     }
     if (room && room.exitSign) {
@@ -2508,6 +2640,27 @@
         }
       }
     }
+    /* ---- la botola e la scala: si toccano per prime ------------
+       Sono le due vie d'uscita che non stanno su una parete (la
+       botola della soffitta e la scala rossa della sala interattiva).
+       Prima venivano dopo il «bersaglio vicino», e se davanti c'era
+       uno schermo il clic sulla scala apriva lo schermo: la stanza
+       interattiva sembrava senza uscita. Una scala si tocca, e basta. */
+    if (room && room.id === "soffitta") {
+      var hatchX0 = 240;
+      if (Math.abs(wx - hatchX0) < 70 && wy >= (room.floorY || 880) - 70 && wy <= (room.floorY || 880) + 50) {
+        go("interattivo");
+        return;
+      }
+    }
+    if (room && (room.id === "interattivo" || room.id === "codec")) {
+      var ladX0 = 380;
+      if (Math.abs(wx - ladX0) < 50 && wy >= 40 && wy <= (room.floorY || 880) + 20) {
+        go("soffitta");
+        return;
+      }
+    }
+
     if (target) {
       if (target.door) { interact(); return; }
       if (target.soffittaDoor) { interact(); return; }
@@ -2525,23 +2678,8 @@
     if (target && target.soffittaLadder) {
       if (dxw(target.x) < 260) { interact(); return; }
     }
-    /* la botola della soffitta si tocca col dito;
-       le grate si aprono solo da davanti, con E */
-    if (room && room.id === "soffitta") {
-      var hatchX = 240;
-      if (Math.abs(wx - hatchX) < 70 && wy >= (room.floorY || 880) - 70 && wy <= (room.floorY || 880) + 50) {
-        go("interattivo");
-        return;
-      }
-    }
-    /* Scala rossa della sala interattiva (clic con il mouse) */
-    if (room && (room.id === "interattivo" || room.id === "codec")) {
-      var ladX = 380;
-      if (Math.abs(wx - ladX) < 50 && wy >= 40 && wy <= (room.floorY || 880) + 20) {
-        go("soffitta");
-        return;
-      }
-    }
+    /* la botola della soffitta e la scala della sala interattiva si
+       toccano già all'inizio di onClick: qui non si ripetono */
     /* la scritta ESCI / EXIT si tocca come un cartello */
     if (target && target.exit && dxw(target.x) < 230) {
       interact(); return;
@@ -2647,10 +2785,37 @@
   }
 
   /* ---- il suono e la lingua ---------------------------------- */
-  /* R e ◉ non sono più un interruttore dell'ambiente: accendono la
-     radio vera, la stazione di RadioKaoSs — la stessa che lista il
-     jukebox del bar e che il pinguino accende dalla quarta voce.
-     L'ambiente non sparisce: si abbassa da solo (M.SOUND.duck). */
+  /* R e ◉ non sono un interruttore: aprono la radio. E la radio non
+     è un tasto muto, è una schermata — la scaletta di Radio Kaoss, il
+     nome di quello che va in onda, ⏮ ▶ ⏭. Appena si apre si sente:
+     se era in pausa riparte dalla carta dov'era, perché una radio
+     aperta e muta non serve a nessuno. Il silenzio ce l'ha il ❚❚ del
+     pannello, e se il pannello è già lì R e ◉ fanno proprio quello. */
+  function openRadio() {
+    if (!M.RADIO || !M.PANEL || !M.PANEL.radio) return;
+    /* al buio, prima che il museo cominci, non c'è ancora dove
+       andare a prendere la radio: aspetta il primo passo */
+    if (mode === "boot") return;
+    /* nella stanza del bere la radio non entra: c'è la musica del
+       locale (audio.js, bit-techno) e ◉ non deve coprirla */
+    if (M.BAR && M.BAR.isOn && M.BAR.isOn()) return;
+    /* il pannello aperto è già la radio: qui i due comandi sono
+       play e pausa, come il tasto in mezzo alla riga */
+    if (document.getElementById("rkNow")) {
+      M.RADIO.toggle();
+      if (M.PANEL.radioRefresh) M.PANEL.radioRefresh();
+      return;
+    }
+    /* si apre e si sente: la stazione vera di RadioKaoSs — le stesse
+       canzoni del gioco, non l'ambiente del museo */
+    if (!M.RADIO.on) M.RADIO.play();
+    openJukebox(zoneX);
+  }
+  G.radio = openRadio;
+
+  /* il vecchio nome resta, e continua a fare una cosa sola: accende
+     o mette in pausa senza aprire niente. Lo usa il pinguino, che
+     parla dalla sua scheda e non può aprirne una seconda */
   function toggleSound() {
     if (!M.RADIO) return;
     /* nella stanza del bere la radio non entra: c'è la musica del locale
@@ -2660,7 +2825,7 @@
     var el = $("radio");
     if (el) el.classList.toggle("on", on);
     toast(on ? (say("hud.radio.on") || "radio kaoss accesa")
-      : (say("hud.radio.off") || "radio kaoss spenta"));
+      : (say("hud.radio.off") || "radio kaoss in pausa"));
     /* se il pannello è aperto, la riga e i tasti si aggiornano subito */
     if (M.PANEL && M.PANEL.radioRefresh) M.PANEL.radioRefresh();
   }
@@ -2677,17 +2842,19 @@
   }
   G.lang = cycleLang;
 
-  /* ---- il sipario d'ingresso --------------------------------- */
-  function showBoot(on) {
-    var el = $("boot");
-    if (el) el.classList.toggle("on", !!on);
-    document.body.classList.toggle("booting", !!on);
-  }
-
   function begin() {
     if (mode !== "boot") return;
     mode = "walk";
-    showBoot(false);
+    var qs = String((root.location && root.location.search) || "");
+    /* ?da=treno — si torna dalle terre avendo GUIDATO il treno. La
+       banchina è già vuota, il vagone è rientrato nel buio, e qui non
+       c'è niente da riavvolgere. Si mette a posto adesso, prima che il
+       museo cominci a girare: prima il nastro partiva mezzo secondo
+       dopo l'ingresso, e si vedeva l'hub com'era, poi dieci secondi di
+       pellicola, poi l'hub di nuovo — un lampo, un film, e una
+       partenza che nessuno aveva chiesto, subito dopo aver guidato */
+    var daTreno = /[?&]da=treno(&|$)/i.test(qs);
+    if (daTreno && M.METRO && M.METRO.azzera) M.METRO.azzera();
     M.SOUND.start();
     /* il ◉ si accende solo se la stazione sta davvero suonando */
     if (M.RADIO && M.RADIO.tell) M.RADIO.tell();
@@ -2695,23 +2862,30 @@
     toast(txt(room.title, "room." + room.id) || "il museo");
     /* ?stanza=cosmo — chi torna da un minigioco rientra dove era
        (dalla spedizione si esce davanti al robot guasto, non al banco) */
-    var qs = String((root.location && root.location.search) || "");
     var hit = /[?&]stanza=([a-z0-9_]+)/i.exec(qs);
-    /* ?da=treno — si arriva dalle terre, in metropolitana. Si scende
-       sulla banchina della stazione, e il nastro del viaggio si riavvolge
-       per dieci secondi: il treno è appena ripartito all'indietro, e di
-       qua si vede tornare indietro quello che si era visto andare */
-    var daTreno = /[?&]da=treno(&|$)/i.test(qs);
+    /* la sala del ragno non è un punto di partenza: ci si arriva dal
+       corridoio, non da un indirizzo. Chi la chiede riparte dal banco
+       come tutti, e il museo resta un posto da attraversare */
+    if (hit && /^(interattivo|codec)$/i.test(hit[1])) hit = null;
     /* ?da=morte — si arriva dalle terre, rincarnati. Non è un ritorno
        da una porta: si rinasce al banco, davanti al pinguino, che ha
        la battuta pronta. Chi muore non riparte da dove è morto: da
        morti si finisce sempre qui. */
     var daMorte = /[?&]da=morte(&|$)/i.test(qs);
+    /* ?da=fanciullo — si arriva dal fondo del bosco, dove la sagoma ha
+       finito di parlare e il posto si è sfaldato. Non è un ritorno da
+       una porta e non è una morte: è il pinguino che ti trova qui lo
+       stesso, e ha la battuta pronta anche per questa */
+    var daFanciullo = /[?&]da=fanciullo(&|$)/i.test(qs);
     if (hit) {
       var rid = hit[1].toLowerCase();
       if (M.WORLD && M.WORLD.byId && M.WORLD.byId[rid]) {
         goRoom(rid, true);
         /* la battuta del ritorno: prima che la camera si posi */
+        if (daFanciullo) {
+          startAtBar("peng.fanciullo", 700);
+          return;
+        }
         if (daMorte) {
           startAtBar("peng.terre", 700);
           return;
@@ -2730,11 +2904,10 @@
             clampCam();
           }
         }
-        if (daTreno && M.METRO && M.METRO.parti) {
-          setTimeout(function () {
-            if (M.METRO && M.METRO.parti) M.METRO.parti({ inverso: true });
-          }, 520);
-        }
+        /* si arriva in banchina a piedi, dal vagone che non c'è più:
+           niente pellicola, niente seconda partenza. Il treno l'ha
+           già guidato chi è qui, e la stazione è già vuota (vedi
+           sopra, prima dell'ingresso) */
         return;
       }
     }
@@ -2746,11 +2919,20 @@
         M.AUTH.loadUserProgress();
       }
     }
-    /* si comincia al banco, non in mezzo al corridoio: prima che uno
-       parta e si perda, il pinguino spiega in che posto è finito —
-       cioè un portfolio, con le porte. Poi si cammina. E chi arriva
-       morto dalle terre trova lui, con un'altra battuta. */
-    startAtBar(daMorte ? "peng.terre" : "peng.intro", daMorte ? 700 : 900);
+    /* si comincia al banco, e zitti. Nessun sipario, nessuna battuta
+       d'apertura: chi entra si trova già dentro, davanti al pinguino.
+       Se vuole sapere dove è finito, lo guarda (E) e glielo chiede; le
+       meccaniche nuove le dice Charles quando arrivano. Chi arriva
+       morto dalle terre trova invece lui, con l'altra battuta. */
+    if (daFanciullo) {
+      startAtBar("peng.fanciullo", 700);
+      return;
+    }
+    if (daMorte) {
+      startAtBar("peng.terre", 700);
+      return;
+    }
+    alBanco();
   }
   G.begin = begin;
 
@@ -2917,6 +3099,24 @@
       var sfp = M.SOFFITTA.pick(room, cx, far);
       if (sfp && sfp.d < bd) { bd = sfp.d; best = sfp.t; }
     }
+    /* ---- la scala della sala interattiva ------------------------
+       È l'uscita della stanza, e vince sul bersaglio che le sta
+       addosso (uno schermo a mezzo metro si mangiava il tasto, e la
+       sala sembrava chiusa) — ma non sulla porta del corridoio, che
+       sta dall'altra parte: chi è davanti alla porta esce nel
+       corridoio, chi è davanti alla scala sale in soffitta. Prima
+       questa riga prendeva cento passi di stanza, porta compresa. */
+    if (room.id === "interattivo" || room.id === "codec") {
+      var dscala = Math.abs(cx - 380);
+      if (dscala < 95 && dscala < bd) {
+        bd = dscala;
+        best = {
+          soffittaLadder: true, door: "soffitta", x: 380,
+          y: (room.floorY || 880) - 140,
+          title: (M.lang && M.lang.l === "en") ? "Climb to the attic" : "Sali in soffitta"
+        };
+      }
+    }
     for (i = 0; i < room.items.length; i++) {
       p = room.items[i];
       d = Math.abs(cx - Math.min(p.x + p.w, Math.max(p.x, cx)));
@@ -2931,14 +3131,17 @@
       d = far(room.doorR.x + room.doorR.w / 2);
       if (d < 140 && d < bd) {
         bd = d;
-        best = { door: room.next, x: room.doorR.x + room.doorR.w / 2, y: room.doorR.y, title: room.nextTitle };
+        best = { door: uscita(room.next || "hub"), x: room.doorR.x + room.doorR.w / 2, y: room.doorR.y, title: room.nextTitle };
       }
     }
     if (room.doorL) {
       d = far(room.doorL.x + room.doorL.w / 2);
       if (d < 140 && d < bd) {
         bd = d;
-        best = { door: "hub", x: room.doorL.x + room.doorL.w / 2, y: room.doorL.y };
+        best = {
+          door: "hub", corridoio: true,
+          x: room.doorL.x + room.doorL.w / 2, y: room.doorL.y
+        };
       }
     }
     if (room.arch === "hub" || room.arch === "lucidus") {

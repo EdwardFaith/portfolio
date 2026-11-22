@@ -9,18 +9,24 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
         rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=16">
   <!-- il punto di domanda di Charles: lo stesso foglio del museo -->
-  <link rel="stylesheet" href="../museo/charles.css?v=4">
+  <link rel="stylesheet" href="../museo/charles.css?v=10">
+  <!-- il ◉ della radio e la sua schermata: lo stesso tubo del museo -->
+  <link rel="stylesheet" href="../museo/radio-schermo.css?v=1">
 </head>
 <body class="sez-terre">
   <div id="sala">
     <canvas id="tela" aria-label="La spiaggia delle terre: sabbia di cenere, il mare nero, una porta isolata"></canvas>
+    <!-- il tubo: lo stesso vetro del museo, sopra il disegno e sotto i
+         comandi. Si accende da solo se WebGL c'è (mondo.js, IL VETRO) -->
+    <canvas id="vetro" aria-hidden="true"></canvas>
 
     <!-- ── il velo VHS: lo stesso del museo, quattro strati sopra
-         tutto e sempre acceso — le righe del tubo, il croma, la grana,
-         il nastro che scorre. Non è un filtro delle terre: è l'aria
-         (vedi style.css, #vhs) ─────────────────────────────────── -->
+         tutto — le righe del tubo, il croma, la grana, il nastro che
+         scorre. È il ripiego: quando il vetro WebGL parte (mondo.js,
+         IL VETRO) questo si spegne, perché due veli sarebbero due arie
+         (vedi style.css, body.vetro #vhs) ───────────────────────── -->
     <div id="vhs" aria-hidden="true">
       <i class="scan"></i>
       <i class="chroma"></i>
@@ -50,7 +56,7 @@
       <button class="t" type="button" data-k="run">»</button>
       <button class="t" type="button" data-k="jump">▲</button>
       <button class="t" type="button" data-k="fuoco">✦</button>
-      <button class="t" type="button" data-k="c" title="cambia quello che hai in mano">✎</button>
+      <button class="t" type="button" data-k="c" title="1 2 3 o C: cambia quello che hai in mano">✎</button>
       <button class="t" type="button" data-k="act">◦</button>
     </div>
 
@@ -60,27 +66,47 @@
   </div>
 
   <script src="../museo/device.js"></script>
+  <!-- lo schermo del telefono: a tutto schermo, in verticale.
+       Niente più «gira il telefono»: i tasti stanno in fondo -->
+  <script src="../museo/orienta.js?v=8"></script>
+  <!-- la pausa: Charles aperto ferma le terre sotto. Prima di
+       mondo.js e di charles.js, che si registrano qui -->
+  <script src="../museo/sosta.js?v=1"></script>
   <script src="../museo/stato.js?v=6"></script>
   <!-- il coniglio è lo stesso del museo: stesso corpo, stessa
        animazione (RABBIT.anima), stessi comandi -->
   <script src="../museo/player.js?v=2"></script>
-  <!-- la radio: la stessa stazione del museo (RadioKaoSs), con lo stesso
-       mazzo mescolato. Il tasto R la accende qui come nel corridoio, in
-       tutte le zone. data.js è solo la scaletta dei pezzi -->
-  <script src="../museo/data.js?v=7"></script>
-  <script src="../museo/radio.js"></script>
+  <!-- LA RADIO DEL SITO, anche qui. Non è la musica del posto (quella
+       la fa suono.js): è la stazione di RadioKaoSs, la stessa del
+       corridoio, con la stessa fila (radio-fila.js) e lo stesso motore
+       (radio.js). Il ◉ sta in BASSO a sinistra — lassù c'erano il ♪,
+       «in mano» e le tre vite, e il simbolo finiva sopra le scritte:
+       abbasso non copre più niente. Apre la schermata col tubo
+       catodico: un lettore solo per tutto il sito, e il tasto R fa
+       quello che fa nel museo. -->
+  <script src="../museo/radio-fila.js?v=1"></script>
+  <script src="../museo/radio.js?v=5"></script>
+  <script src="../museo/radio-schermo.js?v=3" data-tasto="r" data-angolo="bl" data-scarto="0"></script>
+  <!-- data.js resta il quaderno condiviso del museo: player.js ci legge
+       il corpo del coniglio scelto nel questionario -->
+  <script src="../museo/data.js?v=8"></script>
   <!-- le bestie che si trovano in tutte le zone: crocifissi-lampada,
        morti, alberi con gli occhi, ragni, nebbia. Vengono dopo
        mondo.js perché usano le sue utilità (T.u) -->
   <!-- il suono: un sintetizzatore, non un file. Viene prima di
        mondo.js perché il mondo lo chiama appena parte -->
   <script src="suono.js?v=2"></script>
-  <script src="mondo.js?v=27"></script>
+  <!-- il vetro del museo: lo stesso motore grafico e gli stessi shader
+       del corridoio, caricati qui senza ritagli. Se WebGL non c'è,
+       GL.ok resta falso e mondo.js lascia acceso il velo CSS (#vhs) -->
+  <script src="../museo/gl.js?v=1"></script>
+  <script src="../museo/fx.js?v=1"></script>
+  <script src="mondo.js?v=32"></script>
   <script src="orrori.js?v=5"></script>
   <script src="spiaggia.js?v=24"></script>
   <!-- sotto la sabbia: la stazione, la banchina, e il treno che passa
        quando passa -->
-  <script src="stazione.js?v=10"></script>
+  <script src="stazione.js?v=11"></script>
   <script src="bosco.js?v=13"></script>
   <script src="rovine.js?v=5"></script>
   <script src="citta.js?v=16"></script>
@@ -89,7 +115,7 @@
        agenti (stanno tutti e due in oltrecitta.js) -->
   <script src="oltrecitta.js?v=13"></script>
   <script src="case.js?v=9"></script>
-  <script src="tempio.js?v=10"></script>
+  <script src="tempio.js?v=11"></script>
   <!-- il fondo delle terre: le fabbriche Latte Materno. Le balie di
        lamiera, gli operai con la lampada al posto della testa (che non
        attaccano), e la polizia del latte che spara: si risponde con la
@@ -100,11 +126,12 @@
        foglio nero forato dalle lampade, e le sagome lampadina si
        sciolgono con l'acqua. In città non c'è una scritta: le insegne
        sono figure, perché chi è nato qui non ha mai imparato a leggere -->
-  <script src="zoan.js?v=13"></script>
+  <script src="zoan.js?v=21"></script>
   <!-- Charles: il punto di domanda rosso. È la guida, e si parla con lui
        come con un personaggio: le domande sono lì sotto, e le risposte
-       arrivano nel fumetto. Niente schede, niente tour -->
-  <script src="../museo/charles.js?v=8"></script>
+       arrivano nel fumetto. Niente schede, niente tour. Con lui aperto
+       il mondo si ferma (museo/sosta.js) -->
+  <script src="../museo/charles.js?v=17"></script>
 
   <script>
     (function () {

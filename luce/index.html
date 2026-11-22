@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#000000">
+  <title>RGB (Baggata)</title>
+  <link rel="stylesheet" href="style.css?v=5">
+</head>
+<body>
+
+  <!-- LA PROIEZIONE — quattro monitor indipendenti, separati dal nero.
+       Dentro ogni monitor c'è il canvas (la scomposizione RGB, le foto
+       vere pescate da Wikimedia, i fotogrammi rubati) e sopra uno
+       strato dove vivono i pop-up, le parole e i video pubblicitari. -->
+  <main id="proiezione" aria-hidden="true">
+    <div class="fila">
+      <div class="monitor" id="m1">
+        <canvas class="quadrato" id="q1" width="720" height="720"></canvas>
+        <div class="strato" id="s1"></div>
+      </div>
+      <div class="monitor" id="m2">
+        <canvas class="quadrato" id="q2" width="720" height="720"></canvas>
+        <div class="strato" id="s2"></div>
+      </div>
+      <div class="monitor" id="m3">
+        <canvas class="quadrato" id="q3" width="720" height="720"></canvas>
+        <div class="strato" id="s3"></div>
+      </div>
+      <div class="monitor" id="m4">
+        <canvas class="quadrato" id="q4" width="720" height="720"></canvas>
+        <div class="strato" id="s4"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- IL FINTO CRASH — kernel panic, silenzio, nero, riavvio. -->
+  <div id="crash" hidden aria-hidden="true">
+    <pre id="crash-testo"></pre>
+    <div class="crash-barra"><i id="crash-avanzamento"></i></div>
+  </div>
+
+  <!-- LA WEBCAM — non si vede mai: si vede solo quello che finisce
+       dentro i quattro quadrati. Il sensore è il canvas basso che
+       misura il movimento. -->
+  <video id="webcam" playsinline autoplay muted hidden></video>
+  <canvas id="sensore" width="80" height="60" hidden></canvas>
+
+  <!-- IL PANNELLO — esiste solo quando si preme D, ed è l'unico
+       momento in cui il cursore torna a farsi vedere. -->
+  <section id="debug" hidden aria-label="pannello di debug">
+    <header>
+      <b>RGB</b>
+      <span>baggata</span>
+      <button type="button" id="chiudi-debug" title="chiudi (D)" aria-label="chiudi">✕</button>
+    </header>
+
+    <canvas id="anteprima" width="192" height="108" aria-label="anteprima webcam"></canvas>
+
+    <div class="riga">
+      <span class="etichetta">movimento</span>
+      <div class="barra"><i id="livello"></i></div>
+    </div>
+    <div class="valore" id="livello-testo">—</div>
+
+    <div class="riga">
+      <span class="etichetta">chaos</span>
+      <div class="barra barra-chaos"><i id="chaos-barra"></i></div>
+    </div>
+    <div class="valore" id="chaos-testo">—</div>
+
+    <label class="riga" for="chaos-slider">
+      <span class="etichetta">chaosLevel</span>
+      <input type="range" id="chaos-slider" min="0" max="100" step="1" value="0">
+      <output id="chaos-slider-testo" for="chaos-slider">0</output>
+    </label>
+
+    <label class="riga" for="glitch-slider">
+      <span class="etichetta">glitch</span>
+      <input type="range" id="glitch-slider" min="0" max="100" step="1" value="50">
+      <output id="glitch-slider-testo" for="glitch-slider">50</output>
+    </label>
+
+    <label class="riga" for="volume-slider">
+      <span class="etichetta">volume</span>
+      <input type="range" id="volume-slider" min="0" max="100" step="1" value="85">
+      <output id="volume-slider-testo" for="volume-slider">85</output>
+    </label>
+
+    <label class="riga" for="sensibilita">
+      <span class="etichetta">camera</span>
+      <input type="range" id="sensibilita" min="1" max="100" step="1" value="55">
+      <output id="sensibilita-testo" for="sensibilita">55</output>
+    </label>
+
+    <div class="stato" id="stato">—</div>
+
+    <div class="volto-riga">
+      <img id="web-mini" alt="" width="96" height="54" hidden>
+      <div class="volto-testi">
+        <div id="volto-testo">volto: —</div>
+        <div id="web-testo" class="tenue">wikimedia: —</div>
+      </div>
+    </div>
+
+    <div class="bottoni">
+      <button type="button" id="b-foto">Testa foto web random</button>
+      <button type="button" id="b-occhi">Forza occhi X</button>
+      <button type="button" id="b-uscita">Forza reazione uscita</button>
+      <button type="button" id="b-frase">Forza frase</button>
+      <button type="button" id="b-popup">Forza pop-up</button>
+      <button type="button" id="b-video">Forza video</button>
+      <button type="button" id="b-scatta">Scatta</button>
+      <button type="button" id="b-glitch">Glitch</button>
+      <button type="button" id="b-audio">Audio</button>
+      <button type="button" id="b-crash" class="pericolo">Forza crash</button>
+    </div>
+
+    <p class="nota">
+      D pannello · F schermo intero · R torna al bianco
+    </p>
+    <p class="nota">
+      <span id="camera">camera: —</span>
+    </p>
+    <p class="nota">
+      <span id="audio-stato">audio: in attesa di un gesto</span>
+    </p>
+  </section>
+
+  <!-- il rilevatore di volti: se il CDN o il backend non rispondono,
+       restano il metro del movimento e tutto il resto -->
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
+  <script src="script.js?v=6"></script>
+</body>
+</html>

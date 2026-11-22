@@ -1,6 +1,6 @@
 /* ============================================================
    MUSEO — i contenuti.
-   Nove sale, le opere, ventuno canzoni.
+   Nove sale, le opere, ventidue canzoni.
    kind: video | image | portal | audio | note | lettering
          chapter | end | quiz | reel  (reel = uno schermo con
          dentro tutti i video di una puntata, da scorrere)
@@ -106,7 +106,7 @@
       works: [
         {
           kind: "lettering", text: "RADIO\nKAOSS", textEn: "RADIO\nKAOSS", w: 400, h: 200,
-          sub: { it: "serie di corti · 4 puntate · 21 canzoni", en: "short film series · 4 episodes · 21 songs" },
+          sub: { it: "serie di corti · 4 puntate · 20 canzoni", en: "short film series · 4 episodes · 20 songs" },
           small: { it: "conduttori: edward faith & charles", en: "hosted by: edward faith & charles" }
         },
         {
@@ -214,9 +214,9 @@
         {
           kind: "chapter", w: 520,
           title: { it: "LE CANZONI", en: "THE SONGS" },
-          sub: { it: "ventuno brani · dalla radio", en: "twenty-one tracks · from the radio" }
+          sub: { it: "ventidue brani · dalla radio", en: "twenty-two tracks · from the radio" }
         },
-        { kind: "audio", wide: true, title: { it: "Canzoni & audio", en: "Songs & audio" }, sub: { it: "21 brani · dalla radio", en: "21 tracks · from the radio" } },
+        { kind: "audio", wide: true, title: { it: "Canzoni & audio", en: "Songs & audio" }, sub: { it: "22 brani · dalla radio", en: "22 tracks · from the radio" } },
         {
           kind: "note", w: 330, h: 232,
           title: { it: "IL BAR", en: "THE BAR" },
@@ -463,8 +463,8 @@
       num: "VI",
       title: { it: "ILLUSTRAZIONI", en: "ILLUSTRATIONS" },
       line: {
-        it: "archivio illustrazioni · undici pezzi, carta e inchiostro, appesi in fila.",
-        en: "illustration archive · eleven pieces, paper and ink, hung in a row."
+        it: "archivio illustrazioni · quindici pezzi, carta e inchiostro, appesi in fila.",
+        en: "illustration archive · fifteen pieces, paper and ink, hung in a row."
       },
       feature: {
         kind: "image", img: "illustrazioni/3.jpeg",
@@ -473,7 +473,7 @@
       works: [
         {
           kind: "lettering", text: "ARCHIVIO\nILLUSTRAZIONI", textEn: "ILLUSTRATIONS\nARCHIVE", w: 440, h: 200,
-          sub: { it: "11 pezzi · emanuele baccigalupi", en: "11 pieces · emanuele baccigalupi" },
+          sub: { it: "15 pezzi · emanuele baccigalupi", en: "15 pieces · emanuele baccigalupi" },
           small: { it: "serie: proteggi ciò che era", en: "series: protect what was" }
         },
         { kind: "image", img: "illustrazioni/3.jpeg", title: "Protezione", sub: { it: "serie: proteggi ciò che era", en: "series: protect what was" } },
@@ -487,6 +487,10 @@
         { kind: "image", img: "illustrazioni/13.png", title: "Stretta", sub: { it: "illustrazione", en: "illustration" } },
         { kind: "image", img: "illustrazioni/14.jpg", title: "Funambolo", sub: { it: "illustrazione", en: "illustration" } },
         { kind: "image", img: "illustrazioni/15.jpg", title: "Persa nel bosco", sub: { it: "illustrazione", en: "illustration" } },
+        { kind: "image", img: "illustrazioni/impegno.jpeg", title: "Impegno", sub: { it: "illustrazione", en: "illustration" } },
+        { kind: "image", img: "illustrazioni/pasaggio.jpeg", title: "Passaggio", sub: { it: "illustrazione", en: "illustration" } },
+        { kind: "image", img: "illustrazioni/simboli.jpeg", title: "Sono solo simboli", sub: { it: "illustrazione", en: "illustration" } },
+        { kind: "image", img: "illustrazioni/whisky.jpeg", title: "Whisky", sub: { it: "illustrazione", en: "illustration" } },
         {
           kind: "note", w: 300, h: 220,
           title: { it: "NOTA", en: "NOTE" },
@@ -896,8 +900,8 @@
         {
           n: "4",
           t: "le canzoni",
-          sub: { it: "ventuno tracce", en: "twenty-one tracks" },
-          x: "«Ventuno pezzi dalla radio. Trasmettono sempre, anche a valvole spente.»",
+          sub: { it: "ventidue tracce", en: "twenty-two tracks" },
+          x: "«Ventidue pezzi dalla radio. Trasmettono sempre, anche a valvole spente.»",
           act: "radio"
         },
         {
@@ -1037,14 +1041,14 @@
       custom: "stage",
       pad: 1000,
       name: "TE LO INCULCO IO",
-      led: "DODICI, CONTATI",
+      led: "QUINDICI, CONTATI",
       role: "illustrazioni · cilindro, sagoma, supercazzola",
-      hello: "«Dodici disegni a inchiostro, zero didascalie. Spiegare stanca: chi capisce capisce, gli altri guardano le figure.»",
+      hello: "«Quindici disegni a inchiostro, zero didascalie. Spiegare stanca: chi capisce capisce, gli altri guardano le figure.»",
       extra: [
         {
           n: "1",
           t: "cosa sono le illustrazioni",
-          x: "«Dodici pezzi: Protezione, Funambolo, Pagliaccio, Persa nel bosco... inchiostro su carta, senza cornici.»"
+          x: "«Quindici pezzi: Protezione, Funambolo, Pagliaccio, Persa nel bosco... inchiostro su carta, senza cornici.»"
         },
         {
           n: "2",
@@ -1058,7 +1062,7 @@
         },
         {
           n: "4",
-          t: "le dodici, in fila",
+          t: "le quindici, in fila",
           x: "«C'è il video in fondo che le fa scorrere tutte. Guardati quello e fai prima.»",
           act: "list"
         }
@@ -1158,7 +1162,6 @@
     { title: "Icaro", url: "RadioKaoSs/canzoni/icaro.mpeg" },
     { title: "La paura di finire", url: "RadioKaoSs/canzoni/la paura di finire.mpeg" },
     { title: "Mortem", url: "RadioKaoSs/canzoni/mortem.MP3" },
-    { title: "Napoleone", url: "RadioKaoSs/canzoni/napoleone.mpeg" },
     { title: "Non voglio", url: "RadioKaoSs/canzoni/non voglio.mpeg" },
     { title: "Oggi non resto", url: "RadioKaoSs/canzoni/oggi non resto.mp3" },
     { title: "Passami la cartapesta", url: "RadioKaoSs/canzoni/passami la cartapesta.mp3" },

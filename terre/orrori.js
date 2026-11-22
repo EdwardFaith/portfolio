@@ -1423,68 +1423,97 @@
 
   /* ============================================================
      LA LUMACA ALL'ORIZZONTE — grande come una collina
-     Non arriva mai: è là che sta, e non è un panorama.
+     Non arriva mai: è là che sta, e non è un panorama. È una sagoma
+     nera controluce, e il piede tocca l'acqua: quello che sta sotto
+     la riga dell'orizzonte è già dentro, e non si vede. Prima era
+     un guscio di vetro con gli occhi accesi, mezza palmo sopra
+     l'acqua: sembrava un disegno appoggiato al mare, e non una cosa
+     che ci cammina dentro. La spirale del guscio resta, ma è solo
+     un graffio più chiaro sul nero — una silhouette non ha altra
+     luce da dare.
      ============================================================ */
   O.lumacaOrizzonte = function (c, x, y, s, seed, t) {
     seed = seed || 0;
-    var g = c.createLinearGradient(0, y - 190 * s, 0, y);
-    g.addColorStop(0, "rgba(9,8,12,0.90)");
-    g.addColorStop(1, "rgba(4,3,5,0.98)");
+    var nero = "rgba(3,3,5,0.98)";
+    var q, an, rr2, px, py;
 
-    /* il piede, che lascia una scia lucida */
-    c.fillStyle = "rgba(180,176,160,0.06)";
+    /* la bava: una riga chiara che si perde nell'acqua, e non
+       finisce mai di arrivare */
+    var bava = c.createLinearGradient(x - 520 * s, 0, x - 8 * s, 0);
+    bava.addColorStop(0, "rgba(206,214,198,0)");
+    bava.addColorStop(1, "rgba(206,214,198,0.10)");
+    c.fillStyle = bava;
+    c.fillRect(x - 520 * s, y - 2 * s, 512 * s, 3.5 * s);
+
+    /* il piede, piatto sull'acqua: la riga dell'orizzonte gli passa
+       sopra, e la parte sommersa non si vede */
+    c.fillStyle = nero;
     c.beginPath();
-    c.ellipse(x - 40 * s, y - 4 * s, 130 * s, 12 * s, 0, 0, 6.3);
+    c.ellipse(x - 46 * s, y + 1.5 * s, 122 * s, 7 * s, 0, 0, 6.3);
     c.fill();
-    c.fillStyle = g;
+
+    /* il corpo, dalla punta davanti alla coda, appoggiato all'acqua */
     c.beginPath();
-    c.moveTo(x - 96 * s, y - 6 * s);
-    c.quadraticCurveTo(x - 40 * s, y - 30 * s, x + 30 * s, y - 26 * s);
-    c.quadraticCurveTo(x + 52 * s, y - 20 * s, x + 44 * s, y - 6 * s);
+    c.moveTo(x - 108 * s, y + 1 * s);
+    c.quadraticCurveTo(x - 46 * s, y - 26 * s, x + 18 * s, y - 24 * s);
+    c.quadraticCurveTo(x + 44 * s, y - 22 * s, x + 50 * s, y - 6 * s);
+    c.lineTo(x + 50 * s, y + 2 * s);
     c.closePath();
     c.fill();
 
-    /* il guscio: una spirale, e dentro qualcuno */
-    var gx = x - 20 * s, gy = y - 66 * s, gr = 52 * s;
-    c.fillStyle = g;
+    /* il guscio: un cerchio pieno, e dentro la spirale — un graffio
+       appena più chiaro, perché il nero non ha ombre */
+    var gx = x - 26 * s, gy = y - 60 * s, gr = 50 * s;
     c.beginPath();
     c.arc(gx, gy, gr, 0, 6.3);
     c.fill();
-    c.strokeStyle = "rgba(196,188,164,0.14)";
-    c.lineWidth = 2.2 * s;
+    c.strokeStyle = "rgba(104,104,112,0.26)";
+    c.lineWidth = 2 * s;
     c.beginPath();
-    for (var q = 0; q < 90; q++) {
-      var an = q / 90 * 6.2832 * 2.1;
-      var rr2 = gr * (0.94 - q / 90 * 0.82);
-      var px = gx + Math.cos(an) * rr2, py = gy + Math.sin(an) * rr2;
+    for (q = 0; q < 90; q++) {
+      an = q / 90 * 6.2832 * 2.1;
+      rr2 = gr * (0.94 - q / 90 * 0.82);
+      px = gx + Math.cos(an) * rr2;
+      py = gy + Math.sin(an) * rr2;
       if (q === 0) c.moveTo(px, py); else c.lineTo(px, py);
     }
     c.stroke();
 
-    /* i due tentacoli, con l'occhio in punta */
+    /* il bordo in alto: un filo di luce, l'unica, per staccare il
+       guscio dal cielo */
+    c.strokeStyle = "rgba(212,216,200,0.10)";
+    c.lineWidth = 2.2 * s;
+    c.beginPath();
+    c.arc(gx, gy, gr - 1.2 * s, 3.5, 5.9);
+    c.stroke();
+
+    /* la testa, e i due tentacoli: la punta ha una pallina, e non
+       un occhio — controluce non si vede niente, e va bene così */
+    c.fillStyle = nero;
+    c.beginPath();
+    c.ellipse(x + 46 * s, y - 14 * s, 16 * s, 14 * s, 0, 0, 6.3);
+    c.fill();
+
     var on = Math.sin(t * 0.5 + seed) * 6 * s;
     for (var i = 0; i < 2; i++) {
       var lato = i ? 1 : -1;
-      var tx = x + 40 * s + lato * 12 * s;
-      var ty = y - 120 * s + on * (i ? 1 : -1);
-      c.strokeStyle = "rgba(12,10,14,0.94)";
-      c.lineWidth = 5 * s;
+      var tx = x + 54 * s + lato * 9 * s;
+      var ty = y - 56 * s + on * (i ? 1 : -1);
+      c.strokeStyle = nero;
+      c.lineWidth = 5.2 * s;
+      c.lineCap = "round";
       c.beginPath();
-      c.moveTo(x + 30 * s, y - 60 * s);
-      c.quadraticCurveTo(x + 44 * s, y - 96 * s, tx, ty);
+      c.moveTo(x + 42 * s, y - 22 * s);
+      c.quadraticCurveTo(x + 50 * s, y - 42 * s, tx, ty);
       c.stroke();
-      occhio(c, tx, ty, 9 * s, Math.sin(t * 0.4 + seed) * 0.8, 0.1, 0.85);
+      c.fillStyle = nero;
+      c.beginPath();
+      c.arc(tx, ty, 5.2 * s, 0, 6.3);
+      c.fill();
     }
-
-    /* la goccia che scende dal guscio */
-    var k = (t * 0.25 + hash(seed)) % 1;
-    c.strokeStyle = "rgba(120,120,110,0.20)";
-    c.lineWidth = 2 * s;
-    c.beginPath();
-    c.moveTo(gx + gr * 0.2, gy + gr * 0.9);
-    c.lineTo(gx + gr * 0.2, gy + gr * 0.9 + k * 40 * s);
-    c.stroke();
+    c.lineCap = "butt";
   };
+
 
   /* ============================================================
      LA POZZA — sangue, e non asciuga

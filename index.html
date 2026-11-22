@@ -64,6 +64,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
         rel="stylesheet">
 
+    <!-- la radio del museo, anche qui: il ◉ in alto a destra e la sua
+         schermata (la stessa scaletta, lo stesso motore) -->
+    <link rel="stylesheet" href="museo/radio-schermo.css?v=1">
+
     <style>
         :root {
             --bg-color: #050505;
@@ -191,7 +195,11 @@
             animation: subcParticleFloat var(--dur) ease-in-out forwards;
         }
 
-        .subc-rabbit-overlay {
+        /* ---- IL SEGNO DEL SUBCONSCIO -------------------------------
+           Un punto interrogativo rosso, grande quanto lo schermo.
+           Prima qui c'era un coniglio bianco: il gioco è lo stesso,
+           il segno no. */
+        .subc-punto-overlay {
             position: fixed;
             inset: 0;
             display: flex;
@@ -203,17 +211,22 @@
             transition: opacity 0.6s ease;
         }
 
-        .subc-rabbit-overlay.visible {
+        .subc-punto-overlay.visible {
             opacity: 1;
         }
 
-        .subc-rabbit-overlay span {
+        .subc-punto-overlay span {
             font-size: 35vmin;
-            animation: rabbitSpin 1.2s ease-in-out;
+            font-weight: 700;
+            line-height: 1;
+            color: #dc2626;
+            font-family: 'Space Grotesk', sans-serif;
+            text-shadow: 0 0 40px rgba(220, 38, 38, 0.55);
+            animation: puntoSpin 1.2s ease-in-out;
             display: inline-block;
         }
 
-        @keyframes rabbitSpin {
+        @keyframes puntoSpin {
             0% {
                 transform: scale(0.1) rotate(-20deg);
                 opacity: 0;
@@ -229,12 +242,167 @@
                 opacity: 1;
             }
         }
+        /* ─── LA LUMACA CHE PASSA NELL'HOME ─────────────────────
+           Il disegno viene da `lumaca/lumaca.gif`, il file così com'è:
+           un GIF animato di 1138×640, 80 fotogrammi da 100 ms, cioè otto
+           secondi esatti per un giro, disegno chiaro su fondo nero.
+           La lumaca non sta in scena: si aspetta, e ogni quaranta secondi
+           fa una passata — compare in fondo alla sezione, il GIF parte
+           dal primo fotogramma e arriva in fondo al giro, poi sparisce e
+           si torna ad aspettare. I due tempi stanno nello script, dentro
+           `HeroLumaca`: `LUMACA_ATTESA` e `LUMACA_GIRO`.
+           Trasparenza dentro il GIF non ce n'è — il nero è vernice — e
+           non serve fabbricarla in un altro file: si toglie dal CSS.
+           `screen` è una fusione che ha il nero come elemento neutro,
+           quindi il riquadro sparisce nel fondo e resta solo il segno
+           chiaro; l'opacità abbassa quel segno e lo fa stare indietro,
+           che è quello che si chiede a una figura di sfondo.
+           Il disegno non occupa tutta la tela: sta nella fascia che va
+           da (13,264) a (1137,448), cioè 1125×185, con il nero attorno.
+           Il riquadro qui sotto è alto quanto la fascia, e l'immagine è
+           scalata e spostata in negativo di quei pixel: nei bordi del
+           riquadro cade esattamente il disegno. Le misure sono quelle
+           vere, misurate sul file: se un giorno cambia il GIF, vanno
+           rimisurate. `--passo` è la larghezza su cui si scala il
+           disegno, più di uno schermo: se ne vede la parte sinistra, che
+           è dove sta la lumaca.
+           La figura poggia sul bordo basso della sezione. */
+        .hero-lumaca-via {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 5;
+            pointer-events: none;
+            --passo: 160vw;
+            /* Il nero del GIF non è trasparenza, è vernice: da solo
+               farebbe il riquadro. Con `screen` il nero è l'elemento
+               neutro della fusione — sparisce nel fondo e resta solo il
+               disegno chiaro. Fuori dalla passata qui dentro non c'è
+               niente da fondere: il contenitore resta, il disegno lo
+               mette e lo toglie React. */
+            mix-blend-mode: screen;
+        }
+
+        /* la finestra sul GIF: alta quanto la fascia del disegno, larga il
+           passo, e ritagliata — dentro ci sta l'immagine intera, spostata
+           in negativo di quei tredici e di quei duecentossessantaquattro
+           pixel, così nei bordi cade il disegno e non il nero che avanza.
+           Dentro ci va uno `<img>` vero e non uno sfondo CSS: un GIF,
+           per ripartire dal primo fotogramma, ha bisogno di un nodo
+           nuovo, e la `background-image` la tiene il browser.
+           `lumacaPassa` è la passata: entra in mezzo secondo, sta lì per
+           tutto il giro, esce negli ultimi mezzo secondo. Così non si
+           vede mai il fotogramma zero ripresentarsi dopo il
+           ricominciamento del loop. La durata arriva dallo script in
+           `--giro`: è la stessa che il timer usa per togliere la scena,
+           così CSS e JavaScript non possono andare d'accordo male. */
+        .hero-lumaca {
+            width: var(--passo);
+            height: calc(var(--passo) * 185 / 1125);
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .hero-lumaca.in-scena {
+            animation: lumacaPassa var(--giro, 8s) linear forwards;
+        }
+
+        .hero-lumaca img {
+            display: block;
+            width: calc(var(--passo) * 1138 / 1125);
+            height: auto;
+            margin-left: calc(var(--passo) * -13 / 1125);
+            margin-top: calc(var(--passo) * -264 / 1125);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        @keyframes lumacaPassa {
+            0% {
+                opacity: 0;
+            }
+
+            6% {
+                opacity: 0.5;
+            }
+
+            94% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* IL NOME, PICCOLO E ROSSO, AL CENTRO DELL'HOME ─────────────
+           Come era prima che in mezzo restasse solo la lumaca: una riga
+           sola in carattere a macchina, minuscola, rossa, in maiuscoletto
+           spaziato, nel mezzo della sezione e sopra lo slideshow. Prende
+           le stesse misure della riga che c'era prima (`font-mono
+           text-xs md:text-sm`, uppercase, tracking 0.3em). Non prende i
+           clic: ci passa attraverso, e il clic va alla sezione che
+           scorre giù. L'ombra sotto al testo serve solo a staccarlo dal
+           video. */
+        .hero-nome {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 6;
+            margin: 0;
+            padding: 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: clamp(0.75rem, 1.6vw, 0.875rem);
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            text-align: center;
+            white-space: nowrap;
+            color: #dc2626;
+            text-shadow: 0 0 18px rgba(0, 0, 0, 0.9);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* il ◉ della radio resta, ma senza la riga col nome del pezzo
+           che gli sta sotto: nell'home non serve a nessuno, e faceva
+           solo rumore sopra il disegno. Il nome ce l'ha il fumetto del
+           bottone (`title`), e la schermata della stazione lo scrive
+           grande accanto ai tasti. Il DIV resta nel DOM perché
+           `museo/radio.js` lo cerca e ci scrive dentro: si nasconde
+           solo alla vista. */
+        #radioHud #radioName {
+            display: none;
+        }
+
+
     </style>
 </head>
 
 <body>
     <div class="noise-bg"></div>
     <div id="root"></div>
+
+    <!-- la radio del sito: la fila delle canzoni e lo stato che il museo
+         tiene in `museo.radio`. Vanno prima del codice React: la fila
+         serve anche alla sezione «Canzoni & Audio», che così ha una lista
+         sola — e la stessa che suona nel museo. La radio si accende e si
+         comanda là (il ◉ dell'HUD, il tasto R, il pinguino del bar); qui
+         si ritrova accesa, allo stesso secondo, senza un secondo lettore -->
+    <script src="museo/radio-fila.js?v=1"></script>
+    <script src="museo/radio.js?v=5"></script>
+    <!-- il ◉ della radio accanto al titolo delle canzoni, non più in
+         alto a destra: `data-ancora` dice allo script dove montarlo
+         (il segnaposto `#radioPosto` nella riga di «Canzoni & Audio»).
+         Se il segnaposto non c'è, torna nell'angolo come prima. Il
+         tasto R fa lo stesso, tranne quando si sta scrivendo in un
+         campo -->
+    <script src="museo/radio-schermo.js?v=4" data-tasto="r" data-ancora="#radioPosto"></script>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
@@ -246,19 +414,11 @@
             const W = window.innerWidth, H = window.innerHeight;
             const FRAGS = 180;
 
-            // Rabbit overlay
-            const rabbitOverlay = document.createElement('div');
-            rabbitOverlay.className = 'subc-rabbit-overlay';
-            rabbitOverlay.innerHTML = `<span>
-                <svg viewBox="0 0 60 80" width="1em" height="1em" fill="white" xmlns="http://www.w3.org/2000/svg">
-                    <ellipse cx="20" cy="18" rx="7" ry="18"/>
-                    <ellipse cx="40" cy="18" rx="7" ry="18"/>
-                    <ellipse cx="30" cy="42" rx="18" ry="16"/>
-                    <ellipse cx="30" cy="65" rx="22" ry="15"/>
-                    <ellipse cx="48" cy="72" rx="7" ry="5"/>
-                </svg>
-            </span>`;
-            body.appendChild(rabbitOverlay);
+            // Il punto interrogativo al posto del coniglio
+            const puntoOverlay = document.createElement('div');
+            puntoOverlay.className = 'subc-punto-overlay';
+            puntoOverlay.innerHTML = '<span aria-hidden="true">?</span>';
+            body.appendChild(puntoOverlay);
 
             // Create white pixel fragments
             for (let i = 0; i < FRAGS; i++) {
@@ -289,15 +449,15 @@
                 root.style.opacity = '0';
             }
 
-            // Show rabbit
-            setTimeout(() => { rabbitOverlay.classList.add('visible'); }, 200);
+            // Il punto interrogativo
+            setTimeout(() => { puntoOverlay.classList.add('visible'); }, 200);
 
             // After animation → navigate
             setTimeout(() => {
                 if (callback) callback();
-                // cleanup rabbit overlay
+                // cleanup del segno
                 setTimeout(() => {
-                    if (rabbitOverlay.parentNode) rabbitOverlay.parentNode.removeChild(rabbitOverlay);
+                    if (puntoOverlay.parentNode) puntoOverlay.parentNode.removeChild(puntoOverlay);
                     if (root) { root.style.filter = ''; root.style.opacity = '1'; }
                 }, 400);
             }, 900);
@@ -675,26 +835,134 @@
             );
         };
 
+        /* ── IL TITOLO, UNA LETTERA ALLA VOLTA ───────────────────────
+           Prototipo: le lettere del nome non hanno tutte la stessa
+           faccia. La parola si legge lo stesso perché lo scheletro è
+           lo stesso (maiuscole, stessa altezza, stessa spaziatura), ma
+           ogni segno arriva da un carattere diverso: sans, serif,
+           macchina da scrivere. Vale per i titoli e per l'interfaccia;
+           le descrizioni restano in un carattere solo — un testo lungo
+           misto non si legge, un titolo misto sì. */
+        const MIX_FONTS = [
+            "'Space Grotesk', system-ui, sans-serif",
+            "Georgia, 'Times New Roman', serif",
+            "'Courier New', monospace",
+            "'Arial Black', 'Space Grotesk', sans-serif",
+            "'Palatino Linotype', Palatino, Georgia, serif",
+            "'Trebuchet MS', 'Space Grotesk', sans-serif"
+        ];
+
+        const TitleMix = ({ text, className = "" }) => {
+            const lettere = String(text || "").split("");
+            return (
+                <span className={className}>
+                    {lettere.map((ch, i) => (
+                        ch === " " ? <span key={i}> </span> : (
+                            <span
+                                key={i}
+                                style={{
+                                    fontFamily: MIX_FONTS[(i * 5 + lettere.length) % MIX_FONTS.length],
+                                    fontWeight: i % 3 === 0 ? 700 : 400,
+                                    fontStyle: i % 7 === 3 ? "italic" : "normal",
+                                    letterSpacing: i % 2 ? "0.01em" : "-0.02em",
+                                    display: "inline-block",
+                                }}
+                            >{ch}</span>
+                        )
+                    ))}
+                </span>
+            );
+        };
+
+        /* ── LA LUMACA CHE PASSA ────────────────────────────────────
+           Un GIF, quando arriva in fondo al giro, ricomincia: non si
+           ferma, e dal CSS non lo si riavvia. Per avere una passata ogni
+           tanto, quindi, non basta nasconderlo e mostrarlo — alla
+           quarantesima passata la lumaca sarebbe a metà del giro. Si
+           ricostruisce il nodo: la `key` è il numero della passata, React
+           toglie il vecchio `<img>` e ne mette uno nuovo, e il browser
+           ricomincia dal primo fotogramma. In più, appena il nodo esiste,
+           il `src` si toglie e si rimette: è il trucco che fa ripartire
+           il GIF anche quando il browser tiene l'immagine in cache (e ce
+           l'ha, perché il GIF si scalda appena la pagina si apre, non
+           alla prima passata).
+           I tempi: `LUMACA_GIRO` è la durata del GIF — ottanta fotogrammi
+           da un decimo di secondo, otto secondi — e la stessa che passa
+           al CSS in `--giro` per l'animazione; `LUMACA_ATTESA` è ogni
+           quanto si riparte, quaranta secondi. La prima passata arriva
+           dopo la prima attesa, non subito.
+           Un `setInterval` per l'attesa, un `setTimeout` per la fine
+           della scena, entrambi azzerati quando il componente se ne va:
+           niente timer orfani che continuano a lavorare per una pagina
+           che non c'è più. */
+        const LUMACA_GIF = "lumaca/lumaca.gif";
+        const LUMACA_GIRO = 8000;      // il GIF: 80 fotogrammi da 100 ms
+        const LUMACA_ATTESA = 40000;   // una passata ogni quaranta secondi
+
+        const HeroLumaca = () => {
+            const [passata, setPassata] = useState(0);   // 0 = in attesa
+            const imgRef = useRef(null);
+
+            useEffect(() => {
+                // il GIF si scalda in cache mentre si aspetta: la prima
+                // passata non deve arrivare con un mega e otto di ritardo
+                const scalda = new Image();
+                scalda.src = LUMACA_GIF;
+            }, []);
+
+            useEffect(() => {
+                let fine;
+                const ogni = setInterval(() => {
+                    setPassata(p => p + 1);      // nodo nuovo: si riparte da zero
+                    clearTimeout(fine);
+                    fine = setTimeout(() => setPassata(0), LUMACA_GIRO);
+                }, LUMACA_ATTESA);
+                return () => {
+                    clearInterval(ogni);
+                    clearTimeout(fine);
+                };
+            }, []);
+
+            useEffect(() => {
+                const img = imgRef.current;
+                if (!img) return;
+                // togliere e rimettere il `src` è il modo per far
+                // ripartire un GIF anche quando è già in cache
+                img.removeAttribute("src");
+                img.setAttribute("src", LUMACA_GIF);
+            }, [passata]);
+
+            return (
+                <div className="hero-lumaca-via" aria-hidden="true">
+                    {passata > 0 && (
+                        <div
+                            key={passata}
+                            className="hero-lumaca in-scena"
+                            style={{ "--giro": LUMACA_GIRO + "ms" }}
+                        >
+                            <img ref={imgRef} src={LUMACA_GIF} alt="" />
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        /* ── L'HERO ─────────────────────────────────────────────────
+           Lo slideshow, il nome nel mezzo (piccolo e rosso), e la lumaca
+           che ogni quaranta secondi fa una passata in fondo alla
+           sezione. Attorno alle figure si vede l'home. */
         const Hero = ({ onScrollDown }) => {
             return (
                 <section
                     id="home"
                     onClick={onScrollDown}
-                    className="relative h-[85vh] md:h-[90vh] flex flex-col items-center justify-center overflow-hidden bg-black px-4 cursor-pointer select-none"
+                    className="relative h-[85vh] md:h-[90vh] flex items-center justify-center overflow-hidden bg-black cursor-pointer select-none"
                 >
                     <HeroSlideshow />
 
-                    <div className="relative z-10 text-center max-w-6xl mx-auto mix-blend-screen flex flex-col items-center justify-center pointer-events-auto">
-                        <h1
-                            className="brand-font text-6xl md:text-8xl lg:text-9xl font-bold text-white mb-3 tracking-tighter leading-none hover:text-red-500 transition-colors duration-300"
-                        >
-                            E.B
-                        </h1>
+                    <HeroLumaca />
 
-                        <p className="text-red-600 font-mono text-xs md:text-sm uppercase tracking-[0.3em] font-bold">
-                            EMANUELE BACCIGALUPI PORTFOLIO
-                        </p>
-                    </div>
+                    <h1 className="hero-nome">Emanuele Baccigalupi</h1>
                 </section>
             );
         };
@@ -732,7 +1000,7 @@
                             className="px-3 py-2 sm:px-5 sm:py-2.5 text-[11px] sm:text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-white border border-neutral-800 hover:border-red-600 hover:bg-red-950/20 active:scale-95 transition-all duration-300 flex items-center gap-1.5 sm:gap-2 backdrop-blur-sm whitespace-nowrap group"
                             title="Entra nel Subconscio"
                         >
-                            <span className="text-sm select-none group-hover:scale-125 transition-transform inline-block">🐇</span>
+                            <span className="text-sm font-bold text-red-600 select-none group-hover:scale-125 transition-transform inline-block" aria-hidden="true">?</span>
                             <span>Subconscio</span>
                         </button>
                     </div>
@@ -801,7 +1069,7 @@
         const VisualAISection = () => (
             <section id="visual-ai" className="py-12 md:py-24 bg-neutral-950 border-t border-neutral-900">
                 <div className="max-w-7xl mx-auto px-6">
-                    <h2 className="brand-font text-3xl text-white mb-8">Visual <span className="text-neutral-600">& AI Art</span></h2>
+                    <h2 className="brand-font text-3xl text-white mb-8"><TitleMix text="VISUAL" /> <span className="text-neutral-600"><TitleMix text="& AI ART" /></span></h2>
 
                     <div className="prose prose-invert text-neutral-400 mb-12 max-w-3xl">
                         <p className="text-lg leading-relaxed">
@@ -851,6 +1119,60 @@
                 </div>
             </section>
         );
+
+        /* ── la GIF del Codice ───────────────────────────────────────
+           Non è più un disegno: è la GIF che gira nel gioco (il
+           giocatore di simbolo, lo stesso che si muove nella sala
+           interattiva). Il clic porta nel museo, nella sala interattiva
+           — quella che nel menu si chiama «Codice». L'aria intorno è
+           quella del tubo catodico: righe, vignetta, come sulla parete
+           del museo.
+           La GIF pesa, quindi si carica solo quando il riquadro si
+           avvicina allo schermo (loading="lazy"): chi non arriva fin
+           qui non la scarica. Per cambiarla basta il src. */
+        const ArchivesRabbit = () => {
+            const entra = () => { window.location.href = "museo.html?intero=1"; };
+
+            return (
+                <div className="mb-12 flex flex-col sm:flex-row items-center gap-6 sm:gap-10 border border-neutral-900 bg-neutral-950/60 p-4 md:p-6">
+                    <button
+                        type="button"
+                        onClick={entra}
+                        aria-label="Clicca sul coniglio e seguilo nel museo"
+                        className="relative shrink-0 w-full sm:w-[260px] h-[190px] bg-black border border-neutral-800 hover:border-red-600 focus:outline-none focus:border-red-600 transition-colors group cursor-pointer overflow-hidden"
+                    >
+                        <img
+                            src="simbolo/player.gif/player.gif"
+                            alt="Il giocatore del Codice, in gioco: un tubo catodico con un occhio"
+                            loading="lazy"
+                            decoding="async"
+                            className="absolute inset-0 w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
+                        />
+                        {/* le righe del tubo e la vignetta: l'aria del museo */}
+                        <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-0"
+                            style={{
+                                background:
+                                    "repeating-linear-gradient(to bottom, rgba(0,0,0,0.22) 0px, rgba(0,0,0,0.22) 1px, transparent 1px, transparent 3px)," +
+                                    "radial-gradient(ellipse at 50% 50%, transparent 52%, rgba(0,0,0,0.55) 100%)",
+                                mixBlendMode: "multiply",
+                            }}
+                        />
+                        <span className="absolute bottom-2 right-3 text-[9px] font-mono uppercase tracking-[0.25em] text-neutral-600 group-hover:text-red-500 transition-colors">entra ↦</span>
+                    </button>
+                    <div className="text-center sm:text-left">
+                        <p className="brand-font text-2xl md:text-3xl leading-tight text-white">
+                            clicca su di me<br />
+                            <span className="text-red-600">e seguimi!</span>
+                        </p>
+                        <p className="mt-3 text-neutral-500 text-[11px] font-mono uppercase tracking-wider max-w-sm leading-relaxed">
+                            il coniglio sa la strada: porta nel museo, davanti al pinguino, a schermo intero — e da lì non si torna più.
+                        </p>
+                    </div>
+                </div>
+            );
+        };
 
         const IllustrationsSection = () => {
             const [selectedImage, setSelectedImage] = useState(null);
@@ -911,7 +1233,11 @@
                 { src: "illustrazioni/12.jpeg", title: "Provocazione" },
                 { src: "illustrazioni/13.png", title: "Stretta" },
                 { src: "illustrazioni/14.jpg", title: "Funambolo" },
-                { src: "illustrazioni/15.jpg", title: "Persa nel bosco" }
+                { src: "illustrazioni/15.jpg", title: "Persa nel bosco" },
+                { src: "illustrazioni/impegno.jpeg", title: "Impegno" },
+                { src: "illustrazioni/pasaggio.jpeg", title: "Passaggio" },
+                { src: "illustrazioni/simboli.jpeg", title: "Sono solo simboli" },
+                { src: "illustrazioni/whisky.jpeg", title: "Whisky" }
             ];
 
             const handlePrev = (e) => {
@@ -1423,6 +1749,8 @@
                             </div>
                         </div>
 
+                        <ArchivesRabbit />
+
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
 
                             {/* Anche i conigli hanno le ali — Subconscio (primo) */}
@@ -1432,7 +1760,7 @@
                             >
                                 <div className="aspect-[4/3] bg-gradient-to-b from-neutral-950 via-neutral-900 to-black border border-neutral-800/80 relative overflow-hidden mb-2.5 flex items-center justify-center group-hover:border-red-900/50 transition-colors">
                                     <div className="absolute inset-0 bg-red-950/20 opacity-60 group-hover:opacity-100 transition-opacity"></div>
-                                    <span className="text-4xl sm:text-5xl select-none group-hover:scale-125 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] relative z-10" role="img" aria-label="Subconscio Coniglio">🐇</span>
+                                    <span className="brand-font text-5xl sm:text-6xl font-bold leading-none text-red-600 select-none group-hover:scale-125 transition-transform duration-300 drop-shadow-[0_0_18px_rgba(220,38,38,0.6)] relative z-10" role="img" aria-label="Subconscio">?</span>
                                 </div>
                                 <div className="px-3 pb-3">
                                     <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Subconscio</h3>
@@ -1517,31 +1845,55 @@
             );
         };
 
-        const audioFiles = [
-            { title: "La fantasia", url: "RadioKaoSs/canzoni/La fantasia.mp3" },
-            { title: "Nadia", url: "RadioKaoSs/canzoni/Nadia.mp3" },
-            { title: "Ughi bughi bughi", url: "RadioKaoSs/canzoni/Ughi bughi bughi.mp3" },
-            { title: "Charles", url: "RadioKaoSs/canzoni/charles.mp3" },
-            { title: "Corre il coniglio", url: "RadioKaoSs/canzoni/corre il coniglio.mpeg" },
-            { title: "Destino formicaio", url: "RadioKaoSs/canzoni/destino formicaio.MP3" },
-            { title: "Destino sgarbato", url: "RadioKaoSs/canzoni/destino sgarbato.mpeg" },
-            { title: "Diabolicus", url: "RadioKaoSs/canzoni/diabolicus.mp3" },
-            { title: "Dio", url: "RadioKaoSs/canzoni/dio.mpeg" },
-            { title: "Dove il tramonto brucia", url: "RadioKaoSs/canzoni/dove il tramonto brucia.mpeg" },
-            { title: "E ritorna il giorno", url: "RadioKaoSs/canzoni/e ritorna il giorno.mpeg" },
-            { title: "Fine del mondo", url: "RadioKaoSs/canzoni/fine del mondo.mp3" },
-            { title: "Icaro", url: "RadioKaoSs/canzoni/icaro.mpeg" },
-            { title: "La paura di finire", url: "RadioKaoSs/canzoni/la paura di finire.mpeg" },
-            { title: "Mortem", url: "RadioKaoSs/canzoni/mortem.MP3" },
-            { title: "Napoleone", url: "RadioKaoSs/canzoni/napoleone.mpeg" },
-            { title: "Non voglio", url: "RadioKaoSs/canzoni/non voglio.mpeg" },
-            { title: "Passami la cartapesta", url: "RadioKaoSs/canzoni/passami la cartapesta.mp3" },
-            { title: "Sarà", url: "RadioKaoSs/canzoni/sarà.mp3" },
-            { title: "Satan", url: "RadioKaoSs/canzoni/satan.MP3" },
-            { title: "Sei sicura", url: "RadioKaoSs/canzoni/sei sicura.MP3" }
-        ];
+        /* ---- le canzoni: una fila sola ------------------------------
+           La scaletta è quella della stazione (museo/radio-fila.js), la
+           stessa che suona nella radio in basso a sinistra: ventidue
+           pezzi, un titolo per pezzo. Se un giorno se ne aggiunge uno,
+           si aggiunge là — e compare qui, senza due liste da tenere
+           allineate a mano. La copia qui sotto serve solo se quel file
+           non si carica: a quel punto meglio la fila vecchia che niente */
+        const audioFiles = (window.MUSEO && MUSEO.FILA && MUSEO.FILA.list)
+            ? MUSEO.FILA.list()
+            : [
+                { title: "La fantasia", url: "RadioKaoSs/canzoni/La fantasia.mp3" },
+                { title: "Nadia", url: "RadioKaoSs/canzoni/Nadia.mp3" },
+                { title: "Ughi bughi bughi", url: "RadioKaoSs/canzoni/Ughi bughi bughi.mp3" },
+                { title: "Charles", url: "RadioKaoSs/canzoni/charles.mp3" },
+                { title: "Corre il coniglio", url: "RadioKaoSs/canzoni/corre il coniglio.mpeg" },
+                { title: "Destino formicaio", url: "RadioKaoSs/canzoni/destino formicaio.MP3" },
+                { title: "Destino sgarbato", url: "RadioKaoSs/canzoni/destino sgarbato.mpeg" },
+                { title: "Diabolicus", url: "RadioKaoSs/canzoni/diabolicus.mp3" },
+                { title: "Dio", url: "RadioKaoSs/canzoni/dio.mpeg" },
+                { title: "Dove il tramonto brucia", url: "RadioKaoSs/canzoni/dove il tramonto brucia.mpeg" },
+                { title: "E ritorna il giorno", url: "RadioKaoSs/canzoni/e ritorna il giorno.mpeg" },
+                { title: "Fine del mondo", url: "RadioKaoSs/canzoni/fine del mondo.mp3" },
+                { title: "Icaro", url: "RadioKaoSs/canzoni/icaro.mpeg" },
+                { title: "La paura di finire", url: "RadioKaoSs/canzoni/la paura di finire.mpeg" },
+                { title: "Mortem", url: "RadioKaoSs/canzoni/mortem.MP3" },
+                { title: "Non voglio", url: "RadioKaoSs/canzoni/non voglio.mpeg" },
+                { title: "Oggi non resto", url: "RadioKaoSs/canzoni/oggi non resto.mp3" },
+                { title: "Passami la cartapesta", url: "RadioKaoSs/canzoni/passami la cartapesta.mp3" },
+                { title: "Per un tempo futuro", url: "RadioKaoSs/canzoni/per un tempo futuro.mpeg" },
+                { title: "Sarà", url: "RadioKaoSs/canzoni/sarà.mp3" },
+                { title: "Satan", url: "RadioKaoSs/canzoni/satan.MP3" },
+                { title: "Sei sicura", url: "RadioKaoSs/canzoni/sei sicura.MP3" }
+            ];
 
-        const AudioTrack = ({ title, url }) => {
+        /* ---- la fila: solo canzoni ----------------------------------
+           Gli spot non stanno più qui. La fila è quella che è: le
+           canzoni, nell'ordine in cui sono state scritte, senza
+           pubblicità in mezzo. */
+        const radioSlots = audioFiles;
+
+        /* ---- una radio sola, in fila --------------------------------
+           Le canzoni non sono venti lettori indipendenti: sono una
+           scaletta, e la scaletta la tiene questo registro — così una
+           che finisce sa chi è la prossima. Play e pausa non ricaricano
+           niente: `src` non si tocca mai, `currentTime` nemmeno. Il
+           pezzo resta fermo dov'è e riparte da quel secondo. */
+        const radioRow = { cards: [], playing: -1 };
+
+        const AudioTrack = ({ title, url, index }) => {
             const [isPlaying, setIsPlaying] = useState(false);
             const [showPlayer, setShowPlayer] = useState(false);
             const [currentTime, setCurrentTime] = useState(0);
@@ -1549,16 +1901,33 @@
             const audioRef = React.useRef(null);
             const progressRef = React.useRef(null);
 
+            /* far suonare questa: la radio è una sola, quindi le altre
+               si mettono in pausa — ferme dov'erano, non azzerate */
+            const play = React.useCallback(() => {
+                const a = audioRef.current;
+                if (!a) return;
+                /* e se in basso a sinistra sta suonando la stazione, si
+                   spegne lei: due musiche insieme non sono un mix */
+                if (window.MUSEO && MUSEO.RADIO && (MUSEO.RADIO.on || MUSEO.RADIO.armato)) {
+                    MUSEO.RADIO.stop();
+                }
+                radioRow.cards.forEach((c, i) => {
+                    if (i !== index && c && c.pausa) c.pausa();
+                });
+                radioRow.playing = index;
+                const p = a.play();
+                if (p && p.catch) p.catch(() => { /* niente gesto: resta ferma */ });
+            }, [index]);
+
             const togglePlay = () => {
+                if (!audioRef.current) return;
                 if (!showPlayer) {
                     setShowPlayer(true);
-                    if (audioRef.current) audioRef.current.play().catch(e => console.error(e));
+                    play();
+                } else if (isPlaying) {
+                    audioRef.current.pause();
                 } else {
-                    if (isPlaying) {
-                        audioRef.current.pause();
-                    } else {
-                        audioRef.current.play().catch(e => console.error(e));
-                    }
+                    play(); /* riprende da dove era: nessun ricaricamento */
                 }
             };
 
@@ -1570,6 +1939,7 @@
                     setIsPlaying(false);
                     setShowPlayer(false);
                     setCurrentTime(0);
+                    radioRow.playing = -1;
                 }
             };
 
@@ -1594,7 +1964,14 @@
 
                 const onPlay = () => setIsPlaying(true);
                 const onPause = () => setIsPlaying(false);
-                const onEnded = () => setIsPlaying(false);
+                const onEnded = () => {
+                    setIsPlaying(false);
+                    /* finita: parte la successiva della fila. Dopo
+                       l'ultima si torna alla prima, e il giro non si
+                       ferma finché qualcuno non lo ferma */
+                    const next = radioRow.cards[(index + 1) % radioSlots.length];
+                    if (next && next.play) next.play();
+                };
                 const onTimeUpdate = () => setCurrentTime(audio.currentTime);
                 const onLoadedMetadata = () => setDuration(audio.duration);
 
@@ -1617,6 +1994,22 @@
                 };
             }, []);
 
+            /* il posto in fila: chi arriva in fondo chiama il prossimo
+               di qui, anche se il suo lettore è un altro */
+            useEffect(() => {
+                radioRow.cards[index] = {
+                    play: () => { setShowPlayer(true); play(); },
+                    pausa: () => {
+                        const a = audioRef.current;
+                        if (a && !a.paused) a.pause();
+                    }
+                };
+                return () => {
+                    radioRow.cards[index] = null;
+                    if (radioRow.playing === index) radioRow.playing = -1;
+                };
+            }, [index, play]);
+
             return (
                 <div
                     className="flex flex-col bg-black border border-neutral-800 hover:border-white transition-colors cursor-pointer group p-4"
@@ -1631,7 +2024,9 @@
                         </button>
                         <div className="flex-1 min-w-0">
                             <h4 className="text-white font-bold text-sm truncate" title={title}>{title}</h4>
-                            <p className="text-neutral-500 text-xs truncate">Audio Track</p>
+                            <p className="text-xs truncate text-neutral-500">
+                                Audio Track
+                            </p>
                         </div>
                         {showPlayer && (
                             <button
@@ -1670,7 +2065,7 @@
         const MaterialsSection = () => (
             <section id="materials" className="py-12 md:py-24 bg-neutral-950 border-t border-neutral-900">
                 <div className="max-w-7xl mx-auto px-6">
-                    <h2 className="brand-font text-3xl text-white mb-12">Archivio <span className="text-neutral-600">Materiali</span></h2>
+                    <h2 className="brand-font text-3xl text-white mb-12">ARCHIVIO <span className="text-neutral-600">MATERIALI</span></h2>
 
                     {/* Cortometraggi */}
                     <div className="mb-20">
@@ -1722,81 +2117,22 @@
 
                     {/* Canzoni */}
                     <div>
-                        <h3 className="text-xl text-white font-bold mb-8 flex items-center gap-3 border-b border-white/10 pb-4">
+                        <h3 className="text-xl text-white font-bold mb-3 flex items-center gap-3 border-b border-white/10 pb-4">
                             <Icons.Music className="text-red-600 w-6 h-6" />
                             <span className="uppercase tracking-widest">Canzoni & Audio</span>
+                            {/* il posto del ◉ della radio: lo riempie
+                                museo/radio-schermo.js (data-ancora), e
+                                sta di fianco al titolo come un tasto
+                                dell'impianto */}
+                            <span id="radioPosto"></span>
                         </h3>
+                        <p className="text-neutral-500 text-xs font-mono uppercase tracking-wider mb-8">
+                            venti canzoni in una fila sola: play e pausa fermano il pezzo dov'è, e quando finisce parte il successivo — dopo l'ultima si ricomincia dalla prima, senza fermarsi
+                        </p>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {audioFiles.map((track, idx) => (
-                                <AudioTrack key={idx} title={track.title} url={track.url} />
+                            {radioSlots.map((track, idx) => (
+                                <AudioTrack key={idx} title={track.title} url={track.url} index={idx} />
                             ))}
-                        </div>
-                    </div>
-
-                    {/* Pubblicità e Sponsor */}
-                    <div className="mt-20">
-                        <h3 className="text-xl text-white font-bold mb-4 flex items-center gap-3 border-b border-white/10 pb-4">
-                            <Icons.Monitor className="text-red-600 w-6 h-6" />
-                            <span className="uppercase tracking-widest">Pubblicità & Sponsor</span>
-                        </h3>
-                        <p className="text-neutral-400 mb-8 italic">dal pozzo dove emerge Radio kaosS: gli sponsor e pubblicità intrusive</p>
-
-                        <div className="grid md:grid-cols-3 gap-8">
-                            <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
-                                <div className="aspect-video mb-4 relative overflow-hidden">
-                                    <VideoPlaceholder label="Latte Materno" extraClass="w-full h-full" videoId="pSX-55V5WDs" />
-                                </div>
-                                <h4 className="text-white font-bold text-lg">Latte Materno</h4>
-                                <p className="text-neutral-500 text-sm">Sponsor Ufficiale</p>
-                            </div>
-
-                            <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
-                                <div className="aspect-video mb-4 relative overflow-hidden">
-                                    <VideoPlaceholder label="Purify" extraClass="w-full h-full" videoId="gooO59AD_rs" />
-                                </div>
-                                <h4 className="text-white font-bold text-lg">Purify</h4>
-                                <p className="text-neutral-500 text-sm">Sponsor Ufficiale</p>
-                            </div>
-
-                            <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
-                                <div className="aspect-video mb-4 relative overflow-hidden">
-                                    <VideoPlaceholder label="Clinica Uccidi il Ricordo" extraClass="w-full h-full" videoId="JssRfsHdp7E" />
-                                </div>
-                                <h4 className="text-white font-bold text-lg">Clinica Uccidi il Ricordo</h4>
-                                <p className="text-neutral-500 text-sm">Servizio Sanitario</p>
-                            </div>
-
-                            <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
-                                <div className="aspect-video mb-4 relative overflow-hidden">
-                                    <VideoPlaceholder label="Spedizione su Venere" extraClass="w-full h-full" videoId="sTxUuiy72gg" />
-                                </div>
-                                <h4 className="text-white font-bold text-lg">Spedizione su Venere</h4>
-                                <p className="text-neutral-500 text-sm">Viaggi Interplanetari</p>
-                            </div>
-
-                            <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
-                                <div className="aspect-video mb-4 relative overflow-hidden">
-                                    <VideoPlaceholder label="Bici Interattiva" extraClass="w-full h-full" videoId="3wkQ1VnV9MQ" />
-                                </div>
-                                <h4 className="text-white font-bold text-lg">Bici Interattiva</h4>
-                                <p className="text-neutral-500 text-sm">Per Roditori</p>
-                            </div>
-
-                            <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
-                                <div className="aspect-video mb-4 relative overflow-hidden">
-                                    <VideoPlaceholder label="lucidus" extraClass="w-full h-full" videoId="idShNGihgTo" />
-                                </div>
-                                <h4 className="text-white font-bold text-lg">lucidus</h4>
-                                <p className="text-neutral-500 text-sm">una luce che se ne fotte della realtà</p>
-                            </div>
-
-                            <div className="bg-black border border-neutral-800 p-4 hover:border-red-600/50 transition-colors group">
-                                <div className="aspect-video mb-4 relative overflow-hidden">
-                                    <VideoPlaceholder label="lucidus news" extraClass="w-full h-full" videoId="HazCE6VEUZg" />
-                                </div>
-                                <h4 className="text-white font-bold text-lg">lucidus news</h4>
-                                <p className="text-neutral-500 text-sm">una luce che ti è amica!</p>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1825,7 +2161,7 @@
 
                             {/* Text Column */}
                             <div className="w-full text-left">
-                                <h2 className="brand-font text-4xl md:text-5xl text-white mb-6">Chi <span className="text-neutral-600">Sono</span></h2>
+                                <h2 className="brand-font text-4xl md:text-5xl text-white mb-6">CHI <span className="text-neutral-600">SONO</span></h2>
                                 <div className="w-12 h-1 bg-red-600 mb-8"></div>
 
                                 <div className="prose prose-invert text-neutral-400 leading-relaxed space-y-6 mb-8">
@@ -1956,6 +2292,51 @@
                 }
             };
 
+            /* all'avvio si sta in home. Il browser, tornando sulla
+               pagina, riporta da solo dove eravamo — e spesso quel
+               punto è il Codice: qui la memoria del browser si spegne
+               e si riparte dalla cima. L'ancora vale solo quando si
+               arriva davvero da un'altra pagina (l'uscita dal museo
+               scrive #interattivo, #kaoss...): una ricarica no. */
+            useEffect(() => {
+                if ("scrollRestoration" in window.history) {
+                    window.history.scrollRestoration = "manual";
+                }
+                const nav = performance.getEntriesByType
+                    ? performance.getEntriesByType("navigation")[0]
+                    : null;
+                const ricarica = !!nav && nav.type === "reload";
+                if (ricarica && window.history.replaceState) {
+                    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+                }
+                const id = ricarica ? "" : (window.location.hash || "").replace(/^#/, "");
+                const cima = () => {
+                    const html = document.documentElement;
+                    const prima = html.style.scrollBehavior;
+                    html.style.scrollBehavior = "auto";
+                    window.scrollTo(0, 0);
+                    html.style.scrollBehavior = prima;
+                };
+                if (!id) {
+                    const raf0 = window.requestAnimationFrame(cima);
+                    return () => window.cancelAnimationFrame(raf0);
+                }
+                let tentativi = 0;
+                let raf = 0;
+                const vai = () => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        window.scrollTo({ top: el.offsetTop, behavior: "auto" });
+                        setActiveSection(id);
+                        return;
+                    }
+                    if (tentativi++ < 300) raf = window.requestAnimationFrame(vai);
+                    else cima();
+                };
+                vai();
+                return () => window.cancelAnimationFrame(raf);
+            }, []);
+
             return (
                 <div className="min-h-screen bg-black text-white selection:bg-red-900 selection:text-white pb-20 lg:pb-0">
                     <MobileBottomNav scrollToSection={scrollToSection} />
@@ -1981,7 +2362,7 @@
         root.render(<App />);
     </script>
     <!-- Sagoma del coniglio che corre per la cornice -->
-    <script src="coniglio-cornice.js"></script>
+    <script src="coniglio-cornice.js?v=4"></script>
 </body>
 
 </html>

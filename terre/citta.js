@@ -490,10 +490,12 @@
         if (sx < -150 || sx > W + 150) continue;
         p = posto(0.72);
         var corVic = Math.abs(T.g.x - corX) < 100;
-        T.orrore.sagomaLampada(c, sx, p.y, p.s * 0.60, 17.5 + fila[i].i * 3.1, t,
+        /* la stessa statura in tutte le zone: la decide il corteo */
+        var corSc = T.CORTEO.scala(p.s);
+        T.orrore.sagomaLampada(c, sx, p.y, corSc, 17.5 + fila[i].i * 3.1, t,
           corVic, T.CORTEO.passo(corX, t));
         if (T.luce) {
-          T.luce(c, sx + 16 * p.s * 0.60, p.y + 2, 76 * p.s, "255,196,124",
+          T.luce(c, sx + 16 * corSc, p.y + 2, 76 * p.s, "255,196,124",
             corVic ? 0.12 : 0.07, 0.22);
         }
       }
@@ -521,7 +523,12 @@
           }
           continue;
         }
-        T.orrore.sagomaParlante(c, sx, p.y, p.s * 0.66, OMBRE[i].seed, t,
+        /* le ombre sono alte come quelli del corteo: sono le stesse
+           persone — la valigia o no, la lampadina al posto della testa
+           è la stessa — e la statura la dà il corteo, come per la fila
+           che gli passa davanti */
+        var omSc = T.CORTEO.scala(p.s);
+        T.orrore.sagomaParlante(c, sx, p.y, omSc, OMBRE[i].seed, t,
           Math.abs(T.g.x - OMBRE[i].x) < 120);
       }
 
