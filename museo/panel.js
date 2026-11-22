@@ -193,19 +193,11 @@
   };
 
   /* ---- la radio ------------------------------------------------
-<<<<<<< HEAD
      Una lista sola, quella vera di RadioKaoSs: le ventidue canzoni,
      nell'ordine in cui il lettore le ha in mano. Non si apre un
      lettore per ogni pezzo: si sceglie, e suona quello — uno solo,
      per tutto il museo. È la stessa lista che suona il jukebox del
      bar; il tasto R e il bottone ◉ aprono proprio questa schermata. */
-=======
-     Una lista sola, quella vera di RadioKaoSs: l'intermezzo, i quindici
-     canali, le ventidue canzoni, gli spot, il TG del Cosmo. Non si apre
-     un lettore per ogni pezzo: si sceglie, e suona quello — uno solo,
-     per tutto il museo. La stessa lista la usano il jukebox del bar, il
-     tasto R e il bottone ◉. */
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
   P.radioList = function () {
     var lang = M.lang, h = [], i, prev = "";
     /* la scaletta è quella del lettore, non una seconda copia: se la

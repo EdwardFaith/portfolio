@@ -32,7 +32,6 @@
       "hud.radio": "radio kaoss",
       "hud.radio.on": "radio kaoss accesa",
       "hud.radio.off": "radio kaoss in pausa",
-<<<<<<< HEAD
       "hud.radio.open": "apri la radio · R",
       /* il lettore che resta in basso a sinistra, su tutte le pagine */
       "radio.dock.play": "accendi",
@@ -42,8 +41,6 @@
       "radio.dock.close": "chiudi",
       "radio.dock.wait": "riparte al primo tocco",
       "radio.dock.off": "nessun disco · premi il ◉",
-=======
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
       "hud.menu": "menu",
       "hud.map": "mappa",
       "hud.out.site": "esci · il sito",
@@ -223,7 +220,6 @@
       "hud.radio": "radio kaoss",
       "hud.radio.on": "radio kaoss on",
       "hud.radio.off": "radio kaoss paused",
-<<<<<<< HEAD
       "hud.radio.open": "open the radio · R",
       /* the player that stays, bottom left, on every page */
       "radio.dock.play": "turn it on",
@@ -233,8 +229,6 @@
       "radio.dock.close": "close",
       "radio.dock.wait": "resumes on the first touch",
       "radio.dock.off": "no record · press ◉",
-=======
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
       "hud.menu": "menu",
       "hud.map": "map",
       "hud.out.site": "exit · the site",

@@ -402,13 +402,9 @@
       lungo: 7900,
       partenza: 130,
       /* la porta col ragno: si passa, e quello che c'è di là è ancora
-<<<<<<< HEAD
          bosco. È il checkpoint del ramo, e una volta passati è anche
          l'uscita: si torna alla soglia, si preme E, e si sale in
          soffitta davanti alla grata n.2 (x=1520) */
-=======
-         bosco. È anche il checkpoint del ramo */
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
       porta: 6000,
       /* il fanciullo: oltre la porta, dove il bosco si riapre e non
          c'è più niente da attraversare */
@@ -9604,15 +9600,12 @@
   var BIMBO_X = SB.bimbo;
   var bFase = 0, bT = 0, bDetto = 0, bAttesa = 0, bVicino = false, bFatto = false;
   var bDurata = 0;
-<<<<<<< HEAD
   /* la porta è già stata attraversata: da quel momento non è più il
      passaggio, è l'uscita (vedi sali()). Si riparte da "già passata"
      anche quando si riprende dal posto nel quaderno, che sta
      esattamente sulla soglia: chi riprende di lì vuole uscire, non
      rifare il giallo e ritrovarsi dieci pixel più avanti */
   var bPassato = false;
-=======
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
   /* quanti pixel mancano al passo indietro, e a che velocità si fa: il
      coniglio che si comanda non esce più dal disegno quando la scena
      parte — si scosta dal fanciullo e resta lì a guardare (vedi act() e
@@ -9630,19 +9623,12 @@
 
   function apri() {
     /* la porta è quella della città, e si apre allo stesso modo. Non
-<<<<<<< HEAD
        porta in soffitta, però: porta di là, e di là c'è ancora
        bosco. Quello che resta è il segno — la porta è il checkpoint
        del ramo (T.segna), e la grata n.2 della soffitta diventa la
        strada per riprendere da lì. La strada per uscire, invece, è
        quella dopo: una volta passati, la porta è anche l'uscita
        (vedi sali()) */
-=======
-       porta più in soffitta, però: porta di là, e di là c'è ancora
-       bosco. Quello che resta è il segno — la porta è il checkpoint
-       del ramo (T.segna), e la grata n.2 della soffitta diventa la
-       strada per riprendere da lì, non un'uscita da qui */
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     if (M.STATO && M.STATO.sblocca && !M.STATO.sbloccato("ragno")) {
       try { M.STATO.sblocca("ragno"); } catch (e) { }
     }
@@ -9655,7 +9641,6 @@
     viaT = 0;
   }
 
-<<<<<<< HEAD
   /* SU, IN SOFFITTA — la porta col ragno è la stessa porta in due
      posti, e si esce dalla stessa parte: davanti alla grata n.2, a
      `x=1520`, che è quella delle due partite. La città esce così
@@ -9686,8 +9671,6 @@
     apri();
   }
 
-=======
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
   /* il modulo della zona, con un nome: la scena non nasconde più il
      coniglio che si comanda — gli fa fare un passo indietro, e lui resta
      nel disegno a guardare. `senzaConiglio` resta spento (lo usano altre
@@ -9715,11 +9698,8 @@
       bIndietro = 0;
       bPasso = 0;
       donnaT = 0;
-<<<<<<< HEAD
       /* si riprende dalla soglia? allora la porta è già passata */
       bPassato = !!(opt && opt.x != null && opt.x >= SB.porta);
-=======
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
       /* il coniglio torna al suo posto: la scena lo scosta solo mentre
          succede */
       BOSCO.senzaConiglio = false;
@@ -9748,16 +9728,11 @@
            parte della soglia */
         if (viaPorta === 1 && viaT > 0.85) {
           /* si è di là. La porta resta dietro le spalle, e il posto nel
-<<<<<<< HEAD
              quaderno è già segnato: da lì si riprende, se si muore. Da
              adesso la porta è anche l'uscita: tornandoci e premendo E
              si sale in soffitta, davanti alla grata n.2 */
           viaPorta = 2;
           bPassato = true;
-=======
-             quaderno è già segnato: da lì si riprende, se si muore */
-          viaPorta = 2;
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
           T.g.x = SB.porta + 190;
           T.g.dir = 1;
         }
@@ -9833,11 +9808,7 @@
          si apre appena la soglia è accesa, se si è andati via si butta */
       if (premo) {
         if (!vicinoPorta) premo = 0;
-<<<<<<< HEAD
         else if (portaT >= 0.5) { soglia(); return; }
-=======
-        else if (portaT >= 0.5) { apri(); return; }
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
       }
 
       /* ── LA SAGOMA: parla a chi si avvicina, e aspetta ───────── */
@@ -9890,7 +9861,6 @@
         }
         return;
       }
-<<<<<<< HEAD
       /* LA PORTA VIENE PRIMA DI TUTTO. Davanti alla soglia E è la
          porta, e basta: la donna del bosco sta a due passi dalla
          soglia (BIMBO_X è poco più avanti), e prima era lei a
@@ -9905,8 +9875,6 @@
         soglia();
         return;
       }
-=======
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
       /* al posto del fanciullo c'è la donna: non parla per prima, e la
          sua riga non si ripete a raffica */
       if (bFatto && bVicino) {
@@ -9916,7 +9884,6 @@
             "«don't be afraid, rodent: rabbits have wings too.»"), 4.2, BIMBO_X);
         }
         return;
-<<<<<<< HEAD
       }
       /* la sagoma: ci si mette davanti, e si aspetta. Non parte da
          sola, perché la strada è ancora lunga: chi vuole passare passa */
@@ -9957,53 +9924,6 @@
         snd("vuoto", 0.8);
         return;
       }
-=======
-      }
-      /* la sagoma: ci si mette davanti, e si aspetta. Non parte da
-         sola, perché la strada è ancora lunga: chi vuole passare passa */
-      if (bVicino && bDetto >= 2 && !bFatto) {
-        bFase = 1;
-        bT = 0;
-        T.zitto();
-        if (T.bloccaZampe) T.bloccaZampe(true);
-        if (T.vistaZero) T.vistaZero();
-        /* la scena è del fanciullo, e si guarda in mezzo al quadro: la
-           camera si ferma dove sta lui. Il coniglio che si comanda però
-           non esce più dal disegno — prima lo si toglieva
-           (BOSCO.senzaConiglio), e chi premeva E si ritrovava solo, con
-           il proprio corpo sparito di colpo. Adesso fa un passo
-           indietro, dal lato da cui è arrivato, e resta lì a guardare:
-           la scena si vede lo stesso, e si vede anche lui.
-           Quanto indietro lo decide il quadro: il monitor di Charles, che
-           arriva dopo, è largo la metà dello schermo meno qualcosa. Se il
-           coniglio restasse più vicino ci finirebbe dietro, e sarebbe come
-           averlo tolto un'altra volta. Un saltino, perché le zampe sono
-           chiuse e non lo porta la fisica: la durata del volo decide la
-           velocità del passo, così si atterra dove ci si è fermati (e non
-           si scivola per terra a zampe ferme) */
-        var lato = T.g.x <= BIMBO_X ? -1 : 1;
-        var sc = Math.min(W() / 1280, H() / 800);
-        if (sc < 0.62) sc = 0.62;
-        var scosto = Math.min(W() * 0.42, 400 * sc + 60);
-        bIndietro = (BIMBO_X + lato * scosto) - T.g.x;
-        T.g.dir = -lato;
-        if (Math.abs(bIndietro) > 1) {
-          var volo = 2 * 600 / 1900;               /* quanto sta in aria */
-          bPasso = Math.abs(bIndietro) / volo;
-          T.g.vy = 600;
-          T.g.aria = true;
-        } else {
-          bIndietro = 0;
-        }
-        snd("vuoto", 0.8);
-        return;
-      }
-      if (!vicinoPorta || viaPorta) return;
-      /* se la soglia non è ancora accesa la porta aspetta: tiene il
-         colpo e si apre da sé, invece di lasciarlo cadere */
-      if (portaT < 0.5) { premo = 1; return; }
-      apri();
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     },
 
     draw: function (t) {

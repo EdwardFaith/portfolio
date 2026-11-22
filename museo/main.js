@@ -2849,21 +2849,12 @@
     /* ?da=treno — si torna dalle terre avendo GUIDATO il treno. La
        banchina è già vuota, il vagone è rientrato nel buio, e qui non
        c'è niente da riavvolgere. Si mette a posto adesso, prima che il
-<<<<<<< HEAD
        museo cominci a girare: prima il nastro partiva mezzo secondo
        dopo l'ingresso, e si vedeva l'hub com'era, poi dieci secondi di
-=======
-       sipario si alzi: prima il nastro partiva mezzo secondo dopo
-       l'ingresso, e si vedeva l'hub com'era, poi dieci secondi di
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
        pellicola, poi l'hub di nuovo — un lampo, un film, e una
        partenza che nessuno aveva chiesto, subito dopo aver guidato */
     var daTreno = /[?&]da=treno(&|$)/i.test(qs);
     if (daTreno && M.METRO && M.METRO.azzera) M.METRO.azzera();
-<<<<<<< HEAD
-=======
-    showBoot(false);
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     M.SOUND.start();
     /* il ◉ si accende solo se la stazione sta davvero suonando */
     if (M.RADIO && M.RADIO.tell) M.RADIO.tell();
@@ -2872,13 +2863,10 @@
     /* ?stanza=cosmo — chi torna da un minigioco rientra dove era
        (dalla spedizione si esce davanti al robot guasto, non al banco) */
     var hit = /[?&]stanza=([a-z0-9_]+)/i.exec(qs);
-<<<<<<< HEAD
     /* la sala del ragno non è un punto di partenza: ci si arriva dal
        corridoio, non da un indirizzo. Chi la chiede riparte dal banco
        come tutti, e il museo resta un posto da attraversare */
     if (hit && /^(interattivo|codec)$/i.test(hit[1])) hit = null;
-=======
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     /* ?da=morte — si arriva dalle terre, rincarnati. Non è un ritorno
        da una porta: si rinasce al banco, davanti al pinguino, che ha
        la battuta pronta. Chi muore non riparte da dove è morto: da
@@ -2919,11 +2907,7 @@
         /* si arriva in banchina a piedi, dal vagone che non c'è più:
            niente pellicola, niente seconda partenza. Il treno l'ha
            già guidato chi è qui, e la stazione è già vuota (vedi
-<<<<<<< HEAD
            sopra, prima dell'ingresso) */
-=======
-           sopra, prima del sipario) */
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
         return;
       }
     }
@@ -2935,31 +2919,20 @@
         M.AUTH.loadUserProgress();
       }
     }
-<<<<<<< HEAD
     /* si comincia al banco, e zitti. Nessun sipario, nessuna battuta
        d'apertura: chi entra si trova già dentro, davanti al pinguino.
        Se vuole sapere dove è finito, lo guarda (E) e glielo chiede; le
        meccaniche nuove le dice Charles quando arrivano. Chi arriva
        morto dalle terre trova invece lui, con l'altra battuta. */
-=======
-    /* si comincia al banco, non in mezzo al corridoio: prima che uno
-       parta e si perda, il pinguino spiega in che posto è finito —
-       cioè un portfolio, con le porte. Poi si cammina. E chi arriva
-       morto dalle terre trova lui, con un'altra battuta. */
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     if (daFanciullo) {
       startAtBar("peng.fanciullo", 700);
       return;
     }
-<<<<<<< HEAD
     if (daMorte) {
       startAtBar("peng.terre", 700);
       return;
     }
     alBanco();
-=======
-    startAtBar(daMorte ? "peng.terre" : "peng.intro", daMorte ? 700 : 900);
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
   }
   G.begin = begin;
 

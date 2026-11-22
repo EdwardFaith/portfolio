@@ -2185,7 +2185,6 @@
      voleva dire rifare al rovescio un viaggio che era già stato gioco.
      Il meccanismo resta (è la stessa pellicola, non costa niente), ma
      l'arrivo lo salta: vedi museo/main.js, begin() */
-<<<<<<< HEAD
   /* ============================================================
      11d. IL VELO DEL CORRIDOIO, SOPRA IL VAGONE
      Il viaggio era l'unica scena del sito senza l'aria del museo: un
@@ -2258,8 +2257,6 @@
     c.fillRect(0, 0, W, H);
   }
 
-=======
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
   function parti(opt) {
     if (viaggio) return;
     stato = "viaggio";

@@ -4,22 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>LE TERRE // LA SPIAGGIA</title>
-  <meta name="description" content="Le terre della fantasia: la spiaggia di cenere con i grattacieli affondati, il bosco rosso con un ragno grande come il sole, le rovine, la cittÃ  di marmo e il tempio â€” che non Ã¨ la fine: Ã¨ il posto dove si finisce quando si muore.">
+  <meta name="description" content="Le terre della fantasia: la spiaggia di cenere con i grattacieli affondati, il bosco rosso con un ragno grande come il sole, le rovine, la città di marmo e il tempio — che non è la fine: è il posto dove si finisce quando si muore.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
         rel="stylesheet">
-<<<<<<< HEAD
   <link rel="stylesheet" href="style.css?v=16">
   <!-- il punto di domanda di Charles: lo stesso foglio del museo -->
   <link rel="stylesheet" href="../museo/charles.css?v=10">
   <!-- il ◉ della radio e la sua schermata: lo stesso tubo del museo -->
   <link rel="stylesheet" href="../museo/radio-schermo.css?v=1">
-=======
-  <link rel="stylesheet" href="style.css?v=11">
-  <!-- il punto di domanda di Charles: lo stesso foglio del museo -->
-  <link rel="stylesheet" href="../museo/charles.css?v=9">
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
 </head>
 <body class="sez-terre">
   <div id="sala">
@@ -28,18 +22,11 @@
          comandi. Si accende da solo se WebGL c'è (mondo.js, IL VETRO) -->
     <canvas id="vetro" aria-hidden="true"></canvas>
 
-<<<<<<< HEAD
     <!-- ── il velo VHS: lo stesso del museo, quattro strati sopra
          tutto — le righe del tubo, il croma, la grana, il nastro che
          scorre. È il ripiego: quando il vetro WebGL parte (mondo.js,
          IL VETRO) questo si spegne, perché due veli sarebbero due arie
          (vedi style.css, body.vetro #vhs) ───────────────────────── -->
-=======
-    <!-- â”€â”€ il velo VHS: lo stesso del museo, quattro strati sopra
-         tutto e sempre acceso â€” le righe del tubo, il croma, la grana,
-         il nastro che scorre. Non Ã¨ un filtro delle terre: Ã¨ l'aria
-         (vedi style.css, #vhs) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     <div id="vhs" aria-hidden="true">
       <i class="scan"></i>
       <i class="chroma"></i>
@@ -47,10 +34,10 @@
       <i class="track"></i>
     </div>
 
-    <!-- il suono: si accende col primo gesto, e questa Ã¨ l'unica cosa
-         che si puÃ² spegnere. Il simbolo Ã¨ l'unico bottone del mondo -->
+    <!-- il suono: si accende col primo gesto, e questa è l'unica cosa
+         che si può spegnere. Il simbolo è l'unico bottone del mondo -->
     <button id="suono" type="button" aria-pressed="false"
-            title="accendi o spegni il suono">â™ª</button>
+            title="accendi o spegni il suono">♪</button>
 
     <div id="arma">
       <span class="k">in mano</span>
@@ -61,10 +48,9 @@
     <div id="vite" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i></div>
 
     <a id="ritorno" href="../museo.html?stanza=hub&amp;x=40"
-       title="Torna nel corridoio, davanti al pinguino">â—€ corridoio</a>
+       title="Torna nel corridoio, davanti al pinguino">◀ corridoio</a>
 
     <div id="tocco" aria-hidden="true">
-<<<<<<< HEAD
       <button class="t" type="button" data-k="left">◀</button>
       <button class="t" type="button" data-k="right">▶</button>
       <button class="t" type="button" data-k="run">»</button>
@@ -72,15 +58,6 @@
       <button class="t" type="button" data-k="fuoco">✦</button>
       <button class="t" type="button" data-k="c" title="1 2 3 o C: cambia quello che hai in mano">✎</button>
       <button class="t" type="button" data-k="act">◦</button>
-=======
-      <button class="t" type="button" data-k="left">â—€</button>
-      <button class="t" type="button" data-k="right">â–¶</button>
-      <button class="t" type="button" data-k="run">Â»</button>
-      <button class="t" type="button" data-k="jump">â–²</button>
-      <button class="t" type="button" data-k="fuoco">âœ¦</button>
-      <button class="t" type="button" data-k="c" title="1 2 3 o C: cambia quello che hai in mano">âœŽ</button>
-      <button class="t" type="button" data-k="act">â—¦</button>
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     </div>
 
     <!-- il testo dei fumetti vive sul disegno; questa riga serve a chi
@@ -89,22 +66,16 @@
   </div>
 
   <script src="../museo/device.js"></script>
-<<<<<<< HEAD
   <!-- lo schermo del telefono: a tutto schermo, in verticale.
        Niente più «gira il telefono»: i tasti stanno in fondo -->
   <script src="../museo/orienta.js?v=8"></script>
   <!-- la pausa: Charles aperto ferma le terre sotto. Prima di
        mondo.js e di charles.js, che si registrano qui -->
   <script src="../museo/sosta.js?v=1"></script>
-=======
-  <!-- il telefono si gira: la spiaggia ha i comandi ai due angoli -->
-  <script src="../museo/orienta.js?v=1"></script>
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
   <script src="../museo/stato.js?v=6"></script>
-  <!-- il coniglio Ã¨ lo stesso del museo: stesso corpo, stessa
+  <!-- il coniglio è lo stesso del museo: stesso corpo, stessa
        animazione (RABBIT.anima), stessi comandi -->
   <script src="../museo/player.js?v=2"></script>
-<<<<<<< HEAD
   <!-- LA RADIO DEL SITO, anche qui. Non è la musica del posto (quella
        la fa suono.js): è la stazione di RadioKaoSs, la stessa del
        corridoio, con la stessa fila (radio-fila.js) e lo stesso motore
@@ -119,29 +90,18 @@
   <!-- data.js resta il quaderno condiviso del museo: player.js ci legge
        il corpo del coniglio scelto nel questionario -->
   <script src="../museo/data.js?v=8"></script>
-=======
-  <!-- la radio: la stessa stazione del museo (RadioKaoSs), con lo stesso
-       mazzo mescolato. Il tasto R la accende qui come nel corridoio, in
-       tutte le zone. data.js Ã¨ solo la scaletta dei pezzi -->
-  <script src="../museo/data.js?v=8"></script>
-  <script src="../museo/radio.js?v=2"></script>
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
   <!-- le bestie che si trovano in tutte le zone: crocifissi-lampada,
        morti, alberi con gli occhi, ragni, nebbia. Vengono dopo
-       mondo.js perchÃ© usano le sue utilitÃ  (T.u) -->
+       mondo.js perché usano le sue utilità (T.u) -->
   <!-- il suono: un sintetizzatore, non un file. Viene prima di
-       mondo.js perchÃ© il mondo lo chiama appena parte -->
+       mondo.js perché il mondo lo chiama appena parte -->
   <script src="suono.js?v=2"></script>
-<<<<<<< HEAD
   <!-- il vetro del museo: lo stesso motore grafico e gli stessi shader
        del corridoio, caricati qui senza ritagli. Se WebGL non c'è,
        GL.ok resta falso e mondo.js lascia acceso il velo CSS (#vhs) -->
   <script src="../museo/gl.js?v=1"></script>
   <script src="../museo/fx.js?v=1"></script>
   <script src="mondo.js?v=32"></script>
-=======
-  <script src="mondo.js?v=28"></script>
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
   <script src="orrori.js?v=5"></script>
   <script src="spiaggia.js?v=24"></script>
   <!-- sotto la sabbia: la stazione, la banchina, e il treno che passa
@@ -150,7 +110,7 @@
   <script src="bosco.js?v=13"></script>
   <script src="rovine.js?v=5"></script>
   <script src="citta.js?v=16"></script>
-  <!-- oltre la cittÃ : la scalinata di marmo con le lampade piantate nei
+  <!-- oltre la città: la scalinata di marmo con le lampade piantate nei
        gradini e il ragno nero che scende, e il preingresso con gli
        agenti (stanno tutti e due in oltrecitta.js) -->
   <script src="oltrecitta.js?v=13"></script>
@@ -161,10 +121,9 @@
        attaccano), e la polizia del latte che spara: si risponde con la
        gomma, che cancella i colpi, e con le forbici -->
   <script src="fabbriche.js?v=11"></script>
-  <!-- e sotto le fabbriche c'Ã¨ Lucidus City: le fogne, la scala, la cittÃ ,
-       il reparto, la scalata e gli uffici della Lucidus. Il buio Ã¨ un
+  <!-- e sotto le fabbriche c'è Lucidus City: le fogne, la scala, la città,
+       il reparto, la scalata e gli uffici della Lucidus. Il buio è un
        foglio nero forato dalle lampade, e le sagome lampadina si
-<<<<<<< HEAD
        sciolgono con l'acqua. In città non c'è una scritta: le insegne
        sono figure, perché chi è nato qui non ha mai imparato a leggere -->
   <script src="zoan.js?v=21"></script>
@@ -173,15 +132,6 @@
        arrivano nel fumetto. Niente schede, niente tour. Con lui aperto
        il mondo si ferma (museo/sosta.js) -->
   <script src="../museo/charles.js?v=17"></script>
-=======
-       sciolgono con l'acqua. In cittÃ  non c'Ã¨ una scritta: le insegne
-       sono figure, perchÃ© chi Ã¨ nato qui non ha mai imparato a leggere -->
-  <script src="zoan.js?v=18"></script>
-  <!-- Charles: il punto di domanda rosso. Ãˆ la guida, e si parla con lui
-       come con un personaggio: le domande sono lÃ¬ sotto, e le risposte
-       arrivano nel fumetto. Niente schede, niente tour -->
-  <script src="../museo/charles.js?v=13"></script>
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
 
   <script>
     (function () {
@@ -190,7 +140,7 @@
       if (!T || !T.avvia) return;
 
       /* il tasto del suono: lo stato lo sa suono.js, qui si disegna
-         solo il simbolo. Si guarda ogni mezzo secondo perchÃ© il suono
+         solo il simbolo. Si guarda ogni mezzo secondo perché il suono
          parte anche col primo tasto, e allora il simbolo deve
          accorgersene da solo */
       var s = document.getElementById("suono");
@@ -214,10 +164,10 @@
       var opt = isNaN(x) ? {} : { x: x };
       /* ?da=treno: si arriva col treno invece che a piedi. La stazione
          lo usa per far scendere dal vagone (zona=stazione&da=treno);
-         la spiaggia, che Ã¨ l'arrivo normale, lo lascia perdere */
+         la spiaggia, che è l'arrivo normale, lo lascia perdere */
       var da = T.query("da");
       if (da) opt.da = da;
-      /* ?stanza=latteria â€” per guardare una stanza precisa senza
+      /* ?stanza=latteria — per guardare una stanza precisa senza
          girare per il reparto (serve alle foto di prova) */
       var stanzaQ = T.query("stanza");
       if (stanzaQ) opt.stanza = stanzaQ;

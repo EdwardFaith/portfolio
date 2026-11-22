@@ -10,17 +10,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
     rel="stylesheet">
-<<<<<<< HEAD
   <link rel="stylesheet" href="style.css?v=7">
   <!-- il punto di domanda di Charles, lo stesso del museo -->
   <link rel="stylesheet" href="../museo/charles.css?v=10">
   <!-- la schermata della radio: lo stesso tubo del museo -->
   <link rel="stylesheet" href="../museo/radio-schermo.css?v=1">
-=======
-  <link rel="stylesheet" href="style.css?v=4">
-  <!-- il punto di domanda di Charles, lo stesso del museo -->
-  <link rel="stylesheet" href="../museo/charles.css?v=9">
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
 </head>
 
 <body class="sez-spiaggia">
@@ -31,7 +25,7 @@
     <canvas id="vetro" aria-hidden="true"></canvas>
     <div id="crt"></div>
 
-    <!-- â”€â”€ l'HUD: dove sei, cosa devi fare â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <!-- ── l'HUD: dove sei, cosa devi fare ─────────────────────── -->
     <div id="hud">
       <div class="panel" id="hud-where">
         <span id="hud-mode">hub</span>
@@ -42,26 +36,25 @@
       </div>
     </div>
 
-    <!-- â”€â”€ i quattro poteri: costruiti da powers.js â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <!-- ── i quattro poteri: costruiti da powers.js ────────────── -->
     <div id="powers"></div>
 
     <div id="prompt"></div>
     <div id="toast"></div>
 
-    <!-- â”€â”€ il foglio d'ingresso: solo il nome del gioco â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <!-- ── il foglio d'ingresso: solo il nome del gioco ─────────── -->
     <div id="intro">
       <h1>LA SPIAGGIA ONIRICA</h1>
       <button id="btn-start">ENTRA NELLA SPIAGGIA</button>
     </div>
 
-    <a id="back" href="../museo.html?stanza=soffitta&amp;x=860" title="Torna alla soffitta, davanti alla grata della lumaca">â—€ SOFFITTA</a>
+    <a id="back" href="../museo.html?stanza=soffitta&amp;x=860" title="Torna alla soffitta, davanti alla grata della lumaca">◀ SOFFITTA</a>
   </div>
 
   <script src="sound.js?v=2"></script>
   <script src="powers.js"></script>
   <script src="beach.js"></script>
   <script src="arena.js"></script>
-<<<<<<< HEAD
   <!-- la pausa: Charles o la radio aperti fermano la spiaggia sotto.
        Va prima di game.js, che la chiede a ogni fotogramma -->
   <script src="../museo/sosta.js?v=1"></script>
@@ -85,13 +78,6 @@
   <!-- Charles: per ultimo, così non si mette in mezzo all'avvio.
        Con lui o con la radio aperti la spiaggia si ferma -->
   <script src="../museo/charles.js?v=17"></script>
-=======
-  <script src="game.js?v=2"></script>
-  <!-- lo schermo del telefono: prima si gira, poi si gioca -->
-  <script src="../museo/orienta.js?v=1"></script>
-  <!-- Charles: per ultimo, cosÃ¬ non si mette in mezzo all'avvio -->
-  <script src="../museo/charles.js?v=13"></script>
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
 </body>
 
 </html>

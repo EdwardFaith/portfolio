@@ -206,13 +206,8 @@
       sez: "museo",
       n: { it: "IL CORRIDOIO", en: "THE CORRIDOR" },
       d: {
-<<<<<<< HEAD
         it: "Il corridoio: otto porte numerate, la botola del sotterraneo, la metropolitana in fondo e, al centro, il pinguino che ti vende il portfolio come un'auto usata.",
         en: "The corridor: eight numbered doors, the basement hatch, the subway at the far end and, in the middle, the penguin selling you the portfolio like a used car."
-=======
-        it: "Il corridoio del museo: le porte numerate da I a VIII, la botola del sotterraneo, la stazione della metropolitana in fondo, e al centro il pinguino dietro il bancone che ti vende il portfolio come una macchina usata.",
-        en: "The museum corridor: doors numbered I to VIII, the basement hatch, the subway station at the far end, and at the centre the penguin behind the counter selling you the portfolio like a used car."
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
       },
       fai: {
         it: "Cammina con → e entra con E davanti a una porta. Non serve altro, e infatti non c'è altro.",
@@ -232,13 +227,8 @@
       sez: "museo",
       n: { it: "RADIO KAOSS", en: "RADIO KAOSS" },
       d: {
-<<<<<<< HEAD
         it: "La radio che trasmette dal pozzo: quattro puntate, ventidue canzoni e gli sponsor che vendono biciclette che causano attacchi di panico.",
         en: "The station broadcasting from the well: four episodes, twenty-two songs and sponsors selling bikes that cause panic attacks."
-=======
-        it: "La radio che trasmette dal pozzo: quattro puntate, venti canzoni, e gli sponsor che vendono biciclette che causano attacchi di panico.",
-        en: "The station broadcasting from the well: four episodes, twenty songs, and sponsors selling bikes that cause panic attacks."
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
       },
       fai: { it: "Metti una puntata: io ci lavoro, e mi senti.", en: "Play an episode: I work there, you'll hear me." }
     },
@@ -306,17 +296,10 @@
       sez: "museo",
       n: { it: "CHI SONO", en: "ABOUT" },
       d: {
-<<<<<<< HEAD
         it: "Un ufficio dismesso: scrivanie vuote in fila, monitor spenti impilati, e in fondo una donna che fuma davanti a una televisione in corto circuito.",
         en: "A disused office: empty desks in a row, dead monitors stacked up, and at the far end a woman smoking in front of a short-circuiting TV."
       },
       fai: { it: "Vai dalla donna in fondo: è lei che parla, e dice chi sta scrivendo tutto questo.", en: "Go to the woman at the far end: she's the one who talks, and she tells you who's writing all this." }
-=======
-        it: "Un ufficio dismesso: le scrivanie vuote in fila, i monitor spenti impilati, la foto dell'artista sul muro, e in fondo una donna che fuma davanti a una televisione in corto circuito. Al bancone non c'è nessuno — qui non si beve.",
-        en: "A disused office: empty desks in a row, dead monitors stacked up, the artist's photo on the wall, and at the far end a woman smoking in front of a short-circuiting TV. Nobody is behind the counter — nothing is served here."
-      },
-      fai: { it: "Vai dalla donna che fuma, in fondo: è lei che parla, e dice chi sta scrivendo tutto questo.", en: "Go to the smoking woman at the far end: she's the one who talks, and she tells you who's writing all this." }
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     },
     contatti: {
       sez: "museo",
@@ -349,17 +332,10 @@
       sez: "museo",
       n: { it: "IL BAR", en: "THE BAR" },
       d: {
-<<<<<<< HEAD
         it: "Il banco del corridoio: il legno, i bicchieri, e dietro il pinguino che versa senza farti pagare. È il centro del giro, e infatti ci si torna sempre.",
         en: "The counter in the corridor: wood, glasses, and behind it the penguin pouring without charging you. It's the centre of the loop, and you always end up back here."
       },
       fai: { it: "Parlagli (E) quando sei perso: bere non è previsto, paga lo stesso.", en: "Talk to him (E) when you're lost: drinking isn't on the menu, pay anyway." }
-=======
-        it: "Il banco del corridoio: il legno, i bicchieri, e dietro il pinguino che versa senza farti pagare. È il centro del giro — da qui le porte si leggono in tutti e due i versi, e si torna sempre qui.",
-        en: "The counter in the corridor: wood, glasses, and behind it the penguin pouring without charging you. It's the centre of the loop — from here the doors read the same in both directions, and you always end up back here."
-      },
-      fai: { it: "Parlagli (E) quando sei perso: è l'unico che sa dove sei finito. Bere non è previsto — paga lo stesso.", en: "Talk to him (E) when you're lost: he's the only one who knows where you ended up. Drinking isn't on the menu — pay anyway." }
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     },
     foglio: {
       sez: "museo",
@@ -614,13 +590,8 @@
         en: "On the other side of the light there's no upper floor: there's a wood. The light is yellow and never sets, the grass is red, the trunks wear moss on their shoulders and eyes in their bark — violet, blue, yellow, green irises, with lids that close slowly. Orbs float in the air, and red mushrooms grow at the foot of the trees."
       },
       fai: {
-<<<<<<< HEAD
         it: "Si cammina e si guarda: gli occhi ti seguono, e per un pezzo non c'è nient'altro. Poi, prima della porta, nel rosso c'è una sagoma di bambino che non ha la lampadina al posto della testa: avvicinati e ti chiede chi sei. Con E rispondi — e quello che succede dopo non è più il bosco: è la fine del giro, e si finisce al banco dal pinguino. Dopo, davanti alla porta col ragno, E non è più un passaggio ma l'uscita: si torna in soffitta, davanti alla grata che tiene i due salvataggi.",
         en: "You walk and look: the eyes follow you, and for a while there's nothing else. Then, before the door, there's a child-shaped silhouette in the red that hasn't got a bulb for a head: get close and he asks who you are. Answer with E — and what happens next isn't the wood any more: it's the end of the loop, and you end up at the counter with the penguin. After that, at the door with the spider, E isn't a passage any more: it's the way out, back to the attic, in front of the grate that holds both saves."
-=======
-        it: "Si cammina e si guarda: gli occhi ti seguono, e per un pezzo non c'è nient'altro. Poi, prima della porta, nel rosso c'è una sagoma di bambino che non ha la lampadina al posto della testa: avvicinati e ti chiede chi sei. Con E rispondi — e quello che succede dopo non è più il bosco: è la fine del giro, e si finisce al banco dal pinguino. Se non ti fermi, la porta con il ragno è ancora la porta: si apre arrivandoci, e con E si passa in soffitta, davanti alla grata che tiene i due salvataggi.",
-        en: "You walk and look: the eyes follow you, and for a while there's nothing else. Then, before the door, there's a child-shaped silhouette in the red that hasn't got a bulb for a head: get close and he asks who you are. Answer with E — and what happens next isn't the wood any more: it's the end of the loop, and you end up at the counter with the penguin. If you don't stop, the door with the spider is still the door: it opens as you arrive, and E takes you into the attic, in front of the grate that holds both saves."
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
       }
     },
 
@@ -1244,16 +1215,10 @@
     var tools = doc.getElementById("tools");
     (tools || doc.body).appendChild(pulsante);
 
-<<<<<<< HEAD
     /* la nuvoletta: la prima volta che si entra in un posto che ha
        qualcosa da insegnare. Resta il tempo di leggerla, non per
        sempre: chi ci mette il dito o il mouse sopra la tiene ferma
        quanto vuole (vedi mostraNuvoletta) */
-=======
-    /* la nuvoletta: la prima volta che si entra nell'hub, e resta lì.
-       Non è un timer e non è un annuncio: è Charles che si fa vivo una
-       volta sola, e non si toglie finché non lo si preme */
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     nuvoletta = crea("button", "ch-nudge", lingua() === "en"
       ? "I'm here if you need me."
       : "se hai bisogno sono qui.");
@@ -1383,13 +1348,8 @@
       en: "There you are. The lands are the single road from the sand to the factories: → to walk, space to jump, F to hit. You don't get lost, you walk. The rest is scenery, and the scenery here has teeth."
     },
     spiaggia_onirica: {
-<<<<<<< HEAD
       it: "La spiaggia onirica: la porta 01, dietro la grata della lumaca. Notte, luna, quattro tavoli e una spada. Frecce per camminare, spazio per menare, E per sederti; chiusi i quattro minigiochi, la donna dagli occhi rossi apre il quinto.",
       en: "The dream beach: door 01, behind the snail grate. Night, moon, four tables and a sword. Arrows to walk, space to swing, E to sit down; close the four minigames and the woman with red eyes opens the fifth."
-=======
-      it: "La spiaggia onirica: la porta 01, quella dietro la grata della lumaca. Notte, luna, e quattro tavoli piantati sulla sabbia. Non è il mondo della fantasia — quello comincia dalla sabbia di cenere, dalle terre — qui si gioca: frecce per camminare, spazio per menare la spada, E per sederti a un tavolo, 1 2 3 4 per i poteri dentro l'arena.",
-      en: "The dream beach: door 01, the one behind the snail grate. Night, moon, and four tables stuck in the sand. This isn't the fantasy world — that one starts from the ash beach, in the lands — here you play: arrows to walk, space to swing the sword, E to sit at a table, 1 2 3 4 for the powers inside the arena."
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     },
     "terza-porta": {
       it: "La terza porta: prima persona, mouse in mano, click per sputare. Se ti giri e non c'è nessuno, non è un bug: è il posto, ed è fatto così.",
@@ -1473,13 +1433,9 @@
     var st = leggi();
     st.aperto = true;
     scrivi(st);
-<<<<<<< HEAD
     /* se era lì, la nuvoletta ha finito: si apre la finestra, non si
        legge due volte la stessa cosa */
     sgonfiaNuvoletta();
-=======
-    if (nuvoletta) nuvoletta.hidden = true;
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     dipingi();
     finestra.hidden = false;
     aperto = true;
@@ -1592,7 +1548,6 @@
     nuvoletta.setAttribute("data-lato", lato);
   }
 
-<<<<<<< HEAD
   /* ---- il richiamo: la meccanica nuova, la prima volta che si arriva --
      La nuvoletta dice una cosa sola e solo dove serve: quando si arriva
      in un posto che introduce una meccanica che non si è mai vista
@@ -1678,26 +1633,6 @@
     st.nudge = 1;
     scrivi(st);
     mostraNuvoletta(T(OFFERTA), ATTESA_OFFERTA);
-=======
-  /* ---- il richiamo: la prima volta che si entra nell'hub ----------
-     Prima era un timer: venti secondi dopo l'apertura della pagina, e
-     dopo dodici spariva da sola. Così compariva anche nelle terre —
-     dove Charles non c'entra — e spariva proprio mentre qualcuno
-     stava per premerla. Adesso non è più un timer: si fa viva solo
-     nell'hub, solo la prima volta (il quaderno se lo ricorda), e
-     resta lì finché non la si preme davvero. */
-  function richiamo() {
-    if (aperto) return;
-    var st = leggi();
-    if (st.nudge || st.aperto) return;
-    if (luogo() !== "hub") return;
-    if (!nuvoletta) return;
-    st.nudge = 1;
-    scrivi(st);
-    nuvoletta.hidden = false;
-    /* accanto al «?», non in fondo alla pagina */
-    posizionaNuvoletta();
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
   }
 
   /* ============================================================
@@ -1719,7 +1654,6 @@
         root.setTimeout(tieni, 140);
       });
     }
-<<<<<<< HEAD
     /* il posto cambia anche senza ricaricare la pagina: nel museo si
        passa da una sala all'altra, nelle terre da una zona all'altra.
        Ogni secondo e mezzo si guarda dove si è, e si parla solo quando
@@ -1733,21 +1667,6 @@
       dove = id;
       richiamo();
     }, 1500);
-=======
-    /* l'hub non è detto che sia già quello: la pagina può nascere su
-       una stanza e cambiare dopo. Si guarda per un po' — la prima
-       volta che la stanza è l'hub la nuvoletta si fa viva, e poi basta
-       per sempre */
-    var prove = 0;
-    function guarda() {
-      prove++;
-      var st = leggi();
-      if (aperto || st.nudge || st.aperto) return;
-      if (luogo() === "hub") { richiamo(); return; }
-      if (prove < 40) root.setTimeout(guarda, 1500);
-    }
-    root.setTimeout(guarda, 1200);
->>>>>>> baab3a454a1d21b74d89df39b6c16d8df7fd5c97
     return CH;
   };
 
