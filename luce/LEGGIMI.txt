@@ -1,0 +1,107 @@
+RGB (Baggata) — LA PROIEZIONE
+================================================================
+
+Quattro monitor indipendenti. Dentro: la webcam scomposta in
+luminanza, rosso, verde, blu. Sopra: le GIF e le immagini del sito,
+pubblicità, pop-up finti, parole, X sugli occhi di chi guarda.
+
+
+1. COME SI APRE
+----------------------------------------------------------------
+Dal sito, /luce/ (serve il server locale o GitHub Pages: da file://
+il browser blocca webcam e audio). Il pannello di setup si apre con
+D oppure aggiungendo ?debug all'indirizzo.
+
+
+2. I TASTI
+----------------------------------------------------------------
+D   pannello di setup (l'unico momento in cui torna il cursore)
+F   schermo intero
+R   interrompe tutto e torna al bianco
+K   kaos: accende e spegne la radio, senza toccare gli impulsi
+    dei canali e senza toccare il volume
+
+
+3. LA WEBCAM
+----------------------------------------------------------------
+La camera non si vede mai: si vede solo quello che finisce dentro i
+quattro quadrati. Se il permesso viene negato, se non c'è nessuna
+camera, se il permesso resta appeso o se il flusso si ferma, la
+macchina non rimane bianca: dopo pochi secondi (al massimo una
+ventina) si muove da sola, con un'immagine di prova ottica. Il
+flusso continua a essere cercato: se la camera si accende più tardi,
+la macchina se ne accorge e torna a misurare il movimento.
+
+Il rilevamento dei volti usa face-api da CDN. Se il CDN o il backend
+non rispondono, la presenza la misura il movimento: meno preciso,
+ma l'uscita dello spettatore si sente lo stesso.
+
+
+4. LE IMMAGINI E LE GIF
+----------------------------------------------------------------
+Niente API, niente rete: si usano solo i file già presenti nel sito.
+Le foto ferme stanno in immagini/personaggi/ (più una in immagini/);
+le GIF arrivano da RadioKaoSs/ (cartella1, giff), simbolo/, sandpay/,
+lumaca/, eyes-in-the-sky/, lucidus/ e giff-presentazione/. Tutto è
+negli elenchi FOTO_LOCALI e GIF_POOL in cima a script.js: per
+aggiungere un file basta una riga. I trentasei file degli elenchi
+esistono tutti, e se un giorno uno sparisce la macchina lo salta
+senza fermarsi.
+
+Le GIF piccole sono il pane quotidiano. Le grandi (occhi, astronauti,
+player) entrano solo quando il caos è alto, una alla volta per
+monitor: pesano troppo per un ciclo che sta ancora girando piano.
+Ogni monitor tiene al massimo due GIF insieme.
+
+
+5. LA RADIO E IL KAOS
+----------------------------------------------------------------
+K accende e spegne la radio. Con il kaos spento restano solo i
+quattro impulsi dei canali, il fischio e il clic delle X: il fruscio,
+il ronzio e le voci tacciono.
+
+Con il kaos acceso la radio parte da sola al primo gesto — un clic,
+un tasto: il browser non lascia suonare prima — e non c'è nessun
+tasto "play" da premere. A caos basso suona una diretta esterna alla
+volta, poi entrano anche gli spot e i TG del sito. Le dirette libere
+sono otto stazioni SomaFM (Doomed, Drone Zone, Deep Space One, DEF
+CON, Vaporwaves, Secret Agent, Underground 80s, Left Coast 70s)
+elencate in RADIO_SOURCES. Se una diretta cade, dopo tre errori viene
+messa da parte da sola e si passa alla successiva.
+
+Gli spot del sito (pub-*) e i TG del cosmo restano la voce di casa:
+partono dal file locale e passano dalla radio filtrata. Su file://
+suonano diretti, perché il browser azzera l'audio filtrato.
+
+
+6. LA SEQUENZA
+----------------------------------------------------------------
+Un ciclo dura circa 18 secondi: luminanza, rosso, verde, blu (uno
+ogni 3 secondi), poi il neutro uno alla volta, poi il bianco. Il
+caos sale di un gradino a ogni ciclo chiuso (1/20). Al 100% la
+macchina crolla: tre secondi di agonia, kernel panic, sei secondi di
+silenzio, due di nero, e si riparte puliti.
+
+Il ciclo parte quando qualcuno si muove davanti alla camera (o da
+solo, se la camera non c'è). L'uscita dello spettatore — la faccia
+che sparisce, si rimpicciolisce o scivola verso il bordo — apre una
+delle sei reazioni: fischio, colpa, fermo immagine, volto, assalto
+di pop-up, blackout. La prima uscita è sempre quella dei pop-up.
+
+
+7. LA CONSOLE
+----------------------------------------------------------------
+In console c'è l'appiglio RGB:
+  RGB.scatta() · RGB.occhi() · RGB.azzera() · RGB.glitch()
+  RGB.gif() · RGB.gifInQuadrato(0) · RGB.fotoInQuadrato(0)
+  RGB.video() · RGB.popup(4) · RGB.frase() · RGB.uscita(4)
+  RGB.kaos(false) · RGB.volume(0.5) · RGB.caos(0.8) · RGB.crash()
+  RGB.stato() · RGB.config
+
+
+8. I FILE
+----------------------------------------------------------------
+index.html   la pagina: quattro monitor, pannello, finto crash
+style.css    le misure, i pop-up, il velo di scanline, la griglia 2×2
+script.js    tutto il resto: sequenza, intrusi, radio, volti, crash
+================================================================

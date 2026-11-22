@@ -1,20 +1,21 @@
 /* ============================================================
    RGB (Baggata) — la proiezione, quarta versione.
-   Quattro monitor indipendenti in fila. Dentro: la webcam scomposta
-   in luminanza, rosso, verde, blu. Sopra: foto vere pescate in tempo
-   reale da Wikimedia Commons, pubblicità del sito, pop-up finti,
-   parole, X sugli occhi di chi guarda.
+   Quattro monitor indipendenti. Dentro: la webcam scomposta in
+   luminanza, rosso, verde, blu. Sopra: le GIF e le immagini del
+   sito, pubblicità, pop-up finti, parole, X sugli occhi di chi
+   guarda.
 
    Il caos sale di un gradino a ogni ciclo chiuso (1/20), e con lui
-   sale tutto il resto: glitch, foto, pop-up, radio sovrapposta,
+   sale tutto il resto: glitch, intrusi, pop-up, radio sovrapposta,
    messaggi. Al 100% la macchina crolla: tre secondi di agonia, lo
    schermo di kernel panic, sei secondi di silenzio assoluto, due
    secondi di nero, e si riparte puliti.
 
-   Nessuna foto finta, nessun riquadro segnaposto: se Wikimedia non
-   risponde, quella foto semplicemente non arriva e non si vede.
+   Nessuna foto finta, nessun riquadro segnaposto: le immagini sono
+   quelle già presenti nel sito; se una non è ancora arrivata, quella
+   immagine semplicemente non si vede.
 
-   Tasti: D pannello · F schermo intero · R bianco.
+   Tasti: D pannello · F schermo intero · R bianco · K kaos.
    ============================================================ */
 (function (root, doc) {
   "use strict";
@@ -39,6 +40,8 @@
     /* il ciclo non aspetta il movimento (solo per le prove) */
     AUTO_LOOP: false,
     PAUSA_AUTO: 800,
+    /* senza webcam la macchina non resta bianca: si muove da sola */
+    PAUSA_AUTO_CADUTO: 6000,
     COOLDOWN: 1000,
 
     /* la sensibilità di partenza dello slider della camera */
@@ -64,29 +67,33 @@
     SOGLIA_CONTAMINAZIONE: 0.45,
     SOGLIA_DISTRUZIONE: 0.75,
 
-    /* probabilità per fascia: 0–20 · 20–45 · 45–75 · 75–100 */
+    /* probabilità per fascia: 0–20 · 20–45 · 45–75 · 75–100.
+       Anche in "inganno" qualcosa entra: la macchina non è mai
+       davvero vuota. */
     X_FACCIA: [0, 0.12, 0.40, 0.85],        /* X sugli occhi */
-    FOTO_FACCIA: [0, 0.10, 0.30, 0.45],     /* foto sopra la faccia */
-    EXTRA_FOTO: [0, 0.12, 0.38, 0.65],      /* foto dentro un monitor */
-    EXTRA_POPUP: [0, 0, 0.40, 0.85],        /* pop-up nei monitor */
-    EXTRA_VIDEO: [0, 0, 0.30, 0.70],        /* video nei monitor */
-    EXTRA_GLITCH: [0, 0.20, 0.55, 0.95],    /* strappi */
+    FOTO_FACCIA: [0.12, 0.28, 0.45, 0.65],  /* intruso sopra la faccia */
+    EXTRA_FOTO: [0.25, 0.40, 0.60, 0.80],   /* GIF/immagine in un monitor */
+    EXTRA_POPUP: [0.05, 0.20, 0.45, 0.85],  /* pop-up nei monitor */
+    EXTRA_VIDEO: [0.03, 0.12, 0.35, 0.70],  /* video nei monitor */
+    EXTRA_GLITCH: [0.05, 0.25, 0.55, 0.95], /* strappi */
 
-    /* l'uscita dello spettatore: 1 volta su 4, mai due volte
+    /* l'uscita dello spettatore: quasi sempre, ma non due volte
        ravvicinate */
-    DEPARTURE_TRIGGER_CHANCE: 0.25,
-    DEPARTURE_COOLDOWN_MS: 60000,
+    DEPARTURE_TRIGGER_CHANCE: 0.8,
+    DEPARTURE_COOLDOWN_MS: 25000,
+    DEPARTURE_GRACE_MS: 6000,
+    PRESENZA_MIN_MS: 1500,
+    VOLTI_MANCANTI: 2,
 
     /* le frasi perturbanti: rarissime, massimo due per arco */
     PERTURB_CHANCE: 0.05,
     PERTURB_MAX: 2,
     PERTURB_MIN_CHAOS: 0.40,
 
-    /* il magazzino delle foto vere */
+    /* il magazzino delle immagini del sito */
     BUFFER_FOTO: 4,
     FOTO_TIMEOUT: 9000,
-    WEB_SPAZIO_MS: 900,     /* mai due richieste a Commons più vicine di così */
-    WEB_PAUSA_MS: 8000,     /* dopo un 429 ci si ferma un po', non si insiste */
+    GIF_MAX: 2,             /* quante GIF animate per monitor, al massimo */
     VOLTI_INTERVALLO: 400,
 
     /* il collasso e il riavvio */
@@ -131,25 +138,13 @@
   ];
 
   /* ============================================================
-     3. LA RADIO — le canzoni di Radio Kaoss, gli spot, i TG, e tre
-     stazioni pubbliche come ripiego. Il fruscio e il ronzio sono
-     generatori: ci sono sempre, anche senza rete.
+     3. LA RADIO — gli spot e i TG del sito, e otto dirette libere
+     di SomaFM. Il fruscio e il ronzio sono generatori: ci sono
+     sempre, anche senza rete.
      ============================================================ */
 
   var RADIO_SOURCES = [
-    { titolo: "La fantasia", url: "../RadioKaoSs/canzoni/La fantasia.mp3", genere: "canzone" },
-    { titolo: "Nadia", url: "../RadioKaoSs/canzoni/Nadia.mp3", genere: "canzone" },
-    { titolo: "Ughi bughi bughi", url: "../RadioKaoSs/canzoni/Ughi bughi bughi.mp3", genere: "canzone" },
-    { titolo: "Charles", url: "../RadioKaoSs/canzoni/charles.mp3", genere: "canzone" },
-    { titolo: "Diabolicus", url: "../RadioKaoSs/canzoni/diabolicus.mp3", genere: "canzone" },
-    { titolo: "Fine del mondo", url: "../RadioKaoSs/canzoni/fine del mondo.mp3", genere: "canzone" },
-    { titolo: "Mortem", url: "../RadioKaoSs/canzoni/mortem.MP3", genere: "canzone" },
-    { titolo: "Oggi non resto", url: "../RadioKaoSs/canzoni/oggi non resto.mp3", genere: "canzone" },
-    { titolo: "Passami la cartapesta", url: "../RadioKaoSs/canzoni/passami la cartapesta.mp3", genere: "canzone" },
-    { titolo: "Sarà", url: "../RadioKaoSs/canzoni/sarà.mp3", genere: "canzone" },
-    { titolo: "Satan", url: "../RadioKaoSs/canzoni/satan.MP3", genere: "canzone" },
-    { titolo: "Corre il coniglio", url: "../RadioKaoSs/canzoni/corre il coniglio.mpeg", genere: "canzone" },
-
+    /* gli spot e i TG del sito restano: sono la voce di casa */
     { titolo: "Purify", url: "../RadioKaoSs/pub-purify/audio.MP3", genere: "spot" },
     { titolo: "Lucidus", url: "../RadioKaoSs/pub-lucidus/audio.MP3", genere: "spot" },
     { titolo: "Latte Materno", url: "../RadioKaoSs/pub-latte-materno/audio.MP3", genere: "spot" },
@@ -160,9 +155,17 @@
     { titolo: "TG del Cosmo 3", url: "../RadioKaoSs/tg del cosmo/tg3.MP3", genere: "tg" },
     { titolo: "TG del Cosmo 7", url: "../RadioKaoSs/tg del cosmo/tg7.MP3", genere: "tg" },
 
+    /* le stazioni libere: nessuna canzone del sito, nessun account.
+       SomaFM trasmette in MP3 pubblico; in riproduzione diretta non
+       servono i permessi CORS. */
+    { titolo: "SomaFM · Doomed", url: "https://ice1.somafm.com/doomed-128-mp3", genere: "esterno", esterno: true },
     { titolo: "SomaFM · Drone Zone", url: "https://ice1.somafm.com/dronezone-128-mp3", genere: "esterno", esterno: true },
     { titolo: "SomaFM · Deep Space One", url: "https://ice1.somafm.com/deepspaceone-128-mp3", genere: "esterno", esterno: true },
-    { titolo: "SomaFM · DEF CON", url: "https://ice2.somafm.com/defcon-128-mp3", genere: "esterno", esterno: true }
+    { titolo: "SomaFM · DEF CON", url: "https://ice1.somafm.com/defcon-128-mp3", genere: "esterno", esterno: true },
+    { titolo: "SomaFM · Vaporwaves", url: "https://ice1.somafm.com/vaporwaves-128-mp3", genere: "esterno", esterno: true },
+    { titolo: "SomaFM · Secret Agent", url: "https://ice1.somafm.com/secretagent-128-mp3", genere: "esterno", esterno: true },
+    { titolo: "SomaFM · Underground 80s", url: "https://ice1.somafm.com/u80s-128-mp3", genere: "esterno", esterno: true },
+    { titolo: "SomaFM · Left Coast 70s", url: "https://ice1.somafm.com/seventies-128-mp3", genere: "esterno", esterno: true }
   ];
 
   /* ============================================================
@@ -210,56 +213,61 @@
   ];
 
   /* ============================================================
-     5. LE FOTO VERE — le dieci categorie e le parole chiave. Ogni
-     foto arriva da Wikimedia Commons, con un offset casuale: due
-     giri non mostrano mai la stessa sequenza. La categoria si
-     pesca a caso fra tutte, ogni volta.
+     5. L'ARCHIVIO DEL SITO — le GIF animate e le immagini che
+     vivono già nel portfolio. Niente rete, niente API, niente
+     attese: quello che è nel repo è quello che si vede.
 
-     Solo animali che guardano, e una stanza chiusa: insetti,
-     aracnidi, lumache, pesci strani, serpenti, conigli, elefanti,
-     anatre, struzzi, hikikomori. Niente ritratti, niente panorami.
+     Le GIF piccole sono il pane quotidiano; le grandi (occhi,
+     astronauti, player) entrano solo quando il caos è alto, una
+     alla volta, per non mangiarsi la memoria.
      ============================================================ */
 
-  var CATEGORY_KEYWORDS = {
-    insetti: [
-      "cockroach macro", "housefly closeup", "beetle",
-      "praying mantis", "moth macro", "locust"
-    ],
-    aracnidi: [
-      "spider closeup", "tarantula", "scorpion",
-      "arachnid macro", "harvestman"
-    ],
-    lumache: [
-      "snail macro", "garden snail", "slug closeup", "giant african snail"
-    ],
-    pesci: [
-      "deep sea fish", "anglerfish", "blobfish",
-      "goblin shark", "barreleye fish", "viperfish"
-    ],
-    serpenti: [
-      "snake closeup", "viper head", "python", "rattlesnake", "cobra"
-    ],
-    conigli: [
-      "white rabbit", "rabbit closeup", "wild rabbit", "hare"
-    ],
-    elefanti: [
-      "elephant closeup", "african elephant", "elephant eye"
-    ],
-    anatre: [
-      "duck closeup", "mallard duck", "muscovy duck"
-    ],
-    struzzi: [
-      "ostrich head", "ostrich closeup", "ostrich eye"
-    ],
-    hikikomori: [
-      "hikikomori", "messy bedroom computer", "dark room monitor",
-      "cluttered room Japan", "shut-in room"
-    ]
-  };
+  var GIF_POOL = [
+    /* esplosioni, simboli, deserti: leggere, sempre disponibili */
+    { url: "../RadioKaoSs/cartella1/bombaatomi_nuxp91ui.gif", titolo: "bomba atomica", categoria: "esplosione", peso: 3 },
+    { url: "../RadioKaoSs/cartella1/explosion-explode.gif", titolo: "esplosione", categoria: "esplosione", peso: 3 },
+    { url: "../RadioKaoSs/cartella1/atomic-bomb.gif", titolo: "atomic bomb", categoria: "esplosione", peso: 2 },
+    { url: "../RadioKaoSs/cartella1/nbWJan.gif", titolo: "fungo", categoria: "esplosione", peso: 2 },
+    { url: "../simbolo/assets/symbol1.gif", titolo: "simbolo 1", categoria: "simbolo", peso: 2 },
+    { url: "../simbolo/assets/symbol2.gif", titolo: "simbolo 2", categoria: "simbolo", peso: 1 },
+    { url: "../simbolo/assets/symbol4.gif", titolo: "simbolo 4", categoria: "simbolo", peso: 1 },
+    { url: "../simbolo/assets/symbol3.gif", titolo: "simbolo 3", categoria: "simbolo", peso: 1 },
+    { url: "../sandpay/sandpay.gif", titolo: "deserto", categoria: "deserto", peso: 2 },
+    { url: "../lumaca/lumaca.gif", titolo: "lumaca", categoria: "lumaca", peso: 2 },
+    { url: "../lumaca/2.gif", titolo: "lumaca 2", categoria: "lumaca", peso: 2 },
+    { url: "../lumaca/lumaca2.gif", titolo: "lumaca 3", categoria: "lumaca", peso: 1 },
+    { url: "../giff-presentazione/bg.gif", titolo: "sfondo", categoria: "occhio", peso: 1 },
 
-  var CATEGORIE = [
-    "insetti", "aracnidi", "lumache", "pesci", "serpenti",
-    "conigli", "elefanti", "anatre", "struzzi", "hikikomori"
+    /* le grandi: caos alto, una per monitor */
+    { url: "../eyes-in-the-sky/fine.gif", titolo: "fine", categoria: "occhio", peso: 1, grande: true },
+    { url: "../eyes-in-the-sky/alto.gif", titolo: "alto", categoria: "occhio", peso: 1, grande: true },
+    { url: "../eyes-in-the-sky/astronaut.gif", titolo: "astronauta", categoria: "astronauta", peso: 1, grande: true },
+    { url: "../eyes-in-the-sky/inizio.gif", titolo: "inizio", categoria: "occhio", peso: 1, grande: true },
+    { url: "../eyes-in-the-sky/bulbi.gif", titolo: "bulbi", categoria: "occhio", peso: 1, grande: true },
+    { url: "../RadioKaoSs/giff/1.gif", titolo: "insetto 1", categoria: "insetto", peso: 1, grande: true },
+    { url: "../RadioKaoSs/giff/2.gif", titolo: "insetto 2", categoria: "insetto", peso: 1, grande: true },
+    { url: "../RadioKaoSs/giff/3.gif", titolo: "insetto 3", categoria: "insetto", peso: 1, grande: true },
+    { url: "../lucidus/copertina-2.gif", titolo: "lucidus", categoria: "creatura", peso: 1, grande: true },
+    { url: "../simbolo/player.gif/player.gif", titolo: "player", categoria: "creatura", peso: 1, grande: true }
+  ];
+
+  /* le immagini ferme: entrano nel canvas, sopra la faccia o al
+     posto di un canale. Il ragno e la lumaca hanno il peso più alto:
+     sono gli intrusi che si vedono di più. */
+  var FOTO_LOCALI = [
+    { url: "../immagini/personaggi/ragno.png", titolo: "ragno", categoria: "insetti", peso: 5 },
+    { url: "../immagini/personaggi/lumaca.png", titolo: "lumaca", categoria: "lumache", peso: 5 },
+    { url: "../immagini/personaggi/coniglio.png", titolo: "coniglio", categoria: "conigli", peso: 2 },
+    { url: "../immagini/personaggi/clown.png", titolo: "clown", categoria: "creature", peso: 1 },
+    { url: "../immagini/personaggi/satan.png", titolo: "satan", categoria: "creature", peso: 1 },
+    { url: "../immagini/personaggi/robot.png", titolo: "robot", categoria: "creature", peso: 1 },
+    { url: "../immagini/personaggi/pinguino.png", titolo: "pinguino", categoria: "animali", peso: 1 },
+    { url: "../immagini/personaggi/beppe.png", titolo: "beppe", categoria: "creature", peso: 1 },
+    { url: "../immagini/personaggi/cilindro.png", titolo: "cilindro", categoria: "oggetti", peso: 1 },
+    { url: "../immagini/personaggi/guida.png", titolo: "guida", categoria: "creature", peso: 1 },
+    { url: "../immagini/personaggi/donna.png", titolo: "donna", categoria: "creature", peso: 1 },
+    { url: "../immagini/personaggi/bigliettaia.png", titolo: "bigliettaia", categoria: "creature", peso: 1 },
+    { url: "../immagini/lucidus_red_man.jpg", titolo: "lucidus red man", categoria: "creature", peso: 1 }
   ];
 
   /* ============================================================
@@ -358,6 +366,8 @@
   var ultimoCampione = 0;
   var cameraOK = false;
   var cameraStato = "in attesa del permesso";
+  /* senza camera la macchina si muove da sola: il bianco non dura */
+  var autoCaduto = false;
   var prossimoFalso = 0;
 
   var reazione = { attivo: false, tipo: -1, timers: [], fino: 0 };
@@ -366,8 +376,7 @@
 
   var web = {
     buffer: [], ultima: null, inCorso: false,
-    caricati: 0, errori: 0,
-    ultimaChiamata: 0, pausa: 0
+    caricati: 0, errori: 0, falliti: {}
   };
 
   var volto = {
@@ -386,8 +395,14 @@
     storia: [],
     ultimaFoto: null,
     stato: "assente",
+    motivo: "",
     ultimoEvento: 0,
-    ultimoTrigger: 0
+    ultimoTrigger: 0,
+    mancanti: 0,
+    bordoSegnalato: false,
+    prossimaUscita: 4,
+    primaUscita: true,
+    errori: 0
   };
 
   /* senza face-api la presenza la misura il movimento */
@@ -404,6 +419,19 @@
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
 
   function scelta(a) { return a[rand(a.length)]; }
+
+  /* pesca pesata: le voci con peso più alto escono più spesso */
+  function pescaPesato(a) {
+    var tot = 0, i, r;
+    if (!a || !a.length) return null;
+    for (i = 0; i < a.length; i++) tot += a[i].peso || 1;
+    r = Math.random() * tot;
+    for (i = 0; i < a.length; i++) {
+      r -= a[i].peso || 1;
+      if (r <= 0) return a[i];
+    }
+    return a[a.length - 1];
+  }
 
   function pianifica(ms, fn) { timers.push(root.setTimeout(fn, ms)); }
 
@@ -512,11 +540,17 @@
       }
     } catch (e) { }
     v = String(v || "").replace(/^\s+|\s+$/g, "");
-    return v || "#808080";
+    return v || BIANCO;
   }
 
   function segna(nome) {
     fase = nome;
+    if (doc && doc.body && doc.body.classList) {
+      var bianca = nome === "bianco" || nome.indexOf("neutro") === 0;
+      if (bianca) doc.body.classList.add("fase-bianca");
+      else doc.body.classList.remove("fase-bianca");
+      if (!bianca) doc.body.classList.remove("bianco-totale");
+    }
     if (debug && !debug.hidden) aggiornaStato();
   }
 
@@ -539,6 +573,11 @@
 
   function tutte(colore) {
     for (var n = 0; n < 4; n++) tinta(n, colore);
+    /* il bianco pieno spegne anche il velo di scanline */
+    if (doc && doc.body && doc.body.classList) {
+      if (colore === BIANCO) doc.body.classList.add("bianco-totale");
+      else doc.body.classList.remove("bianco-totale");
+    }
   }
 
   /* una foto (vera) dentro un canvas quadrato, tagliata a coprire */
@@ -708,42 +747,10 @@
   }
 
   /* ============================================================
-     11. LE FOTO VERE — Wikimedia Commons, in tempo reale.
-     API: generator=search sui file (namespace 6), un offset
-     casuale, la miniatura da 800px. Si provano più parole chiave;
-     se una foto non si carica si scarta in silenzio. Mai un testo
-     di errore al posto di un'immagine.
+     11. L'ARCHIVIO — le immagini ferme del sito, già decodificate,
+     e le GIF animate che si arrampicano sui monitor. Niente rete,
+     niente attese: se un file manca, si scarta in silenzio.
      ============================================================ */
-
-  function urlCommons(parola, offset) {
-    return "https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*" +
-      "&generator=search&gsrnamespace=6&gsrlimit=12&gsroffset=" + offset +
-      "&gsrsearch=" + encodeURIComponent(parola) +
-      "&prop=imageinfo&iiprop=url%7Cmime%7Csize&iiurlwidth=800";
-  }
-
-  function candidatiDa(json, categoria) {
-    var out = [];
-    var pagine = json && json.query && json.query.pages;
-    var id, p, info, mime, url;
-    if (!pagine) return out;
-    for (id in pagine) {
-      if (!pagine.hasOwnProperty(id)) continue;
-      p = pagine[id];
-      info = p && p.imageinfo && p.imageinfo[0];
-      if (!info) continue;
-      mime = String(info.mime || "");
-      if (mime.indexOf("jpeg") < 0 && mime.indexOf("png") < 0 && mime.indexOf("webp") < 0) continue;
-      url = info.thumburl || info.url;
-      if (!url) continue;
-      out.push({
-        url: url,
-        titolo: String(p.title || "").replace(/^File:/, ""),
-        categoria: categoria
-      });
-    }
-    return out;
-  }
 
   function caricaImmagine(url, timeoutMs) {
     return new Promise(function (ok, ko) {
@@ -755,7 +762,8 @@
         ko("tempo scaduto");
       }, timeoutMs || CONFIG.FOTO_TIMEOUT);
 
-      img.crossOrigin = "anonymous";
+      /* il CORS serve solo alle immagini remote: da disco basta il file */
+      if (/^https?:/i.test(url)) img.crossOrigin = "anonymous";
       img.onload = function () {
         if (fatto) return;
         fatto = true;
@@ -777,89 +785,46 @@
     if (!webMini || !webTesto) return;
     var u = web.ultima;
     if (!u) return;
-    webMini.src = u.url;
+    webMini.src = u.img ? u.img.src : u.url;
     webMini.hidden = false;
     webMini.alt = u.titolo;
-    webTesto.textContent = "wikimedia: " + u.categoria + " · " + u.titolo;
+    webTesto.textContent = "gif del sito: " + u.categoria + " · " + u.titolo;
     webTesto.title = u.titolo;
   }
 
-  /* una pausa, se serve: Commons non ama le raffiche e risponde 429 */
-  function attendi(ms) {
-    if (!ms || ms <= 0) return Promise.resolve();
-    return new Promise(function (ok) { root.setTimeout(ok, ms); });
-  }
-
-  /* la funzione che cerca davvero: categoria pescata a caso fra le
-     dieci → parola chiave → offset casuale → miniatura già
-     decodificata. Se non arriva niente, si riprova in silenzio. */
-  function fetchRandomWebImage(category) {
-    var cat = CATEGORY_KEYWORDS[category] ? category : scelta(CATEGORIE);
-    var lista = CATEGORY_KEYWORDS[cat];
-    var tentativi = 0;
-
-    function giro() {
-      if (tentativi >= 5) return Promise.reject("nessuna foto");
-      tentativi++;
-      if (!root.fetch) return Promise.reject("senza rete");
-
-      /* i primi due giri su un offset casuale — mai la stessa pagina —
-         poi si riparte da zero: le parole rare (blobfish, harvestman,
-         shut-in room) non arrivano a centoventi risultati e un offset
-         alto tornerebbe vuoto */
-      var parola = scelta(lista);
-      var offset = tentativi <= 2 ? rand(120) : 0;
-
-      var adesso = new Date().getTime();
-      var attesa = 0;
-      if (web.pausa > adesso) attesa = web.pausa - adesso;
-      else if (web.ultimaChiamata && adesso - web.ultimaChiamata < CONFIG.WEB_SPAZIO_MS) {
-        attesa = CONFIG.WEB_SPAZIO_MS - (adesso - web.ultimaChiamata);
-      }
-
-      function chiama() {
-        web.ultimaChiamata = new Date().getTime();
-        return root.fetch(urlCommons(parola, offset), { mode: "cors", credentials: "omit" })
-          .then(function (r) {
-            if (r.status === 429 || r.status === 503) {
-              web.pausa = new Date().getTime() + CONFIG.WEB_PAUSA_MS;
-              return Promise.reject("troppe richieste");
-            }
-            if (!r.ok) return Promise.reject("http " + r.status);
-            return r.json();
-          })
-          .then(function (json) {
-            var cand = candidatiDa(json, cat);
-            if (!cand.length) return giro();
-            var scelto = cand[rand(cand.length)];
-            return caricaImmagine(scelto.url).then(function (img) {
-              scelto.img = img;
-              web.caricati++;
-              web.ultima = scelto;
-              aggiornaMiniatura();
-              return scelto;
-            }, function () { return giro(); });
-          }, function () { return giro(); });
-      }
-
-      return attendi(attesa).then(chiama);
-    }
-
-    return giro();
-  }
-
+  /* riempie il magazzino con le immagini locali, una alla volta:
+     niente API, niente 429, niente foto che non arrivano */
   function riempiBuffer() {
     if (web.inCorso || caduta) return;
     if (web.buffer.length >= CONFIG.BUFFER_FOTO) return;
+
+    var pool = [], i;
+    for (i = 0; i < FOTO_LOCALI.length; i++) {
+      if (!web.falliti[FOTO_LOCALI[i].url]) pool.push(FOTO_LOCALI[i]);
+    }
+    if (!pool.length) return;
+
     web.inCorso = true;
-    fetchRandomWebImage().then(function (foto) {
+    var scelto = pescaPesato(pool);
+    caricaImmagine(scelto.url).then(function (img) {
       web.inCorso = false;
-      if (foto) web.buffer.push(foto);
-      if (web.buffer.length < CONFIG.BUFFER_FOTO) root.setTimeout(riempiBuffer, 700);
+      var foto = {
+        url: scelto.url,
+        titolo: scelto.titolo,
+        categoria: scelto.categoria,
+        gif: false,
+        img: img
+      };
+      web.caricati++;
+      web.buffer.push(foto);
+      web.ultima = foto;
+      aggiornaMiniatura();
+      if (web.buffer.length < CONFIG.BUFFER_FOTO) root.setTimeout(riempiBuffer, 120);
     }, function () {
       web.inCorso = false;
       web.errori++;
-      if (web.buffer.length < CONFIG.BUFFER_FOTO) root.setTimeout(riempiBuffer, 5000);
+      web.falliti[scelto.url] = true;
+      if (web.buffer.length < CONFIG.BUFFER_FOTO) root.setTimeout(riempiBuffer, 400);
     });
   }
 
@@ -872,12 +837,39 @@
     return f;
   }
 
+  /* le GIF grandi non entrano nella prima fascia: sono troppo pesanti
+     per un monitor che sta ancora girando piano */
+  function pescaGif() {
+    var pool = [], i, g;
+    for (i = 0; i < GIF_POOL.length; i++) {
+      g = GIF_POOL[i];
+      if (g.grande && caos < CONFIG.SOGLIA_CONTAMINAZIONE) continue;
+      pool.push(g);
+    }
+    if (!pool.length) return null;
+    return pescaPesato(pool);
+  }
+
+  /* le sei GIF più leggere si scaldano all'avvio: la prima volta che
+     entrano non devono arrivare dal disco in ritardo */
+  function preriscaldaGif() {
+    var fatti = 0, i, im;
+    for (i = 0; i < GIF_POOL.length && fatti < 6; i++) {
+      if (GIF_POOL[i].grande) continue;
+      im = new root.Image();
+      im.decoding = "async";
+      im.src = GIF_POOL[i].url;
+      fatti++;
+    }
+  }
+
   /* ============================================================
-     12. IL VOLTO — face-api: TinyFaceDetector + 68 landmark.
+     12. IL VOLTO — face-api: TinyFaceDetector + 320 px + 68 landmark.
      Ogni 400 ms, in background: dov'è la faccia, quanto è grande,
-     dove sono gli occhi. Se la faccia sparisce dopo essere rimasta
-     davanti alla camera almeno tre secondi, o si rimpicciolisce, o
-     scivola verso il bordo, quello è uno che se ne sta andando.
+     dove sono gli occhi. Se la faccia sparisce per due fotogrammi
+     di fila dopo essere rimasta davanti alla camera almeno un
+     secondo e mezzo, o si rimpicciolisce, o scivola verso il bordo,
+     quello è uno che se ne sta andando.
      ============================================================ */
 
   var FACE_WEIGHTS = [
@@ -930,7 +922,7 @@
     if (!videoPronta() || volto.occupato || !root.faceapi) return;
 
     volto.occupato = true;
-    var opt = new root.faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 });
+    var opt = new root.faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.3 });
 
     root.faceapi.detectSingleFace(video, opt).withFaceLandmarks(true).then(function (r) {
       volto.occupato = false;
@@ -947,6 +939,7 @@
           volto.stato = "presente";
         }
         volto.presente = true;
+        volto.mancanti = 0;
         volto.ultimo = Date.now();
         volto.box = { x: b.x, y: b.y, w: b.width, h: b.height };
         volto.area = area;
@@ -963,13 +956,17 @@
         salvaVolto();
         valutaUscita(false);
       } else {
-        var cera = volto.presente;
         volto.presente = false;
         volto.occhi = null;
-        if (cera) {
-          valutaUscita(true);
-          volto.da = 0;
-          volto.stato = "assente";
+        /* un solo fotogramma perso non è un addio: ne servono due */
+        if (volto.da) {
+          volto.mancanti++;
+          if (volto.mancanti >= CONFIG.VOLTI_MANCANTI) {
+            valutaUscita(true);
+            volto.da = 0;
+            volto.mancanti = 0;
+            volto.stato = "assente";
+          }
         }
       }
       if (debug && !debug.hidden) aggiornaVolto();
@@ -1002,16 +999,29 @@
   function valutaUscita(sparito) {
     var ora = Date.now();
     if (!volto.da) return;
-    var durata = ora - volto.da;
-    if (durata < 3000) return;
+    if (ora - volto.da < CONFIG.PRESENZA_MIN_MS) return;
 
-    var bordo = volto.cx < 0.16 || volto.cx > 0.84 || volto.cy < 0.12 || volto.cy > 0.90;
-    var vecchia = areaVecchia(2500);
-    var piccolo = vecchia > 0 && volto.area < vecchia * 0.55;
+    if (sparito) {
+      segnalaUscita("sparito");
+      return;
+    }
 
-    if (sparito) segnalaUscita("sparito");
-    else if (bordo) segnalaUscita("bordo");
-    else if (piccolo) segnalaUscita("lontano");
+    /* il bordo è largo: chi si sposta di lato se ne sta andando */
+    var bordo = volto.cx < 0.08 || volto.cx > 0.92 ||
+      volto.cy < 0.08 || volto.cy > 0.92;
+
+    if (bordo) {
+      if (!volto.bordoSegnalato) {
+        volto.bordoSegnalato = true;
+        segnalaUscita("bordo");
+      }
+      return;
+    }
+    volto.bordoSegnalato = false;
+
+    var vecchia = areaVecchia(1800);
+    var piccolo = vecchia > 0 && volto.area < vecchia * 0.7;
+    if (piccolo) segnalaUscita("lontano");
   }
 
   function occhiDaPunti(lm) {
@@ -1098,7 +1108,7 @@
         movimento.fermo = 0;
         volto.presente = false;
         volto.stato = "assente";
-        if (durata >= 3000) segnalaUscita("movimento");
+        if (durata >= CONFIG.PRESENZA_MIN_MS) segnalaUscita("movimento");
       }
     }
     if (debug && !debug.hidden) aggiornaVolto();
@@ -1112,7 +1122,10 @@
     }
     voltoTesto.textContent = "volto: " +
       (volto.stato === "presente" ? "Presente" :
-        volto.stato === "in uscita" ? "In uscita" : "Assente");
+        volto.stato === "in uscita" ? "In uscita" : "Assente") +
+      (volto.motivo && volto.stato === "in uscita" ? " · " + volto.motivo : "") +
+      (volto.mancanti ? " · " + volto.mancanti + " miss" : "") +
+      (volto.errori ? " · " + volto.errori + " err" : "");
   }
 
   /* ============================================================
@@ -1284,6 +1297,35 @@
     return el;
   }
 
+  /* una GIF del sito, animata, sopra il canale: non passa dal canvas,
+     quindi non costa un ImageData per fotogramma */
+  function gifInQuadrato(indice, durata) {
+    var s = strati[indice];
+    if (!s || caduta) return null;
+    var g = pescaGif();
+    if (!g) return null;
+
+    /* mai più di GIF_MAX per monitor; una GIF grande resta sola
+       anche sugli altri monitor: è quella che pesa di più */
+    var vecchie = s.getElementsByClassName ? s.getElementsByClassName("extra-video") : null;
+    if (g.grande) {
+      var grandi = doc.querySelectorAll ? doc.querySelectorAll(".extra-video[data-grande]") : null;
+      for (var q = 0; grandi && q < grandi.length; q++) togliExtra(grandi[q]);
+      while (vecchie && vecchie.length) togliExtra(vecchie[0]);
+    } else {
+      while (vecchie && vecchie.length >= CONFIG.GIF_MAX) togliExtra(vecchie[0]);
+    }
+
+    var el = doc.createElement("img");
+    el.src = g.url;
+    el.alt = g.titolo || "gif";
+    el.className = "extra-video" + (caso(0.35) ? " storto" : "");
+    el.setAttribute("decoding", "async");
+    if (g.grande) el.setAttribute("data-grande", "1");
+    aggiungiExtra(el, indice, durata || (2500 + rand(3500)));
+    return el;
+  }
+
   /* una parola sola, enorme, che copre tutto il monitor */
   function parola(indice, testo, durata, classe) {
     var s = strati[indice];
@@ -1334,6 +1376,13 @@
     return true;
   }
 
+  /* l'intruso di un monitor: quasi sempre una GIF che si muove,
+     ogni tanto un'immagine ferma che prende il posto del canale */
+  function intrusoInQuadrato(indice, durata) {
+    if (caso(0.72)) return gifInQuadrato(indice, durata);
+    return fotoInQuadrato(indice, null, durata) ? true : gifInQuadrato(indice, durata);
+  }
+
   /* la plastica e gli insetti sopra la faccia */
   function contaminaConFoto() {
     var f = pescaFoto();
@@ -1377,7 +1426,7 @@
     if (caso(probabilita(CONFIG.EXTRA_FOTO))) {
       var quanti = caos >= CONFIG.SOGLIA_DISTRUZIONE ? 1 + rand(3) : 1;
       for (var i = 0; i < quanti; i++) {
-        fotoInQuadrato(rand(4), null, 1500 + rand(3500));
+        intrusoInQuadrato(rand(4), 1500 + rand(3500));
       }
     }
 
@@ -1403,13 +1452,23 @@
 
   /* il programma del ciclo: quando parte, e cosa entra mentre gira */
   function programmaExtra() {
+    /* il primo intruso entra sempre, prima che il primo canale sia
+       finito: il monitor non resta mai davvero vuoto */
+    pianifica(900 + rand(1600), function () {
+      if (!sequenza || caduta || reazione.attivo) return;
+      intrusoInQuadrato(rand(4), 2200 + rand(2800));
+    });
+
     extraDelCiclo();
-    var fasi = [1800 + rand(4000), 4200 + rand(5000), 7600 + rand(5000), 11000 + rand(4000)];
+    var fasi = [
+      1800 + rand(4000), 3600 + rand(4500), 5600 + rand(4500),
+      7600 + rand(4500), 9800 + rand(4000), 11800 + rand(3000)
+    ];
     for (var i = 0; i < fasi.length; i++) {
       (function (quando) {
         pianifica(quando, function () {
           if (!sequenza || caduta || reazione.attivo) return;
-          if (caso(0.55)) extraDelCiclo();
+          if (caso(0.7)) extraDelCiclo();
         });
       })(fasi[i]);
     }
@@ -1558,16 +1617,17 @@
   }
 
   function forseAuto() {
-    if (!CONFIG.AUTO_LOOP || sequenza || caduta) return;
-    pianifica(CONFIG.PAUSA_AUTO, function () {
+    if (!(CONFIG.AUTO_LOOP || autoCaduto) || sequenza || caduta) return;
+    pianifica(autoCaduto ? CONFIG.PAUSA_AUTO_CADUTO : CONFIG.PAUSA_AUTO, function () {
       if (!sequenza && !caduta) scatta(true);
     });
   }
 
   /* ============================================================
      17. QUELLO CHE SE NE VA — sei reazioni diverse, quattro-sei
-     secondi ciascuna, poi di nuovo il bianco. Scatta una volta su
-     quattro, e mai due volte in un minuto.
+     secondi ciascuna, poi di nuovo il bianco. Scatta quasi sempre,
+     ma mai due volte in venticinque secondi; la prima uscita è
+     sempre quella dei pop-up.
      ============================================================ */
 
   volto.grazia = 0;
@@ -1575,23 +1635,28 @@
   function segnalaUscita(motivo) {
     if (caduta) return;
     var ora = Date.now();
-    if (ora - volto.ultimoEvento < 6000) return;
     if (ora < volto.grazia) return;
-
-    volto.ultimoEvento = ora;
-    volto.stato = "in uscita";
-    if (debug && !debug.hidden) aggiornaVolto();
-
     if (reazione.attivo || perturb.attivo) return;
     if (ora - volto.ultimoTrigger < CONFIG.DEPARTURE_COOLDOWN_MS) return;
 
+    volto.ultimoEvento = ora;
+    volto.motivo = motivo || "";
+    volto.stato = "in uscita";
+    if (debug && !debug.hidden) aggiornaVolto();
+
     if (!caso(CONFIG.DEPARTURE_TRIGGER_CHANCE)) {
-      volto.grazia = ora + 20000;
+      volto.grazia = ora + 5000;
       return;
     }
 
     volto.ultimoTrigger = ora;
-    avviaReazione(rand(6));
+    volto.grazia = ora + CONFIG.DEPARTURE_GRACE_MS;
+
+    /* la prima uscita è sempre quella dei pop-up: "RESTA CON NOI" */
+    var tipo = volto.prossimaUscita;
+    if (typeof tipo !== "number") tipo = rand(6);
+    volto.prossimaUscita = rand(6);
+    avviaReazione(tipo);
   }
 
   function avviaReazione(tipo) {
@@ -1616,8 +1681,10 @@
     else if (tipo === 1) reazioneColpa();
     else if (tipo === 2) reazioneFermo();
     else if (tipo === 3) reazioneVolto();
-    else if (tipo === 4) reazionePopup();
-    else reazioneBlackout();
+    else if (tipo === 4) {
+      reazionePopup(volto.primaUscita ? "RESTA CON NOI" : null);
+      volto.primaUscita = false;
+    } else reazioneBlackout();
 
     return true;
   }
@@ -1769,11 +1836,13 @@
   }
 
   /* 5 — assalto di pop-up disperati */
-  function reazionePopup() {
+  function reazionePopup(testo) {
     var giri = 0;
 
     tutte(NERO);
-    popupOvunque(8, 5200);
+    /* la prima volta il messaggio è scritto, non pescato */
+    if (testo) popup(rand(4), testo, null, 5200);
+    popupOvunque(testo ? 7 : 8, 5200);
     scaricaStatica(700);
 
     reazione.spam = root.setInterval(function () {
@@ -1901,6 +1970,8 @@
     voci: [],
     ultima: null,
     avviato: false,
+    kaos: true,
+    erroriEsterni: {},
     prossimoZap: 0,
     prossimaOndata: 0,
     volume: CONFIG.VOLUME,
@@ -2265,11 +2336,34 @@
     audio.orologio = root.setInterval(audioAggiorna, 1000);
   }
 
+  /* K — il kaos: la radio si spegne e si riaccende senza toccare
+     il resto. Non è il volume: gli impulsi dei canali restano. */
+  function kaossToggle(force) {
+    sbloccaAudio();
+    audio.kaos = typeof force === "boolean" ? force : !audio.kaos;
+
+    if (kaosBtn) kaosBtn.textContent = audio.kaos ? "Kaos off" : "Kaos on";
+
+    if (!audio.kaos) {
+      radioTaci();
+      segnaAudio("kaos spento");
+      return;
+    }
+
+    if (audio.contesto) {
+      audio.prossimaOndata = audio.contesto.currentTime;
+      audio.prossimoZap = audio.contesto.currentTime;
+    }
+    segnaAudio("kaos acceso");
+    audioAggiorna();
+  }
+
   /* ------------------------------------------------------------
      LA CATENA DELLA RADIO
-     ogni sorgente è un <audio> infilato in un passa-banda da vecchia
-     radio, poi in un distorsore, poi in un tremolo, poi in un gain
-     che decide il caos. Il fruscio e il ronzio sono generatori.
+     le sorgenti di casa sono <audio> infilati in un passa-banda da
+     vecchia radio, poi in un distorsore, poi in un tremolo, poi in
+     un gain che decide il caos. Le dirette esterne suonano dirette;
+     il fruscio e il ronzio sono generatori.
      ------------------------------------------------------------ */
 
   function creaNodoRadio(sorgente) {
@@ -2279,23 +2373,32 @@
     var url = sorgente.url;
     if (audio.falliti[url]) return null;
 
+    var esterno = !!sorgente.esterno;
+
     var el = new root.Audio();
     el.preload = "auto";
     el.loop = false;
-    /* il CORS serve solo alle stazioni di fuori: i file di casa si
-       caricano come sempre, anche aprendo la pagina dal disco */
-    if (/^https?:/i.test(url)) el.crossOrigin = "anonymous";
-    el.addEventListener("error", function () { audio.falliti[url] = true; });
+    /* il CORS serve solo alle sorgenti di casa: le dirette esterne
+       suonano dirette, senza passare dalla Web Audio */
+    if (!esterno && /^https?:/i.test(url)) el.crossOrigin = "anonymous";
+    el.addEventListener("error", function () {
+      if (!esterno) { audio.falliti[url] = true; return; }
+      /* una diretta può cadere: tre errori, poi si lascia perdere */
+      var n = (audio.erroriEsterni[url] || 0) + 1;
+      audio.erroriEsterni[url] = n;
+      if (n >= 3) audio.falliti[url] = true;
+    });
     el.src = url;
 
-    /* Da disco il browser azzera l'audio che passa nella Web Audio
-       (CORS sul file://): meglio sentirlo senza filtri che non
-       sentirlo affatto. Si suona l'elemento, e la dissolvenza la
-       facciamo a mano sul suo volume. */
-    if (!/^https?:/i.test(url) && root.location && root.location.protocol === "file:") {
+    /* Le dirette esterne non possono passare dalla Web Audio (CORS),
+       e da disco il browser azzera l'audio filtrato: in entrambi i
+       casi si suona l'elemento, e la dissolvenza la facciamo a mano
+       sul suo volume. */
+    if (esterno || (!/^https?:/i.test(url) && root.location && root.location.protocol === "file:")) {
       var nodoD = {
         el: el,
         diretto: true,
+        sorgente: sorgente,
         gain: null,
         filtro: null,
         dist: null,
@@ -2371,20 +2474,36 @@
     return null;
   }
 
-  /* quale stazione si accende: le canzoni bastano finché il caos è
-     basso, poi entrano gli spot e i TG, e alla fine anche il mondo */
+  /* quale stazione si accende: con il caos basso solo le dirette
+     esterne, poi entrano anche gli spot e i TG. Mai più di due
+     dirette insieme: la terza sarebbe solo rumore. */
   function pescaRadio() {
     var e = caos;
     var pool = [];
+    var soloEsterne = e < CONFIG.SOGLIA_CRPE;
+    var esterneVive = 0;
     var i, s;
+
+    for (i = 0; i < audio.voci.length; i++) {
+      s = audio.voci[i];
+      if (s && s.attiva && s.sorgente && s.sorgente.esterno) esterneVive++;
+    }
 
     for (i = 0; i < RADIO_SOURCES.length; i++) {
       s = RADIO_SOURCES[i];
       if (audio.falliti[s.url]) continue;
-      if (s.esterno && e < 0.6) continue;
+      if (soloEsterne && !s.esterno) continue;
+      if (s.esterno && esterneVive >= 2) continue;
       if (s.genere === "spot" && e < 0.25) continue;
       if (s.genere === "tg" && e < 0.4) continue;
       pool.push(s);
+    }
+
+    /* se il filtro ha svuotato tutto, meglio una voce qualsiasi */
+    if (!pool.length) {
+      for (i = 0; i < RADIO_SOURCES.length; i++) {
+        if (!audio.falliti[RADIO_SOURCES[i].url]) pool.push(RADIO_SOURCES[i]);
+      }
     }
 
     if (!pool.length) return null;
@@ -2397,6 +2516,7 @@
   function radioVoce(sorgente, durata, volume) {
     var ac = audio.contesto;
     if (!ac || !sorgente || caduta) return;
+    if (!audio.kaos) return;
 
     var nodo = audio.nodi[sorgente.url] || creaNodoRadio(sorgente);
     if (!nodo) return;
@@ -2427,7 +2547,9 @@
       var base = vol;
 
       try { nodo.el.volume = 0.0001; } catch (e) { }
-      try { nodo.el.currentTime = Math.random() * 20; } catch (e) { }
+      try {
+        if (!sorgente.esterno) nodo.el.currentTime = Math.random() * 20;
+      } catch (e) { }
       var pd = nodo.el.play();
       if (pd && pd["catch"]) pd["catch"](function () { });
 
@@ -2561,7 +2683,7 @@
   }
 
   function quanteVoci(e) {
-    if (e < CONFIG.SOGLIA_CRPE) return 0;
+    /* anche a caos zero la radio è accesa: una voce sola, bassa */
     if (e < CONFIG.SOGLIA_CONTAMINAZIONE) return 1;
     if (e < CONFIG.SOGLIA_DISTRUZIONE) return 2;
     return 2 + rand(3);
@@ -2571,10 +2693,21 @@
      stazioni devono suonare insieme */
   function audioAggiorna() {
     var ac = audio.contesto;
-    if (!ac || caduta) return;
+    if (!ac || caduta || doc.hidden) return;
 
     var e = caos;
     var t = ac.currentTime;
+
+    /* il kaos è la manopola: spenta, la radio tace e restano solo
+       gli impulsi dei canali */
+    if (!audio.kaos) {
+      if (audio.voci.length) radioTaci();
+      if (audio.rumoreGain) audio.rumoreGain.gain.setTargetAtTime(0.0001, t, 0.2);
+      if (audio.ronzioGain) audio.ronzioGain.gain.setTargetAtTime(0.0001, t, 0.2);
+      if (audio.ronzioGain2) audio.ronzioGain2.gain.setTargetAtTime(0.0001, t, 0.2);
+      if (debug && !debug.hidden) segnaAudio("kaos spento");
+      return;
+    }
 
     if (audio.rumoreGain) {
       var fruscio = Math.max(0.0001, Math.min(0.26, (e - 0.10) * 0.3));
@@ -2586,14 +2719,6 @@
       if (audio.ronzioGain2) {
         audio.ronzioGain2.gain.setTargetAtTime(0.001 + e * 0.008, t, 0.8);
       }
-    }
-
-    if (e < CONFIG.SOGLIA_CRPE) {
-      if (audio.voci.length) radioTaci();
-      if (debug && !debug.hidden) {
-        segnaAudio("acceso · inganno · " + Math.round(e * 100) + "%");
-      }
-      return;
     }
 
     /* durante una reazione o una frase l'audio è già scritto lì:
@@ -2876,6 +3001,11 @@
     volto.grazia = 0;
     volto.storia = [];
     volto.stato = "assente";
+    volto.motivo = "";
+    volto.mancanti = 0;
+    volto.bordoSegnalato = false;
+    volto.prossimaUscita = 4;
+    volto.primaUscita = true;
     reazione.attivo = false;
     reazione.tipo = -1;
 
@@ -2945,7 +3075,8 @@
 
     t += " · caos " + Math.round(caos * 100) + "%";
     t += " · " + (audio && audio.voci ? audio.voci.length : 0) + " voci";
-    if (web.buffer.length) t += " · " + web.buffer.length + " foto in attesa";
+    if (audio && !audio.kaos) t += " · kaos off";
+    if (web.buffer.length) t += " · " + web.buffer.length + " immagini in attesa";
 
     statoEl.textContent = t;
     if (cameraEl) cameraEl.textContent = "camera: " + cameraStato;
@@ -3071,14 +3202,30 @@
 
   function avviaWebcam() {
     cameraStato = "in attesa del permesso";
+    cameraOK = false;
+    tentativiVideo = 0;
+    cadutoSegnalato = false;
     aggiornaStato();
 
-    if (!root.navigator || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      cameraStato = "non disponibile (serve https o localhost)";
+    /* la caduta si annuncia una volta sola, e la macchina parte */
+    function cade(stato) {
+      cadutoSegnalato = true;
+      autoCaduto = true;
+      cameraStato = stato;
       aggiornaStato();
       forseAuto();
+    }
+
+    if (!root.navigator || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      cade("non disponibile (serve https o localhost)");
       return;
     }
+
+    /* il permesso può restare appeso per sempre: se dopo dodici
+       secondi non è arrivato niente, si va avanti lo stesso */
+    root.setTimeout(function () {
+      if (!cameraOK && !cadutoSegnalato) cade("in attesa del permesso");
+    }, 12000);
 
     navigator.mediaDevices.getUserMedia({
       video: {
@@ -3096,15 +3243,19 @@
       }
       attendiVideo();
     }, function (err) {
-      cameraStato = "non disponibile" + (err && err.name ? " (" + err.name + ")" : "");
-      aggiornaStato();
-      forseAuto();
+      cade("non disponibile" + (err && err.name ? " (" + err.name + ")" : ""));
     });
   }
+
+  var tentativiVideo = 0;
+  var cadutoSegnalato = false;
 
   function attendiVideo() {
     if (videoPronta()) {
       cameraOK = true;
+      autoCaduto = false;
+      cadutoSegnalato = false;
+      tentativiVideo = 0;
       cameraStato = "pronta";
       prima = null;
       prontoDal = Date.now() + CONFIG.COOLDOWN;
@@ -3112,6 +3263,21 @@
       avviaVolti();
       avviaRilevamento();
       forseAuto();
+      return;
+    }
+    /* il permesso c'è ma il flusso non arriva (video fermo, scheda in
+       background, autoplay negato): dopo dieci secondi si va da soli,
+       senza smettere di provare: il flusso può arrivare più tardi */
+    tentativiVideo++;
+    if (tentativiVideo > 80) {
+      if (!cadutoSegnalato) {
+        cadutoSegnalato = true;
+        autoCaduto = true;
+        cameraStato = "non disponibile (video fermo)";
+        aggiornaStato();
+        forseAuto();
+      }
+      root.setTimeout(attendiVideo, 2000);
       return;
     }
     root.setTimeout(attendiVideo, 120);
@@ -3160,22 +3326,21 @@
     } else if (tasto === "r") {
       if (e.preventDefault) e.preventDefault();
       azzera();
+    } else if (tasto === "k") {
+      if (e.preventDefault) e.preventDefault();
+      kaossToggle();
     }
   }
 
-  /* il bottone "Testa foto web random": pesca adesso una foto vera e
-     la stampa in un monitor */
-  function provaFotoWeb() {
-    fetchRandomWebImage(scelta(CATEGORIE)).then(function (f) {
-      if (!f) return;
-      fotoInQuadrato(rand(4), f, 4500);
-      suonaClic();
-    }, function () {
-      /* senza rete non si vede niente: nessun testo, nessun riquadro */
-    });
+  /* il bottone "GIF dal sito": pesca adesso una GIF e la stampa in
+     un monitor, senza aspettare il ciclo */
+  function provaGif() {
+    sbloccaAudio();
+    gifInQuadrato(rand(4), 4500);
+    suonaClic();
   }
 
-  var fotoBtn = $("b-foto");
+  var fotoBtn = $("b-gif");
   var occhiBtn = $("b-occhi");
   var uscitaBtn = $("b-uscita");
   var fraseBtn = $("b-frase");
@@ -3184,12 +3349,12 @@
   var scattaBtn = $("b-scatta");
   var glitchBtn = $("b-glitch");
   var audioBtn = $("b-audio");
+  var kaosBtn = $("b-kaos");
   var crashBtn = $("b-crash");
 
   if (fotoBtn) {
     fotoBtn.addEventListener("click", function () {
-      sbloccaAudio();
-      provaFotoWeb();
+      provaGif();
     });
   }
   if (occhiBtn) {
@@ -3238,6 +3403,11 @@
     audioBtn.addEventListener("click", function () {
       sbloccaAudio();
       suonaCanale(3);
+    });
+  }
+  if (kaosBtn) {
+    kaosBtn.addEventListener("click", function () {
+      kaossToggle();
     });
   }
   if (crashBtn) crashBtn.addEventListener("click", function () { collasso(); });
@@ -3298,6 +3468,7 @@
   avviaWebcam();
   avviaVolti();
   avviaRilevamento();
+  preriscaldaGif();
   riempiBuffer();
   root.setInterval(riempiBuffer, 20000);
   ciclo();
@@ -3317,15 +3488,17 @@
 
   /* l'appiglio per provare dalla console del browser:
      RGB.scatta() · RGB.occhi() · RGB.caos(0.8) · RGB.uscita() ·
-     RGB.frase() · RGB.popup() · RGB.video() · RGB.crash() */
-  root.fetchRandomWebImage = fetchRandomWebImage;
-
+     RGB.frase() · RGB.popup() · RGB.video() · RGB.gif() ·
+     RGB.kaos(false) · RGB.crash() */
   root.RGB = {
     scatta: function () { return scatta(true); },
     occhi: function () { return scatta("occhi"); },
     azzera: azzera,
     glitch: glitchManuale,
-    fotoWeb: function (categoria) { return fetchRandomWebImage(categoria); },
+    gif: provaGif,
+    gifInQuadrato: function (i) {
+      return gifInQuadrato(typeof i === "number" ? i : rand(4), 4500);
+    },
     fotoInQuadrato: function (i) {
       return fotoInQuadrato(typeof i === "number" ? i : rand(4), null, 4500);
     },
@@ -3339,6 +3512,7 @@
     },
     crash: collasso,
     audio: function () { sbloccaAudio(); return !!audio.contesto; },
+    kaos: kaossToggle,
     volume: impostaVolume,
     caos: function (v) {
       if (v === undefined) return caos;
@@ -3359,6 +3533,8 @@
         fotoInBuffer: web.buffer.length,
         fotoCaricate: web.caricati,
         fotoFallite: web.errori,
+        gif: GIF_POOL.length,
+        kaos: audio.kaos,
         livello: livello,
         soglia: soglia(),
         camera: cameraStato,

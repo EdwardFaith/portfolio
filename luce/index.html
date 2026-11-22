@@ -6,14 +6,14 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#000000">
   <title>RGB (Baggata)</title>
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
   <!-- LA PROIEZIONE — quattro monitor indipendenti, separati dal nero.
-       Dentro ogni monitor c'è il canvas (la scomposizione RGB, le foto
-       vere pescate da Wikimedia, i fotogrammi rubati) e sopra uno
-       strato dove vivono i pop-up, le parole e i video pubblicitari. -->
+       Dentro ogni monitor c'è il canvas (la scomposizione RGB, i
+       fotogrammi rubati) e sopra uno strato dove vivono le GIF del
+       sito, i pop-up, le parole e i video pubblicitari. -->
   <main id="proiezione" aria-hidden="true">
     <div class="fila">
       <div class="monitor" id="m1">
@@ -100,12 +100,12 @@
       <img id="web-mini" alt="" width="96" height="54" hidden>
       <div class="volto-testi">
         <div id="volto-testo">volto: —</div>
-        <div id="web-testo" class="tenue">wikimedia: —</div>
+        <div id="web-testo" class="tenue">gif del sito: —</div>
       </div>
     </div>
 
     <div class="bottoni">
-      <button type="button" id="b-foto">Testa foto web random</button>
+      <button type="button" id="b-gif">GIF dal sito</button>
       <button type="button" id="b-occhi">Forza occhi X</button>
       <button type="button" id="b-uscita">Forza reazione uscita</button>
       <button type="button" id="b-frase">Forza frase</button>
@@ -114,11 +114,12 @@
       <button type="button" id="b-scatta">Scatta</button>
       <button type="button" id="b-glitch">Glitch</button>
       <button type="button" id="b-audio">Audio</button>
+      <button type="button" id="b-kaos">Kaos off</button>
       <button type="button" id="b-crash" class="pericolo">Forza crash</button>
     </div>
 
     <p class="nota">
-      D pannello · F schermo intero · R torna al bianco
+      D pannello · F schermo intero · R torna al bianco · K kaos
     </p>
     <p class="nota">
       <span id="camera">camera: —</span>
@@ -131,6 +132,6 @@
   <!-- il rilevatore di volti: se il CDN o il backend non rispondono,
        restano il metro del movimento e tutto il resto -->
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
-  <script src="script.js?v=6"></script>
+  <script src="script.js?v=7"></script>
 </body>
 </html>
