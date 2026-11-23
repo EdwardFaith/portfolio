@@ -1,0 +1,137 @@
+===========================================================
+  GODKILLER - PROTOCOLLO DEICIDA
+  Edward Industries, divisione contratti
+  (rifacimento di "Operation Godkiller" del portfolio)
+===========================================================
+
+DOVE VIVE QUESTO GIOCO
+----------------------
+Questa cartella e il banco di prova. La copia buona sta nel sito:
+
+  GitHub/portfolio/godkiller-deicida/
+
+Sul sito ci si arriva come sempre: museo -> strada -> portello del
+razzo -> Ministero della Carne -> il cabinet OPERAZIONE GODKILLER.
+Quel cabinet adesso apre questo gioco.
+
+E dentro questo gioco, sulla plancia della nave, c'e un secondo
+cabinato: quello fa girare il God Killer originale in pixel art
+(portfolio/godkiller/) dentro una cornice, con gli stessi comandi.
+Dal cabinato si esce con ESCI DAL CABINATO, con ESC, o col link
+"TORNA ALLA NAVE" in basso nel gioco vecchio.
+
+Il cabinato richiede http: il gioco originale usa i moduli
+JavaScript, che da file:// non partono. Sul sito funziona; aprendo
+questa cartella di prova con un doppio click il cabinato mostra un
+avviso invece del gioco.
+
+
+COME SI AVVIA
+-------------
+Doppio click su AVVIA.bat, oppure doppio click su index.html.
+Non serve installare niente: niente Node, niente Python, niente
+server. Tutti gli script sono classici (non moduli) proprio per
+poter girare anche aprendo il file dal disco.
+Consigliati Chrome o Edge. A tutto schermo (F11) si gioca meglio.
+
+
+CHE COSA E CAMBIATO RISPETTO ALL'ORIGINALE
+------------------------------------------
+Le meccaniche sono le stesse, la pelle e completamente nuova.
+
+GRAFICA
+  - Niente pixel art: i personaggi sono disegnati a vettori e
+    animati per procedura (gambe, braccia, busto, mantelli,
+    cappucci, mitrie). Nessun foglio di sprite.
+  - Luce dinamica vera: ogni lampada, braciere, insegna al neon
+    e lampo di sparo illumina davvero la scena; il buio e un
+    livello moltiplicato sopra il disegno.
+  - Campo visivo calcolato con un ventaglio di raggi: quello che
+    sta dietro ai muri si scurisce. Vedi solo quello che vedresti.
+  - Muri in rilievo con faccia frontale e ombra di contatto
+    sfumata, pavimenti procedurali diversi per ogni bioma,
+    sangue che si deposita e resta, bagliore, grana, vignettatura,
+    aberrazione cromatica quando prendi un colpo.
+  - Interfaccia in HTML: testo nitido a ogni risoluzione, terminali
+    e armeria navigabili col mouse.
+
+MECCANICHE CONSERVATE (e ritoccate)
+  - La mappa si distrugge. Ogni piastrella di muro ha punti vita:
+    martello, ascia, pala, mazza e fucile a pompa aprono varchi,
+    i barili esplosivi spalancano stanze intere, e col potere
+    SOVRACCARICO attraversi i muri di corsa.
+  - Vetrate che esplodono, porte che si sfondano a calci
+    stordendo chi sta dietro, arredi che si rompono.
+  - Guardie con cono visivo, udito, telegrafo prima di sparare,
+    ronde, richiami fra loro, stati ? e !.
+  - Esecuzioni: stendi con un colpo contundente o con l'arma
+    lanciata, poi SPAZIO per chiudere la pratica.
+  - Quattro poteri: STOP TEMPO, BLINK, DANZA MACABRA, SOVRACCARICO.
+  - ALLARME: finche nessuno ti vede il settore e illuminato solo da
+    candele, bracieri e insegne. Appena ti scoprono partono le sirene:
+    lampeggianti rossi in ogni stanza, fasci rotanti, tutto il settore
+    vira al sangue. Quando le guardie ti perdono, l'allarme rientra.
+  - MINIMAPPA DELLA TAGLIA in alto a destra: la pianta del settore,
+    dove sei tu, dove si muove il ricercato (marcato TAGLIA), dove
+    sta l'estrazione e chi ti sta dando la caccia. Si ridisegna da
+    sola quando abbatti un muro.
+  - Contratti procedurali infiniti, tre per livello, quattro biomi,
+    anomalie (corazzati, frenesia, blackout, titano, sciame),
+    crediti, armeria con armi, tute e poteri.
+  - PREZZI TARATI: si parte con 300 CR, il primo livello di contratti
+    ne rende circa 3.900 e bastano per due armi, una tuta e un potere.
+    Comprare tutto costa circa 54.000 CR, cioe cinque o sei livelli
+    giocati bene. Rifare un contratto gia chiuso rende poco (15% piu
+    un bonus punteggio tagliato a un quarto): non conviene macinare
+    sempre lo stesso incarico.
+  - I contratti ora stanno DENTRO il computer di bordo, come volevi:
+    scheda CONTRATTI, si clicca e si parte.
+  - Scheda DOTTRINA nel computer: il perche di tutto questo. Il cosmo
+    aperto, la paranoia di Dio, i celebranti come nodi operativi del
+    terrorismo religioso, il Protocollo Deicida e chi sei tu.
+  - Ogni settore e generato dal seme del contratto: pianta, luci,
+    ronde e anomalie non si ripetono mai. Stesso seme = stessa mappa,
+    cosi un contratto riprovato e sempre lo stesso posto.
+
+
+COMANDI
+-------
+  W A S D      muoversi
+  MOUSE        mirare
+  CLICK SX     colpire / sparare
+  CLICK DX     lanciare l'arma che hai in mano
+  SHIFT        scatto (brevemente invulnerabile)
+  SPAZIO       esecuzione su chi e stordito
+  E            raccogli arma / usa postazione / estrazione
+  Q            recupera munizioni dalle armi a terra
+  1 2 3 4      poteri
+  R            ricomincia il contratto
+  ESC          pausa
+  M            musica on/off
+
+
+COME SI GIOCA UN CONTRATTO
+--------------------------
+  1. Sulla nave, vai al COMPUTER DI BORDO (E) e apri CONTRATTI.
+  2. Clicca il contratto: vieni teletrasportato nel settore.
+  3. Trova il celebrante (la barra in alto a destra e la sua vita).
+  4. Quando e a terra, l'uscita si apre: torna al cerchio di
+     estrazione e premi E.
+  5. I crediti si spendono all'ARMERIA, la postazione rossa.
+
+
+STRUTTURA DEI FILE
+------------------
+  index.html            pagina e ordine di caricamento
+  css/ui.css            interfaccia
+  src/core/             utilita, input, audio sintetizzato, salvataggi
+  src/data/             tabelle armi, tute, poteri, listino
+  src/world/            generatore livelli, contratti, nave
+  src/render/           terreno, luce, personaggi, effetti, post
+  src/game/             giocatore, nemici, simulazione del combattimento
+  src/main.js           avvio, ciclo, camera, disegno
+  musica/               colonna sonora
+
+I salvataggi stanno nel localStorage del browser
+(chiave "godkiller-reborn-v1"). Dal menu principale c'e
+CANCELLA PROGRESSI se vuoi ricominciare da zero.

@@ -5,8 +5,10 @@
    portello rotondo di Memorie del Cosmo e non si finisce più dentro
    a un altro sito: si scende qui. È una sala d'attesa lunga e bassa,
    col cemento a vista, i tubi al soffitto, due panchine vuote e i
-   neon che sfarfallano. In mezzo alla sala, sotto una luce rosa, c'è
-   il cabinet: OPERAZIONE GODKILLER. Non parte da solo — nel museo
+   neon che sfarfallano. In mezzo alla sala, uno accanto all'altro,
+   ci sono i due cabinet della saga: GODKILLER 1 (Operazione
+   Godkiller, il capitolo in pixel) e GODKILLER 2 (Protocollo
+   Deicida, quello nuovo). Nessuno dei due parte da solo — nel museo
    niente parte da solo, e meno ancora un gioco: ci si mette davanti
    e si preme E, come davanti a un jukebox.
 
@@ -24,6 +26,38 @@
 
   var ROOM_W = 2600;      /* quanto è lunga la sala d'attesa */
   var FLOOR = 880;        /* dove appoggiano le zampe */
+
+  /* ============================================================
+     LA SAGA
+     Due capitoli, due cabinet, due pagine. Tutto quello che cambia
+     fra l'uno e l'altro sta qui: l'insegna, i colori del tubo, la
+     targhetta del ministero e la cartella del gioco. Il mobile e il
+     disegno sono gli stessi — e' una sala giochi, non due stanze.
+     ============================================================ */
+  var SAGA = {
+    1: {
+      n: 1, dir: "godkiller",
+      top: "OPERAZIONE", name: "GODKILLER",
+      screen: "GODKILLER", screenSub: "OPERAZIONE  MK-I",
+      plate: "GK-01", wall: "ARRUOLAMENTO · CABINET 01",
+      label: "GODKILLER 1 · OPERAZIONE GODKILLER",
+      toast: "GODKILLER 1 · gettone inserito · si comincia",
+      rgb: "255,45,117", soft: "255,120,170", warm: "255,214,232",
+      bg: "#140510", glow: "#ff2d75"
+    },
+    2: {
+      n: 2, dir: "godkiller-deicida",
+      top: "PROTOCOLLO DEICIDA", name: "GODKILLER II",
+      screen: "GODKILLER II", screenSub: "PROTOCOLLO  DEICIDA",
+      plate: "GK-02", wall: "ARRUOLAMENTO · CABINET 02",
+      label: "GODKILLER 2 · PROTOCOLLO DEICIDA",
+      toast: "GODKILLER 2 · gettone inserito · si comincia",
+      rgb: "56,232,255", soft: "150,240,255", warm: "222,246,255",
+      bg: "#041420", glow: "#38e8ff"
+    }
+  };
+
+  function saga(c) { return SAGA[(c && c.n) || 1] || SAGA[1]; }
 
   function S() { return M.SCENE; }
   function toast(m) { if (m && M.PANEL && M.PANEL.toast) M.PANEL.toast(m); }
@@ -48,8 +82,12 @@
        sotto ha la scaletta di casse (nessuno scende dal cielo) */
     g.up = { x: 96, y: f - 332, w: 208, h: 332, cx: 200 };
 
-    /* il cabinet: in mezzo alla sala, davanti alla parete */
-    g.cab = { x: 1136, y: f - 390, w: 240, h: 390, cx: 1256 };
+    /* i due cabinet della saga, uno accanto all'altro come in sala
+       giochi: il primo capitolo e il secondo. Stessa altezza, stesso
+       mobile, due insegne diverse. */
+    g.cab = { x: 1060, y: f - 390, w: 240, h: 390, cx: 1180, n: 1 };
+    g.cab2 = { x: 1380, y: f - 390, w: 240, h: 390, cx: 1500, n: 2 };
+    g.cabs = [g.cab, g.cab2];
 
     /* il monitor morto appeso alla parete, e la fila di panchine */
     g.mon = { x: 1900, y: f - 520, w: 232, h: 172 };
@@ -88,17 +126,17 @@
 
     /* ---- quello che è appeso al muro --------------------------- */
     wallWords(ctx, g);
-    poster(ctx, 940, f - 496, 148, 206, 3.1, "ARRUOLATI");
-    poster(ctx, 1470, f - 496, 148, 206, 7.7, "FIRMA QUI");
+    poster(ctx, 880, f - 496, 148, 206, 3.1, "ARRUOLATI");
+    poster(ctx, 1690, f - 496, 148, 206, 7.7, "FIRMA QUI");
     deadMonitor(ctx, g, t);
     rails(ctx, L0, R0, f);
 
     /* ---- le cose in piedi sul pavimento ------------------------ */
     for (i = 0; i < g.bench.length; i++) bench(ctx, g.bench[i], t, pal, i);
     hatchUp(ctx, g, t, pal);
-    /* davanti al cabinet: la linea di fila, e nessuno sopra */
+    /* davanti ai cabinet: la linea di fila, e nessuno sopra */
     floorMarks(ctx, g, t);
-    cabinet(ctx, g, t);
+    for (i = 0; i < g.cabs.length; i++) cabinet(ctx, g, g.cabs[i], t);
 
     /* ---- l'aria: la polvere la mette world.js, qui solo il buio
        che si mangia gli angoli della sala ------------------------ */
@@ -220,20 +258,28 @@
       ctx.stroke();
     }
 
-    /* il cono rosa sopra il cabinet: l'unica luce calda della sala */
-    S2.cone(ctx, g.cab.cx, 230, 470, f - 230, "#ff2d75", 0.15, 1);
+    /* i due coni sopra i cabinet: le uniche luci di colore in sala */
+    for (i = 0; i < g.cabs.length; i++) {
+      S2.cone(ctx, g.cabs[i].cx, 230, 420, f - 230, saga(g.cabs[i]).glow, 0.14, 1);
+    }
   }
 
   /* ---- le scritte sul muro ------------------------------------- */
   function wallWords(ctx, g) {
-    var S2 = S(), f = g.f;
+    var S2 = S(), f = g.f, i;
     S2.paint(ctx, "MINISTERO\nDELLA CARNE", 430, f - 560, 58, "rgba(226,220,206,0.30)",
       { weight: 900, lh: 1.05, seed: 11, alpha: 0.42 });
     S2.paint(ctx, "SALA D'ATTESA · SETTORE IX", 436, f - 466, 17, "rgba(226,220,206,0.26)",
       { weight: 700, drip: false, seed: 3 });
-    /* sopra il cabinet, il nome dell'operazione: piccolo, da ufficio */
-    S2.paint(ctx, "ARRUOLAMENTO · CABINET 01", g.cab.cx - 150, g.cab.y - 40, 19,
-      "rgba(255,45,117,0.42)", { weight: 800, drip: false, seed: 5 });
+    /* sopra i cabinet: la saga, e sotto la targa di ognuno */
+    S2.paint(ctx, "SAGA GODKILLER · DUE CAPITOLI",
+      (g.cab.cx + g.cab2.cx) / 2 - 196, g.cab.y - 96, 23,
+      "rgba(226,220,206,0.22)", { weight: 900, drip: false, seed: 13 });
+    for (i = 0; i < g.cabs.length; i++) {
+      var cw = g.cabs[i], sg = saga(cw);
+      S2.paint(ctx, sg.wall, cw.cx - 118, cw.y - 40, 15,
+        "rgba(" + sg.rgb + ",0.42)", { weight: 800, drip: false, seed: 5 + i * 4 });
+    }
     /* e in fondo, dove la sala non porta da nessuna parte */
     S2.paint(ctx, "VIETATO\nENTRARE", 2380, f - 470, 34, "rgba(226,220,206,0.20)",
       { weight: 900, lh: 1.04, seed: 21, alpha: 0.4, drip: false });
@@ -491,33 +537,40 @@
 
   /* ---- i segni sul pavimento: la fila, le frecce, le carte ----- */
   function floorMarks(ctx, g, t) {
-    var S2 = S(), f = g.f, c = g.cab, i;
-    /* la linea di fila davanti al cabinet: tratteggiata, consumata */
+    var S2 = S(), f = g.f, c = g.cab, c2 = g.cab2, i;
+    var qa = c.x - 190, qb = c2.x + c2.w + 190;
+    /* la linea di fila davanti ai cabinet: tratteggiata, consumata */
     ctx.save();
     ctx.strokeStyle = "rgba(212,178,58,0.28)";
     ctx.lineWidth = 5;
     ctx.setLineDash([26, 18]);
     ctx.beginPath();
-    ctx.moveTo(c.x - 210, f + 54);
-    ctx.lineTo(c.x + c.w + 210, f + 54);
+    ctx.moveTo(qa, f + 54);
+    ctx.lineTo(qb, f + 54);
     ctx.stroke();
     ctx.restore();
     /* le tacche: qui si aspetta, e non si supera */
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i * 80 < qb - qa - 60; i++) {
       ctx.fillStyle = "rgba(212,178,58,0.16)";
-      ctx.fillRect(c.x - 40 + i * 80, f + 76, 34, 4);
+      ctx.fillRect(qa + 30 + i * 80, f + 76, 34, 4);
     }
-    S2.paint(ctx, "CODA", c.x - 30, f + 118, 22, "rgba(212,178,58,0.22)",
+    S2.paint(ctx, "CODA", qa + 40, f + 118, 22, "rgba(212,178,58,0.22)",
       { weight: 900, drip: false, alpha: 0.6 });
-    /* la freccia che indica il cabinet */
+    /* il numero del capitolo, dipinto sul pavimento sotto ogni mobile */
+    for (i = 0; i < g.cabs.length; i++) {
+      var cw = g.cabs[i], sg = saga(cw);
+      S2.paint(ctx, i ? "II" : "I", cw.cx - 16, f + 126, 30,
+        "rgba(" + sg.rgb + ",0.26)", { weight: 900, drip: false, alpha: 0.8 });
+    }
+    /* la freccia che indica la coppia */
     ctx.strokeStyle = "rgba(212,178,58,0.20)";
     ctx.lineWidth = 6;
     ctx.beginPath();
-    ctx.moveTo(c.cx - 150, f + 150);
-    ctx.lineTo(c.cx - 30, f + 150);
-    ctx.moveTo(c.cx - 56, f + 136);
-    ctx.lineTo(c.cx - 30, f + 150);
-    ctx.lineTo(c.cx - 56, f + 164);
+    ctx.moveTo(qa - 150, f + 150);
+    ctx.lineTo(qa - 30, f + 150);
+    ctx.moveTo(qa - 56, f + 136);
+    ctx.lineTo(qa - 30, f + 150);
+    ctx.lineTo(qa - 56, f + 164);
     ctx.stroke();
 
     /* i fogli caduti: nessuno li ha raccolti */
@@ -536,18 +589,21 @@
       ctx.restore();
     }
 
-    /* la chiazza di luce del cabinet, sul pavimento */
-    var pg = ctx.createRadialGradient(c.cx, f + 30, 10, c.cx, f + 30, 320);
-    pg.addColorStop(0, "rgba(255,45,117,0.16)");
-    pg.addColorStop(1, "rgba(255,45,117,0)");
-    ctx.fillStyle = pg;
-    ctx.save();
-    ctx.translate(c.cx, f + 30);
-    ctx.scale(1, 0.3);
-    ctx.beginPath();
-    ctx.arc(0, 0, 320, 0, 6.3);
-    ctx.fill();
-    ctx.restore();
+    /* la chiazza di luce di ogni cabinet, sul pavimento */
+    for (i = 0; i < g.cabs.length; i++) {
+      var cl = g.cabs[i], sl = saga(cl);
+      var pg = ctx.createRadialGradient(cl.cx, f + 30, 10, cl.cx, f + 30, 290);
+      pg.addColorStop(0, "rgba(" + sl.rgb + ",0.16)");
+      pg.addColorStop(1, "rgba(" + sl.rgb + ",0)");
+      ctx.fillStyle = pg;
+      ctx.save();
+      ctx.translate(cl.cx, f + 30);
+      ctx.scale(1, 0.3);
+      ctx.beginPath();
+      ctx.arc(0, 0, 290, 0, 6.3);
+      ctx.fill();
+      ctx.restore();
+    }
   }
 
   /* ---- IL CABINET ---------------------------------------------- */
@@ -556,8 +612,8 @@
      gioco, con il suo schermo che va da solo, e sotto il monitor il
      pannello con la leva. Quello che si può fare lo scrive main.js
      (label), così è la stessa riga di tutto il museo. */
-  function cabinet(ctx, g, t) {
-    var S2 = S(), c = g.cab, f = g.f, i;
+  function cabinet(ctx, g, c, t) {
+    var S2 = S(), f = g.f, i, sg = saga(c);
     var x = c.x, w = c.w, top = c.y;
     var marY = top + 10, marH = 52;
     var bezY = marY + marH + 8, bezH = 196;
@@ -608,19 +664,21 @@
     var flick = 0.86 + 0.14 * Math.sin(t * 6.2) * Math.sin(t * 1.7);
     /* l'alone del marquee sul muro */
     var halo = ctx.createRadialGradient(c.cx, marY + 20, 10, c.cx, marY + 20, 220);
-    halo.addColorStop(0, "rgba(255,45,117," + (0.22 * flick).toFixed(3) + ")");
-    halo.addColorStop(1, "rgba(255,45,117,0)");
+    halo.addColorStop(0, "rgba(" + sg.rgb + "," + (0.22 * flick).toFixed(3) + ")");
+    halo.addColorStop(1, "rgba(" + sg.rgb + ",0)");
     ctx.fillStyle = halo;
     ctx.fillRect(c.cx - 240, marY - 180, 480, 400);
-    /* il nome, due righe */
+    /* il nome, due righe: sopra il sottotitolo, sotto il titolo */
     ctx.save();
     ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(255,120,170," + (0.55 * flick).toFixed(3) + ")";
-    ctx.font = "800 15px 'Space Grotesk', system-ui, sans-serif";
-    ctx.fillText("OPERAZIONE", c.cx, marY + 21);
-    ctx.fillStyle = "rgba(255,60,120," + (0.95 * flick).toFixed(3) + ")";
-    ctx.font = "900 21px 'Space Grotesk', system-ui, sans-serif";
-    ctx.fillText("GODKILLER", c.cx, marY + 43);
+    ctx.fillStyle = "rgba(" + sg.soft + "," + (0.55 * flick).toFixed(3) + ")";
+    ctx.font = "800 " + (sg.top.length > 12 ? 12 : 15) +
+      "px 'Space Grotesk', system-ui, sans-serif";
+    ctx.fillText(sg.top, c.cx, marY + 21);
+    ctx.fillStyle = "rgba(" + sg.rgb + "," + (0.95 * flick).toFixed(3) + ")";
+    ctx.font = "900 " + (sg.name.length > 10 ? 19 : 21) +
+      "px 'Space Grotesk', system-ui, sans-serif";
+    ctx.fillText(sg.name, c.cx, marY + 43);
     ctx.restore();
     /* il vetro davanti al marquee */
     var vg = ctx.createLinearGradient(0, marY, 0, marY + marH);
@@ -643,7 +701,7 @@
     ctx.fillRect(x + 18, bezY, w - 36, bezH);
 
     /* il vetro: qui dentro gira l'attract mode */
-    attract(ctx, scr, t);
+    attract(ctx, scr, t, sg);
 
     /* il riflesso sul vetro, che nessuno pulisce mai */
     var rg2 = ctx.createLinearGradient(scr.x, scr.y, scr.x + scr.w, scr.y + scr.h);
@@ -653,7 +711,7 @@
     ctx.fillStyle = rg2;
     ctx.fillRect(scr.x, scr.y, scr.w, scr.h);
     /* la cornice del vetro */
-    ctx.strokeStyle = "rgba(255,45,117,0.22)";
+    ctx.strokeStyle = "rgba(" + sg.rgb + ",0.22)";
     ctx.lineWidth = 1.6;
     ctx.strokeRect(scr.x, scr.y, scr.w, scr.h);
 
@@ -678,7 +736,7 @@
     ctx.moveTo(-58, 6);
     ctx.lineTo(-62, -16);
     ctx.stroke();
-    ctx.fillStyle = "#ff2d75";
+    ctx.fillStyle = sg.glow;
     ctx.beginPath(); ctx.arc(-62, -19, 7, 0, 6.3); ctx.fill();
     ctx.fillStyle = "rgba(255,255,255,0.35)";
     ctx.beginPath(); ctx.arc(-64, -21, 2.6, 0, 6.3); ctx.fill();
@@ -687,7 +745,7 @@
       var bx = 2 + i * 36;
       ctx.fillStyle = "rgba(0,0,0,0.6)";
       ctx.beginPath(); ctx.arc(bx, 4, 11, 0, 6.3); ctx.fill();
-      ctx.fillStyle = i ? "rgba(70,214,160,0.85)" : "rgba(255,45,117,0.90)";
+      ctx.fillStyle = i ? "rgba(70,214,160,0.85)" : "rgba(" + sg.rgb + ",0.90)";
       ctx.beginPath(); ctx.arc(bx, 2, 9, 0, 6.3); ctx.fill();
       ctx.fillStyle = "rgba(255,255,255,0.30)";
       ctx.beginPath(); ctx.arc(bx - 2.5, -1, 3.4, 0, 6.3); ctx.fill();
@@ -715,7 +773,7 @@
       ctx.fillRect(x + 22, panY + 142 + i * 12, w - 44, 4);
     }
     /* la targhetta del ministero, in fondo */
-    S2.paint(ctx, "GK-01", x + 24, f - 26, 16, "rgba(255,45,117,0.50)",
+    S2.paint(ctx, sg.plate, x + 24, f - 26, 16, "rgba(" + sg.rgb + ",0.50)",
       { weight: 900, drip: false, alpha: 0.9 });
     S2.paint(ctx, "PROPRIETÀ DEL MINISTERO", x + 76, f - 26, 9, "rgba(226,220,206,0.28)",
       { weight: 600, drip: false, alpha: 0.9 });
@@ -733,8 +791,9 @@
      campo di stelle e la riga che dice cosa fare. Non parte: aspetta.
      È la stessa cosa che il visitatore trova premendo E, e infatti
      lo schermo è l'unica parte della sala che si muove. */
-  function attract(ctx, s, t) {
+  function attract(ctx, s, t, sg) {
     var i;
+    sg = sg || SAGA[1];
     ctx.save();
     ctx.beginPath();
     ctx.rect(s.x, s.y, s.w, s.h);
@@ -743,7 +802,7 @@
     /* il nero del tubo */
     var g = ctx.createRadialGradient(s.x + s.w / 2, s.y + s.h / 2, 10,
       s.x + s.w / 2, s.y + s.h / 2, s.w * 0.8);
-    g.addColorStop(0, "#140510");
+    g.addColorStop(0, sg.bg || "#140510");
     g.addColorStop(1, "#050103");
     ctx.fillStyle = g;
     ctx.fillRect(s.x, s.y, s.w, s.h);
@@ -753,21 +812,22 @@
       var sx = s.x + ((i * 137.5 + t * (12 + (i % 5) * 9)) % s.w);
       var sy = s.y + ((i * 61.7 + Math.sin(i + t * 0.4) * 6) % s.h);
       var sr = 0.8 + (i % 3) * 0.5;
-      ctx.fillStyle = "rgba(255," + (150 + (i % 4) * 20) + ",200," +
+      ctx.fillStyle = "rgba(" + sg.soft + "," +
         (0.18 + (i % 5) * 0.09).toFixed(2) + ")";
       ctx.fillRect(sx, sy, sr, sr);
     }
 
-    /* il titolo */
+    /* il titolo del capitolo */
+    var tf = sg.screen.length > 10 ? 21 : 26;
     ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(255,60,120,0.30)";
-    ctx.font = "900 26px 'Space Grotesk', system-ui, sans-serif";
-    ctx.fillText("GODKILLER", s.x + s.w / 2 + 2, s.y + 62);
-    ctx.fillStyle = "rgba(255,214,232,0.96)";
-    ctx.fillText("GODKILLER", s.x + s.w / 2, s.y + 60);
-    ctx.fillStyle = "rgba(255,45,117,0.72)";
+    ctx.fillStyle = "rgba(" + sg.rgb + ",0.30)";
+    ctx.font = "900 " + tf + "px 'Space Grotesk', system-ui, sans-serif";
+    ctx.fillText(sg.screen, s.x + s.w / 2 + 2, s.y + 62);
+    ctx.fillStyle = "rgba(" + sg.warm + ",0.96)";
+    ctx.fillText(sg.screen, s.x + s.w / 2, s.y + 60);
+    ctx.fillStyle = "rgba(" + sg.rgb + ",0.72)";
     ctx.font = "700 11px 'Space Grotesk', system-ui, sans-serif";
-    ctx.fillText("OPERAZIONE  MK-II", s.x + s.w / 2, s.y + 78);
+    ctx.fillText(sg.screenSub, s.x + s.w / 2, s.y + 78);
 
     /* la riga che dice cosa fare: accesa e spenta */
     var on = (t % 1.6) < 1.15 ? 1 : 0.12;
@@ -780,7 +840,7 @@
 
     /* il punteggio più alto, che è di nessuno */
     ctx.textAlign = "left";
-    ctx.fillStyle = "rgba(255,214,232,0.34)";
+    ctx.fillStyle = "rgba(" + sg.warm + ",0.34)";
     ctx.font = "700 9px ui-monospace, 'Courier New', monospace";
     ctx.fillText("HI 0000000", s.x + 8, s.y + 14);
 
@@ -790,7 +850,7 @@
       ctx.fillRect(s.x, s.y + i, s.w, 1.2);
     }
     var breath = 0.05 + 0.03 * Math.sin(t * 3.1);
-    ctx.fillStyle = "rgba(255,120,170," + breath.toFixed(3) + ")";
+    ctx.fillStyle = "rgba(" + sg.soft + "," + breath.toFixed(3) + ")";
     ctx.fillRect(s.x, s.y, s.w, s.h);
 
     ctx.restore();
@@ -807,27 +867,33 @@
   function targetUp(g) {
     return { mn: "up", x: g.up.x, y: g.up.y, w: g.up.w, h: g.up.h };
   }
-  function targetCab(g) {
-    return { mn: "cab", x: g.cab.x, y: g.cab.y, w: g.cab.w, h: g.cab.h };
+  function targetCab(c) {
+    return { mn: "cab", which: c.n, x: c.x, y: c.y, w: c.w, h: c.h };
   }
 
   MN.pick = function (room, cx, far) {
     if (!room || !room.mn) return null;
-    var g = geom(room), best = null, d;
+    var g = geom(room), best = null, d, i;
     /* il portello: la porta di casa, e si apre da vicino */
     d = far(g.up.cx);
     if (d < 200) best = { d: d, t: targetUp(g) };
-    /* il cabinet: è una macchina da gioco, e si tocca col naso */
-    d = far(g.cab.cx);
-    if (d < 230 && (!best || d < best.d)) best = { d: d, t: targetCab(g) };
+    /* i cabinet: sono macchine da gioco, e si toccano col naso.
+       Stando in mezzo ai due vince quello piu vicino. */
+    for (i = 0; i < g.cabs.length; i++) {
+      d = far(g.cabs[i].cx);
+      if (d < 190 && (!best || d < best.d)) best = { d: d, t: targetCab(g.cabs[i]) };
+    }
     return best;
   };
 
   MN.hitAt = function (room, wx, wy) {
     if (!room || !room.mn) return null;
-    var g = geom(room);
-    if (wx > g.cab.x - 34 && wx < g.cab.x + g.cab.w + 34 &&
-      wy > g.cab.y - 40 && wy < g.f + 60) return targetCab(g);
+    var g = geom(room), i;
+    for (i = 0; i < g.cabs.length; i++) {
+      var c = g.cabs[i];
+      if (wx > c.x - 24 && wx < c.x + c.w + 24 &&
+        wy > c.y - 40 && wy < g.f + 60) return targetCab(c);
+    }
     if (wx > g.up.x - 46 && wx < g.up.x + g.up.w + 46 &&
       wy > g.up.y - 30 && wy < g.f + 50) return targetUp(g);
     return null;
@@ -840,7 +906,8 @@
       return "PORTA DEL RAZZO · " + (touch ? "TOCCA PER RISALIRE" : "PREMI E PER RISALIRE");
     }
     if (t.mn === "cab") {
-      return "OPERAZIONE GODKILLER · " + (touch ? "TOCCA PER GIOCARE" : "PREMI E PER GIOCARE");
+      var sg = SAGA[t.which] || SAGA[1];
+      return sg.label + " · " + (touch ? "TOCCA PER GIOCARE" : "PREMI E PER GIOCARE");
     }
     return "";
   };
@@ -849,12 +916,13 @@
   /* Il gioco non parte entrando nella sala: parte da qui, e solo da
      qui. Un gettone, la riga che si accende, e la pagina del gioco:
      è il gesto di premere il tasto di un cabinet, non un redirect. */
-  function gioca() {
+  function gioca(which) {
     var loc = root.location, ok = false;
-    toast("OPERAZIONE GODKILLER · gettone inserito · si comincia");
-    if (M.COSMO && M.COSMO.openGodkiller) ok = M.COSMO.openGodkiller();
+    var sg = SAGA[which] || SAGA[1];
+    toast(sg.toast);
+    if (M.COSMO && M.COSMO.openGodkiller) ok = M.COSMO.openGodkiller(sg.n);
     if (!ok && loc && loc.href) {
-      try { loc.href = "godkiller/index.html"; ok = true; } catch (e) { ok = false; }
+      try { loc.href = sg.dir + "/index.html"; ok = true; } catch (e) { ok = false; }
     }
     return ok;
   }
@@ -899,7 +967,7 @@
   MN.interact = function (t) {
     if (!t || !t.mn) return;
     if (t.mn === "up") { saliNelRazzo(); return; }
-    if (t.mn === "cab") { gioca(); return; }
+    if (t.mn === "cab") { gioca(t.which); return; }
   };
 
   /* ============================================================
@@ -918,8 +986,8 @@
       hidden: true,                /* la mappa del museo non la elenca */
       title: { it: "IL MINISTERO DELLA CARNE", en: "THE MINISTRY OF FLESH" },
       line: {
-        it: "la sala d'attesa dell'operazione: panchine vuote, un cabinet acceso e nessuno in fila.",
-        en: "the operation's waiting room: empty benches, one lit cabinet, nobody in line."
+        it: "la sala d'attesa dell'operazione: panchine vuote, due cabinet accesi e nessuno in fila.",
+        en: "the operation's waiting room: empty benches, two lit cabinets, nobody in line."
       },
       feature: null,
       kind: "cemento",

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GODKILLER — PROTOCOLLO DEICIDA // Edward Industries</title>
+  <meta name="theme-color" content="#06070b">
+  <link rel="stylesheet" href="css/ui.css">
+</head>
+
+<body>
+  <div id="shell">
+    <div id="stage">
+      <canvas id="game"></canvas>
+
+      <!-- ============ interfaccia (DOM, testo nitido) ============ -->
+      <div id="ui">
+
+        <!-- HUD di missione -->
+        <div id="hud" class="layer">
+          <div class="hud-tl">
+            <div id="hud-life" class="pips"></div>
+            <div id="hud-armor" class="pips armor"></div>
+            <div id="hud-suit" class="micro"></div>
+          </div>
+
+          <div class="hud-tr">
+            <div id="hud-objective" class="objective">
+              <span class="obj-label">BERSAGLIO</span>
+              <span id="hud-boss" class="obj-name">—</span>
+              <div class="obj-bar"><i id="hud-bossbar"></i></div>
+            </div>
+            <div id="hud-stats" class="micro right"></div>
+            <canvas id="minimap" class="minimap" width="420" height="270"></canvas>
+          </div>
+
+          <div class="hud-bl">
+            <div id="hud-weapon" class="weapon">
+              <span id="hud-wname">PUGNI</span>
+              <span id="hud-wammo" class="ammo"></span>
+            </div>
+            <div id="hud-perks" class="perks"></div>
+          </div>
+
+          <div class="hud-br">
+            <div id="hud-combo" class="combo"></div>
+            <div id="hud-score" class="score">0</div>
+          </div>
+
+          <div id="hud-alert" class="alert">ALLARME</div>
+          <div id="hud-prompt" class="prompt"></div>
+          <div id="hud-toast" class="toast"></div>
+        </div>
+
+        <!-- banner cinematico -->
+        <div id="banner" class="layer banner">
+          <div id="banner-title"></div>
+          <div id="banner-sub"></div>
+        </div>
+
+        <!-- titolo -->
+        <div id="screen-title" class="layer panel-screen">
+          <div class="title-wrap">
+            <div class="brand">EDWARD INDUSTRIES<span>divisione contratti</span></div>
+            <h1>GODKILLER</h1>
+            <h2>protocollo deicida</h2>
+            <p class="pitch">
+              Sei il soldato che la Edward Industries manda dove la fede sta rinascendo.
+              Entra. Spegni il culto. Firma col sangue del celebrante.
+            </p>
+            <div class="btn-row">
+              <button class="btn big" data-act="start">ENTRA IN SERVIZIO</button>
+              <button class="btn ghost" data-act="howto">COMANDI</button>
+              <button class="btn ghost danger" data-act="wipe">CANCELLA PROGRESSI</button>
+            </div>
+            <div class="legal">v2 · motore riscritto · nessuna installazione</div>
+          </div>
+        </div>
+
+        <!-- comandi -->
+        <div id="screen-howto" class="layer panel-screen">
+          <div class="sheet">
+            <h3>COMANDI</h3>
+            <div class="keygrid" id="keygrid"></div>
+            <div class="btn-row"><button class="btn" data-act="close-howto">CHIUDI</button></div>
+          </div>
+        </div>
+
+        <!-- computer di bordo: SISTEMA / CONTRATTI / ARSENALE / DIARIO -->
+        <div id="screen-computer" class="layer panel-screen term">
+          <div class="sheet wide">
+            <header class="term-head">
+              <div class="term-id">EDW-01 «GODKILLER» <em>computer di bordo</em></div>
+              <div class="term-cr"><span id="term-credits">0</span> CR</div>
+            </header>
+            <nav class="tabs" id="term-tabs"></nav>
+            <div class="term-body" id="term-body"></div>
+            <footer class="term-foot">
+              <span>A/D o click cambiano scheda · ESC torna alla nave</span>
+              <button class="btn small" data-act="close-computer">ESCI</button>
+            </footer>
+          </div>
+        </div>
+
+        <!-- armeria -->
+        <div id="screen-shop" class="layer panel-screen term">
+          <div class="sheet wide">
+            <header class="term-head shop">
+              <div class="term-id">ARMERIA <em>pagamento in crediti</em></div>
+              <div class="term-cr"><span id="shop-credits">0</span> CR</div>
+            </header>
+            <nav class="tabs" id="shop-tabs"></nav>
+            <div class="term-body grid" id="shop-body"></div>
+            <footer class="term-foot">
+              <span id="shop-msg">Equipaggia prima di partire: in missione non si torna indietro.</span>
+              <button class="btn small" data-act="close-shop">ESCI</button>
+            </footer>
+          </div>
+        </div>
+
+        <!-- cabinato: il vecchio Operation Godkiller dentro la nave -->
+        <div id="screen-arcade" class="layer panel-screen">
+          <div class="cab">
+            <header class="cab-head">
+              <span class="cab-title">OPERATION GODKILLER<em>cabinato · edizione originale 2171</em></span>
+              <button class="btn small" data-act="close-arcade">ESCI DAL CABINATO</button>
+            </header>
+            <div class="cab-screen">
+              <iframe id="arcade-frame" title="Operation Godkiller" allow="autoplay"></iframe>
+              <div id="arcade-note" class="cab-note">
+                <b>IL CABINATO NON SI ACCENDE QUI</b>
+                <span>Il gioco originale usa i moduli JavaScript: partono solo via http.
+                  Apri questa pagina dal sito (o da un server locale) e il cabinato si accende.</span>
+              </div>
+            </div>
+            <footer class="cab-foot">
+              <span><kbd>WASD</kbd> muovi · <kbd>MOUSE</kbd> mira e spara · <kbd>SHIFT</kbd> scatto ·
+                <kbd>SPAZIO</kbd> esecuzione · <kbd>E</kbd> raccogli / usa · <kbd>DESTRO</kbd> lancia ·
+                <kbd>1-4</kbd> poteri · <kbd>R</kbd> ricomincia</span>
+            </footer>
+          </div>
+        </div>
+
+        <!-- pausa -->
+        <div id="screen-pause" class="layer panel-screen">
+          <div class="sheet narrow">
+            <h3>PAUSA</h3>
+            <div class="btn-row col">
+              <button class="btn" data-act="resume">RIPRENDI</button>
+              <button class="btn ghost" data-act="retry">RICOMINCIA CONTRATTO</button>
+              <button class="btn ghost" data-act="abort">ABBANDONA E TORNA ALLA NAVE</button>
+            </div>
+            <div class="mini-settings">
+              <label><input type="checkbox" id="opt-music" checked> musica</label>
+              <label><input type="checkbox" id="opt-sfx" checked> effetti</label>
+              <label><input type="checkbox" id="opt-bloom" checked> bagliore</label>
+              <label><input type="checkbox" id="opt-blood" checked> sangue</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- esito -->
+        <div id="screen-result" class="layer panel-screen">
+          <div class="sheet">
+            <h3 id="res-title">CONTRATTO CHIUSO</h3>
+            <div id="res-lines" class="res-lines"></div>
+            <div class="btn-row" id="res-actions"></div>
+          </div>
+        </div>
+
+        <a id="tosite" href="../museo.html?stanza=ministero&amp;x=1256">&larr; IL MINISTERO DELLA CARNE</a>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="src/core/util.js"></script>
+  <script src="src/core/input.js"></script>
+  <script src="src/core/audio.js"></script>
+  <script src="src/core/save.js"></script>
+  <script src="src/data/weapons.js"></script>
+  <script src="src/data/loadout.js"></script>
+  <script src="src/world/generator.js"></script>
+  <script src="src/world/contracts.js"></script>
+  <script src="src/render/terrain.js"></script>
+  <script src="src/render/props.js"></script>
+  <script src="src/render/minimap.js"></script>
+  <script src="src/render/lighting.js"></script>
+  <script src="src/render/actors.js"></script>
+  <script src="src/render/fx.js"></script>
+  <script src="src/render/post.js"></script>
+  <script src="src/game/player.js"></script>
+  <script src="src/game/enemy.js"></script>
+  <script src="src/game/combat.js"></script>
+  <script src="src/world/hub.js"></script>
+  <script src="src/ui/screens.js"></script>
+  <script src="src/main.js"></script>
+</body>
+
+</html>

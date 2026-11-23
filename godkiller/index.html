@@ -21,6 +21,24 @@
     <a id="back" href="../museo.html?stanza=ministero&amp;x=1256">← IL MINISTERO DELLA CARNE</a>
   </div>
 
+  <script>
+    /* Quando questa pagina gira dentro il cabinato della nave
+       (Protocollo Deicida), il link di ritorno non deve portare al
+       museo: deve spegnere il cabinato e riconsegnare il giocatore
+       alla plancia. Fuori dall'iframe non cambia niente. */
+    (function () {
+      if (window.self === window.top) return;
+      var back = document.getElementById('back');
+      if (!back) return;
+      back.textContent = '← TORNA ALLA NAVE';
+      back.href = '#';
+      back.addEventListener('click', function (e) {
+        e.preventDefault();
+        try { window.parent.postMessage('gk-arcade-exit', '*'); } catch (err) { /* ignora */ }
+      });
+    }());
+  </script>
+
   <script type="module" src="src/main.js"></script>
   <noscript>
     <div style="position:fixed;inset:0;display:grid;place-items:center;background:#07080a;color:#ff2d75;font-family:monospace;padding:2rem;text-align:center;">

@@ -419,10 +419,14 @@
      e' l'arena a ondate del museo, e si apre sempre — nessuna chiave,
      nessun sigillo. Il ministero si apre dall'altra parte: dal
      portello rotondo del razzo, in strada. */
-  function openGodkiller() {
+  /* La saga ha due capitoli e due cartelle: 1 e' il vecchio
+     Operation Godkiller, 2 e' Protocollo Deicida. Senza numero si
+     apre il secondo, che e' quello in vetrina. */
+  function openGodkiller(which) {
     var loc = root.location;
     if (!loc || !loc.href) return false;
-    try { loc.href = "godkiller/index.html"; return true; } catch (e) { return false; }
+    var dir = (Number(which) === 1) ? "godkiller" : "godkiller-deicida";
+    try { loc.href = dir + "/index.html"; return true; } catch (e) { return false; }
   }
   CZ.openGodkiller = openGodkiller;
 
