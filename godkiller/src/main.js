@@ -11,7 +11,7 @@ import {
   drawCharacter, drawWeaponPickup, drawCorpse, muzzlePoint, SILHOUETTE,
 } from './engine/sprites.js';
 import {
-  drawMuzzleFlash, drawSlashArc, drawStunFX, drawAimLine,
+  drawMuzzleFlash, drawSlashArc, drawStunFX, drawAimLine, drawDaisy,
 } from './engine/animations.js';
 import {
   createGlitch, updateGlitch, drawGlitch, drawTimeStopVeil,
@@ -25,10 +25,13 @@ import {
   createWorld, updateWorld, drawBullets, drawParticles,
 } from './systems/combat.js';
 import { weaponLabel, wspec } from './entities/weapons.js';
-import { loadSave } from './systems/save.js';
+import { loadSave, writeSave } from './systems/save.js';
 import {
   createShopUI, drawShop, shopMove, shopTab, shopConfirm, applyLoadout,
 } from './systems/shop.js';
+import {
+  createComputerUI, drawComputer, computerMove,
+} from './systems/computer.js';
 import {
   ensureBook, tierContracts, drawContractBook, bookUI,
   completeContract, levelOptions,
@@ -55,7 +58,10 @@ const input = new Input(canvas);
 const audio = new AudioEngine();
 
 // schermate: hub -> pannelli -> missione -> crediti
-const SCENE = { HUB: 'hub', SHOP: 'shop', CONTRACTS: 'contracts', MISSION: 'mission' };
+const SCENE = {
+  HUB: 'hub', SHOP: 'shop', CONTRACTS: 'contracts',
+  COMPUTER: 'computer', MISSION: 'mission',
+};
 
 const state = {
   scene: SCENE.HUB,
@@ -63,6 +69,7 @@ const state = {
   seed: DEBUG_SEED || 'blocco-1',
   hub: null,
   shopUI: createShopUI(),
+  computerUI: createComputerUI(),
   contractUI: bookUI(),
   contract: null,
   result: null,
@@ -143,12 +150,19 @@ function goHub(message) {
 }
 
 function openPanel(term) {
-  if (term.id === 'shop' || term.id === 'armory') {
+  if (!term) return;
+  if (term.id === 'shop') {
     state.scene = SCENE.SHOP;
-    state.shopUI.tab = term.tab;
+    state.shopUI.tab = 0;
     state.shopUI.sel = 0;
-    state.shopUI.msg = term.id === 'armory' ? 'Reparto ARMI.' : 'Reparto TUTE.';
-    state.shopUI.msgT = 2;
+    state.shopUI.msg = 'Armi, tute e poteri: si paga in crediti.';
+    state.shopUI.msgT = 2.4;
+    audio.play('ui', { vol: 0.8 });
+  } else if (term.id === 'computer') {
+    state.scene = SCENE.COMPUTER;
+    state.computerUI.page = 0;
+    state.computerUI.msg = 'Terminale di bordo: W/S cambiano pagina.';
+    state.computerUI.msgT = 2.6;
     audio.play('ui', { vol: 0.8 });
   } else if (term.id === 'contracts') {
     state.scene = SCENE.CONTRACTS;
@@ -157,7 +171,13 @@ function openPanel(term) {
     state.contractUI.msgT = 0;
     audio.play('ui', { vol: 0.8 });
   } else if (term.id === 'teleport') {
-    startMission(quickContract());
+    const next = quickContract();
+    if (!next) {
+      hubMsg(state.hub, 'NESSUN CONTRATTO APERTO: GUARDA IL REGISTRO.', '#ff2d75');
+      audio.play('deny', { vol: 0.8 });
+      return;
+    }
+    startMission(next);
   }
 }
 
@@ -166,10 +186,21 @@ function currentContracts() {
   return tierContracts(book, book.tier);
 }
 
-// il teletrasporto sceglie il primo incarico ancora aperto
+// il teletrasporto sceglie il primo incarico ancora aperto.
+// Se il livello è tutto archiviato il registro sale di livello: il
+// teletrasporto non riapre MAI un contratto già chiuso (era il bug
+// che faceva partire la missione su un incarico archiviato).
 function quickContract() {
-  const list = currentContracts();
-  return list.find((c) => !c.cleared) || list[list.length - 1];
+  const book = ensureBook(state.save);
+  let list = tierContracts(book, book.tier);
+  let open = list.filter((c) => !c.cleared);
+  if (!open.length) {
+    book.tier += 1;
+    writeSave();
+    list = tierContracts(book, book.tier);
+    open = list.filter((c) => !c.cleared);
+  }
+  return open.length ? open[0] : null;
 }
 
 function startMission(contract) {
@@ -185,7 +216,9 @@ function startMission(contract) {
 }
 
 function closePanel() {
-  const msg = state.scene === SCENE.SHOP ? state.shopUI.msg : state.contractUI.msg;
+  const msg = state.scene === SCENE.SHOP ? state.shopUI.msg
+    : state.scene === SCENE.COMPUTER ? state.computerUI.msg
+    : state.contractUI.msg;
   goHub(msg);
 }
 
@@ -201,6 +234,24 @@ function updateShop(dt) {
     const res = shopConfirm(ui, state.save);
     audio.play(res.ok ? 'buy' : 'deny', { vol: 0.85 });
     if (state.hub) applyLoadout(state.hub.player, state.save, true);
+  }
+}
+
+function updateComputerScene(dt) {
+  const ui = state.computerUI;
+  ui.msgT = Math.max(0, ui.msgT - dt);
+  if (input.consume('Escape') || input.consume('Backspace')
+    || input.consume('KeyE') || input.consume('Enter')) {
+    closePanel();
+    return;
+  }
+  if (input.consume('KeyW') || input.consume('ArrowUp')) {
+    computerMove(ui, -1);
+    audio.play('ui', { vol: 0.6 });
+  }
+  if (input.consume('KeyS') || input.consume('ArrowDown')) {
+    computerMove(ui, 1);
+    audio.play('ui', { vol: 0.6 });
   }
 }
 
@@ -390,6 +441,10 @@ function tick(now) {
       updateContracts(dt);
       input.endFrame();
       break;
+    case SCENE.COMPUTER:
+      updateComputerScene(dt);
+      input.endFrame();
+      break;
     default:
       updateHubScene(dt);
       input.endFrame();
@@ -481,6 +536,15 @@ function drawMission() {
       continue;
     }
     if (e.hurtT > 0) v.alpha = 0.85;
+    if (e.danceT > 0) {
+      // margherita: sagoma nera che balla per cinque secondi,
+      // poi il corpo crolla (ramo e.dying qui sopra)
+      v.style = SILHOUETTE;
+      v.alpha = 1;
+      drawCharacter(g, v);
+      drawDaisy(g, e.x, e.y, t, e.danceT);
+      continue;
+    }
     drawCharacter(g, v);
     if (e.pose && e.pose.muzzle > 0.55) {
       const mz = muzzlePoint(v, 12);
@@ -546,6 +610,8 @@ function draw() {
     drawShop(g, state.shopUI, state.save, VIEW_W, VIEW_H);
   } else if (state.scene === SCENE.CONTRACTS) {
     drawContractBook(g, state.contractUI, state.save, VIEW_W, VIEW_H, state.time);
+  } else if (state.scene === SCENE.COMPUTER) {
+    drawComputer(g, state.computerUI, state.save, VIEW_W, VIEW_H, state.time);
   }
   drawGlitch(g, state.glitch, canvas, VIEW_W, VIEW_H);
   drawCursor();

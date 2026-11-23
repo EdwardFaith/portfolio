@@ -2231,6 +2231,18 @@
     var x0 = cam.x, x1 = cam.x + cam.w;
     var i, p;
 
+    /* ---- il ministero della carne: si dipinge da sé -------------
+       La sala d'attesa dietro il portello del razzo non è un archetipo
+       del museo: il cemento, i tubi, le panchine e il cabinet stanno
+       tutti in ministero.js. Qui si passa il contesto e basta — come
+       per la strada delle memorie, che sta in cosmo.js. */
+    if (room.mn) {
+      if (M.MINISTERO && M.MINISTERO.paint) {
+        M.MINISTERO.paint(ctx, room, t, cam, x0, x1, H);
+      }
+      return;
+    }
+
     /* ---- il fondo: cielo, muro, silicio, a seconda dell'archetipo */
     if (room.arch === "outdoor") {
       /* la home non è "una sala all'aperto": è il cinema post-atomico */
@@ -6364,6 +6376,13 @@
       order[i].next = "hub";
       order[i].prev = "hub";
     }
+    /* ---- il ministero della carne --------------------------------
+       Non è una porta del corridoio e non ha un numero nel sito: si
+       scende dal portello del razzo, in strada. Sta in elenco perché
+       `go("ministero")` lo trova e perché la sala deve esistere, ma
+       resta fuori dalle porte del corridoio e dalla mappa (hidden). */
+    if (M.MINISTERO && M.MINISTERO.build) rooms.push(M.MINISTERO.build());
+
     W.rooms = rooms;
     W.byId = {};
     for (i = 0; i < rooms.length; i++) W.byId[rooms[i].id] = rooms[i];

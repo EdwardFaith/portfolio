@@ -417,6 +417,8 @@
     if (t.cz && M.COSMO && M.COSMO.label) return M.COSMO.label(t) || "";
     if (t.cam && M.CAMERA && M.CAMERA.label) return M.CAMERA.label(t) || "";
     if (t.arsenal && M.ARSENAL && M.ARSENAL.label) return M.ARSENAL.label(t) || "";
+    /* il ministero della carne: il portello per risalire e il cabinet */
+    if (t.mn && M.MINISTERO && M.MINISTERO.label) return M.MINISTERO.label(t) || "";
     if (t.foglio) return (M.FOWTEXT && M.FOWTEXT.door && M.FOWTEXT.door.label) || "entra nel foglio";
     if (t.exit) {
       /* sotto EXIT non c'è più nessuna didascalia: la scritta è la
@@ -1150,6 +1152,12 @@
     /* la sala d'armi: staccare un'arma, aprire una porta, il cinema */
     if (target.arsenal) {
       if (M.ARSENAL && M.ARSENAL.interact) M.ARSENAL.interact(target);
+      return;
+    }
+    /* la sala d'attesa del ministero: il portello del razzo e il
+       cabinet — il gioco si avvia solo da lì, con E */
+    if (target.mn) {
+      if (M.MINISTERO && M.MINISTERO.interact) M.MINISTERO.interact(target);
       return;
     }
     if (target.talk === "clown") { openClown(); return; }
@@ -2216,6 +2224,8 @@
     for (i = 0; i < src.length; i++) {
       var rm = src[i];
       if (rm.id === "hub" || rm.id === "lucidus") continue;
+      /* il ministero non è una tappa del museo: si entra dal razzo */
+      if (rm.hidden) continue;
       list.push({ id: rm.id, num: rm.num, title: rm.title });
     }
     for (i = 0; i < list.length; i++) if (room && list[i].id === room.id) cur = i;
@@ -2564,6 +2574,8 @@
     if (room.cam && M.CAMERA && M.CAMERA.hitAt && M.CAMERA.hitAt(room, wx, wy)) return true;
     if (room.cz && M.COSMO && M.COSMO.hitAt && M.COSMO.hitAt(room, wx, wy)) return true;
     if (room.ars && M.ARSENAL && M.ARSENAL.hitAt && M.ARSENAL.hitAt(room, wx, wy)) return true;
+    /* il ministero: il dito sul portello e sul cabinet */
+    if (room.mn && M.MINISTERO && M.MINISTERO.hitAt && M.MINISTERO.hitAt(room, wx, wy)) return true;
     if (room && room.id === "soffitta") {
       if (Math.abs(wx - 240) < 65 && wy >= (room.floorY || 880) - 70 && wy <= (room.floorY || 880) + 40) return true;
     }
@@ -2723,6 +2735,18 @@
       if (aht) {
         if (dxw(aht.x + aht.w / 2) < 320) {
           if (M.ARSENAL.interact) M.ARSENAL.interact(aht);
+          return;
+        }
+      }
+    }
+    /* il ministero: il portello del razzo e il cabinet, toccati col
+       dito ma solo da vicino — il cabinet è una macchina, non un
+       cartello: da lontano non si gioca */
+    if (room.mn && M.MINISTERO && M.MINISTERO.hitAt) {
+      var mht = M.MINISTERO.hitAt(room, wx, wy);
+      if (mht) {
+        if (dxw(mht.x + mht.w / 2) < 340) {
+          if (M.MINISTERO.interact) M.MINISTERO.interact(mht);
           return;
         }
       }
@@ -3094,6 +3118,11 @@
     if (M.ARSENAL && M.ARSENAL.pick) {
       var arp = M.ARSENAL.pick(room, cx, far);
       if (arp && arp.d < bd) { bd = arp.d; best = arp.t; }
+    }
+    /* il ministero della carne: il portello del razzo e il cabinet */
+    if (M.MINISTERO && M.MINISTERO.pick) {
+      var mnp = M.MINISTERO.pick(room, cx, far);
+      if (mnp && mnp.d < bd) { bd = mnp.d; best = mnp.t; }
     }
     if (M.SOFFITTA && M.SOFFITTA.pick) {
       var sfp = M.SOFFITTA.pick(room, cx, far);

@@ -197,6 +197,24 @@ export function drawWeapon(g, kind, x, y, angle, o) {
       g.fillStyle = 'rgba(255,255,255,0.5)';
       g.fillRect(7.4, -0.6, 4.2, 0.7);
       break;
+    case 'pala':
+      // pala da trincea: manico di legno e lama d'acciaio
+      g.fillStyle = '#3a2a1d';
+      g.fillRect(-2.6, -0.9, 11.2, 1.8);
+      g.fillStyle = metal;
+      g.beginPath();
+      g.moveTo(8.6, -2.1);
+      g.lineTo(13.6, -1.2);
+      g.lineTo(14.2, 0);
+      g.lineTo(13.6, 1.2);
+      g.lineTo(8.6, 2.1);
+      g.closePath();
+      g.fill();
+      g.fillStyle = 'rgba(255,255,255,0.45)';
+      g.fillRect(9.4, -1.2, 3.6, 0.6);
+      g.fillStyle = '#241a14';
+      g.fillRect(-3.2, -1.6, 1.8, 3.2);
+      break;
     case 'sledge':
       g.fillStyle = '#241a14';
       g.fillRect(-2.8, -1.1, 11.6, 2.2);

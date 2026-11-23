@@ -407,7 +407,39 @@ export function drawStunFX(g, x, y, t, color) {
   g.restore();
 }
 
-// linea di mira telegrafica dei nemici armati
+// la margherita della Danza Macabra: petali bianchi che girano
+// intorno alla sagoma nera per tutti i secondi del ballo
+export function drawDaisy(g, x, y, t, left) {
+  g.save();
+  g.globalAlpha = 0.75;
+  const spin = t * 2.2;
+  const open = 0.75 + 0.25 * Math.sin(t * 6);
+  for (let i = 0; i < 8; i++) {
+    const a = spin + (i / 8) * TAU;
+    const px = x + Math.cos(a) * 11 * open;
+    const py = y + Math.sin(a) * 7 * open;
+    g.fillStyle = i % 2 ? 'rgba(255,255,255,0.9)' : 'rgba(255,236,190,0.85)';
+    g.beginPath();
+    g.ellipse(px, py, 3.1, 1.9, a, 0, TAU);
+    g.fill();
+  }
+  g.fillStyle = '#ffd166';
+  g.beginPath();
+  g.arc(x, y, 2.4, 0, TAU);
+  g.fill();
+  // filo di sabbia che scorre: quanto manca alla fine del ballo
+  if (left != null) {
+    const k = Math.max(0, Math.min(1, left / 5));
+    g.strokeStyle = 'rgba(201,166,255,0.75)';
+    g.lineWidth = 1.4;
+    g.beginPath();
+    g.arc(x, y, 16, -Math.PI / 2, -Math.PI / 2 + TAU * k);
+    g.stroke();
+  }
+  g.restore();
+}
+
+
 export function drawAimLine(g, x0, y0, x1, y1, alpha, color) {
   if (alpha <= 0) return;
   g.save();

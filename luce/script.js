@@ -248,10 +248,7 @@
 
   var GIF_POOL = [
     /* esplosioni, simboli, deserti: leggere, sempre disponibili */
-    { url: "../RadioKaoSs/cartella1/bombaatomi_nuxp91ui.gif", titolo: "bomba atomica", categoria: "esplosione", peso: 3 },
-    { url: "../RadioKaoSs/cartella1/explosion-explode.gif", titolo: "esplosione", categoria: "esplosione", peso: 3 },
-    { url: "../RadioKaoSs/cartella1/atomic-bomb.gif", titolo: "atomic bomb", categoria: "esplosione", peso: 2 },
-    { url: "../RadioKaoSs/cartella1/nbWJan.gif", titolo: "fungo", categoria: "esplosione", peso: 2 },
+
     { url: "../simbolo/assets/symbol1.gif", titolo: "simbolo 1", categoria: "simbolo", peso: 2 },
     { url: "../simbolo/assets/symbol2.gif", titolo: "simbolo 2", categoria: "simbolo", peso: 1 },
     { url: "../simbolo/assets/symbol4.gif", titolo: "simbolo 4", categoria: "simbolo", peso: 1 },
@@ -278,22 +275,7 @@
   /* le immagini ferme: entrano nel canvas, sopra la faccia o al
      posto di un canale. Il ragno e la lumaca hanno il peso più alto:
      sono gli intrusi che si vedono di più. */
-  var FOTO_LOCALI = [
-    { url: "../immagini/personaggi/ragno.png", titolo: "ragno", categoria: "insetti", peso: 5 },
-    { url: "../immagini/personaggi/lumaca.png", titolo: "lumaca", categoria: "lumache", peso: 5 },
-    { url: "../immagini/personaggi/coniglio.png", titolo: "coniglio", categoria: "conigli", peso: 2 },
-    { url: "../immagini/personaggi/clown.png", titolo: "clown", categoria: "creature", peso: 1 },
-    { url: "../immagini/personaggi/satan.png", titolo: "satan", categoria: "creature", peso: 1 },
-    { url: "../immagini/personaggi/robot.png", titolo: "robot", categoria: "creature", peso: 1 },
-    { url: "../immagini/personaggi/pinguino.png", titolo: "pinguino", categoria: "animali", peso: 1 },
-    { url: "../immagini/personaggi/beppe.png", titolo: "beppe", categoria: "creature", peso: 1 },
-    { url: "../immagini/personaggi/cilindro.png", titolo: "cilindro", categoria: "oggetti", peso: 1 },
-    { url: "../immagini/personaggi/guida.png", titolo: "guida", categoria: "creature", peso: 1 },
-    { url: "../immagini/personaggi/donna.png", titolo: "donna", categoria: "creature", peso: 1 },
-    { url: "../immagini/personaggi/bigliettaia.png", titolo: "bigliettaia", categoria: "creature", peso: 1 },
-    { url: "../immagini/lucidus_red_man.jpg", titolo: "lucidus red man", categoria: "creature", peso: 1 }
-  ];
-
+ 
   /* LA RICERCA — le foto vere del lavoro, nell'ordine in cui sono
      state scattate: la stanza buia, il pubblico, la città proiettata,
      il ritratto, l'ultima notte. La sequenza le fa entrare una alla

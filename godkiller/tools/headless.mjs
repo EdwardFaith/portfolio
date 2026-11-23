@@ -202,7 +202,7 @@ globalThis.devicePixelRatio = 1;
 // motore di gioco vero, con l'ambiente finto già in piedi
 // ------------------------------------------------------------
 const {
-  state, audio, SCENE, currentContracts,
+  state, audio, SCENE, currentContracts, goHub, quickContract,
 } = await import('../src/main.js');
 const { hurtEnemy } = await import('../src/entities/enemy.js');
 const { makePickup, makeBullet } = await import('../src/entities/weapons.js');
@@ -537,8 +537,49 @@ ok(state.scene === SCENE.MISSION, 'il teletrasporto non avvia la missione');
 ok(state.contract.slot === 1, 'il teletrasporto non sceglie il primo incarico aperto');
 
 // ------------------------------------------------------------
+// 16. computer di bordo: pagine, tasti e ritorno alla base
+// ------------------------------------------------------------
+goHub();
+walkToTerminal('computer');
+ok(!!state.hub.near && state.hub.near.id === 'computer',
+  'terminale del computer di bordo non rilevato');
+tap('KeyE', 2);
+ok(state.scene === SCENE.COMPUTER, 'E non apre il computer di bordo');
+ok(state.computerUI.page === 0, 'il computer non parte dalla pagina SISTEMA');
+tap('KeyS', 2);
+ok(state.computerUI.page === 1, 'S non cambia pagina sul computer');
+tap('KeyW', 2);
+ok(state.computerUI.page === 0, 'W non torna alla pagina precedente');
+pump(2); // il CRT si disegna senza eccezioni
+tap('KeyE', 2);
+ok(state.scene === SCENE.HUB, 'E non chiude il computer');
+
+// ------------------------------------------------------------
+// 17. teletrasporto: mai su un contratto già chiuso
+// ------------------------------------------------------------
+const open1 = quickContract();
+ok(!!open1 && open1.cleared === false, 'il teletrasporto propone un contratto chiuso');
+if (open1) {
+  // chiude a mano tutti e tre gli incarichi del livello corrente
+  const book = state.save.contractBook;
+  for (let slot = 0; slot < 3; slot++) {
+    const key = open1.tier + ':' + slot;
+    if (book.cleared.indexOf(key) < 0) book.cleared.push(key);
+  }
+  const nextTier = quickContract();
+  ok(!!nextTier, 'a registro vuoto il teletrasporto non propone nulla');
+  ok(!!nextTier && nextTier.tier === open1.tier + 1,
+    'il teletrasporto non sale di livello quando il registro è chiuso');
+  ok(!!nextTier && nextTier.cleared === false,
+    'il teletrasporto riapre comunque un incarico archiviato');
+  state.save.contractBook.tier = open1.tier;
+  state.save.contractBook.cleared = book.cleared.filter((k) => !k.startsWith(open1.tier + ':'))
+    .concat(open1.tier + ':' + open1.slot);
+}
+
+// ------------------------------------------------------------
 if (failures === 0) {
-  console.log('OK — gioco eseguito headless: hub, negozio, contratti, muri, perk, boss, crediti.');
+  console.log('OK — gioco eseguito headless: hub, negozio, computer, contratti, muri, perk, boss, crediti.');
 } else {
   console.error('FALLITO: ' + failures + ' anomalie nel gioco headless.');
   process.exitCode = 1;

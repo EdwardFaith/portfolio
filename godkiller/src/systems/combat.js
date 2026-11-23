@@ -15,14 +15,14 @@ import { drawCorpse, muzzlePoint, SILHOUETTE } from '../engine/sprites.js';
 import { createPlayer, updatePlayer, tryDash, hurtPlayer, PLAYER_RAD } from '../entities/player.js';
 import {
   spawnEnemies, updateEnemy, hurtEnemy, alertNoise, stunEnemy, danceEnemy,
-  collapseEnemy, ENEMY_RAD,
+  collapseEnemy, ENEMY_RAD, DANCE_TIME,
 } from '../entities/enemy.js';
 import {
   wspec, makeBullet, updateBullets, makePickup, updatePickups, nearestPickup,
   throwPickup, spreadAngle, BULLET_COLORS, weaponLabel,
 } from '../entities/weapons.js';
 import { updateDoors, damageGlass, firstBlocker, openDoor } from '../world/doors.js';
-import { separateBodies, ringSpot } from './motion.js';
+import { separateBodies, separateFromPlayer, ringSpot } from './motion.js';
 import { glitchSpike } from '../engine/glitch.js';
 import { perkCooldown, perkDuration, PERK_ORDER } from './shop.js';
 
@@ -295,9 +295,10 @@ export function castPerk(world, id) {
     sfx(world, 'teleport', 0.55);
     spike(world, 0.62);
   } else if (id === 'dance') {
-    // Danza Macabra: tutti quelli nella stanza diventano sagome nere
-    // e cadono a terra morti. Il bersaglio del contratto resiste
-    // (altrimenti il livello finirebbe con un tasto).
+    // Danza Macabra: tutti quelli nella stanza diventano sagome nere,
+    // ballano la margherita per cinque secondi e solo dopo cadono
+    // a terra morti. Il bersaglio del contratto resiste (altrimenti
+    // il livello finirebbe con un tasto).
     const level = world.level;
     const room = level && typeof level.roomAt === 'function' ? level.roomAt(p.x, p.y) : null;
     const roomId = room ? room.id : null;
@@ -314,7 +315,7 @@ export function castPerk(world, id) {
         n++;
         continue;
       }
-      if (!collapseEnemy(e, dur + Math.random() * 0.22)) continue;
+      if (!danceEnemy(e, DANCE_TIME, true)) continue;
       n++;
       for (let i = 0; i < 4; i++) {
         addParticle(world, {
@@ -328,7 +329,9 @@ export function castPerk(world, id) {
     addParticle(world, { type: 'ring', x: p.x, y: p.y, vx: 0, vy: 0, life: 0.6, size: 12, color: '#b46bff' });
     world.banner = {
       text: 'DANZA MACABRA',
-      sub: n ? n + ' sagome nere a terra' : 'la stanza è già vuota',
+      sub: n
+        ? n + (n === 1 ? ' margherita' : ' margherite') + ' · ' + DANCE_TIME + 's di ballo'
+        : 'la stanza è già vuota',
       t: 1.8, color: '#c9a6ff',
     };
     sfx(world, 'dance', 1);
@@ -1068,6 +1071,8 @@ export function updateWorld(world, dt) {
     updateEnemy(lv, e, p, dt, { events: world.events });
   }
   separateBodies(world.enemies, 9.5, lv);
+  // i corpi non si attraversano: chi tocca il giocatore si scosta
+  separateFromPlayer(p, world.enemies, PLAYER_RAD + ENEMY_RAD + 2.2, lv);
 
   const dev = updateDoors(lv, dt, { player: p, enemies: world.enemies });
   for (const ev of dev) world.events.push(ev);

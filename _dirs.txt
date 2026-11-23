@@ -1,0 +1,27 @@
+﻿.git
+.vscode
+canvas-platformer-master
+cestino
+cosmo
+eyes-in-the-sky
+galleria
+giff-presentazione
+godkiller
+html5-slug-master
+illustrazioni
+immagini
+libri
+luce
+lucidus
+lumaca
+memorie del cosmo giochi
+museo
+RadioKaoSs
+sandpay
+scratch
+scrittura creativa
+simbolo
+spiaggia
+subconscio
+terre
+terza-porta

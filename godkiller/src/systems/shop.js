@@ -130,6 +130,7 @@ export const WEAPON_SHOP = [
   { id: 'revolver', price: 500, desc: 'Revolver perforante: attraversa un bersaglio.' },
   { id: 'katana', price: 700, desc: 'Katana: fendenti rapidi che passano le piastre.' },
   { id: 'axe', price: 800, desc: 'Ascia: spacca armature e pannelli senza fermarsi.' },
+  { id: 'pala', price: 620, desc: 'Pala da trincea: scava, stordisce e apre varchi nei pannelli.' },
   { id: 'crossbow', price: 950, desc: 'Balestra: silenziosa come un sospiro, perfora tutto.' },
   { id: 'rifle', price: 1100, desc: 'Fucile d’assalto: 24 colpi precisi e un rumore che chiama tutti.' },
   { id: 'sledge', price: 1250, desc: 'Marta pesante: un colpo, un muro in meno.' },
@@ -153,8 +154,8 @@ export const PERKS = {
   },
   dance: {
     id: 'dance', slot: 3, name: 'DANZA MACABRA', price: 1800, maxLevel: 3,
-    cd: [34, 27, 20], dur: [0.45, 0.6, 0.75],
-    desc: 'Chi è nella stanza diventa una sagoma nera e cade a terra morto. Il bersaglio barcolla.',
+    cd: [34, 27, 20], dur: [5, 5, 5],
+    desc: 'Chi è nella stanza diventa una sagoma nera, balla la margherita per 5 secondi e poi cade morto. Il bersaglio barcolla.',
   },
   super: {
     id: 'super', slot: 4, name: 'SOVRACCARICO', price: 2400, maxLevel: 3,

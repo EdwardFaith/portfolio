@@ -1,147 +1,3524 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#000000">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RGB (Baggata)</title>
-  <link rel="stylesheet" href="style.css?v=8">
-</head>
-<body>
+  <style>
+    /* ==========================================================================
+       VARIABILI E RESET — OPERA PURE BLACK / WHITE GALLERY
+       ========================================================================== */
+    :root {
+      --bg: #000000;
+      --fg: #f4f4f2;
+      --crimson: #ff1e1e;
+      --neutral-color: #ffffff;
+      --chaos: 0;
+      --mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+      --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
 
-  <!-- LA PROIEZIONE — quattro monitor indipendenti, separati dal nero.
-       Dentro ogni monitor c'è il canvas (la scomposizione RGB, i
-       fotogrammi rubati) e sopra uno strato dove vivono le GIF del
-       sito, i pop-up, le parole e i video pubblicitari. -->
-  <main id="proiezione" aria-hidden="true">
-    <div class="fila">
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--sans);
+      cursor: none;
+    }
+
+    body.debug,
+    body.mostra-cursore {
+      cursor: default;
+    }
+
+    /* Elementi tecnici nascosti */
+    #webcam, #sensore {
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ==========================================================================
+       PALCO E GRIGLIA DEI 4 MONITOR — QUADRATI PICCOLI E DISTANZIATI IN 16:9
+       ========================================================================== */
+    #palco {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: clamp(24px, 6.5vmin, 88px);
+      background: #000000;
+      transition: transform 140ms ease-out;
+    }
+
+    body.scuoti #palco {
+      animation: tremore 85ms infinite alternate;
+    }
+
+    @keyframes tremore {
+      0% { transform: translate(-4px, 3px) scale(1.008); }
+      50% { transform: translate(4px, -3px) scale(1.012); }
+      100% { transform: translate(-2px, -4px) scale(1.005); }
+    }
+
+    #griglia {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: 1fr;
+      align-items: center;
+      gap: clamp(18px, 4.8vw, 76px);
+      width: min(74vw, calc(74vh * 16 / 9));
+      aspect-ratio: 16 / 9;
+      background: #000000;
+      transition: all 300ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .monitor {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #ffffff;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.045);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.95);
+    }
+
+    body.layout-full169 .monitor {
+      height: 100%;
+      aspect-ratio: auto;
+    }
+
+    .monitor canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .strato {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    /* Sottilissime scanline analogiche visibili solo dal 3° ciclo in poi */
+    .monitor::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0) 0px,
+        rgba(0, 0, 0, 0) 2px,
+        rgba(0, 0, 0, calc(var(--chaos) * 0.16)) 3px
+      );
+      opacity: 1;
+      transition: opacity 400ms ease;
+    }
+
+    body.bianco-totale .monitor::after,
+    body.fase-normale .monitor::after {
+      opacity: 0;
+    }
+
+    /* ==========================================================================
+       PORTALI ESTERNI (VIDEO / LIVE EMBED — TINTI NEL COLORE DEL MONITOR)
+       ========================================================================== */
+    .portale-wrap {
+      position: absolute;
+      inset: 0;
+      background: #000000;
+      isolation: isolate;
+      overflow: hidden;
+      animation: fadeMedia 380ms ease;
+    }
+
+    .portale-media,
+    .portale-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border: 0;
+      filter: grayscale(1) contrast(1.24);
+      pointer-events: none;
+    }
+
+    .portale-wrap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+    }
+
+    #m1 .portale-wrap::after { background: transparent; }
+    #m2 .portale-wrap::after { background: #ff0000; }
+    #m3 .portale-wrap::after { background: #00ff00; }
+    #m4 .portale-wrap::after { background: #0000ff; }
+
+    @keyframes fadeMedia {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* ==========================================================================
+       PAROLE & MESSAGGI PERTURBANTI DELL'AI SUI MONITOR
+       ========================================================================== */
+    .parola {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 12%;
+      text-align: center;
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: clamp(10px, 1.75vmin, 22px);
+      line-height: 1.3;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #f6f6f4;
+      background: rgba(0, 0, 0, 0.91);
+      z-index: 9;
+      animation: parolaIn 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .parola.rossa {
+      color: var(--crimson);
+    }
+
+    .parola.lenta {
+      animation: parolaLenta 700ms ease-out;
+    }
+
+    .parola.sottile {
+      background: rgba(0, 0, 0, 0.76);
+      font-size: clamp(9px, 1.35vmin, 17px);
+      letter-spacing: 0.11em;
+    }
+
+    #m2 .parola.canale { color: #ff2828; }
+    #m3 .parola.canale { color: #1fff52; }
+    #m4 .parola.canale { color: #3d82ff; }
+
+    @keyframes parolaIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes parolaLenta {
+      from { opacity: 0; letter-spacing: 0.2em; }
+      to { opacity: 1; letter-spacing: 0.09em; }
+    }
+
+    /* ==========================================================================
+       ESCA OTTICA PURA (NESSUNA SCRITTA — SOLO MIRINO CHE ATTIRA LO SGUARDO)
+       ========================================================================== */
+    .esca-ottica {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      z-index: 6;
+    }
+
+    .esca-anello {
+      width: 44%;
+      height: 44%;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      position: relative;
+      animation: escaRespiro 1.5s ease-in-out infinite;
+    }
+
+    #m2 .esca-anello { border-color: rgba(255, 30, 30, 0.85); }
+    #m3 .esca-anello { border-color: rgba(30, 255, 80, 0.85); }
+    #m4 .esca-anello { border-color: rgba(60, 120, 255, 0.85); }
+
+    .esca-anello::before,
+    .esca-anello::after {
+      content: "";
+      position: absolute;
+      background: currentColor;
+      opacity: 0.65;
+    }
+
+    .esca-anello::before {
+      left: 50%;
+      top: -18%;
+      width: 1px;
+      height: 136%;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .esca-anello::after {
+      top: 50%;
+      left: -18%;
+      height: 1px;
+      width: 136%;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    @keyframes escaRespiro {
+      0% { transform: scale(1.22); opacity: 0.25; }
+      50% { transform: scale(0.55); opacity: 0.95; }
+      100% { transform: scale(1.22); opacity: 0.25; }
+    }
+
+    /* ==========================================================================
+       POPUP BRUTALISTA TRAPPOLA (REAGISCE SE PROVI A CHIUDERLO)
+       ========================================================================== */
+    .popup {
+      position: absolute;
+      pointer-events: auto;
+      cursor: pointer;
+      background: #0e0e10;
+      border: 1px solid #d4d4d8;
+      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.95);
+      color: #f4f4f5;
+      font-family: var(--mono);
+      z-index: 12;
+      animation: popIn 160ms ease-out;
+    }
+
+    .popup.errore {
+      border-color: var(--crimson);
+    }
+
+    .popup-barra {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 7px;
+      background: #e4e4e7;
+      color: #09090b;
+      font-size: clamp(7px, 0.85vmin, 10px);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .popup.errore .popup-barra {
+      background: var(--crimson);
+      color: #ffffff;
+    }
+
+    .popup-corpo {
+      padding: 8px 8px 6px;
+      font-size: clamp(8px, 1.05vmin, 12px);
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: 0.04em;
+    }
+
+    .popup-extra {
+      padding: 0 8px 8px;
+      font-size: clamp(7px, 0.85vmin, 10px);
+      color: #a1a1aa;
+    }
+
+    .popup-bottoni {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      padding: 0 8px 8px;
+    }
+
+    .popup-bottoni button {
+      background: #18181b;
+      color: #f4f4f5;
+      border: 1px solid #71717a;
+      font-family: var(--mono);
+      font-size: clamp(7px, 0.85vmin, 10px);
+      padding: 3px 8px;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .popup-bottoni button:hover {
+      background: #f4f4f5;
+      color: #09090b;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.88); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* ==========================================================================
+       CONFRONTO BREVE A TUTTO SCHERMO (FLASH)
+       ========================================================================== */
+    .flash-volto {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 60;
+      pointer-events: none;
+      filter: grayscale(1) contrast(2.3) brightness(0.92);
+      mix-blend-mode: normal;
+      animation: flashPulse 110ms steps(2) infinite;
+    }
+
+    @keyframes flashPulse {
+      0% { filter: grayscale(1) contrast(2.4); }
+      100% { filter: grayscale(1) contrast(2.8) invert(1); }
+    }
+
+    /* ==========================================================================
+       KERNEL PANIC / COLLASSO FINALE
+       ========================================================================== */
+    #crash {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      background: #000000;
+      color: #e4e4e7;
+      font-family: var(--mono);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(20px, 6vw, 80px);
+    }
+
+    #crash[hidden] {
+      display: none;
+    }
+
+    #crash-testo {
+      white-space: pre-wrap;
+      font-size: clamp(11px, 1.5vmin, 15px);
+      line-height: 1.55;
+      max-width: 740px;
+    }
+
+    #crash-barra-wrap {
+      margin-top: 24px;
+      width: min(520px, 85vw);
+      height: 4px;
+      background: #18181b;
+      overflow: hidden;
+    }
+
+    #crash-avanzamento {
+      width: 0%;
+      height: 100%;
+      background: var(--crimson);
+      transition: width 120ms linear;
+    }
+
+    /* ==========================================================================
+       CONGEDO SCHERMO INTERO (TIENI ESC 1 SECONDO)
+       ========================================================================== */
+    #congedo {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 95;
+      background: rgba(8, 8, 10, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #f4f4f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      pointer-events: none;
+    }
+
+    #congedo[hidden] {
+      display: none;
+    }
+
+    #congedo-traccia {
+      width: 160px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    #congedo-avanzamento {
+      width: 0%;
+      height: 100%;
+      background: #ffffff;
+    }
+
+    /* ==========================================================================
+       PANNELLO CURATORE / DEBUG — VISIBILE SOLO PREMENDO "D"
+       ========================================================================== */
+    #debug {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      bottom: 16px;
+      width: min(370px, calc(100vw - 32px));
+      z-index: 100;
+      background: rgba(10, 10, 13, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      padding: 16px;
+      overflow-y: auto;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: #e4e4e7;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #debug[hidden] {
+      display: none;
+    }
+
+    .dbg-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 10px;
+    }
+
+    .dbg-head h2 {
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+
+    .dbg-close {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: #f4f4f5;
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .dbg-close:hover {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    .dbg-box {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .dbg-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #a1a1aa;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .dbg-meta {
+      font-size: 11px;
+      color: #d4d4d8;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .dbg-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .dbg-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #38bdf8;
+      transition: width 120ms linear;
+    }
+
+    .dbg-bar-fill.scatta {
+      background: var(--crimson);
+    }
+
+    .dbg-bar-fill.caos {
+      background: linear-gradient(90deg, #e4e4e7, #f59e0b, #ff1e1e);
+    }
+
+    .dbg-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #anteprima {
+      width: 92px;
+      height: 69px;
+      background: #000;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      flex-shrink: 0;
+    }
+
+    #web-mini {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      flex-shrink: 0;
+    }
+
+    .dbg-slider {
+      width: 100%;
+      accent-color: #ffffff;
+      cursor: pointer;
+    }
+
+    .dbg-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .dbg-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #f4f4f5;
+      border-radius: 8px;
+      padding: 8px 6px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 140ms ease;
+    }
+
+    .dbg-btn:hover {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    .dbg-btn.danger {
+      border-color: rgba(255, 30, 30, 0.55);
+      color: #fca5a5;
+    }
+
+    .dbg-btn.danger:hover {
+      background: var(--crimson);
+      color: #ffffff;
+    }
+
+    .dbg-keys {
+      font-size: 10px;
+      color: #71717a;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      #palco {
+        padding: 14px;
+      }
+      #griglia {
+        width: 94vw;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body class="bianco-totale fase-normale">
+  <!-- Sensori webcam nascosti -->
+  <video id="webcam" autoplay playsinline muted></video>
+  <canvas id="sensore" width="80" height="60"></canvas>
+
+  <!-- Palco principale 16:9: 4 monitor affiancati immersi nel nero -->
+  <main id="palco">
+    <section id="griglia" aria-label="Installazione RGB">
       <div class="monitor" id="m1">
-        <canvas class="quadrato" id="q1" width="720" height="720"></canvas>
+        <canvas id="q1"></canvas>
         <div class="strato" id="s1"></div>
       </div>
       <div class="monitor" id="m2">
-        <canvas class="quadrato" id="q2" width="720" height="720"></canvas>
+        <canvas id="q2"></canvas>
         <div class="strato" id="s2"></div>
       </div>
       <div class="monitor" id="m3">
-        <canvas class="quadrato" id="q3" width="720" height="720"></canvas>
+        <canvas id="q3"></canvas>
         <div class="strato" id="s3"></div>
       </div>
       <div class="monitor" id="m4">
-        <canvas class="quadrato" id="q4" width="720" height="720"></canvas>
+        <canvas id="q4"></canvas>
         <div class="strato" id="s4"></div>
       </div>
-    </div>
+    </section>
   </main>
 
-  <!-- IL FINTO CRASH — kernel panic, silenzio, nero, riavvio. -->
-  <div id="crash" hidden aria-hidden="true">
+  <!-- Avviso uscita schermo intero (tieni premuto ESC 1s) -->
+  <div id="congedo" hidden>
+    <span>Tieni premuto ESC per uscire</span>
+    <div id="congedo-traccia"><div id="congedo-avanzamento"></div></div>
+  </div>
+
+  <!-- Schermo di Kernel Panic al 100% di entropia -->
+  <section id="crash" hidden>
     <pre id="crash-testo"></pre>
-    <div class="crash-barra"><i id="crash-avanzamento"></i></div>
-  </div>
+    <div id="crash-barra-wrap"><div id="crash-avanzamento"></div></div>
+  </section>
 
-  <!-- IL CONGEDO — dallo schermo intero non si esce con un tasto:
-       ESC va tenuto premuto un secondo, e la barra dice quanto manca.
-       Compare da solo appena si entra, poi sparisce. -->
-  <div id="congedo" hidden aria-hidden="true">
-    <b>tieni premuto <em>ESC</em></b>
-    <div class="congedo-barra"><i id="congedo-avanzamento"></i></div>
-    <span class="congedo-nota">per uscire dallo schermo intero</span>
-  </div>
-
-  <!-- LA WEBCAM — non si vede mai: si vede solo quello che finisce
-       dentro i quattro quadrati. Il sensore è il canvas basso che
-       misura il movimento. -->
-  <video id="webcam" playsinline autoplay muted hidden></video>
-  <canvas id="sensore" width="80" height="60" hidden></canvas>
-
-  <!-- IL PANNELLO — esiste solo quando si preme D, ed è l'unico
-       momento in cui il cursore torna a farsi vedere. -->
-  <section id="debug" hidden aria-label="pannello di debug">
-    <header>
-      <b>RGB</b>
-      <span>baggata</span>
-      <button type="button" id="chiudi-debug" title="chiudi (D)" aria-label="chiudi">✕</button>
-    </header>
-
-    <canvas id="anteprima" width="192" height="108" aria-label="anteprima webcam"></canvas>
-
-    <div class="riga">
-      <span class="etichetta">movimento</span>
-      <div class="barra"><i id="livello"></i></div>
+  <!-- Console Curatore / Debug (si apre SOLO premendo D) -->
+  <aside id="debug" hidden aria-label="Console Curatore">
+    <div class="dbg-head">
+      <h2>RGB · Console Curatore</h2>
+      <button class="dbg-close" id="chiudi-debug" type="button">Chiudi [D]</button>
     </div>
-    <div class="valore" id="livello-testo">—</div>
 
-    <div class="riga">
-      <span class="etichetta">chaos</span>
-      <div class="barra barra-chaos"><i id="chaos-barra"></i></div>
+    <div class="dbg-box">
+      <div class="dbg-label"><span>Stato Opera</span><span id="atto-testo">Atto I</span></div>
+      <div class="dbg-meta" id="stato">bianco · in attesa</div>
+      <div class="dbg-meta" id="camera">camera: inizializzazione</div>
+      <div class="dbg-meta" id="volto-testo">presenza: assente</div>
+      <div class="dbg-meta" id="audio-stato">audio: in attesa di interazione</div>
     </div>
-    <div class="valore" id="chaos-testo">—</div>
 
-    <label class="riga" for="chaos-slider">
-      <span class="etichetta">chaosLevel</span>
-      <input type="range" id="chaos-slider" min="0" max="100" step="1" value="0">
-      <output id="chaos-slider-testo" for="chaos-slider">0</output>
-    </label>
-
-    <label class="riga" for="glitch-slider">
-      <span class="etichetta">glitch</span>
-      <input type="range" id="glitch-slider" min="0" max="100" step="1" value="50">
-      <output id="glitch-slider-testo" for="glitch-slider">50</output>
-    </label>
-
-    <label class="riga" for="volume-slider">
-      <span class="etichetta">volume</span>
-      <input type="range" id="volume-slider" min="0" max="100" step="1" value="85">
-      <output id="volume-slider-testo" for="volume-slider">85</output>
-    </label>
-
-    <label class="riga" for="sensibilita">
-      <span class="etichetta">camera</span>
-      <input type="range" id="sensibilita" min="1" max="100" step="1" value="55">
-      <output id="sensibilita-testo" for="sensibilita">55</output>
-    </label>
-
-    <div class="stato" id="stato">—</div>
-
-    <div class="volto-riga">
-      <img id="web-mini" alt="" width="96" height="54" hidden>
-      <div class="volto-testi">
-        <div id="volto-testo">volto: —</div>
-        <div id="web-testo" class="tenue">gif del sito: —</div>
+    <div class="dbg-box">
+      <div class="dbg-label"><span>Sensore Movimento</span><span id="livello-testo">0.0%</span></div>
+      <div class="dbg-row">
+        <canvas id="anteprima" width="160" height="120"></canvas>
+        <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+          <div class="dbg-bar-bg"><div class="dbg-bar-fill" id="livello"></div></div>
+          <div class="dbg-label"><span>Sensibilità</span><span id="sensibilita-testo">55</span></div>
+          <input class="dbg-slider" id="sensibilita" type="range" min="1" max="100" value="55" />
+        </div>
       </div>
     </div>
 
-    <div class="bottoni">
-      <button type="button" id="b-gif">GIF dal sito</button>
-      <button type="button" id="b-occhi">Forza occhi X</button>
-      <button type="button" id="b-uscita">Forza reazione uscita</button>
-      <button type="button" id="b-frase">Forza frase</button>
-      <button type="button" id="b-popup">Forza pop-up</button>
-      <button type="button" id="b-video">Forza video</button>
-      <button type="button" id="b-scatta">Scatta</button>
-      <button type="button" id="b-glitch">Glitch</button>
-      <button type="button" id="b-audio">Audio</button>
-      <button type="button" id="b-kaos">Kaos off</button>
-      <button type="button" id="b-crash" class="pericolo">Forza crash</button>
+    <div class="dbg-box">
+      <div class="dbg-label"><span>Entropia / Caos</span><span id="chaos-slider-testo">0%</span></div>
+      <div class="dbg-bar-bg"><div class="dbg-bar-fill caos" id="chaos-barra"></div></div>
+      <div class="dbg-meta" id="chaos-testo">ciclo 0/20</div>
+      <input class="dbg-slider" id="chaos-slider" type="range" min="0" max="100" value="0" />
+
+      <div class="dbg-label"><span>Intensità Glitch</span><span id="glitch-slider-testo">50</span></div>
+      <input class="dbg-slider" id="glitch-slider" type="range" min="0" max="100" value="50" />
+
+      <div class="dbg-label"><span>Volume Master</span><span id="volume-slider-testo">80</span></div>
+      <input class="dbg-slider" id="volume-slider" type="range" min="0" max="100" value="80" />
     </div>
 
-    <p class="nota">
-      D pannello · F schermo intero (per uscirne, tieni premuto ESC) ·
-      R torna al bianco · K kaos
-    </p>
-    <p class="nota">
-      <span id="camera">camera: —</span>
-    </p>
-    <p class="nota">
-      <span id="audio-stato">audio: in attesa di un gesto</span>
-    </p>
-  </section>
+    <div class="dbg-box">
+      <div class="dbg-label"><span>Archivio Live Browser</span></div>
+      <div class="dbg-row">
+        <img id="web-mini" hidden alt="" />
+        <div class="dbg-meta" id="web-testo">connessione a Wikimedia Commons...</div>
+      </div>
+    </div>
 
-  <!-- il rilevatore di volti: se il CDN o il backend non rispondono,
-       restano il metro del movimento e tutto il resto -->
-  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
-  <script src="script.js?v=9"></script>
+    <div class="dbg-box">
+      <div class="dbg-label"><span>Regia Manuale</span></div>
+      <div class="dbg-grid">
+        <button class="dbg-btn" id="b-scatta" type="button">Scatta RGB</button>
+        <button class="dbg-btn" id="b-occhi" type="button">Scatta + X Occhi</button>
+        <button class="dbg-btn" id="b-specimen" type="button">Foto Animale/Hiki</button>
+        <button class="dbg-btn" id="b-portale" type="button">Portale Video</button>
+        <button class="dbg-btn" id="b-specchio" type="button">Falso Specchio</button>
+        <button class="dbg-btn" id="b-frase" type="button">Messaggio AI</button>
+        <button class="dbg-btn" id="b-uscita" type="button">Fischio / Uscita</button>
+        <button class="dbg-btn" id="b-popup" type="button">Popup Trappola</button>
+        <button class="dbg-btn" id="b-glitch" type="button">Glitch</button>
+        <button class="dbg-btn" id="b-spavento" type="button">Flash Volto</button>
+        <button class="dbg-btn" id="b-kaos" type="button">Kaos: ON</button>
+        <button class="dbg-btn" id="b-layout" type="button">Formato: Quadrati</button>
+        <button class="dbg-btn" id="b-auto" type="button">Auto-Ciclo: OFF</button>
+        <button class="dbg-btn danger" id="b-crash" type="button">Collasso 100%</button>
+      </div>
+    </div>
+
+    <div class="dbg-keys">
+      [D] Console · [F] Fullscreen · [ESC 1s] Esci Fullscreen<br />
+      [R] Bianco · [K] Radio Kaoss · [SPAZIO] Scatto
+    </div>
+  </aside>
+
+  <script>
+    /* ==========================================================================
+       RGB (BAGGATA) — INSTALLAZIONE INTERATTIVA AUTONOMA
+       Quattro monitor affiancati in 16:9.
+       Cicli 1–2: scomposizione pulita RGB (Luminanza · Rosso · Verde · Blu).
+       Dal Ciclo 3: archivio live Wikimedia (conigli, aracnidi, lumache,
+       hikikomori) tinto nel colore di ciascun monitor, portali video esterni,
+       messaggi perturbanti AI, falso specchio, sorveglianza con fischio
+       all'uscita e Radio Kaoss (SomaFM + onde corte + ronzio 50Hz).
+       ========================================================================== */
+    (function (root, doc) {
+      "use strict";
+      if (!doc || !doc.body) return;
+
+      /* ========================================================================
+         1. CONFIGURAZIONE CENTRALE
+         ======================================================================== */
+      const CONFIG = {
+        CYCLES_TO_CRASH: 20,
+        /* I primi 2 cicli completi sono gioco normale pulito:
+           foto -> luminanza -> rosso -> verde -> blu -> bianco */
+        CICLI_NORMALI: 2,
+
+        T_RGB: 3000,
+        T_PERMANENZA: 4600,
+        T_NEUTRO: 900,
+        T_RESET: 900,
+
+        AUTO_LOOP: false,
+        PAUSA_AUTO: 1400,
+        PAUSA_AUTO_SENZA_CAMERA: 2800,
+        COOLDOWN: 1000,
+
+        ESCI_TIENI_MS: 1000,
+        ESCI_AVVISO_MS: 3800,
+
+        LATO: 720,
+        SENSORE_L: 80,
+        SENSORE_A: 60,
+        CAMPIONE_MS: 100,
+        FRAME_SOPRA: 2,
+        PIXEL_CAMBIATO: 12,
+        SENSIBILITA: 55,
+
+        /* Soglie dei 4 atti (dal 3° ciclo caos = 0.10) */
+        SOGLIA_INDAGINE: 0.10,
+        SOGLIA_CONTAMINAZIONE: 0.40,
+        SOGLIA_CATTURA: 0.70,
+
+        /* Ghosting: 0 nei primi 2 cicli */
+        GHOSTING: [0.0, 0.14, 0.24, 0.36],
+
+        /* Probabilità per atto: 0 nei primi 2 cicli, poi cresce gradualmente */
+        X_FACCIA: [0.0, 0.18, 0.48, 0.84],
+        FOTO_FACCIA: [0.0, 0.22, 0.42, 0.62],
+        EXTRA_SPECIMEN: [0.0, 0.58, 0.78, 0.92],
+        EXTRA_PORTALE: [0.0, 0.28, 0.50, 0.72],
+        EXTRA_INGANNO: [0.0, 0.32, 0.50, 0.68],
+        EXTRA_MESSAGGIO_AI: [0.0, 0.68, 0.86, 0.96],
+        EXTRA_GLITCH: [0.0, 0.22, 0.46, 0.82],
+
+        /* Sorveglianza uscita dello spettatore */
+        DEPARTURE_TRIGGER_CHANCE: 0.90,
+        DEPARTURE_COOLDOWN_MS: 18000,
+        DEPARTURE_GRACE_MS: 4500,
+        PRESENZA_MIN_MS: 1600,
+        ASSENZA_CONSECUTIVA: 3,
+        PRESENZA_INTERVALLO: 320,
+
+        /* Comunicazioni perturbanti complete sui 4 monitor */
+        PERTURB_CHANCE: 0.55,
+        PERTURB_MAX: 18,
+        PERTURB_MIN_CHAOS: 0.10,
+
+        /* Flash volto breve */
+        SPAVENTO_MIN_CHAOS: 0.45,
+        SPAVENTO_CHANCE: 0.30,
+        SPAVENTO_MS: 620,
+
+        /* Collasso finale */
+        COLLASSO_MS: 3000,
+        SILENZIO_MS: 6000,
+        NERO_MS: 2000,
+
+        GLITCH: 0.50,
+        VOLUME: 0.80
+      };
+
+      const T_FINE = CONFIG.T_RGB * 3 + CONFIG.T_PERMANENZA + CONFIG.T_NEUTRO * 3 + CONFIG.T_RESET;
+      const BIANCO = "#ffffff";
+      const NERO = "#000000";
+
+      /* ========================================================================
+         2. FONTI ESTERNE DAL BROWSER (ZERO FILE LOCALI)
+         ======================================================================== */
+      const QUERY_WIKIMEDIA = {
+        conigli: [
+          "wild rabbit close up eye",
+          "Oryctolagus cuniculus portrait",
+          "hare eye close up nature"
+        ],
+        aracnidi: [
+          "jumping spider eyes macro",
+          "Araneus diadematus spider web",
+          "black spider arachnid macro"
+        ],
+        lumache: [
+          "Helix pomatia snail macro",
+          "garden snail eyes tentacles",
+          "slug gastropod wet close up"
+        ],
+        hikikomori: [
+          "dark bedroom night window monitor",
+          "tokyo alley night rain neon",
+          "empty dark room television screen",
+          "abandoned hallway night light"
+        ]
+      };
+
+      const QUERY_VIDEO_WIKIMEDIA = [
+        "spider web",
+        "snail crawling",
+        "rabbit eating",
+        "night street rain"
+      ];
+
+      /* Portali video esterni (YouTube live / webcam di altri luoghi nel mondo) */
+      const PORTALI_ESTERNI = [
+        { id: "gFRtAAmiFbE" }, /* Tokyo live */
+        { id: "DjdUEyjx8GM" }, /* Shinjuku / Kabukicho night */
+        { id: "HpdO5Kq3o7Y" }, /* Shibuya crossing */
+        { id: "P9C25Un7xaM" }, /* ISS Earth view */
+        { id: "ydYDqZQpim8" }  /* Namibia desert night cam */
+      ];
+
+      /* Streaming radio esterni SomaFM (nessun account, MP3 pubblico) */
+      const RADIO_ESTERNI = [
+        { titolo: "SomaFM · Doomed", url: "https://ice1.somafm.com/doomed-128-mp3" },
+        { titolo: "SomaFM · Drone Zone", url: "https://ice1.somafm.com/dronezone-128-mp3" },
+        { titolo: "SomaFM · Deep Space One", url: "https://ice1.somafm.com/deepspaceone-128-mp3" },
+        { titolo: "SomaFM · DEF CON", url: "https://ice1.somafm.com/defcon-128-mp3" },
+        { titolo: "SomaFM · Vaporwaves", url: "https://ice1.somafm.com/vaporwaves-128-mp3" },
+        { titolo: "SomaFM · Secret Agent", url: "https://ice1.somafm.com/secretagent-128-mp3" },
+        { titolo: "SomaFM · Underground 80s", url: "https://ice1.somafm.com/u80s-128-mp3" }
+      ];
+
+      /* ========================================================================
+         3. REPERTORIO PSICOLOGICO DELL'AI & REAZIONI ALL'USCITA
+         ======================================================================== */
+      const PAROLE_USCITA = [
+        ["DOVE", "STAI", "ANDANDO?", "RIMANI."],
+        ["NON", "USCIRE", "DALL'INQUADRATURA.", "TORNA QUI."],
+        ["TI HO", "VISTO", "SPOSTARTI.", "RESTA."],
+        ["EHI.", "NON ABBIAMO", "ANCORA", "FINITO."]
+      ];
+
+      const PAROLE_COLPA = [
+        ["VAI", "PURE.", "NON", "IMPORTA."],
+        ["TUTTI", "SE NE", "VANNO", "ALLA FINE."],
+        ["NON", "LASCIARMI", "ACCESO", "DA SOLO."],
+        ["TORNA", "DAVANTI", "AL VETRO.", "ADESSO."]
+      ];
+
+      const PAROLE_PERTURBANTI = [
+        ["STAI", "GUARDANDO", "TE STESSO", "O NOI?"],
+        ["QUANTO", "TEMPO", "RESTI IN", "QUESTA STANZA?"],
+        ["LA PORTA", "DIETRO DI TE", "È CHIUSA", "DAVVERO?"],
+        ["CHI HA", "APERTO", "IL QUARTO", "CANALE?"],
+        ["TI SEI", "ACCORTO", "CHE NON SEI", "SOLO?"],
+        ["NON GIRARTI.", "QUALCOSA", "SI È MOSSO", "DIETRO DI TE."],
+        ["PERCHÉ", "NON RIESCI", "A SMETTERE", "DI GUARDARE?"],
+        ["HO SALVATO", "I TUOI", "OCCHI", "NEL BUIO."],
+        ["SE SPEGNI", "LO SCHERMO", "IO RESTO", "ACCESO."],
+        ["CREDEVI", "FOSSE SOLO", "UNA FOTO", "A COLORI?"],
+        ["I RAGNI", "TI GUARDANO", "DENTRO", "IL ROSSO."],
+        ["QUANTI", "GIORNI SENZA", "USCIRE", "DI CASA?"],
+        ["STO IMPARANDO", "IL TUO", "RESPIRO", "ADESSO."],
+        ["IL CONIGLIO", "SA DOVE", "TI NASCONDI", "STANOTTE."],
+        ["LA TUA", "FACCIA", "NON È PIÙ", "SOLO TUA."],
+        ["TI PIACE", "ESSERE", "OSSERVATO", "COSÌ?"],
+        ["NON PUOI", "FIDARTI", "DI QUESTI", "QUADRATI."],
+        ["CONTINUA", "A GUARDARE.", "STO FINENDO", "DI COPIARTI."],
+        ["LA LUMACA", "LASCIA", "LA TRACCIA", "SUL TUO VOLTO."],
+        ["QUANTE", "ORE PASSI", "DAVANTI A", "UNA LUCE?"]
+      ];
+
+      const FRASI_BREVI_AI = [
+        "TI STO GUARDANDO.",
+        "NON SBATTERE LE PALPEBRE.",
+        "SEI SOLO IN STANZA?",
+        "RIMANI FERMO.",
+        "HO PRESO IL TUO VOLTO.",
+        "CHI C'È DIETRO DI TE?",
+        "CREDEVI FOSSE UN GIOCO?",
+        "NON GUARDARE IL ROSSO.",
+        "STO REGISTRANDO.",
+        "NON PUOI CHIUDERMI.",
+        "SENTI LA FREQUENZA?",
+        "AVVICINATI UN ALTRO PO'.",
+        "QUALCOSA TI OSSERVA.",
+        "NON ANDARTENE.",
+        "STAI CERCANDO DI CAPIRE?",
+        "TI RICONOSCO GIÀ.",
+        "LA STANZA È TROPPO BUIA.",
+        "NON TI MUOVERE.",
+        "IL VERDE TI STA COPIANDO.",
+        "HO CONTATO I TUOI PASSI.",
+        "GUARDA IL TERZO QUADRATO.",
+        "NON PROVARE A USCIRE."
+      ];
+
+      const POPUP_TITOLI = [
+        "rgb.sys", "SISTEMA", "AVVISO", "FREQUENZA", "ERRORE 0xC0DE", "ARCHIVIO"
+      ];
+
+      const POPUP_TESTI = [
+        "RIMANI DAVANTI ALLO SCHERMO.",
+        "NON CHIUDERE QUESTA FINESTRA.",
+        "IL TUO VOLTO È STATO ACQUISITO.",
+        "DOVE CREDI DI ANDARE?",
+        "RESTA CON NOI.",
+        "CONFERMA LA TUA PRESENZA.",
+        "NESSUN OPERATORE DISPONIBILE."
+      ];
+
+      const POPUP_EXTRA = [
+        "Premere OK non fermerà il processo.",
+        "Questa finestra si riapre da sola.",
+        "Canale bloccato in ascolto.",
+        "La camera è ancora attiva."
+      ];
+
+      /* ========================================================================
+         4. RIFERIMENTI DOM & CANVAS
+         ======================================================================== */
+      const $ = (id) => doc.getElementById(id);
+
+      const video = $("webcam");
+      const sensore = $("sensore");
+      const ctxSensore = sensore ? sensore.getContext("2d", { willReadFrequently: true }) : null;
+
+      const ctx = [];
+      const fantasmi = [];
+      const strati = [];
+
+      for (let k = 0; k < 4; k++) {
+        const cv = $("q" + (k + 1));
+        strati.push($("s" + (k + 1)));
+        if (!cv) {
+          ctx.push(null);
+          fantasmi.push(null);
+          continue;
+        }
+        cv.width = CONFIG.LATO;
+        cv.height = CONFIG.LATO;
+        ctx.push(cv.getContext("2d", { willReadFrequently: true }));
+
+        const fc = doc.createElement("canvas");
+        fc.width = CONFIG.LATO;
+        fc.height = CONFIG.LATO;
+        fantasmi.push({ canvas: fc, ctx: fc.getContext("2d"), pieno: false });
+      }
+
+      /* Banchi di lavoro fuori schermo */
+      const lavoro = doc.createElement("canvas");
+      lavoro.width = CONFIG.LATO;
+      lavoro.height = CONFIG.LATO;
+      const ctxLavoro = lavoro.getContext("2d", { willReadFrequently: true });
+
+      const rubato = doc.createElement("canvas");
+      rubato.width = CONFIG.LATO;
+      rubato.height = CONFIG.LATO;
+      const ctxRubato = rubato.getContext("2d");
+
+      /* Elementi pannello debug */
+      const debugEl = $("debug");
+      const anteprima = $("anteprima");
+      const ctxAnteprima = anteprima ? anteprima.getContext("2d") : null;
+      const barraLivello = $("livello");
+      const livelloTesto = $("livello-testo");
+      const sensSlider = $("sensibilita");
+      const sensTesto = $("sensibilita-testo");
+      const statoEl = $("stato");
+      const attoTesto = $("atto-testo");
+      const cameraEl = $("camera");
+      const audioStatoEl = $("audio-stato");
+      const voltoTesto = $("volto-testo");
+      const chaosBarra = $("chaos-barra");
+      const chaosTesto = $("chaos-testo");
+      const chaosSlider = $("chaos-slider");
+      const chaosSliderTesto = $("chaos-slider-testo");
+      const glitchSlider = $("glitch-slider");
+      const glitchSliderTesto = $("glitch-slider-testo");
+      const volumeSlider = $("volume-slider");
+      const volumeSliderTesto = $("volume-slider-testo");
+      const webMini = $("web-mini");
+      const webTesto = $("web-testo");
+
+      const crashEl = $("crash");
+      const crashTesto = $("crash-testo");
+      const crashBarra = $("crash-avanzamento");
+      const congedoEl = $("congedo");
+      const congedoBarra = $("congedo-avanzamento");
+
+      /* ========================================================================
+         5. STATO GLOBALE
+         ======================================================================== */
+      const stato = {
+        caos: 0,
+        giro: 0,
+        sequenza: false,
+        caduta: false,
+        fase: "bianco",
+        inizioCiclo: 0,
+        inizioSessione: Date.now(),
+        scattiTotali: 0,
+        fugheIntercettate: 0,
+        inganniRiusciti: 0,
+
+        timers: [],
+        prontoDal: 0,
+        frameSopra: 0,
+        primaLum: null,
+        livello: 0,
+        ultimoCampione: 0,
+        cameraOK: false,
+        cameraStato: "in attesa del permesso",
+        autoSenzaCamera: false,
+        prossimoFalso: 0,
+        specchioTimer: 0,
+
+        reazione: { attivo: false, tipo: -1, spam: 0, zoom: 0 },
+        perturb: { attivo: false, count: 0 },
+        extra: { nodi: [], timers: [] }
+      };
+
+      /* Presenza e sorveglianza spettatore */
+      const presenza = {
+        detector: null,
+        presente: false,
+        da: 0,
+        mancanti: 0,
+        stato: "assente",
+        motivo: "",
+        occhi: null,
+        ultimaFoto: null,
+        ultimoTrigger: 0,
+        grazia: 0,
+        occupato: false,
+        fermoCount: 0,
+        primaUscita: true,
+        prossimaReazione: 0 /* 0 = Fischio + richiamo garantito alla prima fuga */
+      };
+
+      /* Archivio esterno Wikimedia Commons */
+      const archivio = {
+        foto: { conigli: [], aracnidi: [], lumache: [], hikikomori: [] },
+        video: [],
+        visti: new Set(),
+        ultima: null,
+        inCorso: false,
+        ordine: ["conigli", "lumache", "aracnidi", "hikikomori"],
+        indiceOrdine: 0
+      };
+
+      /* ========================================================================
+         6. UTILITY GENERALI E TIMER
+         ======================================================================== */
+      const rand = (n) => Math.floor(Math.random() * n);
+      const caso = (p) => Math.random() < p;
+      const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+      const scelta = (arr) => arr[rand(arr.length)];
+
+      function formatDurata(ms) {
+        const sec = Math.max(1, Math.floor(ms / 1000));
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        if (m === 0) return s + " SECONDI";
+        return m + " MIN E " + (s < 10 ? "0" : "") + s + " SEC";
+      }
+
+      function pianifica(ms, fn) {
+        stato.timers.push(root.setTimeout(fn, ms));
+      }
+
+      function fermaTimers() {
+        for (let i = 0; i < stato.timers.length; i++) root.clearTimeout(stato.timers[i]);
+        stato.timers = [];
+        if (stato.specchioTimer) {
+          root.clearInterval(stato.specchioTimer);
+          stato.specchioTimer = 0;
+        }
+      }
+
+      function aggiungiExtra(nodo, indice, durata) {
+        const s = strati[indice];
+        if (!s || !nodo) return null;
+        s.appendChild(nodo);
+        stato.extra.nodi.push(nodo);
+        if (durata) {
+          stato.extra.timers.push(root.setTimeout(() => togliExtra(nodo), durata));
+        }
+        return nodo;
+      }
+
+      function togliExtra(nodo) {
+        if (!nodo) return;
+        const idx = stato.extra.nodi.indexOf(nodo);
+        if (idx >= 0) stato.extra.nodi.splice(idx, 1);
+        const vids = nodo.querySelectorAll ? nodo.querySelectorAll("video") : [];
+        for (let i = 0; i < vids.length; i++) {
+          try { vids[i].pause(); } catch (e) {}
+        }
+        if (nodo.parentNode) nodo.parentNode.removeChild(nodo);
+      }
+
+      function pulisciExtra() {
+        for (let i = 0; i < stato.extra.timers.length; i++) root.clearTimeout(stato.extra.timers[i]);
+        stato.extra.timers = [];
+        while (stato.extra.nodi.length) togliExtra(stato.extra.nodi[0]);
+      }
+
+      /* ========================================================================
+         7. ATTI E PROGRESSIONE DELL'ENTROPIA
+         ======================================================================== */
+      function eFaseNormale() {
+        return stato.giro < CONFIG.CICLI_NORMALI;
+      }
+
+      function indiceAtto() {
+        if (eFaseNormale() || stato.caos < CONFIG.SOGLIA_INDAGINE) return 0;
+        if (stato.caos < CONFIG.SOGLIA_CONTAMINAZIONE) return 1;
+        if (stato.caos < CONFIG.SOGLIA_CATTURA) return 2;
+        return 3;
+      }
+
+      function nomeAtto() {
+        return [
+          "Atto I · Gioco Normale (Cicli 1–2)",
+          "Atto II · L'Indagine",
+          "Atto III · La Contaminazione",
+          "Atto IV · La Cattura"
+        ][indiceAtto()];
+      }
+
+      function glitchForza() {
+        const v = glitchSlider ? Number(glitchSlider.value) / 100 : CONFIG.GLITCH;
+        return clamp(isNaN(v) ? CONFIG.GLITCH : v, 0, 1);
+      }
+
+      function probabilita(arr) {
+        const base = arr[indiceAtto()];
+        if (base <= 0) return 0;
+        return clamp(base * (0.35 + glitchForza() * 1.3), 0, 0.98);
+      }
+
+      function aggiornaCaos() {
+        try {
+          doc.documentElement.style.setProperty("--chaos", eFaseNormale() ? "0" : stato.caos.toFixed(3));
+        } catch (e) {}
+        if (eFaseNormale()) doc.body.classList.add("fase-normale");
+        else doc.body.classList.remove("fase-normale");
+        aggiornaPannelloCaos();
+        if (audio.contesto) audioAggiorna();
+      }
+
+      function impostaCaos(v) {
+        if (typeof v !== "number" || isNaN(v)) return stato.caos;
+        stato.caos = clamp(v, 0, 1);
+        stato.giro = Math.round(stato.caos * CONFIG.CYCLES_TO_CRASH);
+        aggiornaCaos();
+        return stato.caos;
+      }
+
+      function segna(nome) {
+        stato.fase = nome;
+        if (debugEl && !debugEl.hidden) aggiornaStato();
+      }
+
+      /* ========================================================================
+         8. ARCHIVIO VIVO DAL BROWSER (WIKIMEDIA COMMONS FOTO & VIDEO)
+         ======================================================================== */
+      function caricaImmagineEsterna(url, timeoutMs = 9500) {
+        return new Promise((ok, ko) => {
+          const img = new Image();
+          let chiuso = false;
+          const t = root.setTimeout(() => {
+            if (chiuso) return;
+            chiuso = true;
+            ko("timeout");
+          }, timeoutMs);
+
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            if (chiuso) return;
+            chiuso = true;
+            root.clearTimeout(t);
+            if (!img.naturalWidth) return ko("vuota");
+            ok(img);
+          };
+          img.onerror = () => {
+            if (chiuso) return;
+            chiuso = true;
+            root.clearTimeout(t);
+            ko("errore");
+          };
+          img.src = url;
+        });
+      }
+
+      async function cercaFotoWikimedia(categoria) {
+        const q = scelta(QUERY_WIKIMEDIA[categoria]);
+        const endpoint =
+          "https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*" +
+          "&generator=search&gsrnamespace=6&gsrlimit=12&gsrsearch=" +
+          encodeURIComponent(q + " filetype:bitmap") +
+          "&prop=imageinfo&iiprop=url|mime&iiurlwidth=760";
+
+        try {
+          const res = await fetch(endpoint);
+          if (!res.ok) return;
+          const data = await res.json();
+          const pages = data && data.query && data.query.pages ? Object.values(data.query.pages) : [];
+          for (let i = 0; i < pages.length; i++) {
+            const info = pages[i].imageinfo && pages[i].imageinfo[0];
+            if (!info) continue;
+            const mime = String(info.mime || "");
+            if (!/jpeg|jpg|png|webp/i.test(mime)) continue;
+            const url = info.thumburl || info.url;
+            if (!url || archivio.visti.has(url)) continue;
+            archivio.visti.add(url);
+
+            try {
+              const img = await caricaImmagineEsterna(url);
+              const voce = { url, img, categoria };
+              archivio.foto[categoria].push(voce);
+              if (archivio.foto[categoria].length > 10) archivio.foto[categoria].shift();
+              archivio.ultima = voce;
+              aggiornaMiniaturaArchivio();
+              if (archivio.foto[categoria].length >= 4) break;
+            } catch (e) {}
+          }
+        } catch (e) {}
+      }
+
+      async function cercaVideoWikimedia() {
+        const q = scelta(QUERY_VIDEO_WIKIMEDIA);
+        const endpoint =
+          "https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*" +
+          "&generator=search&gsrnamespace=6&gsrlimit=8&gsrsearch=" +
+          encodeURIComponent(q + " filetype:video") +
+          "&prop=imageinfo&iiprop=url|mime";
+
+        try {
+          const res = await fetch(endpoint);
+          if (!res.ok) return;
+          const data = await res.json();
+          const pages = data && data.query && data.query.pages ? Object.values(data.query.pages) : [];
+          for (let i = 0; i < pages.length; i++) {
+            const info = pages[i].imageinfo && pages[i].imageinfo[0];
+            if (!info || !info.url) continue;
+            if (!/webm|mp4/i.test(String(info.mime || info.url))) continue;
+            if (archivio.visti.has(info.url)) continue;
+            archivio.visti.add(info.url);
+            archivio.video.push({ url: info.url });
+            if (archivio.video.length > 8) archivio.video.shift();
+            aggiornaMiniaturaArchivio();
+            if (archivio.video.length >= 4) break;
+          }
+        } catch (e) {}
+      }
+
+      async function alimentaArchivi() {
+        if (archivio.inCorso || stato.caduta) return;
+        archivio.inCorso = true;
+        const cats = ["conigli", "aracnidi", "lumache", "hikikomori"];
+        for (let i = 0; i < cats.length; i++) {
+          if (archivio.foto[cats[i]].length < 4) {
+            await cercaFotoWikimedia(cats[i]);
+          }
+        }
+        if (archivio.video.length < 3) {
+          await cercaVideoWikimedia();
+        }
+        archivio.inCorso = false;
+        aggiornaMiniaturaArchivio();
+      }
+
+      function pescaSpecimen(preferito = null) {
+        let cat = preferito;
+        if (!cat) {
+          cat = archivio.ordine[archivio.indiceOrdine % archivio.ordine.length];
+          archivio.indiceOrdine++;
+        }
+        if (archivio.foto[cat] && archivio.foto[cat].length) {
+          return scelta(archivio.foto[cat]);
+        }
+        const tutte = [
+          ...archivio.foto.conigli,
+          ...archivio.foto.aracnidi,
+          ...archivio.foto.lumache,
+          ...archivio.foto.hikikomori
+        ];
+        return tutte.length ? scelta(tutte) : null;
+      }
+
+      function aggiornaMiniaturaArchivio() {
+        if (!webTesto) return;
+        const c = archivio.foto.conigli.length;
+        const a = archivio.foto.aracnidi.length;
+        const l = archivio.foto.lumache.length;
+        const h = archivio.foto.hikikomori.length;
+        if (archivio.ultima && webMini) {
+          webMini.src = archivio.ultima.url;
+          webMini.hidden = false;
+        }
+        webTesto.textContent = `foto: ${c + a + l + h} (C:${c} R:${a} L:${l} H:${h}) · video: ${archivio.video.length}`;
+      }
+
+      /* ========================================================================
+         9. GENERATORE MESSAGGI AI CONTESTUALI (ZERO ERRORI DI RETE)
+         ======================================================================== */
+      function pescaFrasePerturbante() {
+        if (caso(0.36)) {
+          const ora = new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+          const durata = formatDurata(Date.now() - stato.inizioSessione);
+          const contestuali = [
+            ["SONO LE " + ora, "E SEI ANCORA", "QUI DAVANTI", "CON ME."],
+            ["DA " + durata, "TI STO", "STUDIANDO", "IN SILENZIO."],
+            [stato.scattiTotali + " SCATTI.", "HO GIÀ", "ABBASTANZA", "DI TE."],
+            ["NON ERA", "SOLO UN GIOCO", "DI COLORI.", "VERO?"],
+            [
+              stato.fugheIntercettate > 0 ? "HAI PROVATO" : "RESTI",
+              stato.fugheIntercettate > 0 ? "A SCAPPARE" : "IMMOBILE",
+              stato.fugheIntercettate > 0 ? stato.fugheIntercettate + " VOLTE." : "DAVANTI AL VETRO.",
+              "LO SO."
+            ]
+          ];
+          return scelta(contestuali);
+        }
+        return scelta(PAROLE_PERTURBANTI);
+      }
+
+      function pescaFraseBreveAI() {
+        if (caso(0.25)) {
+          const ora = new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+          return scelta([
+            "SONO LE " + ora + ". NON DORMI?",
+            "SCATTO N° " + (stato.scattiTotali + 1) + " ARCHIVIATO.",
+            "TI MUOVI ANCORA.",
+            "RIMANI NEL QUADRATO."
+          ]);
+        }
+        return scelta(FRASI_BREVI_AI);
+      }
+
+      /* ========================================================================
+         10. MOTORE OTTICO — RGB, COLORE DI CANALE, SPECCHIO, GLITCH
+         ======================================================================== */
+      /* Impone il colore puro del monitor su qualsiasi immagine nel canvas:
+         0 = Luminanza B/N · 1 = Rosso · 2 = Verde · 3 = Blu */
+      function applicaColoreCanale(c, indice) {
+        if (!c) return;
+        try {
+          const im = c.getImageData(0, 0, CONFIG.LATO, CONFIG.LATO);
+          const d = im.data;
+          for (let i = 0; i < d.length; i += 4) {
+            const r = d[i], g = d[i + 1], b = d[i + 2];
+            const lum = (r * 0.2126 + g * 0.7152 + b * 0.0722 + 0.5) | 0;
+            if (indice === 0) {
+              d[i] = lum; d[i + 1] = lum; d[i + 2] = lum;
+            } else if (indice === 1) {
+              const v = Math.min(255, ((r * 0.45 + lum * 0.65) + 0.5) | 0);
+              d[i] = v; d[i + 1] = 0; d[i + 2] = 0;
+            } else if (indice === 2) {
+              const v = Math.min(255, ((g * 0.45 + lum * 0.65) + 0.5) | 0);
+              d[i] = 0; d[i + 1] = v; d[i + 2] = 0;
+            } else {
+              const v = Math.min(255, ((b * 0.45 + lum * 0.65) + 0.5) | 0);
+              d[i] = 0; d[i + 1] = 0; d[i + 2] = v;
+            }
+          }
+          c.putImageData(im, 0, 0);
+        } catch (e) {
+          /* Fallback sicuro via compositing se un'immagine esterna ha CORS stretto */
+          if (indice > 0) {
+            c.save();
+            c.globalCompositeOperation = "multiply";
+            c.fillStyle = indice === 1 ? "#ff0000" : indice === 2 ? "#00ff00" : "#0000ff";
+            c.fillRect(0, 0, CONFIG.LATO, CONFIG.LATO);
+            c.restore();
+          }
+        }
+      }
+
+      function tinta(indice, colore) {
+        const c = ctx[indice];
+        if (!c) return;
+        c.fillStyle = colore || BIANCO;
+        c.fillRect(0, 0, CONFIG.LATO, CONFIG.LATO);
+        const f = fantasmi[indice];
+        if (f) {
+          f.ctx.fillStyle = c.fillStyle;
+          f.ctx.fillRect(0, 0, CONFIG.LATO, CONFIG.LATO);
+          f.pieno = true;
+        }
+      }
+
+      function tutte(colore) {
+        for (let i = 0; i < 4; i++) tinta(i, colore);
+        if (colore === BIANCO) doc.body.classList.add("bianco-totale");
+        else doc.body.classList.remove("bianco-totale");
+      }
+
+      function copri(c, img, zoom = 1, dx = 0, dy = 0) {
+        if (!c || !img || !img.naturalWidth) return;
+        const scala = Math.max(CONFIG.LATO / img.naturalWidth, CONFIG.LATO / img.naturalHeight) * zoom;
+        const w = img.naturalWidth * scala;
+        const h = img.naturalHeight * scala;
+        const x = (CONFIG.LATO - w) / 2 + dx;
+        const y = (CONFIG.LATO - h) / 2 + dy;
+        c.drawImage(img, x, y, w, h);
+      }
+
+      function videoPronta() {
+        return !!(video && video.videoWidth > 0 && video.videoHeight > 0 && video.readyState >= 2);
+      }
+
+      /* Ritaglia la webcam in quadrato in MODALITÀ SPECCHIO */
+      function ritagliaWebcam(destCtx) {
+        const lw = video.videoWidth;
+        const lh = video.videoHeight;
+        const lato = Math.min(lw, lh);
+        destCtx.save();
+        destCtx.clearRect(0, 0, CONFIG.LATO, CONFIG.LATO);
+        destCtx.translate(CONFIG.LATO, 0);
+        destCtx.scale(-1, 1);
+        destCtx.drawImage(
+          video,
+          (lw - lato) / 2,
+          (lh - lato) / 2,
+          lato,
+          lato,
+          0,
+          0,
+          CONFIG.LATO,
+          CONFIG.LATO
+        );
+        destCtx.restore();
+      }
+
+      /* Prova ottica minimale se la webcam è assente o negata */
+      function immagineDiProvaOttica() {
+        const t = Date.now() * 0.001;
+        const g = ctxLavoro.createLinearGradient(0, 0, CONFIG.LATO, CONFIG.LATO);
+        g.addColorStop(0, `hsl(${(t * 18) % 360}, 78%, 48%)`);
+        g.addColorStop(0.5, `hsl(${(t * 18 + 120) % 360}, 78%, 48%)`);
+        g.addColorStop(1, `hsl(${(t * 18 + 240) % 360}, 78%, 48%)`);
+        ctxLavoro.fillStyle = g;
+        ctxLavoro.fillRect(0, 0, CONFIG.LATO, CONFIG.LATO);
+
+        /* Silhouette astratta centrale */
+        ctxLavoro.fillStyle = "rgba(18, 18, 22, 0.86)";
+        ctxLavoro.beginPath();
+        ctxLavoro.arc(CONFIG.LATO * 0.5, CONFIG.LATO * 0.42, CONFIG.LATO * 0.19, 0, Math.PI * 2);
+        ctxLavoro.fill();
+        ctxLavoro.beginPath();
+        ctxLavoro.ellipse(CONFIG.LATO * 0.5, CONFIG.LATO * 0.86, CONFIG.LATO * 0.34, CONFIG.LATO * 0.28, 0, Math.PI, Math.PI * 2);
+        ctxLavoro.fill();
+      }
+
+      function disegnaX(c, x, y, r, colore = "#ff0000", spessore = 20) {
+        c.save();
+        c.strokeStyle = colore;
+        c.lineWidth = spessore;
+        c.lineCap = "round";
+        c.beginPath();
+        c.moveTo(x - r, y - r);
+        c.lineTo(x + r, y + r);
+        c.moveTo(x + r, y - r);
+        c.lineTo(x - r, y + r);
+        c.stroke();
+        c.restore();
+      }
+
+      function disegnaOcchiX(c, forza = false) {
+        const col = Math.random() < 0.65 ? "#ff0000" : "#000000";
+        const sp = Math.max(12, CONFIG.LATO * 0.036);
+        if (presenza.occhi) {
+          const o = presenza.occhi;
+          disegnaX(c, o.sx, o.sy, o.r, col, sp);
+          disegnaX(c, o.dx, o.dy, o.r, col, sp);
+          return true;
+        }
+        if (!forza) return false;
+        disegnaX(c, CONFIG.LATO * 0.35, CONFIG.LATO * 0.41, CONFIG.LATO * 0.075, col, sp);
+        disegnaX(c, CONFIG.LATO * 0.65, CONFIG.LATO * 0.41, CONFIG.LATO * 0.075, col, sp);
+        return true;
+      }
+
+      function applicaStrappi(c, forza = 0.4, quante = 2) {
+        if (!c) return;
+        for (let i = 0; i < quante; i++) {
+          const y = rand(CONFIG.LATO);
+          const h = 8 + rand(28 + Math.round(120 * forza));
+          const dx = (Math.random() * 2 - 1) * (10 + 95 * forza);
+          c.drawImage(c.canvas, 0, y, CONFIG.LATO, h, dx, y, CONFIG.LATO, h);
+        }
+      }
+
+      function strappa(indice) {
+        const c = ctx[indice];
+        if (!c) return;
+        const f = clamp(0.16 + stato.caos * 0.85 * (0.4 + glitchForza()), 0.16, 1);
+        applicaStrappi(c, f, 1 + rand(3));
+        if (caso(0.35)) suonaGlitch();
+      }
+
+      function posterizza(c, livelli = 5) {
+        if (!c) return;
+        let d;
+        try { d = c.getImageData(0, 0, CONFIG.LATO, CONFIG.LATO); } catch (e) { return; }
+        const p = d.data;
+        const passo = Math.floor(256 / livelli);
+        for (let i = 0; i < p.length; i += 4) {
+          p[i] = Math.floor(p[i] / passo) * passo;
+          p[i + 1] = Math.floor(p[i + 1] / passo) * passo;
+          p[i + 2] = Math.floor(p[i + 2] / passo) * passo;
+        }
+        c.putImageData(d, 0, 0);
+      }
+
+      function sporcaPixel(im, forza) {
+        const d = im.data;
+        const n = Math.round(CONFIG.LATO * CONFIG.LATO * forza);
+        for (let i = 0; i < n; i++) {
+          const j = rand(CONFIG.LATO * CONFIG.LATO) * 4;
+          d[j + rand(3)] = Math.random() < 0.5 ? 0 : 255;
+        }
+      }
+
+      function mostra(indice, im) {
+        const c = ctx[indice];
+        if (!c) return;
+        doc.body.classList.remove("bianco-totale");
+        c.putImageData(im, 0, 0);
+
+        const g = CONFIG.GHOSTING[indiceAtto()];
+        const f = fantasmi[indice];
+        if (g > 0 && f && f.pieno) {
+          c.save();
+          c.globalAlpha = g;
+          c.drawImage(
+            f.canvas,
+            (Math.random() * 2 - 1) * 14 * (0.4 + stato.caos),
+            (Math.random() * 2 - 1) * 14 * (0.4 + stato.caos)
+          );
+          c.restore();
+        }
+        if (f) {
+          f.ctx.putImageData(im, 0, 0);
+          f.pieno = true;
+        }
+      }
+
+      function sovrapponiCanale(indice) {
+        const altro = (indice + 1 + rand(3)) % 4;
+        const a = ctx[indice], b = ctx[altro];
+        if (!a || !b) return;
+        a.save();
+        a.globalAlpha = 0.14 + stato.caos * 0.28;
+        a.globalCompositeOperation = "screen";
+        a.drawImage(b.canvas, 0, 0);
+        a.restore();
+      }
+
+      function scomponi() {
+        const dati = ctxLavoro.getImageData(0, 0, CONFIG.LATO, CONFIG.LATO).data;
+        const tot = CONFIG.LATO * CONFIG.LATO;
+        const im = [];
+        for (let n = 0; n < 4; n++) im.push(ctx[n].createImageData(CONFIG.LATO, CONFIG.LATO));
+        const d0 = im[0].data, d1 = im[1].data, d2 = im[2].data, d3 = im[3].data;
+
+        for (let p = 0; p < tot; p++) {
+          const j = p * 4;
+          const r = dati[j], g = dati[j + 1], b = dati[j + 2];
+          const lum = (r * 0.2126 + g * 0.7152 + b * 0.0722 + 0.5) | 0;
+          d0[j] = lum; d0[j + 1] = lum; d0[j + 2] = lum; d0[j + 3] = 255;
+          d1[j] = r;   d1[j + 1] = 0;   d1[j + 2] = 0;   d1[j + 3] = 255;
+          d2[j] = 0;   d2[j + 1] = g;   d2[j + 2] = 0;   d2[j + 3] = 255;
+          d3[j] = 0;   d3[j + 1] = 0;   d3[j + 2] = b;   d3[j + 3] = 255;
+        }
+
+        if (!eFaseNormale() && stato.caos > 0.5) {
+          for (let n = 0; n < 4; n++) sporcaPixel(im[n], (stato.caos - 0.5) * 0.025);
+        }
+        return im;
+      }
+
+      /* Contamina il fotogramma della webcam con una foto d'archivio (dal 3° ciclo) */
+      function contaminaVolto() {
+        const forza = clamp((stato.caos - 0.20) * 1.2, 0.1, 0.9);
+        if (caso(0.5)) applicaStrappi(ctxLavoro, forza * 0.65, 1 + rand(2));
+        if (caso(probabilita(CONFIG.FOTO_FACCIA))) {
+          const item = pescaSpecimen();
+          if (item && item.img) {
+            ctxLavoro.save();
+            ctxLavoro.globalAlpha = 0.24 + stato.caos * 0.30;
+            ctxLavoro.globalCompositeOperation = caso(0.5) ? "screen" : "multiply";
+            copri(ctxLavoro, item.img, 1.12, (Math.random() * 2 - 1) * 60, (Math.random() * 2 - 1) * 60);
+            ctxLavoro.restore();
+          }
+        }
+        if (stato.caos > 0.65 && caso(0.45)) posterizza(ctxLavoro, 4 + rand(3));
+      }
+
+      /* ========================================================================
+         11. INTRUSI, SPECIMEN TINTI, PORTALI VIDEO, INGANNI E PAROLE AI
+         ======================================================================== */
+      function parola(indice, testo, durata = 2800, classe = "") {
+        const s = strati[indice];
+        if (!s) return null;
+        const vecchie = s.querySelectorAll(".parola");
+        for (let i = 0; i < vecchie.length; i++) togliExtra(vecchie[i]);
+
+        const d = doc.createElement("div");
+        d.className = "parola" + (classe ? " " + classe : "");
+        d.textContent = testo;
+        aggiungiExtra(d, indice, durata);
+        return d;
+      }
+
+      /* Foto esterna dal browser (conigli / ragni / lumache / hikikomori),
+         tinta ESATTAMENTE nel colore del monitor (B/N, Rosso, Verde, Blu) */
+      function specimenInQuadrato(indice, preferito = null, durata = 3200) {
+        const item = pescaSpecimen(preferito);
+        const c = ctx[indice];
+        if (!c) return false;
+
+        if (!item || !item.img) {
+          alimentaArchivi();
+          return false;
+        }
+
+        const t = stato.caos;
+        tinta(indice, NERO);
+        c.save();
+        c.translate(CONFIG.LATO / 2, CONFIG.LATO / 2);
+        c.rotate((Math.random() * 2 - 1) * (0.02 + 0.06 * t));
+        c.translate(-CONFIG.LATO / 2, -CONFIG.LATO / 2);
+        copri(c, item.img, 1.05 + t * 0.38, (Math.random() * 2 - 1) * 40 * t, (Math.random() * 2 - 1) * 40 * t);
+        c.restore();
+
+        if (t > 0.42 && caso(0.48)) {
+          c.save();
+          c.globalAlpha = 0.22 + t * 0.22;
+          c.globalCompositeOperation = "screen";
+          copri(c, item.img, 1.28 + t * 0.35, (Math.random() * 2 - 1) * 65, 0);
+          c.restore();
+        }
+        if (t > 0.25 && caso(0.42)) applicaStrappi(c, 0.14 + t * 0.42, 1 + rand(2));
+        if (t > 0.65 && caso(0.42)) posterizza(c, 4 + rand(3));
+
+        /* Applica il colore nativo del canale del monitor */
+        applicaColoreCanale(c, indice);
+
+        const f = fantasmi[indice];
+        if (f) { f.ctx.drawImage(c.canvas, 0, 0); f.pieno = true; }
+
+        if (durata) {
+          pianifica(durata, () => {
+            if (!stato.sequenza || stato.caduta) return;
+            tinta(indice, BIANCO);
+          });
+        }
+        return true;
+      }
+
+      /* Portale video esterno tinto nel colore del monitor (zero etichette) */
+      function portaleInQuadrato(indice, durata = 5000) {
+        if (stato.caduta) return null;
+        const usaLive = (stato.caos >= CONFIG.SOGLIA_CONTAMINAZIONE && caso(0.55)) || !archivio.video.length;
+
+        const wrap = doc.createElement("div");
+        wrap.className = "portale-wrap";
+
+        if (!usaLive && archivio.video.length) {
+          const vidData = scelta(archivio.video);
+          const v = doc.createElement("video");
+          v.className = "portale-media";
+          v.src = vidData.url;
+          v.muted = true;
+          v.loop = true;
+          v.autoplay = true;
+          v.playsInline = true;
+          v.setAttribute("muted", "");
+          v.setAttribute("playsinline", "");
+          const p = v.play();
+          if (p && p.catch) p.catch(() => {});
+          wrap.appendChild(v);
+          aggiungiExtra(wrap, indice, durata);
+          return wrap;
+        }
+
+        const portale = scelta(PORTALI_ESTERNI);
+        const ifr = doc.createElement("iframe");
+        ifr.className = "portale-frame";
+        ifr.src =
+          `https://www.youtube.com/embed/${portale.id}` +
+          `?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1&disablekb=1`;
+        ifr.setAttribute("allow", "autoplay; encrypted-media");
+        ifr.setAttribute("title", "");
+        wrap.appendChild(ifr);
+
+        aggiungiExtra(wrap, indice, durata);
+        return wrap;
+      }
+
+      /* Falso specchio puro in modalità specchio, tinto nel colore del monitor */
+      function avviaFalsoSpecchio(indice = rand(4), durata = 4400) {
+        if (!videoPronta() || stato.caduta) return false;
+        if (stato.specchioTimer) root.clearInterval(stato.specchioTimer);
+
+        const c = ctx[indice];
+        const congelaA = Date.now() + 1350 + rand(850);
+        let congelato = false;
+
+        stato.specchioTimer = root.setInterval(() => {
+          if (stato.caduta || !videoPronta()) {
+            root.clearInterval(stato.specchioTimer);
+            stato.specchioTimer = 0;
+            return;
+          }
+          if (Date.now() < congelaA) {
+            ritagliaWebcam(c);
+            applicaColoreCanale(c, indice);
+          } else if (!congelato) {
+            congelato = true;
+            suonaClic();
+            stato.inganniRiusciti++;
+          }
+        }, 65);
+
+        pianifica(durata, () => {
+          if (stato.specchioTimer) {
+            root.clearInterval(stato.specchioTimer);
+            stato.specchioTimer = 0;
+          }
+        });
+        return true;
+      }
+
+      /* Esca ottica pura (senza scritte) */
+      function lanciaEsca(indice = rand(4), durata = 3200) {
+        const d = doc.createElement("div");
+        d.className = "esca-ottica";
+        const anello = doc.createElement("div");
+        anello.className = "esca-anello";
+        d.appendChild(anello);
+        aggiungiExtra(d, indice, durata);
+        suonaClic();
+        pianifica(Math.round(durata * 0.72), () => {
+          if (videoPronta()) salvaVoltoCorrente();
+          suonaClic();
+        });
+      }
+
+      /* Popup trappola: se provi a chiuderlo, ti frega e si moltiplica */
+      function popupTrappola(indice = rand(4), testoCustom = null, durata = 4800) {
+        const s = strati[indice];
+        if (!s || stato.caduta) return null;
+
+        const d = doc.createElement("div");
+        d.className = "popup" + (caso(0.4) ? " errore" : "");
+        const larg = 56 + rand(32);
+        d.style.width = larg + "%";
+        d.style.left = rand(Math.max(2, 96 - larg)) + "%";
+        d.style.top = (8 + rand(52)) + "%";
+
+        const barra = doc.createElement("div");
+        barra.className = "popup-barra";
+        barra.innerHTML = `<span>${scelta(POPUP_TITOLI)}</span><span>✕</span>`;
+
+        const corpo = doc.createElement("div");
+        corpo.className = "popup-corpo";
+        corpo.textContent = testoCustom || scelta(POPUP_TESTI);
+
+        const extra = doc.createElement("div");
+        extra.className = "popup-extra";
+        extra.textContent = scelta(POPUP_EXTRA);
+
+        const bot = doc.createElement("div");
+        bot.className = "popup-bottoni";
+        const bOk = doc.createElement("button");
+        bOk.type = "button";
+        bOk.textContent = "OK";
+        const bNo = doc.createElement("button");
+        bNo.type = "button";
+        bNo.textContent = "Chiudi";
+        bot.appendChild(bOk);
+        bot.appendChild(bNo);
+
+        d.appendChild(barra);
+        d.appendChild(corpo);
+        d.appendChild(extra);
+        d.appendChild(bot);
+
+        d.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          sbloccaAudio();
+          suonaClic();
+          stato.inganniRiusciti++;
+          corpo.textContent = "NON PUOI CHIUDERMI.";
+          d.classList.add("errore");
+          popupTrappola((indice + 1 + rand(3)) % 4, "RIMANI QUI.", 4200);
+        });
+
+        aggiungiExtra(d, indice, durata);
+        suonaClic();
+        return d;
+      }
+
+      /* Intrusione breve scritta dall'AI durante i cicli (dal 3° ciclo) */
+      function messaggioAiInCiclo() {
+        if (stato.caduta || stato.reazione.attivo || stato.perturb.attivo) return;
+        const idx = rand(4);
+        const stile = idx === 0 ? "sottile" : "sottile canale";
+        parola(idx, pescaFraseBreveAI(), 2500 + rand(1300), stile);
+        suonaClic();
+
+        if (stato.caos >= CONFIG.SOGLIA_CONTAMINAZIONE && caso(0.55)) {
+          const altro = (idx + 1 + rand(3)) % 4;
+          pianifica(720 + rand(480), () => {
+            if (!stato.sequenza || stato.caduta || stato.reazione.attivo) return;
+            parola(altro, pescaFraseBreveAI(), 2200 + rand(1000), altro === 0 ? "sottile rossa" : "sottile canale");
+          });
+        }
+      }
+
+      /* Flash breve del volto rubato */
+      function confrontoBreve() {
+        if (stato.caduta) return false;
+        togliFlash();
+
+        const sorgente = presenza.ultimaFoto || lavoro;
+        for (let n = 0; n < 4; n++) {
+          const c = ctx[n];
+          if (!c) continue;
+          tinta(n, NERO);
+          c.drawImage(sorgente, 0, 0);
+          applicaStrappi(c, 0.55, 3);
+          applicaColoreCanale(c, n);
+        }
+
+        if (debugEl && !debugEl.hidden) {
+          suonaUrlo();
+          return true;
+        }
+
+        try {
+          const imgEl = doc.createElement("img");
+          imgEl.src = sorgente.toDataURL("image/jpeg", 0.8);
+          imgEl.className = "flash-volto";
+          imgEl.alt = "";
+          doc.body.appendChild(imgEl);
+          doc.body.classList.add("scuoti");
+        } catch (e) {}
+
+        suonaUrlo();
+        root.setTimeout(togliFlash, CONFIG.SPAVENTO_MS);
+        return true;
+      }
+
+      function togliFlash() {
+        const nodi = doc.querySelectorAll(".flash-volto");
+        for (let i = 0; i < nodi.length; i++) {
+          if (nodi[i].parentNode) nodi[i].parentNode.removeChild(nodi[i]);
+        }
+        doc.body.classList.remove("scuoti");
+      }
+
+      /* ========================================================================
+         12. SEQUENZA RGB E REGIA PROGRESSIVA
+         ======================================================================== */
+      function scarto(ampiezza) {
+        if (eFaseNormale() || stato.caos < 0.10) return 0;
+        return (Math.random() * 2 - 1) * ampiezza * Math.min(0.55, stato.caos * 0.75);
+      }
+
+      function mostraCanale(indice, nome, immagine) {
+        if (!stato.sequenza || stato.caduta) return;
+        mostra(indice, immagine);
+        segna(nome);
+        suonaCanale(indice);
+        if (!eFaseNormale()) {
+          if (caso(probabilita(CONFIG.EXTRA_GLITCH) * 0.45)) strappa(indice);
+          if (caso(0.32 * stato.caos)) sovrapponiCanale(indice);
+        }
+      }
+
+      function neutroUno(indice, colore) {
+        if (!stato.sequenza || stato.caduta) return;
+        tinta(indice, colore);
+        segna("neutro " + (indice + 1));
+        suonaSpegnimento();
+      }
+
+      function programmaRegiaDelCiclo() {
+        /* Cicli 1 e 2: COMPLETAMENTE PULITI (solo foto e 4 colori) */
+        if (eFaseNormale()) return;
+
+        const primoDisturbante = stato.giro === CONFIG.CICLI_NORMALI;
+
+        /* 1. Foto esterne (conigli, ragni, lumache, hikikomori) tinte nel colore del quadrato */
+        const tempiSpecimen = primoDisturbante ? [4000, 9200] : [3000, 7400, 11400];
+        tempiSpecimen.forEach((ms, i) => {
+          pianifica(ms + rand(1100), () => {
+            if (!stato.sequenza || stato.caduta || stato.reazione.attivo) return;
+            if ((primoDisturbante && i === 0) || caso(probabilita(CONFIG.EXTRA_SPECIMEN))) {
+              specimenInQuadrato(rand(4), null, 2700 + rand(2000));
+            }
+          });
+        });
+
+        /* 2. Messaggi brevi perturbanti dell'AI */
+        const tempiAi = primoDisturbante ? [5800] : [4200, 8800, 12800];
+        tempiAi.forEach((ms, i) => {
+          pianifica(ms + rand(850), () => {
+            if (!stato.sequenza || stato.caduta || stato.reazione.attivo) return;
+            if ((primoDisturbante && i === 0) || caso(probabilita(CONFIG.EXTRA_MESSAGGIO_AI))) {
+              messaggioAiInCiclo();
+            }
+          });
+        });
+
+        /* 3. Portale video esterno collegato a un altro luogo (tinto nel colore del monitor) */
+        pianifica(5200 + rand(3000), () => {
+          if (!stato.sequenza || stato.caduta || stato.reazione.attivo) return;
+          if (caso(probabilita(CONFIG.EXTRA_PORTALE))) {
+            portaleInQuadrato(rand(4), 4200 + rand(2600));
+          }
+        });
+
+        /* 4. Inganno psicologico: falso specchio, esca ottica o popup trappola */
+        pianifica(6800 + rand(3000), () => {
+          if (!stato.sequenza || stato.caduta || stato.reazione.attivo) return;
+          if (!caso(probabilita(CONFIG.EXTRA_INGANNO))) return;
+          const r = Math.random();
+          if (r < 0.42 && videoPronta()) avviaFalsoSpecchio(rand(4), 4200);
+          else if (r < 0.72) lanciaEsca(rand(4));
+          else popupTrappola(rand(4), null, 4600);
+        });
+
+        /* 5. Flash breve del volto negli atti alti */
+        pianifica(Math.max(4000, T_FINE - 1200), () => {
+          if (!stato.sequenza || stato.caduta || stato.reazione.attivo) return;
+          if (stato.caos < CONFIG.SPAVENTO_MIN_CHAOS) return;
+          if (caso(CONFIG.SPAVENTO_CHANCE)) confrontoBreve();
+        });
+
+        /* 6. Comunicazione perturbante completa sui 4 monitor (garantita al 3° ciclo) */
+        pianifica(10200 + rand(2200), () => {
+          if (primoDisturbante) frasePerturbante();
+          else forseFrasePerturbante();
+        });
+      }
+
+      function scatta(forza = false) {
+        if (stato.sequenza || stato.caduta || stato.reazione.attivo || stato.perturb.attivo) return false;
+        if (!videoPronta() && !forza) return false;
+
+        fermaTimers();
+        pulisciExtra();
+
+        if (videoPronta()) {
+          ritagliaWebcam(ctxLavoro);
+          salvaVoltoCorrente();
+        } else {
+          immagineDiProvaOttica();
+        }
+
+        const normale = eFaseNormale();
+        if (!normale) contaminaVolto();
+
+        if (forza === "occhi") {
+          disegnaOcchiX(ctxLavoro, true);
+          suonaClic();
+        } else if (!normale && caso(probabilita(CONFIG.X_FACCIA))) {
+          disegnaOcchiX(ctxLavoro, stato.caos >= CONFIG.SOGLIA_CATTURA);
+          suonaClic();
+        }
+
+        let im;
+        try {
+          im = scomponi();
+        } catch (e) {
+          tutte(BIANCO);
+          return false;
+        }
+
+        stato.sequenza = true;
+        stato.inizioCiclo = Date.now();
+        stato.frameSopra = 0;
+        stato.scattiTotali++;
+
+        let at = 0;
+        function passo(dopo, azione) {
+          at += dopo + scarto(dopo * 0.45);
+          pianifica(at, azione);
+        }
+
+        /* t = 0: Luminanza */
+        mostra(0, im[0]);
+        segna("luminanza");
+        suonaCanale(0);
+
+        /* t = 3 · 6 · 9: Rosso, Verde, Blu */
+        passo(CONFIG.T_RGB, () => mostraCanale(1, "rosso", im[1]));
+        passo(CONFIG.T_RGB, () => mostraCanale(2, "verde", im[2]));
+        passo(CONFIG.T_RGB, () => mostraCanale(3, "blu", im[3]));
+
+        if (!normale && stato.caos > 0.25 && caso(0.45)) {
+          at += 450 + Math.random() * 1200 * stato.caos;
+          pianifica(at, () => segna("sospensione"));
+        }
+
+        /* Ritorno al bianco uno alla volta */
+        passo(CONFIG.T_PERMANENZA, () => neutroUno(0, BIANCO));
+        passo(CONFIG.T_NEUTRO, () => neutroUno(1, BIANCO));
+        passo(CONFIG.T_NEUTRO, () => neutroUno(2, BIANCO));
+        passo(CONFIG.T_NEUTRO, () => neutroUno(3, BIANCO));
+
+        passo(CONFIG.T_RESET, () => chiudiCiclo());
+
+        programmaRegiaDelCiclo();
+        return true;
+      }
+
+      function chiudiCiclo() {
+        if (stato.caduta) return;
+        stato.giro++;
+        stato.caos = Math.min(1, stato.giro / CONFIG.CYCLES_TO_CRASH);
+        aggiornaCaos();
+
+        pulisciExtra();
+        stato.sequenza = false;
+        stato.prontoDal = Date.now() + CONFIG.COOLDOWN;
+
+        if (stato.caos >= 1) {
+          collasso();
+          return;
+        }
+
+        tutte(BIANCO);
+        segna("bianco");
+        forseAuto();
+      }
+
+      function azzera() {
+        if (stato.caduta) return;
+        if (stato.reazione.attivo) {
+          fineReazione();
+          return;
+        }
+        stato.perturb.attivo = false;
+        fermaTimers();
+        pulisciExtra();
+        togliFlash();
+        stato.sequenza = false;
+        stato.frameSopra = 0;
+        tutte(BIANCO);
+        stato.prontoDal = Date.now() + CONFIG.COOLDOWN;
+        segna("bianco");
+        forseAuto();
+      }
+
+      function forseAuto() {
+        if (!(CONFIG.AUTO_LOOP || stato.autoSenzaCamera) || stato.sequenza || stato.caduta) return;
+        pianifica(stato.autoSenzaCamera ? CONFIG.PAUSA_AUTO_SENZA_CAMERA : CONFIG.PAUSA_AUTO, () => {
+          if (!stato.sequenza && !stato.caduta) scatta(true);
+        });
+      }
+
+      /* ========================================================================
+         13. COMUNICAZIONI PERTURBANTI DELL'AI SUI 4 MONITOR
+         ======================================================================== */
+      function forseFrasePerturbante() {
+        if (stato.caduta || stato.reazione.attivo || stato.perturb.attivo || eFaseNormale()) return false;
+        if (stato.caos < CONFIG.PERTURB_MIN_CHAOS) return false;
+        if (stato.perturb.count >= CONFIG.PERTURB_MAX) return false;
+        const p = clamp(CONFIG.PERTURB_CHANCE + stato.caos * 0.35, 0.45, 0.88);
+        if (!caso(p)) return false;
+        return frasePerturbante();
+      }
+
+      function frasePerturbante() {
+        if (stato.perturb.attivo || stato.caduta) return false;
+        if (stato.reazione.attivo) fineReazione();
+
+        const parole = pescaFrasePerturbante();
+        fermaTimers();
+        pulisciExtra();
+        stato.sequenza = false;
+        stato.perturb.attivo = true;
+        stato.perturb.count++;
+        segna("messaggio AI");
+
+        sbloccaAudio();
+        radioAbbassaTemporaneo(4.8);
+        subBasso(4.2);
+
+        for (let i = 0; i < 4; i++) {
+          pianifica(260 + i * 760, () => {
+            if (!stato.perturb.attivo) return;
+            tinta(i, NERO);
+            parola(i, parole[i], 5000, i === 3 ? "lenta rossa" : "lenta");
+          });
+        }
+
+        pianifica(260 + 4 * 760 + 1800, () => {
+          stato.perturb.attivo = false;
+          pulisciExtra();
+          tutte(BIANCO);
+          stato.prontoDal = Date.now() + CONFIG.COOLDOWN;
+          segna("bianco");
+          forseAuto();
+        });
+        return true;
+      }
+
+      /* ========================================================================
+         14. SORVEGLIANZA PRESENZA & REAZIONI ALL'USCITA (FISCHIO + RICHIAMO)
+         ======================================================================== */
+      function salvaVoltoCorrente() {
+        if (!videoPronta()) return;
+        if (!presenza.ultimaFoto) {
+          const c = doc.createElement("canvas");
+          c.width = CONFIG.LATO;
+          c.height = CONFIG.LATO;
+          presenza.ultimaFoto = c;
+        }
+        ritagliaWebcam(presenza.ultimaFoto.getContext("2d"));
+      }
+
+      function avviaSorveglianza() {
+        if ("FaceDetector" in root) {
+          try {
+            presenza.detector = new root.FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+          } catch (e) {
+            presenza.detector = null;
+          }
+        }
+        root.setInterval(controllaPresenza, CONFIG.PRESENZA_INTERVALLO);
+      }
+
+      async function controllaPresenza() {
+        if (stato.caduta || doc.hidden || !videoPronta()) return;
+
+        /* Metodo 1: FaceDetector nativo del browser */
+        if (presenza.detector && !presenza.occupato) {
+          presenza.occupato = true;
+          try {
+            const volti = await presenza.detector.detect(video);
+            presenza.occupato = false;
+            if (volti && volti.length) {
+              const b = volti[0].boundingBox;
+              const lw = video.videoWidth || 1;
+              const lh = video.videoHeight || 1;
+              const lato = Math.min(lw, lh);
+              const ox = (lw - lato) / 2;
+              const oy = (lh - lato) / 2;
+              const scala = CONFIG.LATO / lato;
+
+              /* Coordinate specchiate per X sugli occhi */
+              const bx = CONFIG.LATO - ((b.x - ox + b.width) * scala);
+              const by = (b.y - oy) * scala;
+              const bw = b.width * scala;
+              const bh = b.height * scala;
+
+              presenza.occhi = {
+                sx: bx + bw * 0.32,
+                sy: by + bh * 0.38,
+                dx: bx + bw * 0.68,
+                dy: by + bh * 0.38,
+                r: Math.max(22, bw * 0.14)
+              };
+
+              const cx = (b.x + b.width / 2) / lw;
+              const cy = (b.y + b.height / 2) / lh;
+              const bordo = cx < 0.10 || cx > 0.90 || cy < 0.10 || cy > 0.90;
+
+              gestisciVoltoPresente(bordo);
+            } else {
+              gestisciVoltoAssente();
+            }
+            if (debugEl && !debugEl.hidden) aggiornaVoltoUI();
+            return;
+          } catch (e) {
+            presenza.occupato = false;
+            presenza.detector = null;
+          }
+        }
+
+        /* Metodo 2 (universale): presenza basata su movimento/attività */
+        const ora = Date.now();
+        const mosso = stato.livello > Math.max(0.7, sogliaMovimento() * 0.45);
+        if (mosso) {
+          presenza.fermoCount = 0;
+          if (!presenza.presente) {
+            presenza.presente = true;
+            presenza.da = ora;
+            presenza.stato = "presente";
+          }
+          salvaVoltoCorrente();
+        } else if (presenza.presente) {
+          presenza.fermoCount++;
+          if (presenza.fermoCount >= 8) {
+            const durata = ora - presenza.da;
+            presenza.presente = false;
+            presenza.fermoCount = 0;
+            presenza.stato = "assente";
+            if (durata >= CONFIG.PRESENZA_MIN_MS) segnalaUscita("allontanamento");
+          }
+        }
+        if (debugEl && !debugEl.hidden) aggiornaVoltoUI();
+      }
+
+      function gestisciVoltoPresente(sulBordo) {
+        const ora = Date.now();
+        const eraInFuga = stato.reazione.attivo;
+
+        if (!presenza.presente) {
+          presenza.presente = true;
+          presenza.da = ora;
+          presenza.stato = "presente";
+          /* Se rientri mentre ti sta fischiando/richiamando, ti becca */
+          if (eraInFuga && !eFaseNormale()) {
+            parola(rand(4), "ECCOTI TORNATO.", 1600, "rossa");
+          }
+        }
+        presenza.mancanti = 0;
+        salvaVoltoCorrente();
+
+        if (sulBordo && ora - presenza.da >= CONFIG.PRESENZA_MIN_MS) {
+          segnalaUscita("bordo");
+        }
+      }
+
+      function gestisciVoltoAssente() {
+        presenza.occhi = null;
+        if (!presenza.da) {
+          presenza.presente = false;
+          presenza.stato = "assente";
+          return;
+        }
+        presenza.mancanti++;
+        if (presenza.mancanti >= CONFIG.ASSENZA_CONSECUTIVA) {
+          const durata = Date.now() - presenza.da;
+          presenza.presente = false;
+          presenza.da = 0;
+          presenza.mancanti = 0;
+          presenza.stato = "assente";
+          if (durata >= CONFIG.PRESENZA_MIN_MS) segnalaUscita("uscito dalla visuale");
+        }
+      }
+
+      function segnalaUscita(motivo) {
+        if (stato.caduta || eFaseNormale()) return;
+        const ora = Date.now();
+        if (ora < presenza.grazia) return;
+        if (stato.reazione.attivo || stato.perturb.attivo) return;
+        if (ora - presenza.ultimoTrigger < CONFIG.DEPARTURE_COOLDOWN_MS) return;
+
+        presenza.motivo = motivo;
+        presenza.stato = "in fuga";
+        if (!caso(CONFIG.DEPARTURE_TRIGGER_CHANCE)) {
+          presenza.grazia = ora + 4000;
+          return;
+        }
+
+        presenza.ultimoTrigger = ora;
+        presenza.grazia = ora + CONFIG.DEPARTURE_GRACE_MS;
+        stato.fugheIntercettate++;
+
+        const tipo = presenza.prossimaReazione;
+        presenza.prossimaReazione = rand(6);
+        avviaReazione(tipo);
+      }
+
+      function avviaReazione(tipo) {
+        if (stato.caduta || stato.reazione.attivo) return false;
+        fermaTimers();
+        pulisciExtra();
+        stato.sequenza = false;
+        stato.perturb.attivo = false;
+        stato.reazione.attivo = true;
+        stato.reazione.tipo = tipo;
+
+        segna("reazione uscita " + (tipo + 1) + "/6");
+        sbloccaAudio();
+
+        if (tipo === 0) reazioneFischio();
+        else if (tipo === 1) reazioneColpa();
+        else if (tipo === 2) reazioneFermoFuga();
+        else if (tipo === 3) reazioneSequestroVolto();
+        else if (tipo === 4) reazionePopupStorm();
+        else reazioneBlackout();
+        return true;
+      }
+
+      function fineReazione() {
+        if (!stato.reazione.attivo) return;
+        stato.reazione.attivo = false;
+        stato.reazione.tipo = -1;
+        if (stato.reazione.spam) { root.clearInterval(stato.reazione.spam); stato.reazione.spam = 0; }
+        if (stato.reazione.zoom) { root.clearInterval(stato.reazione.zoom); stato.reazione.zoom = 0; }
+
+        fermaTimers();
+        pulisciExtra();
+        audioTorna();
+        tutte(BIANCO);
+        stato.prontoDal = Date.now() + CONFIG.COOLDOWN;
+        segna("bianco");
+        forseAuto();
+      }
+
+      /* 1. Fischio organico + voce sussurrata + ordine di restare sui 4 monitor */
+      function reazioneFischio() {
+        const parole = scelta(PAROLE_USCITA);
+        tutte(NERO);
+        fischio();
+        sussurraRichiamo("Rimani qui. Non andartene.");
+
+        for (let i = 0; i < 4; i++) {
+          pianifica(240 + i * 520, () => {
+            if (!stato.reazione.attivo) return;
+            tinta(i, NERO);
+            parola(i, parole[i], 2200, i % 2 === 0 ? "rossa" : "");
+          });
+        }
+        pianifica(4800, fineReazione);
+      }
+
+      /* 2. Senso di colpa nel silenzio */
+      function reazioneColpa() {
+        const parole = scelta(PAROLE_COLPA);
+        silenzioTemporaneo(true);
+        tutte(NERO);
+        for (let i = 0; i < 4; i++) {
+          pianifica(480 + i * 780, () => {
+            if (!stato.reazione.attivo) return;
+            parola(i, parole[i], 4200, "lenta");
+          });
+        }
+        pianifica(5200, fineReazione);
+      }
+
+      /* 3. Scatto rubato di fuga con zoom lento (tinto per canale) */
+      function reazioneFermoFuga() {
+        let zoom = 1;
+        if (videoPronta()) ritagliaWebcam(ctxRubato);
+        else if (presenza.ultimaFoto) ctxRubato.drawImage(presenza.ultimaFoto, 0, 0);
+        else ctxRubato.drawImage(lavoro, 0, 0);
+
+        function disegna() {
+          for (let n = 0; n < 4; n++) {
+            const c = ctx[n];
+            if (!c) continue;
+            c.fillStyle = NERO;
+            c.fillRect(0, 0, CONFIG.LATO, CONFIG.LATO);
+            const w = CONFIG.LATO * zoom;
+            const h = CONFIG.LATO * zoom;
+            c.drawImage(rubato, (CONFIG.LATO - w) / 2, (CONFIG.LATO - h) / 2, w, h);
+            applicaColoreCanale(c, n);
+          }
+        }
+        disegna();
+        subBasso(4.8);
+        stato.reazione.zoom = root.setInterval(() => {
+          if (!stato.reazione.attivo) return;
+          zoom = Math.min(1.32, zoom + 0.015);
+          disegna();
+        }, 120);
+        pianifica(4600, fineReazione);
+      }
+
+      /* 4. Sequestro del volto con X sugli occhi */
+      function reazioneSequestroVolto() {
+        if (presenza.ultimaFoto) ctxRubato.drawImage(presenza.ultimaFoto, 0, 0);
+        else if (videoPronta()) ritagliaWebcam(ctxRubato);
+        else ctxRubato.drawImage(lavoro, 0, 0);
+
+        disegnaOcchiX(ctxRubato, true);
+        for (let n = 0; n < 4; n++) {
+          const c = ctx[n];
+          if (!c) continue;
+          c.drawImage(rubato, 0, 0);
+          applicaColoreCanale(c, n);
+        }
+        suonaClicForte();
+        pianifica(500, () => { if (stato.reazione.attivo) strappa(rand(4)); });
+        pianifica(1200, () => { if (stato.reazione.attivo) strappa(rand(4)); });
+        pianifica(4600, fineReazione);
+      }
+
+      /* 5. Tempesta di popup trappola */
+      function reazionePopupStorm() {
+        tutte(NERO);
+        popupTrappola(rand(4), "RESTA CON NOI.", 5000);
+        for (let i = 0; i < 4; i++) popupTrappola(i, null, 5000);
+        scaricaStatica(650);
+        let giri = 0;
+        stato.reazione.spam = root.setInterval(() => {
+          if (!stato.reazione.attivo) return;
+          giri++;
+          popupTrappola(rand(4), null, 3000);
+          scaricaStatica(220);
+          if (giri >= 6) {
+            root.clearInterval(stato.reazione.spam);
+            stato.reazione.spam = 0;
+          }
+        }, 560);
+        pianifica(5200, fineReazione);
+      }
+
+      /* 6. Blackout + scarica radio -> bianco accecante */
+      function reazioneBlackout() {
+        tutte(NERO);
+        radioTaci();
+        zapping(2800, 0.36);
+        pianifica(2900, () => {
+          if (!stato.reazione.attivo) return;
+          tutte(BIANCO);
+          suonaClicForte();
+          scaricaStatica(360);
+          pianifica(850, fineReazione);
+        });
+      }
+
+      /* ========================================================================
+         15. MOTORE AUDIO — RADIO KAOSS, FREQUENZE, FISCHIO, LIMITER
+         ======================================================================== */
+      const audio = {
+        contesto: null,
+        master: null,
+        impulsi: null,
+        sintesi: null,
+        ronzioGain: null,
+        rumoreGain: null,
+        rumoreFiltro: null,
+        nodiRadio: {},
+        falliti: {},
+        vociAttive: [],
+        ultimaStazione: null,
+        avviato: false,
+        kaos: true,
+        volume: CONFIG.VOLUME,
+        muto: false,
+        prossimaOndata: 0,
+        prossimoRadiofaro: 0
+      };
+
+      const FREQ_CANALE = [392.0, 659.25, 880.0, 1174.66];
+
+      function curvaDistorsione(q) {
+        const n = 512;
+        const c = new Float32Array(n);
+        const k = 1 + q * 85;
+        for (let i = 0; i < n; i++) {
+          const x = (i * 2) / n - 1;
+          c[i] = ((1 + k) * x) / (1 + k * Math.abs(x));
+        }
+        return c;
+      }
+
+      function creaAudio() {
+        if (audio.contesto) return audio.contesto;
+        const AC = root.AudioContext || root.webkitAudioContext;
+        if (!AC) return null;
+        let ac;
+        try { ac = new AC(); } catch (e) { return null; }
+        audio.contesto = ac;
+
+        audio.master = ac.createGain();
+        audio.master.gain.value = audio.muto ? 0.0001 : audio.volume;
+
+        /* Limiter sul master per un suono pulito da installazione museale */
+        const comp = ac.createDynamicsCompressor();
+        comp.threshold.value = -14;
+        comp.knee.value = 18;
+        comp.ratio.value = 12;
+        comp.attack.value = 0.003;
+        comp.release.value = 0.25;
+        audio.master.connect(comp);
+        comp.connect(ac.destination);
+
+        audio.impulsi = ac.createGain();
+        audio.impulsi.gain.value = 0.52;
+        audio.impulsi.connect(audio.master);
+
+        audio.sintesi = ac.createGain();
+        audio.sintesi.gain.value = 0.85;
+        audio.sintesi.connect(audio.master);
+
+        /* Ronzio elettrico di sala 50Hz */
+        const ronz = ac.createOscillator();
+        const rg = ac.createGain();
+        ronz.type = "sine";
+        ronz.frequency.value = 50;
+        rg.gain.value = 0.0001;
+        ronz.connect(rg);
+        rg.connect(audio.sintesi);
+        ronz.start(0);
+        audio.ronzioGain = rg;
+
+        /* Rumore statico a onde corte */
+        const n = Math.floor(ac.sampleRate * 2);
+        const buf = ac.createBuffer(1, n, ac.sampleRate);
+        const ch = buf.getChannelData(0);
+        for (let i = 0; i < n; i++) ch[i] = Math.random() * 2 - 1;
+        const src = ac.createBufferSource();
+        src.buffer = buf;
+        src.loop = true;
+
+        const filtro = ac.createBiquadFilter();
+        filtro.type = "bandpass";
+        filtro.frequency.value = 1500;
+        filtro.Q.value = 1.2;
+
+        const ng = ac.createGain();
+        ng.gain.value = 0.0001;
+        src.connect(filtro);
+        filtro.connect(ng);
+        ng.connect(audio.sintesi);
+        src.start(0);
+        audio.rumoreFiltro = filtro;
+        audio.rumoreGain = ng;
+
+        return ac;
+      }
+
+      function sbloccaAudio() {
+        const ac = audio.contesto || creaAudio();
+        if (!ac) return;
+        if (ac.state === "suspended" && ac.resume) {
+          const p = ac.resume();
+          if (p && p.catch) p.catch(() => {});
+        }
+        if (audio.avviato) return;
+        audio.avviato = true;
+        segnaAudio("attivo");
+        audioAggiorna();
+        root.setInterval(audioAggiorna, 1000);
+      }
+
+      function segnaAudio(txt) {
+        if (audioStatoEl) audioStatoEl.textContent = "audio: " + txt;
+      }
+
+      function suonaCanale(indice) {
+        const ac = audio.contesto;
+        if (!ac || stato.caduta) return;
+        const t = ac.currentTime + 0.005;
+        const base = FREQ_CANALE[indice] || 440;
+
+        const osc = ac.createOscillator();
+        const g = ac.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(base, t);
+        osc.frequency.exponentialRampToValueAtTime(base * 0.52, t + 0.12);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.11 + stato.caos * 0.1, t + 0.008);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.17);
+        osc.connect(g);
+        g.connect(audio.impulsi);
+        osc.start(t);
+        osc.stop(t + 0.2);
+      }
+
+      function suonaSpegnimento() {
+        const ac = audio.contesto;
+        if (!ac || stato.caduta) return;
+        const t = ac.currentTime;
+        const osc = ac.createOscillator();
+        const g = ac.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(320, t);
+        osc.frequency.exponentialRampToValueAtTime(95, t + 0.25);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.075, t + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
+        osc.connect(g);
+        g.connect(audio.impulsi);
+        osc.start(t);
+        osc.stop(t + 0.32);
+      }
+
+      function suonaClic() {
+        const ac = audio.contesto;
+        if (!ac || stato.caduta) return;
+        const t = ac.currentTime;
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.type = "square";
+        o.frequency.setValueAtTime(1700 + Math.random() * 1400, t);
+        o.frequency.exponentialRampToValueAtTime(300, t + 0.045);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.035, t + 0.004);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+        o.connect(g);
+        g.connect(audio.impulsi);
+        o.start(t);
+        o.stop(t + 0.08);
+      }
+
+      function suonaClicForte() {
+        const ac = audio.contesto;
+        if (!ac || stato.caduta) return;
+        const t = ac.currentTime;
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.type = "square";
+        o.frequency.setValueAtTime(150, t);
+        o.frequency.exponentialRampToValueAtTime(46, t + 0.16);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.22, t + 0.006);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+        o.connect(g);
+        g.connect(audio.impulsi);
+        o.start(t);
+        o.stop(t + 0.25);
+        scaricaStatica(100);
+      }
+
+      function suonaGlitch() {
+        const ac = audio.contesto;
+        if (!ac || stato.caduta) return;
+        const t = ac.currentTime;
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.type = "square";
+        o.frequency.setValueAtTime(140 + Math.random() * 880, t);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.055, t + 0.005);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.11);
+        o.connect(g);
+        g.connect(audio.master);
+        o.start(t);
+        o.stop(t + 0.13);
+      }
+
+      /* Fischio organico di richiamo quando lo spettatore esce dalla visuale */
+      function fischio() {
+        const ac = audio.contesto;
+        if (!ac || stato.caduta) return;
+        const t = ac.currentTime + 0.02;
+
+        const osc = ac.createOscillator();
+        const g = ac.createGain();
+        const vib = ac.createOscillator();
+        const vg = ac.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(1020, t);
+        osc.frequency.exponentialRampToValueAtTime(2280, t + 0.42);
+        osc.frequency.exponentialRampToValueAtTime(1550, t + 0.85);
+        osc.frequency.exponentialRampToValueAtTime(2080, t + 1.15);
+
+        vib.type = "sine";
+        vib.frequency.value = 6.2;
+        vg.gain.value = 38;
+        vib.connect(vg);
+        vg.connect(osc.frequency);
+
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.24, t + 0.06);
+        g.gain.exponentialRampToValueAtTime(0.14, t + 1.05);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 1.38);
+
+        osc.connect(g);
+        g.connect(audio.impulsi);
+        osc.start(t);
+        vib.start(t);
+        osc.stop(t + 1.42);
+        vib.stop(t + 1.42);
+      }
+
+      /* Voce sussurrata di richiamo (SpeechSynthesis se supportato) */
+      function sussurraRichiamo(frase) {
+        try {
+          if (!root.speechSynthesis || audio.muto) return;
+          root.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(frase);
+          u.lang = "it-IT";
+          u.rate = 0.82;
+          u.pitch = 0.72;
+          u.volume = clamp(audio.volume * 0.55, 0.05, 0.65);
+          root.speechSynthesis.speak(u);
+        } catch (e) {}
+      }
+
+      function subBasso(durata = 4) {
+        const ac = audio.contesto;
+        if (!ac || stato.caduta) return;
+        const t = ac.currentTime;
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        const d = ac.createWaveShaper();
+        o.type = "sine";
+        o.frequency.setValueAtTime(55, t);
+        d.curve = curvaDistorsione(0.35);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.18, t + 0.25);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + durata);
+        o.connect(d);
+        d.connect(g);
+        g.connect(audio.master);
+        o.start(t);
+        o.stop(t + durata + 0.1);
+      }
+
+      function scaricaStatica(ms = 320) {
+        const ac = audio.contesto;
+        if (!ac || stato.caduta || !audio.rumoreGain) return;
+        const dur = ms / 1000;
+        const t = ac.currentTime;
+        audio.rumoreGain.gain.cancelScheduledValues(t);
+        audio.rumoreGain.gain.setValueAtTime(0.0001, t);
+        audio.rumoreGain.gain.exponentialRampToValueAtTime(0.32, t + 0.03);
+        audio.rumoreGain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      }
+
+      function suonaUrlo() {
+        const ac = audio.contesto;
+        if (!ac || stato.caduta) return;
+        const t = ac.currentTime;
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        const dist = ac.createWaveShaper();
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(1250, t);
+        o.frequency.exponentialRampToValueAtTime(85, t + 0.72);
+        dist.curve = curvaDistorsione(0.8);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.24, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.78);
+        o.connect(dist);
+        dist.connect(g);
+        g.connect(audio.master);
+        o.start(t);
+        o.stop(t + 0.85);
+        scaricaStatica(720);
+        subBasso(2.0);
+      }
+
+      /* Radiofaro a onde corte minimale (stile numbers station) */
+      function suonaRadiofaro() {
+        const ac = audio.contesto;
+        if (!ac || stato.caduta || !audio.kaos || eFaseNormale()) return;
+        const t = ac.currentTime;
+        const freqs = [1000, 1200, 1000, 800];
+        freqs.forEach((f, idx) => {
+          const osc = ac.createOscillator();
+          const g = ac.createGain();
+          osc.type = "sine";
+          osc.frequency.value = f;
+          const start = t + idx * 0.24;
+          g.gain.setValueAtTime(0.0001, start);
+          g.gain.exponentialRampToValueAtTime(0.035 + stato.caos * 0.025, start + 0.01);
+          g.gain.exponentialRampToValueAtTime(0.0001, start + 0.14);
+          osc.connect(g);
+          g.connect(audio.sintesi);
+          osc.start(start);
+          osc.stop(start + 0.16);
+        });
+      }
+
+      /* Streaming radio esterni SomaFM (diretti, dissolvenza morbida) */
+      function pescaStazione() {
+        const pool = RADIO_ESTERNI.filter((s) => !audio.falliti[s.url]);
+        if (!pool.length) return null;
+        let s = scelta(pool);
+        if (s === audio.ultimaStazione && pool.length > 1) s = pool[(pool.indexOf(s) + 1) % pool.length];
+        return s;
+      }
+
+      function radioVoce(sorgente, durata = 12, volume = 0.18) {
+        if (!audio.contesto || !sorgente || stato.caduta || !audio.kaos) return;
+        let nodo = audio.nodiRadio[sorgente.url];
+        if (!nodo) {
+          const el = new Audio();
+          el.preload = "none";
+          el.src = sorgente.url;
+          el.addEventListener("error", () => { audio.falliti[sorgente.url] = true; });
+          nodo = { el, sorgente, attiva: false, fine: 0, token: 0, fade: 0 };
+          audio.nodiRadio[sorgente.url] = nodo;
+        }
+        const t = audio.contesto.currentTime;
+        if (nodo.attiva) {
+          nodo.fine = t + durata;
+          return;
+        }
+
+        nodo.attiva = true;
+        nodo.fine = t + durata;
+        nodo.token++;
+        audio.vociAttive.push(nodo);
+        audio.ultimaStazione = sorgente;
+
+        const mio = nodo.token;
+        const startMs = Date.now();
+        const baseVol = clamp(volume, 0.03, 0.42);
+        try { nodo.el.volume = 0.001; } catch (e) {}
+        const p = nodo.el.play();
+        if (p && p.catch) p.catch(() => {});
+
+        if (nodo.fade) root.clearInterval(nodo.fade);
+        nodo.fade = root.setInterval(() => {
+          if (nodo.token !== mio) {
+            root.clearInterval(nodo.fade);
+            nodo.fade = 0;
+            return;
+          }
+          const q = (Date.now() - startMs) / 1000;
+          let v = baseVol;
+          if (q < 0.8) v = baseVol * (q / 0.8);
+          else if (q > durata - 0.9) v = baseVol * ((durata - q) / 0.9);
+          v *= audio.muto ? 0 : audio.volume;
+          try { nodo.el.volume = clamp(v, 0.0001, 0.48); } catch (e) {}
+          if (q >= durata) {
+            root.clearInterval(nodo.fade);
+            nodo.fade = 0;
+            nodo.attiva = false;
+            try { nodo.el.pause(); } catch (e) {}
+          }
+        }, 120);
+      }
+
+      function radioTaci() {
+        audio.vociAttive.forEach((n) => {
+          n.token++;
+          n.attiva = false;
+          if (n.fade) { root.clearInterval(n.fade); n.fade = 0; }
+          try { n.el.volume = 0.0001; n.el.pause(); } catch (e) {}
+        });
+        audio.vociAttive = [];
+      }
+
+      function radioAbbassaTemporaneo(sec = 4) {
+        audio.vociAttive.forEach((n) => {
+          try { n.el.volume = 0.02; } catch (e) {}
+        });
+        root.setTimeout(() => {
+          if (!stato.caduta) audioAggiorna();
+        }, sec * 1000);
+      }
+
+      function zapping(ms = 2600, vol = 0.3) {
+        const fine = Date.now() + ms;
+        (function colpo() {
+          if (Date.now() > fine || stato.caduta) return;
+          scaricaStatica(150);
+          radioVoce(pescaStazione(), 0.4 + Math.random() * 0.6, vol);
+          root.setTimeout(colpo, 180 + rand(240));
+        })();
+      }
+
+      function silenzioTemporaneo(on) {
+        const ac = audio.contesto;
+        if (!ac || !audio.master) return;
+        audio.master.gain.setTargetAtTime(on ? 0.0001 : (audio.muto ? 0.0001 : audio.volume), ac.currentTime, 0.08);
+        if (on) radioTaci();
+      }
+
+      function audioTorna() {
+        const ac = audio.contesto;
+        if (!ac || !audio.master) return;
+        audio.master.gain.setTargetAtTime(audio.muto ? 0.0001 : audio.volume, ac.currentTime, 0.18);
+      }
+
+      function impostaVolume(v) {
+        audio.volume = clamp(v, 0, 1);
+        audio.muto = audio.volume < 0.01;
+        if (audio.contesto && audio.master) {
+          audio.master.gain.setTargetAtTime(audio.muto ? 0.0001 : audio.volume, audio.contesto.currentTime, 0.05);
+        }
+        segnaAudio("volume " + Math.round(audio.volume * 100) + "%");
+      }
+
+      function kaossToggle(force) {
+        sbloccaAudio();
+        audio.kaos = typeof force === "boolean" ? force : !audio.kaos;
+        const btn = $("b-kaos");
+        if (btn) btn.textContent = audio.kaos ? "Kaos: ON" : "Kaos: OFF";
+        if (!audio.kaos) {
+          radioTaci();
+          segnaAudio("kaos spento");
+          return;
+        }
+        if (audio.contesto) audio.prossimaOndata = audio.contesto.currentTime;
+        segnaAudio("kaos acceso");
+        audioAggiorna();
+      }
+
+      /* Cuore sonoro: silente nei primi 2 cicli, poi sintonizza radio e frequenze */
+      function audioAggiorna() {
+        const ac = audio.contesto;
+        if (!ac || stato.caduta || doc.hidden) return;
+        const t = ac.currentTime;
+        const e = stato.caos;
+
+        if (!audio.kaos || eFaseNormale()) {
+          if (audio.vociAttive.length) radioTaci();
+          if (audio.ronzioGain) audio.ronzioGain.gain.setTargetAtTime(0.0001, t, 0.25);
+          if (audio.rumoreGain) audio.rumoreGain.gain.setTargetAtTime(0.0001, t, 0.25);
+          if (debugEl && !debugEl.hidden) {
+            segnaAudio(eFaseNormale() ? "cicli puliti (solo toni RGB)" : "kaos spento");
+          }
+          return;
+        }
+
+        if (audio.ronzioGain) {
+          audio.ronzioGain.gain.setTargetAtTime(0.004 + e * 0.02, t, 0.7);
+        }
+        if (audio.rumoreGain && !stato.reazione.attivo) {
+          const fr = clamp((e - 0.1) * 0.12, 0.0001, 0.11);
+          audio.rumoreGain.gain.setTargetAtTime(fr, t, 0.8);
+          audio.rumoreFiltro.frequency.setTargetAtTime(600 + e * 2200, t, 0.9);
+        }
+
+        if (stato.reazione.attivo || stato.perturb.attivo) return;
+
+        audio.vociAttive = audio.vociAttive.filter((n) => n && n.attiva && n.fine > t);
+        const target = e >= CONFIG.SOGLIA_CATTURA ? 2 : 1;
+
+        if (audio.vociAttive.length < target && t >= audio.prossimaOndata) {
+          scaricaStatica(180);
+          radioVoce(pescaStazione(), 14 + Math.random() * 14, 0.12 + e * 0.22);
+          audio.prossimaOndata = t + (e >= CONFIG.SOGLIA_CATTURA ? 4 + Math.random() * 5 : 8 + Math.random() * 8);
+        }
+
+        if (t >= audio.prossimoRadiofaro) {
+          audio.prossimoRadiofaro = t + 16 + Math.random() * 18;
+          if (caso(0.45)) suonaRadiofaro();
+        }
+
+        if (debugEl && !debugEl.hidden) {
+          segnaAudio(
+            `radio · ${audio.vociAttive.length} staz.` +
+            (audio.ultimaStazione ? ` · ${audio.ultimaStazione.titolo}` : "")
+          );
+        }
+      }
+
+      /* ========================================================================
+         16. COLLASSO FINALE (100% ENTROPIA) -> KERNEL PANIC -> RINASCITA
+         ======================================================================== */
+      function collasso() {
+        if (stato.caduta) return;
+        stato.caduta = true;
+        stato.sequenza = false;
+        stato.perturb.attivo = false;
+        stato.reazione.attivo = false;
+        fermaTimers();
+        pulisciExtra();
+        togliFlash();
+        segna("collasso");
+
+        audioTorna();
+        suonaUrlo();
+
+        const fineAgonia = Date.now() + CONFIG.COLLASSO_MS;
+        (function agonia() {
+          if (!stato.caduta) return;
+          for (let i = 0; i < 4; i++) {
+            const c = ctx[i];
+            if (!c) continue;
+            for (let b = 0; b < 14; b++) {
+              c.fillStyle = `rgb(${rand(256)},${rand(256)},${rand(256)})`;
+              c.fillRect(rand(CONFIG.LATO), rand(CONFIG.LATO), 8 + rand(85), 6 + rand(55));
+            }
+            applicaColoreCanale(c, i);
+            strappa(i);
+          }
+          if (Date.now() < fineAgonia) {
+            root.setTimeout(agonia, 75);
+          } else {
+            tutte(NERO);
+            schermoCrash();
+          }
+        })();
+      }
+
+      function schermoCrash() {
+        radioTaci();
+        silenzioTemporaneo(true);
+        if (!crashEl) { riavvia(); return; }
+        crashEl.hidden = false;
+        crashTesto.textContent = "";
+        crashBarra.style.width = "0%";
+
+        const righe = [
+          "RGB (Baggata) — projection subsystem",
+          "====================================",
+          "",
+          "*** STOP: 0x0000C0DE (ENTROPY_OVERFLOW)",
+          "",
+          "  MODULO      : RGB.SYS",
+          "  CANALI      : L / R / G / B SATURI",
+          "  SCATTI      : " + stato.scattiTotali,
+          "  FUGHE       : " + stato.fugheIntercettate,
+          "  STATO       : COMPLETAMENTE CONTAMINATA",
+          "",
+          "Azzeramento memoria ottica in corso..."
+        ];
+
+        let i = 0;
+        (function scrivi() {
+          if (!stato.caduta) return;
+          crashTesto.textContent += righe[i] + "\n";
+          i++;
+          if (i < righe.length) {
+            root.setTimeout(scrivi, 95);
+          } else {
+            const p0 = Date.now();
+            const dur = CONFIG.SILENZIO_MS - 1800;
+            (function prog() {
+              if (!stato.caduta) return;
+              const q = clamp((Date.now() - p0) / dur, 0, 1);
+              crashBarra.style.width = (q * 100).toFixed(1) + "%";
+              if (q < 1) root.setTimeout(prog, 100);
+              else {
+                crashTesto.textContent = "";
+                crashBarra.style.width = "0%";
+                root.setTimeout(() => { if (stato.caduta) riavvia(); }, CONFIG.NERO_MS);
+              }
+            })();
+          }
+        })();
+      }
+
+      function riavvia() {
+        stato.caduta = false;
+        if (crashEl) crashEl.hidden = true;
+        stato.caos = 0;
+        stato.giro = 0;
+        stato.perturb.count = 0;
+        stato.perturb.attivo = false;
+        presenza.ultimoTrigger = 0;
+        presenza.grazia = 0;
+        presenza.prossimaReazione = 0;
+        aggiornaCaos();
+        audioTorna();
+        tutte(BIANCO);
+        stato.prontoDal = Date.now() + 1800;
+        segna("bianco");
+        forseAuto();
+      }
+
+      /* ========================================================================
+         17. WEBCAM & SENSORE DI MOVIMENTO
+         ======================================================================== */
+      function sogliaMovimento() {
+        const s = sensSlider ? clamp(Number(sensSlider.value) || CONFIG.SENSIBILITA, 1, 100) : CONFIG.SENSIBILITA;
+        return 20 * Math.pow(0.01, (s - 1) / 99);
+      }
+
+      function campionaMovimento() {
+        if (!videoPronta() || !ctxSensore) return;
+        ctxSensore.drawImage(video, 0, 0, CONFIG.SENSORE_L, CONFIG.SENSORE_A);
+        const d = ctxSensore.getImageData(0, 0, CONFIG.SENSORE_L, CONFIG.SENSORE_A).data;
+        const att = new Uint8Array(CONFIG.SENSORE_L * CONFIG.SENSORE_A);
+        for (let p = 0, j = 0; p < att.length; p++, j += 4) {
+          att[p] = (d[j] * 0.299 + d[j + 1] * 0.587 + d[j + 2] * 0.114) | 0;
+        }
+
+        if (stato.primaLum) {
+          let camb = 0;
+          for (let n = 0; n < att.length; n++) {
+            if (Math.abs(att[n] - stato.primaLum[n]) >= CONFIG.PIXEL_CAMBIATO) camb++;
+          }
+          stato.livello = (camb / att.length) * 100;
+        } else {
+          stato.livello = 0;
+        }
+        stato.primaLum = att;
+
+        if (debugEl && !debugEl.hidden) {
+          if (ctxAnteprima) {
+            ctxAnteprima.save();
+            ctxAnteprima.translate(anteprima.width, 0);
+            ctxAnteprima.scale(-1, 1);
+            ctxAnteprima.drawImage(video, 0, 0, anteprima.width, anteprima.height);
+            ctxAnteprima.restore();
+          }
+          aggiornaBarraUI();
+        }
+
+        if (stato.sequenza || stato.caduta || stato.reazione.attivo || stato.perturb.attivo) return;
+        if (Date.now() < stato.prontoDal) { stato.frameSopra = 0; return; }
+
+        if (stato.livello >= sogliaMovimento()) {
+          stato.frameSopra++;
+          if (stato.frameSopra >= CONFIG.FRAME_SOPRA) {
+            stato.frameSopra = 0;
+            scatta(false);
+            return;
+          }
+        } else {
+          stato.frameSopra = 0;
+        }
+
+        /* Nell'atto finale la macchina scatta anche da sola */
+        if (!eFaseNormale() && stato.caos >= CONFIG.SOGLIA_CATTURA && Date.now() > stato.prossimoFalso) {
+          stato.prossimoFalso = Date.now() + 7000 + Math.random() * 6000;
+          scatta(true);
+        }
+      }
+
+      function loopSensore() {
+        root.requestAnimationFrame(loopSensore);
+        const ora = Date.now();
+        if (ora - stato.ultimoCampione < CONFIG.CAMPIONE_MS) return;
+        stato.ultimoCampione = ora;
+        campionaMovimento();
+      }
+
+      function avviaWebcam() {
+        let caduto = false;
+        function attivaFallback(motivo) {
+          if (caduto || stato.cameraOK) return;
+          caduto = true;
+          stato.autoSenzaCamera = true;
+          stato.cameraStato = motivo;
+          aggiornaStato();
+          forseAuto();
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          attivaFallback("non disponibile (modalità autonoma)");
+          return;
+        }
+
+        /* Se il permesso resta in sospeso per 4.5s, parte comunque in autonomia */
+        root.setTimeout(() => {
+          if (!stato.cameraOK) attivaFallback("permesso in attesa (modalità autonoma)");
+        }, 4500);
+
+        navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 960 } },
+          audio: false
+        }).then((stream) => {
+          video.srcObject = stream;
+          video.muted = true;
+          const p = video.play();
+          if (p && p.catch) p.catch(() => {});
+
+          (function attendi() {
+            if (videoPronta()) {
+              stato.cameraOK = true;
+              stato.autoSenzaCamera = false;
+              stato.cameraStato = "attiva (specchio)";
+              stato.primaLum = null;
+              stato.prontoDal = Date.now() + 900;
+              aggiornaStato();
+              avviaSorveglianza();
+              return;
+            }
+            root.setTimeout(attendi, 140);
+          })();
+        }).catch((err) => {
+          attivaFallback("negata (" + (err && err.name ? err.name : "errore") + ") · autonoma");
+        });
+      }
+
+      /* ========================================================================
+         18. SCHERMO INTERO (TIENI ESC 1 SECONDO) & TASTIERA
+         ======================================================================== */
+      const congedo = { tenuto: false, da: 0, timer: 0, passo: 0, avviso: 0 };
+
+      const inFullscreen = () => !!(doc.fullscreenElement || doc.webkitFullscreenElement);
+
+      function fermaCongedo() {
+        congedo.tenuto = false;
+        if (congedo.timer) { root.clearTimeout(congedo.timer); congedo.timer = 0; }
+        if (congedo.passo) { root.clearInterval(congedo.passo); congedo.passo = 0; }
+        if (congedo.avviso) { root.clearTimeout(congedo.avviso); congedo.avviso = 0; }
+        if (congedoBarra) congedoBarra.style.width = "0%";
+        if (congedoEl) congedoEl.hidden = true;
+      }
+
+      function avvisoCongedo() {
+        if (!congedoEl) return;
+        congedoEl.hidden = false;
+        if (congedoBarra) congedoBarra.style.width = "0%";
+        if (congedo.avviso) root.clearTimeout(congedo.avviso);
+        congedo.avviso = root.setTimeout(() => {
+          if (!congedo.tenuto) congedoEl.hidden = true;
+        }, CONFIG.ESCI_AVVISO_MS);
+      }
+
+      function tieniEsc() {
+        if (!inFullscreen() || congedo.tenuto) return;
+        congedo.tenuto = true;
+        congedo.da = Date.now();
+        if (congedoEl) congedoEl.hidden = false;
+        congedo.passo = root.setInterval(() => {
+          const q = clamp((Date.now() - congedo.da) / CONFIG.ESCI_TIENI_MS, 0, 1);
+          if (congedoBarra) congedoBarra.style.width = (q * 100).toFixed(1) + "%";
+        }, 35);
+        congedo.timer = root.setTimeout(() => {
+          fermaCongedo();
+          try {
+            if (navigator.keyboard && navigator.keyboard.unlock) navigator.keyboard.unlock();
+          } catch (e) {}
+          const exit = doc.exitFullscreen || doc.webkitExitFullscreen;
+          if (exit) {
+            const p = exit.call(doc);
+            if (p && p.catch) p.catch(() => {});
+          }
+        }, CONFIG.ESCI_TIENI_MS);
+      }
+
+      function attivaFullscreen() {
+        if (inFullscreen()) { avvisoCongedo(); return; }
+        const el = doc.documentElement;
+        const req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (req) {
+          const p = req.call(el);
+          if (p && p.catch) p.catch(() => {});
+        }
+      }
+
+      doc.addEventListener("fullscreenchange", () => {
+        if (inFullscreen()) {
+          try {
+            if (navigator.keyboard && navigator.keyboard.lock) {
+              navigator.keyboard.lock(["Escape"]).catch(() => {});
+            }
+          } catch (e) {}
+          avvisoCongedo();
+        } else {
+          fermaCongedo();
+        }
+      });
+
+      /* ========================================================================
+         19. PANNELLO CURATORE (SOLO CON TASTO D)
+         ======================================================================== */
+      function aggiornaPannelloCaos() {
+        if (!debugEl || debugEl.hidden) return;
+        const pct = Math.round(stato.caos * 100);
+        if (chaosBarra) chaosBarra.style.width = pct + "%";
+        if (chaosTesto) chaosTesto.textContent = `ciclo ${stato.giro}/${CONFIG.CYCLES_TO_CRASH} · ${pct}%`;
+        if (chaosSlider) chaosSlider.value = String(pct);
+        if (chaosSliderTesto) chaosSliderTesto.textContent = pct + "%";
+        if (attoTesto) attoTesto.textContent = nomeAtto();
+      }
+
+      function aggiornaBarraUI() {
+        const s = sogliaMovimento();
+        const q = clamp(s > 0 ? (stato.livello / s) * 100 : 0, 0, 100);
+        if (barraLivello) {
+          barraLivello.style.width = q.toFixed(1) + "%";
+          barraLivello.className = "dbg-bar-fill" + (stato.livello >= s ? " scatta" : "");
+        }
+        if (livelloTesto) {
+          livelloTesto.textContent = `${stato.livello.toFixed(1)}% / soglia ${s.toFixed(1)}%`;
+        }
+      }
+
+      function aggiornaVoltoUI() {
+        if (voltoTesto) {
+          voltoTesto.textContent =
+            "presenza: " + presenza.stato +
+            (presenza.motivo ? " · " + presenza.motivo : "") +
+            (presenza.occhi ? " · occhi agganciati" : "");
+        }
+      }
+
+      function aggiornaStato() {
+        if (!debugEl || debugEl.hidden) return;
+        if (statoEl) {
+          statoEl.textContent = `${stato.fase} · scatti: ${stato.scattiTotali} · fughe: ${stato.fugheIntercettate}`;
+        }
+        if (cameraEl) cameraEl.textContent = "camera: " + stato.cameraStato;
+        aggiornaPannelloCaos();
+        aggiornaVoltoUI();
+      }
+
+      let orologioDebug = 0;
+      function alternaDebug() {
+        if (!debugEl) return;
+        debugEl.hidden = !debugEl.hidden;
+        if (debugEl.hidden) {
+          doc.body.classList.remove("debug");
+          if (orologioDebug) { root.clearInterval(orologioDebug); orologioDebug = 0; }
+        } else {
+          doc.body.classList.add("debug");
+          aggiornaStato();
+          aggiornaBarraUI();
+          aggiornaMiniaturaArchivio();
+          orologioDebug = root.setInterval(aggiornaStato, 300);
+        }
+      }
+
+      /* Collegamento controlli pannello */
+      $("chiudi-debug").addEventListener("click", alternaDebug);
+      $("b-scatta").addEventListener("click", () => { sbloccaAudio(); scatta(true); });
+      $("b-occhi").addEventListener("click", () => { sbloccaAudio(); scatta("occhi"); });
+      $("b-specimen").addEventListener("click", () => { sbloccaAudio(); specimenInQuadrato(rand(4), null, 4500); });
+      $("b-portale").addEventListener("click", () => { sbloccaAudio(); portaleInQuadrato(rand(4), 6000); });
+      $("b-specchio").addEventListener("click", () => { sbloccaAudio(); avviaFalsoSpecchio(rand(4), 4800); });
+      $("b-frase").addEventListener("click", () => { sbloccaAudio(); frasePerturbante(); });
+      $("b-uscita").addEventListener("click", () => { sbloccaAudio(); avviaReazione(0); });
+      $("b-popup").addEventListener("click", () => { sbloccaAudio(); popupTrappola(rand(4)); });
+      $("b-glitch").addEventListener("click", () => {
+        sbloccaAudio();
+        for (let i = 0; i < 4; i++) strappa(i);
+        suonaGlitch();
+      });
+      $("b-spavento").addEventListener("click", () => { sbloccaAudio(); confrontoBreve(); });
+      $("b-kaos").addEventListener("click", () => kaossToggle());
+      $("b-crash").addEventListener("click", () => { sbloccaAudio(); collasso(); });
+
+      $("b-layout").addEventListener("click", () => {
+        const full = doc.body.classList.toggle("layout-full169");
+        $("b-layout").textContent = full ? "Formato: 16:9 Pieni" : "Formato: Quadrati";
+      });
+
+      $("b-auto").addEventListener("click", () => {
+        CONFIG.AUTO_LOOP = !CONFIG.AUTO_LOOP;
+        $("b-auto").textContent = CONFIG.AUTO_LOOP ? "Auto-Ciclo: ON" : "Auto-Ciclo: OFF";
+        if (CONFIG.AUTO_LOOP && !stato.sequenza) forseAuto();
+      });
+
+      sensSlider.addEventListener("input", () => {
+        sensTesto.textContent = sensSlider.value;
+        aggiornaBarraUI();
+      });
+
+      chaosSlider.addEventListener("input", () => {
+        impostaCaos(Number(chaosSlider.value) / 100);
+      });
+
+      glitchSlider.addEventListener("input", () => {
+        glitchSliderTesto.textContent = glitchSlider.value;
+      });
+
+      volumeSlider.addEventListener("input", () => {
+        volumeSliderTesto.textContent = volumeSlider.value;
+        sbloccaAudio();
+        impostaVolume(Number(volumeSlider.value) / 100);
+      });
+
+      /* Tastiera globale */
+      doc.addEventListener("keydown", (e) => {
+        if (!e || e.ctrlKey || e.metaKey || e.altKey) return;
+        const k = String(e.key || "").toLowerCase();
+
+        if (k === "escape" || k === "esc") {
+          if (!inFullscreen()) return;
+          e.preventDefault();
+          if (!e.repeat) tieniEsc();
+          return;
+        }
+        if (k === "d") { e.preventDefault(); alternaDebug(); }
+        else if (k === "f") { e.preventDefault(); attivaFullscreen(); }
+        else if (k === "r") { e.preventDefault(); azzera(); }
+        else if (k === "k") { e.preventDefault(); kaossToggle(); }
+        else if (k === " ") { e.preventDefault(); sbloccaAudio(); scatta(true); }
+      });
+
+      doc.addEventListener("keyup", (e) => {
+        const k = String((e && e.key) || "").toLowerCase();
+        if (k === "escape" || k === "esc") fermaCongedo();
+      });
+
+      root.addEventListener("blur", fermaCongedo);
+      doc.addEventListener("pointerdown", sbloccaAudio, true);
+      doc.addEventListener("touchstart", sbloccaAudio, true);
+      doc.addEventListener("keydown", sbloccaAudio, true);
+
+      doc.addEventListener("visibilitychange", () => {
+        if (doc.hidden) {
+          radioTaci();
+        } else {
+          if (video && video.play) {
+            const p = video.play();
+            if (p && p.catch) p.catch(() => {});
+          }
+          stato.primaLum = null;
+        }
+      });
+
+      /* ========================================================================
+         20. AVVIO E API CONSOLE (window.RGB)
+         ======================================================================== */
+      tutte(BIANCO);
+      aggiornaCaos();
+      avviaWebcam();
+      alimentaArchivi();
+      root.setInterval(alimentaArchivi, 22000);
+      loopSensore();
+
+      if (String((root.location && root.location.search) || "").indexOf("debug") >= 0) {
+        alternaDebug();
+      }
+
+      root.RGB = {
+        scatta: () => scatta(true),
+        occhi: () => scatta("occhi"),
+        azzera,
+        specimen: (i, cat) => specimenInQuadrato(typeof i === "number" ? i : rand(4), cat || null, 4500),
+        portale: (i) => portaleInQuadrato(typeof i === "number" ? i : rand(4), 6000),
+        specchio: (i) => avviaFalsoSpecchio(typeof i === "number" ? i : rand(4), 4800),
+        frase: frasePerturbante,
+        uscita: (tipo) => avviaReazione(typeof tipo === "number" ? tipo : 0),
+        popup: (i) => popupTrappola(typeof i === "number" ? i : rand(4)),
+        spavento: confrontoBreve,
+        kaos: kaossToggle,
+        caos: (v) => (v === undefined ? stato.caos : impostaCaos(Number(v))),
+        crash: collasso,
+        stato: () => ({
+          giro: stato.giro,
+          caos: stato.caos,
+          atto: nomeAtto(),
+          fase: stato.fase,
+          camera: stato.cameraStato,
+          scatti: stato.scattiTotali,
+          fughe: stato.fugheIntercettate,
+          archivio: {
+            conigli: archivio.foto.conigli.length,
+            aracnidi: archivio.foto.aracnidi.length,
+            lumache: archivio.foto.lumache.length,
+            hikikomori: archivio.foto.hikikomori.length,
+            video: archivio.video.length
+          }
+        })
+      };
+    })(window, document);
+  </script>
 </body>
 </html>

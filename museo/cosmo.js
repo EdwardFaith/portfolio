@@ -347,7 +347,9 @@
     /* targa non interattiva */
     if (t.kind === "dep") { panelDep(); return; }
     if (t.kind === "airlock") {
-      openGodkiller();
+      /* il portello rotondo non butta più fuori dal museo: scende nel
+         ministero, e il gioco si avvia da lì, dal cabinet, con E */
+      goMinistry();
       return;
     }
   };
@@ -420,10 +422,24 @@
   function openGodkiller() {
     var loc = root.location;
     if (!loc || !loc.href) return false;
-    toast("OPERAZIONE GODKILLER · portello del razzo · si scende nel ministero");
     try { loc.href = "godkiller/index.html"; return true; } catch (e) { return false; }
   }
   CZ.openGodkiller = openGodkiller;
+
+  /* ---- giù dal portello: il ministero --------------------------
+     La porta rotonda in strada non apre il gioco e non porta fuori dal
+     museo: scende nella sala d'attesa dietro il razzo (ministero.js).
+     Lì c'è il cabinet, e il gioco parte solo premendo E davanti a
+     quello. Se il modulo della sala non c'è, si torna a fare la cosa
+     di prima: dritto nel gioco. */
+  function goMinistry() {
+    var G = M.GAME, there = (M.WORLD && M.WORLD.byId) ? M.WORLD.byId["ministero"] : null;
+    if (!G || !G.go || !there) return openGodkiller();
+    toast("OPERAZIONE GODKILLER · portello del razzo · si scende nel ministero");
+    G.go("ministero");
+    return true;
+  }
+  CZ.goMinistry = goMinistry;
 
   /* ---- il cambio d'aria: dalla strada alla nave ---------------- */
   CZ.tick = function (room) {

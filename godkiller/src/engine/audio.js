@@ -20,6 +20,11 @@ export class AudioEngine {
     this.step = 0;
     this.bpm = 84;
     this.nextNote = 0;
+    // brano esterno: la musica di combattimento è un mp3 vero,
+    // il synth resta come fallback se il file non si carica.
+    this.track = null;
+    this.trackName = '';
+    this.trackReady = false;
   }
 
   unlock() {
@@ -89,6 +94,7 @@ export class AudioEngine {
     if (this.musicBus && this.ctx) {
       this.musicBus.gain.setTargetAtTime(this.musicVol * 0.7, this.ctx.currentTime, 0.05);
     }
+    this.applyTrackVolume();
   }
 
   setSfxVolume(v) {
@@ -103,6 +109,9 @@ export class AudioEngine {
     if (this.master && this.ctx) {
       this.master.gain.setTargetAtTime(this.muted ? 0 : 0.85, this.ctx.currentTime, 0.03);
     }
+    this.applyTrackVolume();
+    if (this.muted) this.pauseTrack();
+    else this.playTrack();
   }
 
   toggleMuted() {
@@ -131,11 +140,90 @@ export class AudioEngine {
     this.step = 0;
     this.bpm = { hub: 84, stealth: 96, combat: 132, extract: 146, dead: 58 }[name] || 100;
     if (this.ctx) this.nextNote = this.ctx.currentTime + 0.05;
+    // In combattimento suona "Protocollo Kill Good"; il synth tiene
+    // il resto della colonna sonora.
+    this.setTrack(name === 'combat' ? 'musica/Protocollo Kill Good.mp3' : null);
+  }
+
+  // ------------------------------------------------------------
+  // brano esterno (mp3) sovrapposto al synth
+  // ------------------------------------------------------------
+  setTrack(file) {
+    const name = file || '';
+    if (this.trackName === name) return;
+    this.stopTrack();
+    this.trackName = name;
+    if (!name || typeof Audio === 'undefined') return;
+    let el;
+    try {
+      el = new Audio();
+    } catch (e) {
+      return;
+    }
+    el.src = encodeURI(name);
+    el.loop = true;
+    el.preload = 'auto';
+    el.volume = 0;
+    el.addEventListener('error', () => {
+      // file assente o codec non supportato: si torna al synth
+      if (this.track === el) {
+        this.track = null;
+        this.trackReady = false;
+      }
+    });
+    el.addEventListener('canplaythrough', () => {
+      if (this.track !== el) return;
+      this.trackReady = true;
+      this.applyTrackVolume();
+      this.playTrack();
+    });
+    this.track = el;
+    this.trackReady = false;
+    try { el.load(); } catch (e) { /* preload non disponibile */ }
+  }
+
+  playTrack() {
+    const el = this.track;
+    if (!el || !this.trackReady || this.muted) return;
+    if (!el.paused) return;
+    try {
+      const p = el.play();
+      if (p && typeof p.catch === 'function') p.catch(() => {});
+    } catch (e) { /* autoplay bloccato: si riprova al prossimo giro */ }
+  }
+
+  pauseTrack() {
+    if (!this.track) return;
+    try { this.track.pause(); } catch (e) { /* ignora */ }
+  }
+
+  stopTrack() {
+    if (this.track) {
+      try {
+        this.track.pause();
+        this.track.currentTime = 0;
+      } catch (e) { /* ignora */ }
+    }
+    this.track = null;
+    this.trackReady = false;
+  }
+
+  applyTrackVolume() {
+    if (!this.track) return;
+    const v = this.muted ? 0 : clamp(this.musicVol * 0.75, 0, 1);
+    try { this.track.volume = v; } catch (e) { /* ignora */ }
   }
 
   update() {
     if (!this.ctx || !this.unlocked) return;
     const now = this.ctx.currentTime;
+    // mp3 pronto: la traccia copre il combattimento, il synth tace
+    if (this.track && this.trackReady) {
+      this.nextNote = now + 0.04;
+      if (this.muted) this.pauseTrack();
+      else this.playTrack();
+      return;
+    }
     if (this.nextNote < now - 0.4 || this.nextNote > now + 1.2) this.nextNote = now + 0.04;
     const spb = 60 / this.bpm / 4;
     let guard = 0;

@@ -84,6 +84,11 @@ export const WEAPONS = {
     speed: 1000, spread: 0.15, pellets: 1, stop: 0.006, recoil: 12,
     finisher: 'gun', bullet: 'small', wall: 3,
   },
+  pala: {
+    id: 'pala', name: 'PALA', kind: 'melee', dmg: 3, rate: 0.52,
+    anim: 'blunt', sound: 'baton', noise: 240, range: 23, knock: 250,
+    stun: 1.7, stop: 0.06, finisher: 'blunt', ammoMax: 0, wall: 6,
+  },
   crossbow: {
     id: 'crossbow', name: 'BALESTRA', kind: 'gun', dmg: 5, rate: 1.1,
     anim: 'shotgun', sound: 'pistol_s', noise: 60, ammoMax: 8,

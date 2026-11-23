@@ -107,6 +107,7 @@
 
   function botolaBase(room) {
     if (!room || !room.floorY) return null;
+    if (room.hidden) return null;               /* le stanze fuori elenco non hanno buca */
     if (T.depth >= 2) return null;              /* all'ultimo piano non si scende più */
     if (T.depth === 0 && room.id !== "hub") return null;
     if (room._sotHatch === undefined) {

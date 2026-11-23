@@ -1,6 +1,6 @@
 // ============================================================
 // hub.js — la base Edward Industries: atrio top-down, nessun
-// nemico, quattro terminali (armeria, deposito, registro
+// nemico, quattro terminali (armeria, computer di bordo, registro
 // contratti, teletrasporto). Il giocatore cammina col mouse e
 // preme E davanti a un console per entrare nel pannello.
 // ============================================================
@@ -22,12 +22,12 @@ const FLOOR_B = HUB_H - 26;
 // console allineati alla parete nord + piattaforma di lancio
 export const HUB_TERMINALS = [
   {
-    id: 'shop', label: 'ARMERIA', tag: 'TUTE · PERK', tab: 0,
+    id: 'shop', label: 'ARMERIA', tag: 'TUTE · ARMI · PERK', tab: 0,
     x: 152, y: 126, w: 62, h: 20, color: '#38e8ff', prompt: 'ARMATI',
   },
   {
-    id: 'armory', label: 'DEPOSITO', tag: 'ARMI DA FUOCO', tab: 1,
-    x: 300, y: 126, w: 62, h: 20, color: '#ffd166', prompt: "SCEGLI L'ARMA",
+    id: 'computer', label: 'COMPUTER DI BORDO', tag: 'REGISTRO DI NAVE', tab: 0,
+    x: 300, y: 126, w: 62, h: 20, color: '#ffd166', prompt: 'ACCEDI',
   },
   {
     id: 'contracts', label: 'CONTRATTI', tag: 'REGISTRO EDW', tab: 0,

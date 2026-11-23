@@ -102,6 +102,7 @@ export function createEnemy(spawn, level) {
     stun: 0,
     stunMax: 0,
     danceT: 0,
+    danceThenDie: false,
     dying: 0,
     dyingMax: 0,
     silhouette: false,
@@ -164,13 +165,16 @@ export function detectDelay(player) {
   return player && player.detectAdd ? player.detectAdd : 0;
 }
 
-// la Danza Macabra: il nemico molla l'arma e balla
-export function danceEnemy(e, time) {
+// la Danza Macabra: il nemico molla l'arma e balla la margherita.
+// Con thenDie il ballo dura quanto chiesto e poi il corpo crolla a terra.
+export const DANCE_TIME = 5;
+export function danceEnemy(e, time, thenDie) {
   if (e.dead || e.boss) {
     if (e.boss && !e.dead) e.stun = Math.max(e.stun, Math.min(1.2, time * 0.3));
     return false;
   }
   e.danceT = Math.max(e.danceT, time);
+  e.danceThenDie = !!thenDie;
   e.state = 'dancing';
   e.stateT = 0;
   e.attack = null;
@@ -376,6 +380,12 @@ export function updateEnemy(level, e, player, dt, ctx) {
       weaponAngle: 0, swing: null, muzzle: 0, back: 0, kick: 1,
     };
     if (e.danceT <= 0) {
+      if (e.danceThenDie) {
+        // fine della margherita: la sagoma nera si affloscia e muore
+        e.danceThenDie = false;
+        collapseEnemy(e, 0.9);
+        return;
+      }
       e.state = 'suspicious';
       e.stateT = 0;
       e.alertT = Math.max(e.alertT, 3);

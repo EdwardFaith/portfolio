@@ -17,6 +17,9 @@ import { WEAPONS } from '../src/entities/weapons.js';
 import {
   createWorld, updateWorld, castPerk, playerTryAttack,
 } from '../src/systems/combat.js';
+import {
+  createComputerUI, computerMove, computerPages,
+} from '../src/systems/computer.js';
 
 let failures = 0;
 const fail = (msg) => { failures++; console.error('  x ' + msg); };
@@ -245,7 +248,7 @@ for (const seed of seeds.slice(0, 8)) {
 ok(HUB_TERMINALS.length === 4, 'terminali della base: ' + HUB_TERMINALS.length);
 const terminalIds = HUB_TERMINALS.map((t) => t.id);
 ok(new Set(terminalIds).size === 4, 'terminali duplicati: ' + terminalIds.join(', '));
-ok(terminalIds.includes('shop') && terminalIds.includes('armory')
+ok(terminalIds.includes('shop') && terminalIds.includes('computer')
   && terminalIds.includes('contracts') && terminalIds.includes('teleport'),
   'manca un terminale: ' + terminalIds.join(', '));
 
@@ -295,6 +298,21 @@ for (const id of SUIT_ORDER) {
 
 ok(WEAPON_SHOP.length >= 14, 'poche armi in armeria: ' + WEAPON_SHOP.length);
 for (const row of WEAPON_SHOP) ok(!!WEAPONS[row.id], 'arma senza specifiche: ' + row.id);
+ok(WEAPONS.pala && WEAPONS.pala.kind === 'melee' && WEAPONS.pala.wall > 0,
+  'la pala non è un\'arma da mischia che sfonda i pannelli');
+ok(WEAPON_SHOP.some((row) => row.id === 'pala' && row.price > 0),
+  'la pala non è in vendita all\'armeria');
+
+// computer di bordo al posto del vecchio DEPOSITO
+const computerUI = createComputerUI();
+const compPages = computerPages(profile);
+ok(compPages.length === 4, 'computer di bordo senza pagine: ' + compPages.length);
+ok(compPages.every((p) => p.lines && p.lines.length > 3), 'pagina del computer vuota');
+ok(compPages[2].lines.some((l) => /PALA/.test(l.t)), 'il listino di bordo non mostra la pala');
+computerMove(computerUI, 1);
+ok(computerUI.page === 1, 'il computer non cambia pagina');
+computerMove(computerUI, -1);
+ok(computerUI.page === 0, 'il computer non torna indietro');
 
 ok(PERK_ORDER.join(',') === 'stop,blink,dance,super', 'ordine dei perk: ' + PERK_ORDER.join(','));
 ok(PERKS.stop.price >= 1000, 'stop tempo costa poco: ' + PERKS.stop.price);
@@ -389,9 +407,13 @@ if (victim) {
   wDance.player.perkCd.dance = 0;
   wDance.input = fakeInput();
   ok(castPerk(wDance, 'dance') === true, 'danza non parte');
-  ok(victim.dying > 0 && victim.silhouette === true, 'la vittima non diventa una sagoma nera');
-  pumpWorld(wDance, 70);
-  ok(victim.dead === true, 'la sagoma non muore a fine caduta');
+  ok(victim.danceT > 4 && victim.state === 'dancing', 'la vittima non balla la margherita');
+  ok(victim.dead === false && victim.dying === 0, 'la vittima muore subito invece di ballare');
+  pumpWorld(wDance, 240);   // 4 secondi: si balla ancora
+  ok(victim.dead === false && victim.dying === 0, 'il ballo dura meno di cinque secondi');
+  pumpWorld(wDance, 140);   // oltre i 5s di ballo + la caduta
+  ok(victim.dead === true, 'la sagoma non muore a fine ballo');
+  ok(victim.silhouette === true, 'la vittima non diventa una sagoma nera');
   ok(wDance.kills >= 1, 'la danza non conta le vittime');
 }
 
