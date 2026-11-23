@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>SPEDIZIONE · MEMORIE DEL COSMO</title>
+<!DOCTYPE html><html lang="it" data-orienta="landscape"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>SPEDIZIONE · MEMORIE DEL COSMO</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;overflow:hidden;background:#050607;font-family:ui-monospace,"Courier New",monospace;color:#cfd3d6;-webkit-user-select:none;user-select:none}
 #cv{display:block;touch-action:none}
@@ -12,7 +12,17 @@
 body.vetro #vetro{display:block}
 body.vetro #crt{display:none}
 #ver{position:fixed;left:10px;bottom:26px;z-index:20;font:700 9px ui-monospace,monospace;letter-spacing:.18em;color:#4a5257;pointer-events:none;text-shadow:0 0 6px #000}
-#back{position:fixed;top:12px;right:12px;z-index:20;font:700 11px ui-monospace,monospace;letter-spacing:.14em;color:#8a9298;text-decoration:none;background:#0a0c0e;border:1px solid #22282c;padding:8px 12px}#back:hover{color:#e8b44a;border-color:#e8b44a}
+#back{position:fixed;top:12px;right:12px;z-index:20;font:700 11px ui-monospace,monospace;letter-spacing:.14em;color:#8a9298;text-decoration:none;background:#0a0c0e;border:1px solid #22282c;padding:8px 12px;border-radius:4px;user-select:none;touch-action:none;overflow:hidden;display:inline-flex;align-items:center;cursor:pointer}#back:hover{color:#e8b44a;border-color:#e8b44a}
+#back .hold-fill{position:absolute;left:0;top:0;bottom:0;width:0%;background:rgba(220,38,38,0.55);pointer-events:none;transition:width .05s linear;z-index:1}
+#back span{position:relative;z-index:2}
+
+/* Orientamento forzato orizzontale su telefono */
+#ruotaOverlay{display:none;position:fixed;inset:0;z-index:999999;background:#050607;color:#f0e2c4;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:20px;font-family:ui-monospace,monospace}
+@media (orientation: portrait) and (pointer: coarse){#ruotaOverlay{display:flex}}
+@media (orientation: portrait) and (max-width: 900px){body.touch-device #ruotaOverlay{display:flex}}
+.ruota-phone{width:46px;height:76px;border:2.5px solid #e8b44a;border-radius:8px;animation:phoneRotate 2.2s ease-in-out infinite;position:relative}
+.ruota-phone::after{content:"";position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:#e8b44a}
+@keyframes phoneRotate{0%,20%{transform:rotate(0deg)}50%,80%{transform:rotate(90deg)}100%{transform:rotate(0deg)}}
 
 #cosmoTouch {
   display: none;
@@ -30,8 +40,9 @@ body.vetro #crt{display:none}
   #cosmoTouch { display: flex; }
   #ver { display: none; }
 }
-body.touch-device #cosmoTouch { display: flex; }
-body.desktop-device #cosmoTouch { display: none; }
+body.touch-device #cosmoTouch { display: flex !important; }
+body.desktop-device #cosmoTouch { display: none !important; }
+body.touch-device #ver { display: none !important; }
 
 .c-btn {
   pointer-events: auto;
@@ -179,9 +190,10 @@ body > .ch-btn {
 }
 </style>
 </head><body>
+<div id="ruotaOverlay"><div class="ruota-phone"></div><p style="font-weight:700;font-size:13px;letter-spacing:1.5px;color:#e8b44a;margin:0;">RUOTA IL TELEFONO IN ORIZZONTALE</p></div>
 <canvas id="cv"></canvas><div id="crt"></div>
 <canvas id="vetro" aria-hidden="true"></canvas>
-<a id="back" href="../museo.html?stanza=cosmo">&larr; MEMORIE DEL COSMO</a>
+<a id="back" href="../museo.html?stanza=cosmo"><span class="hold-fill" id="backHoldFill"></span><span id="backText">&larr; MEMORIE DEL COSMO</span></a>
 <div id="ver">MEMORIE DEL COSMO · MISSIONE 1 · TIX-9</div>
 
 <div id="cosmoTouch">
@@ -1132,7 +1144,9 @@ addEventListener("keydown",function(e){
   if(k==="q")WI=(WI+1)%SLOTS.length;
   if(k==="f"&&SLOTS.indexOf("eye")>=0)triggerEyeTimeFreeze();
   if(k==="m")audioToggle();
-  if(k==="escape"||k==="esc") returnToCosmo();
+  if(k==="escape"||k==="esc") {
+    // ESC singolo non esce: l'uscita da schermo intero / gioco richiede di TENERE PREMUTO Esc per 1.2s
+  }
   if(k==="r"&&G&&G.ended&&G.daisy>0) reset();
   if(G&&G.win>0.7){ returnToCosmo(); return; }
 });
@@ -1219,6 +1233,84 @@ addEventListener("mouseup",function(e){if(e.button===0)mouse.down=false;});
       b.addEventListener("pointerleave", pEnd);
     });
   }
+
+  // Gestione tasto indietro: su mobile/touch TENERE PREMUTO per uscire (non basta solo toccare)
+  (function(){
+    var backBtn = document.getElementById("back");
+    var holdFill = document.getElementById("backHoldFill");
+    var backText = document.getElementById("backText");
+    var holdTimer = 0;
+    var holdStart = 0;
+    var animFrame = 0;
+    var HOLD_MS = 1200;
+
+    try {
+      history.pushState({ page: "cosmo" }, "", location.href);
+      window.addEventListener("popstate", function(e) {
+        history.pushState({ page: "cosmo" }, "", location.href);
+        if (backBtn) {
+          backBtn.style.borderColor = "#dc2626";
+          backBtn.style.color = "#ff8888";
+          setTimeout(function(){
+            backBtn.style.borderColor = "";
+            backBtn.style.color = "";
+          }, 1200);
+        }
+        toast(T("TIENI PREMUTO IL TASTO INDIETRO PER USCIRE", "HOLD BACK BUTTON TO EXIT"), 2.2);
+      });
+    } catch(ex) {}
+
+    if (!backBtn) return;
+
+    function cancellaHold() {
+      if (holdTimer) clearTimeout(holdTimer);
+      if (animFrame) cancelAnimationFrame(animFrame);
+      holdTimer = 0;
+      if (holdFill) holdFill.style.width = "0%";
+      if (backText) backText.innerHTML = "&larr; MEMORIE DEL COSMO";
+    }
+
+    function avviaHold(e) {
+      var isDito = (document.body && document.body.classList.contains("touch-device")) || ('ontouchstart' in window);
+      if (!isDito && e.pointerType === "mouse") {
+        return;
+      }
+      e.preventDefault();
+      cancellaHold();
+      holdStart = performance.now();
+
+      function frameHold() {
+        var diff = performance.now() - holdStart;
+        var pct = Math.min(100, (diff / HOLD_MS) * 100);
+        if (holdFill) holdFill.style.width = pct + "%";
+        if (backText && diff > 150) {
+          backText.innerHTML = T("TIENI PREMUTO... ", "HOLD... ") + Math.round(pct) + "%";
+        }
+        if (pct < 100) {
+          animFrame = requestAnimationFrame(frameHold);
+        }
+      }
+      animFrame = requestAnimationFrame(frameHold);
+
+      holdTimer = setTimeout(function() {
+        cancellaHold();
+        if (navigator.vibrate) try { navigator.vibrate(50); } catch(err){}
+        returnToCosmo();
+      }, HOLD_MS);
+    }
+
+    backBtn.addEventListener("pointerdown", avviaHold);
+    backBtn.addEventListener("pointerup", cancellaHold);
+    backBtn.addEventListener("pointercancel", cancellaHold);
+    backBtn.addEventListener("pointerleave", cancellaHold);
+    backBtn.addEventListener("click", function(e) {
+      var isDito = (document.body && document.body.classList.contains("touch-device")) || ('ontouchstart' in window);
+      if (isDito) {
+        e.preventDefault();
+        toast(T("TIENI PREMUTO PER USCIRE", "HOLD TO EXIT"), 1.6);
+      }
+    });
+  })();
 
   // Touch sul canvas: mira verso il tocco e spara
   cv.addEventListener("touchstart", function (e) {
@@ -1837,7 +1929,7 @@ function updatePlayer(){
     else{ny=sy.y+sy.h+P.h;P.vy=0;}
   }
   if(ny>H-30){
-    if(!wasGround && P.vy > 280 && typeof SFX!=="undefined") SFX.land();
+    if(!wasGround && P.vy > 280 && typeof SFX!=="undefined") { SFX.land(); emitNoise(P.x, P.y, 900); }
     ny=H-30;P.ground=true;
   }
   P.y=ny;
@@ -1847,6 +1939,7 @@ function updatePlayer(){
     if(P.stepT > (keys["shift"] ? 0.22 : 0.34)){
       P.stepT = 0;
       if(typeof SFX!=="undefined") SFX.step();
+      if(keys["shift"] || Math.abs(P.vx) > 480) emitNoise(P.x, P.y, 750);
     }
   } else {
     P.stepT = 0.16;
@@ -1951,6 +2044,7 @@ function fire(){
     return;
   }
   if(w.melee){
+    emitNoise(P.x, P.y, 700);
     P.swing=0.26;P.cd=w.cd;
     if(typeof SFX!=="undefined")SFX.shoot("sword");
     for(i=0;i<ents.length;i++){
@@ -1982,6 +2076,7 @@ function fire(){
     return;
   }
   P.cd=w.cd;P.recoil=1;P.muzzle=0.07;
+  emitNoise(P.x, P.y, w.id === "smg" ? 2800 : w.flame ? 2000 : 2500);
   if(typeof SFX!=="undefined")SFX.shoot(w.id);
   for(i=0;i<(w.n||1);i++){
     sp=a+(Math.random()-0.5)*w.spread*2;
@@ -2077,6 +2172,7 @@ function hurtP(n){
    ============================================================ */
 function shootAt(e,spd){
   if(typeof SFX!=="undefined")SFX.enemyShoot();
+  emitNoise(e.x, e.y, 850);
   var oy=e.t==="drone"?34:44;
   var dx=P.x-e.x,dy=(P.y-52)-(e.y-oy),a=Math.atan2(dy,dx)+(Math.random()-0.5)*0.17;
   eb.push({x:e.x+Math.cos(a)*22,y:e.y-oy+Math.sin(a)*22,
@@ -2085,6 +2181,27 @@ function shootAt(e,spd){
     vx:Math.cos(a)*90+(Math.random()-0.5)*90,vy:Math.sin(a)*90+(Math.random()-0.5)*90,
     life:0.18,max:0.18,col:"#ffb37a",r:1.6});
 }
+
+/* ============================================================
+   SISTEMA RUMORE & UDITO NEMICI
+   I nemici sentono i passi veloci, gli spari, i salti e gli allarmi,
+   e corrono verso la sorgente del suono anche da lontano.
+   ============================================================ */
+function emitNoise(nx, ny, rad){
+  for(var j = 0; j < ents.length; j++){
+    var fe = ents[j];
+    if(fe.dead) continue;
+    var dNoise = Math.sqrt((fe.x - nx)*(fe.x - nx) + (fe.y - ny)*(fe.y - ny));
+    if(dNoise <= rad){
+      fe.alerted = true;
+      fe.heardNoise = true;
+      fe.noiseX = nx;
+      fe.noiseY = ny;
+      fe.noiseTimer = 8.0;
+    }
+  }
+}
+
 function findLadderForEnemy(ex, ey, needUp){
   var best = null, bestDist = 1e9;
   for(var i = 0; i < LAD.length; i++){
@@ -2112,8 +2229,15 @@ function findLadderForEnemy(ex, ey, needUp){
 }
 
 function updateWalkingEnemy(e, moveSpeed, climbSpeed, dt){
-  var dx = P.x - e.x;
-  var dy = P.y - e.y;
+  // Se ha sentito un rumore, punta alla sorgente del rumore
+  var targetX = P.x;
+  var targetY = P.y;
+  if(e.heardNoise && e.noiseTimer > 0 && Math.abs(P.x - e.x) > 360){
+    targetX = e.noiseX;
+    targetY = e.noiseY;
+  }
+  var dx = targetX - e.x;
+  var dy = targetY - e.y;
   var needVertical = Math.abs(dy) > 70;
 
   if(e.onLadder){
@@ -2122,7 +2246,7 @@ function updateWalkingEnemy(e, moveSpeed, climbSpeed, dt){
       e.onLadder = false;
       e.ladderObj = null;
     } else {
-      var goingUp = (P.y < e.y);
+      var goingUp = (targetY < e.y);
       e.x = lerp(e.x, lad.x, Math.min(1, 14 * dt));
       e.y += (goingUp ? -1 : 1) * climbSpeed * dt;
       e.by = e.y;
@@ -2138,7 +2262,7 @@ function updateWalkingEnemy(e, moveSpeed, climbSpeed, dt){
         e.by = e.y;
         e.onLadder = false;
         e.ladderObj = null;
-      } else if(Math.abs(P.y - e.y) < 25){
+      } else if(Math.abs(targetY - e.y) < 25){
         e.onLadder = false;
         e.ladderObj = null;
       }
@@ -2146,6 +2270,7 @@ function updateWalkingEnemy(e, moveSpeed, climbSpeed, dt){
     }
   }
 
+  var moveDir = dx >= 0 ? 1 : -1;
   if(needVertical){
     var wantUp = (dy < 0);
     var ladFound = findLadderForEnemy(e.x, e.y, wantUp);
@@ -2154,31 +2279,69 @@ function updateWalkingEnemy(e, moveSpeed, climbSpeed, dt){
         e.onLadder = true;
         e.ladderObj = ladFound;
         e.x = ladFound.x;
+        return;
       } else {
-        e.dir = (ladFound.x > e.x) ? 1 : -1;
-        e.x += e.dir * moveSpeed * dt;
+        moveDir = (ladFound.x > e.x) ? 1 : -1;
       }
-    } else {
-      e.dir = dx >= 0 ? 1 : -1;
-      e.x += e.dir * moveSpeed * dt;
     }
-  } else {
-    e.dir = dx >= 0 ? 1 : -1;
-    e.x += e.dir * moveSpeed * dt;
   }
 
-  if(!e.onLadder){
-    var gSol = groundBelow(e.x, e.y - 12);
-    if(gSol){
-      if(e.y < gSol.y){
-        e.y = Math.min(gSol.y, e.y + 820 * dt);
-      } else if(e.y > gSol.y + 4){
-        e.y = gSol.y;
+  e.dir = moveDir;
+  var ew = 34, eh = 68;
+  var stepX = moveDir * moveSpeed * dt;
+  var nx = e.x + stepX;
+
+  // Collisione orizzontale contro ostacoli, macerie e casse: i nemici NON passano attraverso i muri!
+  var col = hitsAt(nx, e.y - 4, ew, eh);
+  if(col){
+    var stepHeight = e.y - col.y;
+    // Se è un gradino/maceria bassa (<= 44px) lo scavalca dolcemente
+    if(stepHeight > 0 && stepHeight <= 44 && !hitsAt(nx, col.y, ew, eh)){
+      e.x = nx;
+      e.y = col.y;
+    } else {
+      // Muro alto o cassa solida: STOP! Non passa attraverso!
+      if(moveDir > 0){
+        e.x = col.x - ew/2 - 0.5;
+      } else {
+        e.x = col.x + col.w + ew/2 + 0.5;
       }
+      // Se bloccato contro l'ostacolo e il bersaglio è in alto, salta
+      if(dy < -20 && (!e.vy || e.vy === 0)){
+        e.vy = -520;
+      }
+    }
+  } else {
+    e.x = nx;
+  }
+
+  // Gravità e collisione verticale con pavimenti e piattaforme
+  if(!e.onLadder){
+    e.vy = (e.vy || 0) + 1900 * dt;
+    var ny = e.y + e.vy * dt;
+    var gSol = groundBelow(e.x, e.y - 12);
+    if(gSol && ny >= gSol.y){
+      e.y = gSol.y;
+      e.vy = 0;
       e.by = e.y;
     } else {
-      e.y = Math.min(SY, e.y + 880 * dt);
+      e.y = Math.min(SY, ny);
+      if(e.y >= SY){
+        e.y = SY;
+        e.vy = 0;
+      }
       e.by = e.y;
+    }
+  }
+
+  // Risoluzione incastro: se penetra dentro un solido viene spinto fuori
+  var stuck = hitsAt(e.x, e.y - 4, ew, eh);
+  if(stuck){
+    if(e.y - stuck.y <= 46){
+      e.y = stuck.y;
+      e.vy = 0;
+    } else {
+      e.x += (e.x > stuck.x + stuck.w/2) ? 4 : -4;
     }
   }
 
@@ -2195,19 +2358,24 @@ function updateEnemies(){
     e=ents[i];
     e.ph+=dt;e.hit=Math.max(0,e.hit-dt);
     if(e.dead)continue;
+
+    // Gestione timer rumore
+    if(e.heardNoise && e.noiseTimer > 0){
+      e.noiseTimer -= dt;
+      if(e.noiseTimer <= 0) e.heardNoise = false;
+    }
+
     dx=P.x-e.x;dy=P.y-e.y;d=Math.sqrt(dx*dx+dy*dy);
 
     // TUTTI I NEMICI USANO LE SCALE E INSEGUONO IL GIOCATORE IN TUTTE LE MODALITÀ!
-    // In Gioco Infinito: allerta globale continua.
-    // Nelle Missioni 1-8: i nemici si attivano appena il giocatore si avvicina (<850px),
-    // se subiscono colpi, se l'Occhio è attivo, o se sono già su una scala.
+    // Se sentono un rumore o subiscono colpi, corrono subito verso il giocatore!
     if(isEndless){
       act = !P.dead && G.daisy <= 0;
     } else {
       if(!P.dead && G.daisy <= 0){
-        if(e.onLadder || e.hit > 0 || G.eyeOn || d < 850){
+        if(e.onLadder || e.hit > 0 || G.eyeOn || e.heardNoise || d < 850){
           e.alerted = true;
-        } else if(d > 1400){
+        } else if(d > 1600 && !e.heardNoise){
           e.alerted = false;
         }
         act = !!e.alerted;
@@ -2238,6 +2406,7 @@ function updateEnemies(){
         if(!e.onLadder && e.fire <= 0 && Math.abs(dx) < fireDist && Math.abs(dy) < 320){
           e.fire = (isEndless ? (1.0 + rnd(i*1.1)*0.6) : (1.9 + rnd(i*1.3)*0.9)) / (1 + (isEndless ? waveLvl * 0.06 : 0));
           shootAt(e, isEndless ? 350 : 300);
+          emitNoise(e.x, e.y, 800);
         }
       } else if(!isEndless){
         e.dir = dx >= 0 ? 1 : -1;
@@ -2246,16 +2415,35 @@ function updateEnemies(){
       // Droni (volano in 2D inseguendo il giocatore tra i vari livelli)
       if(act){
         var drSpd = isEndless ? (150 + Math.min(160, waveLvl * 12)) : 100;
-        var ang = Math.atan2(dy - 40, dx);
-        e.x += Math.cos(ang) * drSpd * dt;
-        e.y += Math.sin(ang) * drSpd * dt;
+        var tX = (e.heardNoise && e.noiseTimer > 0 && Math.abs(P.x - e.x) > 350) ? e.noiseX : P.x;
+        var tY = (e.heardNoise && e.noiseTimer > 0 && Math.abs(P.x - e.x) > 350) ? e.noiseY : (P.y - 40);
+        var ang = Math.atan2(tY - e.y, tX - e.x);
+        var drNx = e.x + Math.cos(ang) * drSpd * dt;
+        var drNy = e.y + Math.sin(ang) * drSpd * dt;
+        // Collisione contro muri e tetti solidi per i droni: non passano attraverso i muri
+        if(hitsAt(drNx, drNy, 30, 30)){
+          if(!hitsAt(drNx, e.y, 30, 30)) e.x = drNx;
+          else if(!hitsAt(e.x, drNy, 30, 30)) e.y = drNy;
+        } else {
+          e.x = drNx;
+          e.y = drNy;
+        }
         e.x = clamp(e.x, 30, W - 30);
         e.dir = dx >= 0 ? 1 : -1;
         e.fire -= dt;
         if(e.fire <= 0 && d < (isEndless ? 950 : 660)){
           e.fire = (isEndless ? (1.2 + rnd(i*2.2)*0.8) : (2.3 + rnd(i*3.7)*1.0)) / (1 + (isEndless ? waveLvl * 0.05 : 0));
           shootAt(e, isEndless ? 320 : 260);
+          emitNoise(e.x, e.y, 850);
         }
+        if(d < 52) hurtP(1);
+      } else if(!isEndless) {
+        e.x += Math.sin(e.ph * 0.8) * 30 * dt;
+        e.y = e.by + Math.sin(e.ph * 1.6) * 18;
+      }
+    }
+  }
+}
         if(d < 52) hurtP(1);
       } else if(!isEndless) {
         e.x += Math.sin(e.ph * 0.8) * 30 * dt;
@@ -2313,6 +2501,7 @@ function updatePickups(){
     CASS.taken=true;G.cass=true;G.eyeOn=true;G.eyeT=MZ.timer;
     G.flash=0.85;G.shake=9;
     if(typeof SFX!=="undefined"){ SFX.cassette(); SFX.eyeAlert(); }
+    emitNoise(CASS.x, CASS.y, 4500);
     toast(T("LA CASSETTA E' TUA — TORNA AL FURGONE PRIMA CHE L'OCCHIO TI VEDA · ", "THE TAPE IS YOURS — RETURN TO THE VAN BEFORE THE EYE SEES YOU · ") + fmt(MZ.timer), 5);
   }
   if(G.cass&&G.eyeOn&&Math.abs(P.x-EXIT.x)<115&&Math.abs(P.y-EXIT.y)<150)winMission();

@@ -119,7 +119,9 @@
     var so = root.screen && root.screen.orientation;
     if (!so || !so.lock) return;
     try {
-      var r = so.lock("portrait");
+      var isLand = (doc.documentElement && doc.documentElement.getAttribute("data-orienta") === "landscape") ||
+                   (root.location && /cosmo/i.test(root.location.pathname));
+      var r = so.lock(isLand ? "landscape" : "portrait");
       if (r && r.catch) r.catch(function () { });
     } catch (e) { }
   }
@@ -141,6 +143,9 @@
       try { d.classList.add("museo-intero"); } catch (e) { }
       blocco();
       segna();
+      if (root.navigator && root.navigator.keyboard && root.navigator.keyboard.lock) {
+        root.navigator.keyboard.lock(['Escape']).catch(function () { });
+      }
     }, function () {
       /* negato o non possibile: si gioca lo stesso, e non si insiste */
     });
@@ -177,24 +182,34 @@
   /* ============================================================
      USCIRNE
      Lo schermo intero si chiede (e si ri-chiede a ogni pagina della
-     partita), e si lascia TENENDO PREMUTO Esc per un terzo di secondo.
-     Nessun tasto sopra il gioco e nessuna scritta che spieghi come si
-     esce: il gesto basta, e chi non lo sa lo scopre premendo. Un Esc
-     toccato e lasciato non esce (il timer si ferma al keyup), quindi i
-     menu dei giochi non se ne accorgono.
+     partita), e si lascia TENENDO PREMUTO Esc per 1.2 secondi.
+     Nessun tasto da cercare sopra il gioco: un Esc toccato e lasciato
+     non esce mai.
      ============================================================ */
   function dentro() {
     return !!(doc.fullscreenElement || doc.webkitFullscreenElement);
   }
 
   /* ---- tieni premuto Esc ---------------------------------------
-     Lo schermo intero si lascia con un gesto, non con un bottone:
-     dopo .35 di Esc premuto si esce. Un tocco di tastiera non arriva
-     mai a .35, quindi Esc resta ai giochi (la spiaggia esce
-     dall'arena, le terre dai pannelli) e al browser. L'evento non si
-     ferma: il tasto continua a fare il suo lavoro. */
-  var ESC_TENUTO = 350;
+     Lo schermo intero si lascia tenendo premuto Esc per 1.2 secondi.
+     Un tocco rapido di Esc NON fa uscire. Durante la pressione
+     compare un anello di caricamento visivo. Solo al completamento
+     si esce da schermo intero. */
+  var ESC_TENUTO = 1200;
   var attesaEsc = 0;
+  var tempoInizioEsc = 0;
+  var animEscFrame = 0;
+  var hudEscEl = null;
+
+  function creaHudEsc() {
+    if (hudEscEl && doc.body && doc.body.contains(hudEscEl)) return hudEscEl;
+    hudEscEl = doc.createElement("div");
+    hudEscEl.id = "escHoldHud";
+    hudEscEl.style.cssText = "position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:999999;background:rgba(8,10,14,0.94);border:1px solid rgba(220,38,38,0.7);padding:8px 18px;border-radius:28px;display:none;align-items:center;gap:12px;color:#f0f2f5;font-family:ui-monospace,monospace;font-size:12px;font-weight:700;letter-spacing:1.5px;box-shadow:0 6px 24px rgba(0,0,0,0.85);pointer-events:none;user-select:none;backdrop-filter:blur(8px);transition:opacity 0.2s;";
+    hudEscEl.innerHTML = '<svg width="26" height="26" viewBox="0 0 36 36" style="transform:rotate(-90deg);display:block;"><circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="3.5"></circle><circle id="escRingCircle" cx="18" cy="18" r="14" fill="none" stroke="#dc2626" stroke-width="3.5" stroke-dasharray="88" stroke-dashoffset="88" stroke-linecap="round"></circle></svg><span id="escHudText" style="text-transform:uppercase;">TIENI PREMUTO ESC</span>';
+    (doc.body || doc.documentElement).appendChild(hudEscEl);
+    return hudEscEl;
+  }
 
   function escTenuto(e) {
     if (!dentro()) return;
@@ -204,23 +219,64 @@
     var b = e && e.target;
     if (b && b.closest && b.closest("input, textarea, select, [contenteditable='true']")) return;
     if (attesaEsc) return;
-    attesaEsc = root.setTimeout(function () {
-      attesaEsc = 0;
-      fuori();
-    }, ESC_TENUTO);
+
+    var el = creaHudEsc();
+    var circle = el ? el.querySelector("#escRingCircle") : null;
+    if (el) {
+      el.style.display = "flex";
+      el.style.opacity = "1";
+    }
+    if (circle) circle.setAttribute("stroke-dashoffset", "88");
+
+    attesaEsc = 1;
+    tempoInizioEsc = performance.now();
+
+    function anima() {
+      if (!attesaEsc) return;
+      var elapsed = performance.now() - tempoInizioEsc;
+      var prog = Math.min(1, elapsed / ESC_TENUTO);
+      if (circle) {
+        var offset = 88 - (prog * 88);
+        circle.setAttribute("stroke-dashoffset", String(offset));
+      }
+      if (prog >= 1) {
+        attesaEsc = 0;
+        if (el) {
+          el.style.display = "none";
+          el.style.opacity = "0";
+        }
+        if (root.navigator && root.navigator.keyboard && root.navigator.keyboard.unlock) {
+          root.navigator.keyboard.unlock();
+        }
+        fuori();
+        return;
+      }
+      animEscFrame = root.requestAnimationFrame(anima);
+    }
+    animEscFrame = root.requestAnimationFrame(anima);
   }
 
   function escLasciato(e) {
-    if (!attesaEsc) return;
-    if (e && e.key && e.key !== "Escape" && e.key !== "Esc") return;
-    root.clearTimeout(attesaEsc);
-    attesaEsc = 0;
+    if (e && e.key && e.key !== "Escape" && e.key !== "Esc" && e.keyCode !== 27) return;
+    if (attesaEsc) {
+      attesaEsc = 0;
+      if (animEscFrame) root.cancelAnimationFrame(animEscFrame);
+      if (hudEscEl) {
+        hudEscEl.style.display = "none";
+        hudEscEl.style.opacity = "0";
+        var c = hudEscEl.querySelector("#escRingCircle");
+        if (c) c.setAttribute("stroke-dashoffset", "88");
+      }
+    }
   }
 
   function fuori() {
     var f = doc.exitFullscreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
     if (!f || !dentro()) return false;
     try {
+      if (root.navigator && root.navigator.keyboard && root.navigator.keyboard.unlock) {
+        root.navigator.keyboard.unlock();
+      }
       var p = f.call(doc);
       if (p && p.catch) p.catch(function () { });
     } catch (e) { return false; }
@@ -263,11 +319,19 @@
     }
     if (doc.addEventListener) {
       doc.addEventListener("fullscreenchange", function () {
-        doc.documentElement.classList.toggle("museo-intero", !!doc.fullscreenElement);
+        var isFull = !!(doc.fullscreenElement || doc.webkitFullscreenElement);
+        doc.documentElement.classList.toggle("museo-intero", isFull);
+        if (isFull && root.navigator && root.navigator.keyboard && root.navigator.keyboard.lock) {
+          root.navigator.keyboard.lock(['Escape']).catch(function () { });
+        }
         tardi();
       });
       doc.addEventListener("webkitfullscreenchange", function () {
-        doc.documentElement.classList.toggle("museo-intero", !!doc.webkitFullscreenElement);
+        var isFull = !!(doc.fullscreenElement || doc.webkitFullscreenElement);
+        doc.documentElement.classList.toggle("museo-intero", isFull);
+        if (isFull && root.navigator && root.navigator.keyboard && root.navigator.keyboard.lock) {
+          root.navigator.keyboard.lock(['Escape']).catch(function () { });
+        }
         tardi();
       });
     }

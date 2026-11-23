@@ -47,9 +47,17 @@
     }
     </script>
 
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Resource Hints & Preconnect for Fast Google Loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="dns-prefetch" href="https://img.youtube.com">
+    <link rel="dns-prefetch" href="https://www.youtube.com">
+
+    <!-- React & ReactDOM (Production Minified for Speed) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
@@ -242,6 +250,7 @@
                 opacity: 1;
             }
         }
+
         /* ─── LA LUMACA CHE PASSA NELL'HOME ─────────────────────
            Il disegno viene da `lumaca/lumaca.gif`, il file così com'è:
            un GIF animato di 1138×640, 80 fotogrammi da 100 ms, cioè otto
@@ -379,8 +388,6 @@
         #radioHud #radioName {
             display: none;
         }
-
-
     </style>
 </head>
 
@@ -465,6 +472,7 @@
 
         // Icons components
         const Icons = {
+            Home: (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
             Youtube: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" /><path d="m10 15 5-3-5-3z" /></svg>,
             Mail: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>,
             Instagram: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>,
@@ -575,7 +583,7 @@
             );
         };
 
-        const MobileBottomNav = ({ scrollToSection }) => {
+        const MobileBottomNav = ({ scrollToSection, activeSection }) => {
             const [isMenuOpen, setIsMenuOpen] = useState(false);
 
             useEffect(() => {
@@ -604,54 +612,97 @@
                 setIsMenuOpen(false);
             };
 
+            const navTabs = [
+                { id: 'home', label: 'Home', icon: Icons.Home, action: () => scrollToSection('home') },
+                { id: 'cosmo', label: 'Opere', icon: Icons.Film, action: () => scrollToSection('cosmo') },
+                { id: 'interattivo', label: 'Codice', icon: Icons.Gamepad, action: () => scrollToSection('interattivo') },
+                { id: 'kaoss', label: 'Radio', icon: Icons.Music, action: () => scrollToSection('kaoss') },
+                { id: 'menu', label: 'Menu', icon: Icons.Menu, action: () => setIsMenuOpen(true) },
+            ];
+
             return (
                 <>
                     {/* Menu Overlay */}
-                    <div className={`fixed inset-0 z-[100] bg-black/98 backdrop-blur-xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col items-center justify-center lg:hidden ${isMenuOpen ? 'translate-y-0' : 'translate-y-full'}`}>
-                        <button
-                            onClick={() => setIsMenuOpen(false)}
-                            className="absolute top-6 right-6 text-neutral-500 hover:text-white p-2"
-                        >
-                            <Icons.X className="w-8 h-8" />
-                        </button>
+                    <div className={`fixed inset-0 z-[100] bg-black/98 backdrop-blur-2xl transition-all duration-300 ease-out flex flex-col justify-between lg:hidden ${isMenuOpen ? 'opacity-100 pointer-events-auto translate-y-0' : 'opacity-0 pointer-events-none translate-y-8'}`}>
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-neutral-900">
+                            <span className="font-bold text-xs uppercase tracking-[0.25em] text-red-600">Navigazione</span>
+                            <button
+                                onClick={() => setIsMenuOpen(false)}
+                                aria-label="Chiudi menu"
+                                className="w-11 h-11 flex items-center justify-center text-neutral-400 hover:text-white active:scale-90 transition-transform bg-neutral-900/80 border border-neutral-800 rounded-full"
+                            >
+                                <Icons.X className="w-5 h-5" />
+                            </button>
+                        </div>
 
-                        <div className="flex flex-col items-center gap-6 w-full max-h-[80vh] overflow-y-auto px-6 py-4">
-                            {links.map((link, idx) => (
-                                <div key={link.id} className="flex flex-col items-center gap-6">
+                        {/* Links list */}
+                        <div className="flex flex-col gap-1.5 w-full max-h-[70vh] overflow-y-auto px-6 py-4">
+                            {links.map((link) => {
+                                const isActive = activeSection === link.id;
+                                return (
                                     <button
+                                        key={link.id}
                                         onClick={() => handleNav(link.id)}
-                                        className="text-2xl font-bold uppercase tracking-widest text-neutral-400 hover:text-white hover:scale-110 transition-all duration-300"
-                                        style={{ transitionDelay: `${idx * 50}ms` }}
+                                        className={`w-full py-3 px-4 text-left font-bold text-lg uppercase tracking-wider rounded-md transition-all flex items-center justify-between ${isActive
+                                                ? 'text-white bg-red-950/40 border border-red-800/60 shadow-[0_0_15px_rgba(220,38,38,0.2)]'
+                                                : 'text-neutral-400 hover:text-white hover:bg-neutral-900/60'
+                                            } active:scale-[0.98]`}
                                     >
-                                        {link.label}
+                                        <span>{link.label}</span>
+                                        {isActive && <span className="w-2 h-2 rounded-full bg-red-600"></span>}
                                     </button>
-                                </div>
-                            ))}
+                                );
+                            })}
                             {/* LIVE - sempre in fondo */}
                             <a
                                 href="RadioKaoSs/index.html"
                                 target="_blank"
-                                className="flex items-center gap-3 text-2xl font-bold uppercase tracking-widest hover:scale-110 transition-all duration-300 mt-4 pt-6 border-t border-neutral-800 w-full justify-center"
-                                style={{ color: '#7f1d1d' }}
+                                className="flex items-center justify-between w-full py-3 px-4 mt-2 font-bold text-lg uppercase tracking-wider rounded-md bg-red-950/30 border border-red-900/50 text-red-400 active:scale-[0.98] transition-transform"
                             >
-                                <Icons.Radio className="w-6 h-6" />
-                                Live
+                                <span className="flex items-center gap-2">
+                                    <Icons.Radio className="w-5 h-5 text-red-500 animate-pulse" />
+                                    Radio KaOsS Live
+                                </span>
+                                <span className="text-[10px] font-mono uppercase bg-red-600 text-white px-2 py-0.5 rounded">Live</span>
                             </a>
+                        </div>
+
+                        <div className="p-6 text-center border-t border-neutral-900 text-neutral-600 text-[11px] font-mono uppercase tracking-widest">
+                            Emanuele Baccigalupi
                         </div>
                     </div>
 
-                    {/* Bottom Bar */}
-                    <div className="lg:hidden fixed bottom-0 left-0 w-full z-[90] bg-black/90 backdrop-blur-md border-t border-neutral-800 pb-safe pb-4">
-                        <div className="flex items-center justify-center h-16 relative">
-                            {/* Central Menu Trigger */}
-                            <button
-                                onClick={() => setIsMenuOpen(true)}
-                                className="group flex flex-col items-center justify-center gap-1.5 p-4 w-20"
-                            >
-                                <div className="w-8 h-0.5 bg-white group-hover:bg-red-600 transition-colors shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
-                                <div className="w-8 h-0.5 bg-white group-hover:bg-red-600 transition-colors shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
-                                <div className="w-8 h-0.5 bg-white group-hover:bg-red-600 transition-colors shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
-                            </button>
+                    {/* Bottom App-Style Nav Bar */}
+                    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[90] bg-black/95 backdrop-blur-lg border-t border-neutral-800/80 px-2 pt-1.5 pb-[max(6px,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.8)]">
+                        <div className="grid grid-cols-5 items-center max-w-md mx-auto">
+                            {navTabs.map((tab) => {
+                                const Icon = tab.icon;
+                                const isCurrent = tab.id !== 'menu' && (
+                                    activeSection === tab.id ||
+                                    (tab.id === 'cosmo' && (activeSection === 'cosmo' || activeSection === 'visual-ai')) ||
+                                    (tab.id === 'kaoss' && (activeSection === 'kaoss' || activeSection === 'materials'))
+                                );
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={tab.action}
+                                        className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-1 rounded-lg transition-all active:scale-90 ${isCurrent ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'
+                                            }`}
+                                    >
+                                        <div className="relative">
+                                            <Icon className={`w-5 h-5 transition-transform ${isCurrent ? 'text-red-500 scale-110' : ''}`} />
+                                            {isCurrent && (
+                                                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-red-500 shadow-[0_0_6px_#ef4444]"></span>
+                                            )}
+                                        </div>
+                                        <span className={`text-[10px] font-bold uppercase tracking-wider mt-1 transition-colors ${isCurrent ? 'text-white' : 'text-neutral-500'
+                                            }`}>
+                                            {tab.label}
+                                        </span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 </>
@@ -719,6 +770,7 @@
             const [readyA, setReadyA] = useState(false);
             const [readyB, setReadyB] = useState(false);
             const [isOffline, setIsOffline] = useState(!navigator.onLine);
+            const [started, setStarted] = useState(false);
             const readyTimers = useRef({});
 
             useEffect(() => {
@@ -732,19 +784,41 @@
                 };
             }, []);
 
+            // Defer YouTube embeds slightly so page loads instantly for Google & users
+            useEffect(() => {
+                const timer = setTimeout(() => setStarted(true), 1800);
+                const onFirstInteraction = () => {
+                    setStarted(true);
+                    cleanup();
+                };
+                const cleanup = () => {
+                    window.removeEventListener('scroll', onFirstInteraction);
+                    window.removeEventListener('touchstart', onFirstInteraction);
+                    window.removeEventListener('mousemove', onFirstInteraction);
+                };
+                window.addEventListener('scroll', onFirstInteraction, { passive: true, once: true });
+                window.addEventListener('touchstart', onFirstInteraction, { passive: true, once: true });
+                window.addEventListener('mousemove', onFirstInteraction, { passive: true, once: true });
+                return () => {
+                    clearTimeout(timer);
+                    cleanup();
+                };
+            }, []);
+
             const handleLoadA = () => {
                 clearTimeout(readyTimers.current.A);
-                readyTimers.current.A = setTimeout(() => setReadyA(true), 4000);
+                readyTimers.current.A = setTimeout(() => setReadyA(true), 3500);
             };
             const handleLoadB = () => {
                 clearTimeout(readyTimers.current.B);
-                readyTimers.current.B = setTimeout(() => setReadyB(true), 4000);
+                readyTimers.current.B = setTimeout(() => setReadyB(true), 3500);
             };
 
             useEffect(() => { setReadyA(false); }, [slotA]);
             useEffect(() => { setReadyB(false); }, [slotB]);
 
             useEffect(() => {
+                if (!started) return;
                 const interval = setInterval(() => {
                     setFading(true);
                     setTimeout(() => {
@@ -761,17 +835,17 @@
                     }, 800);
                 }, 10000);
                 return () => clearInterval(interval);
-            }, []);
+            }, [started]);
 
             const embedUrl = (id) =>
                 `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&loop=1&playlist=${id}&disablekb=1&iv_load_policy=3`;
 
             const iframeOpacity = (isActive, isReady) => {
-                if (isOffline || !isReady || !isActive) return 0;
+                if (isOffline || !isReady || !isActive || !started) return 0;
                 return fading ? 0 : 0.55;
             };
 
-            const videoVisible = !fading && (
+            const videoVisible = started && !fading && (
                 (activeSlot === 'A' && readyA) ||
                 (activeSlot === 'B' && readyB)
             );
@@ -804,27 +878,31 @@
                         }}
                     />
 
-                    {/* Layer 2: YouTube iframes */}
-                    <iframe
-                        key={`A-${slotA}`}
-                        src={embedUrl(HERO_VIDEOS[slotA])}
-                        allow="autoplay; encrypted-media"
-                        allowFullScreen={false}
-                        tabIndex={-1}
-                        onLoad={handleLoadA}
-                        style={iframeStyle(activeSlot === 'A', readyA)}
-                        title="bg-a"
-                    />
-                    <iframe
-                        key={`B-${slotB}`}
-                        src={embedUrl(HERO_VIDEOS[slotB])}
-                        allow="autoplay; encrypted-media"
-                        allowFullScreen={false}
-                        tabIndex={-1}
-                        onLoad={handleLoadB}
-                        style={iframeStyle(activeSlot === 'B', readyB)}
-                        title="bg-b"
-                    />
+                    {/* Layer 2: YouTube iframes - Lazy loaded */}
+                    {started && (
+                        <iframe
+                            key={`A-${slotA}`}
+                            src={embedUrl(HERO_VIDEOS[slotA])}
+                            allow="autoplay; encrypted-media"
+                            allowFullScreen={false}
+                            tabIndex={-1}
+                            onLoad={handleLoadA}
+                            style={iframeStyle(activeSlot === 'A', readyA)}
+                            title="bg-a"
+                        />
+                    )}
+                    {started && (activeSlot === 'B' || fading) && (
+                        <iframe
+                            key={`B-${slotB}`}
+                            src={embedUrl(HERO_VIDEOS[slotB])}
+                            allow="autoplay; encrypted-media"
+                            allowFullScreen={false}
+                            tabIndex={-1}
+                            onLoad={handleLoadB}
+                            style={iframeStyle(activeSlot === 'B', readyB)}
+                            title="bg-b"
+                        />
+                    )}
 
                     {/* Layer 3: top-bottom gradient */}
                     <div
@@ -904,10 +982,12 @@
             const imgRef = useRef(null);
 
             useEffect(() => {
-                // il GIF si scalda in cache mentre si aspetta: la prima
-                // passata non deve arrivare con un mega e otto di ritardo
-                const scalda = new Image();
-                scalda.src = LUMACA_GIF;
+                // Defer loading the 1.8MB gif so the initial page paint is instantaneous
+                const timer = setTimeout(() => {
+                    const scalda = new Image();
+                    scalda.src = LUMACA_GIF;
+                }, 3500);
+                return () => clearTimeout(timer);
             }, []);
 
             useEffect(() => {
@@ -1954,7 +2034,8 @@
                 e.stopPropagation();
                 if (!audioRef.current || !progressRef.current) return;
                 const rect = progressRef.current.getBoundingClientRect();
-                const pos = (e.clientX - rect.left) / rect.width;
+                const clientX = e.touches && e.touches[0] ? e.touches[0].clientX : (e.clientX || 0);
+                const pos = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
                 audioRef.current.currentTime = pos * audioRef.current.duration;
             };
 
@@ -2047,13 +2128,16 @@
                             </div>
                             <div
                                 ref={progressRef}
-                                className="w-full h-1.5 bg-neutral-900 hover:bg-neutral-800 transition-colors rounded-full overflow-hidden cursor-pointer relative"
+                                className="w-full py-3 -my-2 flex items-center cursor-pointer select-none touch-none"
                                 onClick={handleSeek}
+                                onTouchMove={handleSeek}
                             >
-                                <div
-                                    className="absolute top-0 left-0 h-full bg-red-600 pointer-events-none"
-                                    style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
-                                ></div>
+                                <div className="w-full h-2 bg-neutral-900 rounded-full overflow-hidden relative">
+                                    <div
+                                        className="absolute top-0 left-0 h-full bg-red-600 pointer-events-none"
+                                        style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
+                                    ></div>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -2339,7 +2423,7 @@
 
             return (
                 <div className="min-h-screen bg-black text-white selection:bg-red-900 selection:text-white pb-20 lg:pb-0">
-                    <MobileBottomNav scrollToSection={scrollToSection} />
+                    <MobileBottomNav scrollToSection={scrollToSection} activeSection={activeSection} />
                     <Nav activeSection={activeSection} scrollToSection={scrollToSection} />
                     <Hero onScrollDown={() => scrollToSection("intro")} />
                     <IntroSection scrollToContact={() => scrollToSection('contact')} scrollToBio={() => scrollToSection('bio')} scrollToSection={scrollToSection} />
