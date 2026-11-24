@@ -690,7 +690,7 @@
     c.lineTo(px2 + 15, py2 - 12);
     c.stroke();
     c.fillStyle = "rgba(232,238,226,0.70)";
-    c.font = "600 " + Math.max(6, 7.6 * (T.H() / 760)).toFixed(1) + "px ui-monospace, monospace";
+    c.font = "600 " + Math.max(6, 7.6 * (T.H() / 760)).toFixed(1) + "px 'Libre Caslon Text', Georgia, serif";
     c.textAlign = "center";
     c.fillText("USCITA", px2, py2 - 3);
     c.textAlign = "left";

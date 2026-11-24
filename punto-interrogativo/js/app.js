@@ -5,6 +5,7 @@
   const params = new URLSearchParams(location.search);
   const mode = params.get('mode') === 'controller' ? 'controller' : 'display';
   const $ = id => document.getElementById(id);
+  const IDLE_MS = 2 * 60 * 1000;   // dopo 2 minuti senza tocchi si torna al "?"
   const zero = $('zero'), qmark = $('qmark'), dict = $('dict'), stage = $('stage');
   const mirror = $('mirror'), mirrorInner = $('mirrorInner');
   const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -67,6 +68,14 @@
         }
       }
     });
+
+    /* 2 minuti senza tocchi: il tablet torna al "?" e lo dice alla proiezione
+       (vale anche se la proiezione non l'ha sentito) */
+    let lastTouch = Date.now();
+    document.addEventListener('pointerdown', () => { lastTouch = Date.now(); }, true);
+    setInterval(() => {
+      if (active && Date.now() - lastTouch > IDLE_MS) { toZero(); sync.send({ t: 'reset' }); }
+    }, 5000);
 
     function toZero() {
       active = false; current = null;
@@ -154,8 +163,13 @@
       setTimeout(() => { zero.classList.add('hidden'); stage.classList.remove('hidden'); applyLayout(); }, 450);
     }
 
+    /* 2 minuti senza tocchi sul tablet: tutti e due gli schermi tornano al "?" */
+    let lastUse = Date.now();
+    setInterval(() => { if (active && Date.now() - lastUse > IDLE_MS) toZero(true); }, 5000);
+
     function toZero(notify) {
       active = false;
+      lastUse = Date.now();
       stage.classList.add('hidden');
       zero.classList.remove('hidden', 'leaving');
       mirrorInner.innerHTML = '';
@@ -183,9 +197,11 @@
       onStatus: n => { $('qrlink').dataset.net = n > 0 ? '● ' : '○ '; },
       onMessage: msg => {
         if (msg.from === 'controller') seenTablet();
+        if (msg.t === 'reset' && active) toZero(false);   // il tablet è rimasto fermo 2 minuti
         if (msg.t === 'hello') sync.send({ t: 'sync', zero: !active });
         if (msg.t === 'state' && active) { renderDef(mirrorInner, msg.def); fitMirror(); }
         if (msg.t === 'open') {
+          lastUse = Date.now();
           const wasZero = !active;
           activate();
           if (wasZero) setTimeout(() => showDef(msg), 470); else showDef(msg);

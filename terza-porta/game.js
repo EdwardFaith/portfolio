@@ -1507,10 +1507,10 @@
     var f = Math.round(clamp(Math.min(W, H) * 0.022, 10 * dpr, 22 * dpr));
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    ctx.font = f + "px ui-monospace, SFMono-Regular, Menlo, monospace";
+    ctx.font = f + "px 'Libre Caslon Text', Georgia, serif";
     ctx.fillStyle = "rgba(232,198,190,0.66)";
     ctx.fillText("MAPPA · TAB PER CHIUDERE", W / 2, y0 + lato + f * 0.9);
-    ctx.font = Math.round(f * 0.82) + "px ui-monospace, monospace";
+    ctx.font = Math.round(f * 0.82) + "px 'Libre Caslon Text', Georgia, serif";
     ctx.fillStyle = "rgba(200,140,132,0.5)";
     ctx.fillText("denti " + G.presi + "/" + G.tot + " · occhi " + G.nemici.length, W / 2, y0 + lato + f * 2.3);
   }
@@ -1585,7 +1585,7 @@
 
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    ctx.font = f + "px ui-monospace, SFMono-Regular, Menlo, monospace";
+    ctx.font = f + "px 'Libre Caslon Text', Georgia, serif";
     ctx.fillStyle = "rgba(232,206,198,0.74)";
     ctx.fillText("DENTI " + G.presi + "/" + G.tot, mg, mg);
     ctx.fillStyle = "rgba(186,124,116,0.6)";
@@ -1607,7 +1607,7 @@
       ctx.fillStyle = "rgba(232,54,38,0.9)";
       ctx.fillRect(bx, by, bw * clamp(G.doom / C.DOOM, 0, 1), bh);
       ctx.textAlign = "center";
-      ctx.font = Math.round(f * 0.82) + "px ui-monospace, monospace";
+      ctx.font = Math.round(f * 0.82) + "px 'Libre Caslon Text', Georgia, serif";
       ctx.fillStyle = "rgba(255,206,190,0.8)";
       ctx.fillText("FAME " + G.doom.toFixed(1) + "s", W / 2, by + bh + f * 0.55);
     }
@@ -1634,7 +1634,7 @@
     /* il messaggio, appena sotto il mirino */
     if (G.messaggio) {
       ctx.textAlign = "center";
-      ctx.font = Math.round(f * 1.1) + "px ui-monospace, monospace";
+      ctx.font = Math.round(f * 1.1) + "px 'Libre Caslon Text', Georgia, serif";
       ctx.fillStyle = "rgba(0,0,0,0.55)";
       ctx.fillText(G.messaggio, W / 2 + dpr, cy + f * 2.6 + dpr);
       ctx.fillStyle = "rgba(255,228,216," + clamp(G.messaggioT, 0, 1) + ")";

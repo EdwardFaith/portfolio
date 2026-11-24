@@ -483,7 +483,7 @@
     /* l'insegna: neon sopra la testa dei pinguini */
     var txt = (M.lang && M.lang.l === "en") ? "PENGUIN DJ" : "PINGUINI DJ";
     ctx.save();
-    ctx.font = "700 17px ui-monospace,SFMono-Regular,monospace";
+    ctx.font = "700 17px 'Libre Caslon Text', Georgia, serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.shadowColor = "rgba(40,220,255,0.85)";
@@ -791,9 +791,9 @@
       ctx.fillStyle = "rgba(24,18,22,0.78)";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = "700 " + Math.round(w * 0.15) + "px ui-monospace,SFMono-Regular,monospace";
+      ctx.font = "700 " + Math.round(w * 0.15) + "px 'Libre Caslon Text', Georgia, serif";
       ctx.fillText("LATTE", 0, ly + lh * 0.36);
-      ctx.font = "300 " + Math.round(w * 0.10) + "px ui-monospace,SFMono-Regular,monospace";
+      ctx.font = "300 " + Math.round(w * 0.10) + "px 'Libre Caslon Text', Georgia, serif";
       ctx.fillStyle = "rgba(24,18,22,0.52)";
       ctx.fillText("MATERNO", 0, ly + lh * 0.74);
     }

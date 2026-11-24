@@ -64,12 +64,21 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        /* un solo carattere per tutto il sito: anche le classi font-sans / font-mono / font-serif */
+        tailwind.config = { theme: { extend: { fontFamily: {
+            sans: ['"Libre Caslon Text"', 'Georgia', 'serif'],
+            serif: ['"Libre Caslon Text"', 'Georgia', 'serif'],
+            mono: ['"Libre Caslon Text"', 'Georgia', 'serif'],
+            display: ['"Libre Caslon Display"', 'Georgia', 'serif']
+        } } } };
+    </script>
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Instrument+Sans:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
 
     <!-- la radio del museo, anche qui: il ◉ in alto a destra e la sua
@@ -968,13 +977,9 @@
            macchina da scrivere. Vale per i titoli e per l'interfaccia;
            le descrizioni restano in un carattere solo — un testo lungo
            misto non si legge, un titolo misto sì. */
+        /* ora un carattere solo, come tutto il sito: Libre Caslon Display */
         const MIX_FONTS = [
-            "'Libre Caslon Display', Georgia, serif",
-            "Georgia, 'Times New Roman', serif",
-            "'Courier New', monospace",
-            "'Arial Black', 'Libre Caslon Display', sans-serif",
-            "'Palatino Linotype', Palatino, Georgia, serif",
-            "'Trebuchet MS', 'Libre Caslon Text', sans-serif"
+            "'Libre Caslon Display', Georgia, serif"
         ];
 
         const TitleMix = ({ text, className = "" }) => {
@@ -1971,7 +1976,7 @@
                             {/* ? — installazione: proiezione + tablet */}
                             <a href="punto-interrogativo/index.html?mode=display&layout=split" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:border-white/25 hover:bg-neutral-800 transition-all duration-300">
                                 <div className="aspect-[4/3] bg-[#fcfcfa] relative overflow-hidden mb-2.5 flex items-center justify-center">
-                                    <span className="text-6xl sm:text-7xl leading-none text-[#111] select-none group-hover:scale-110 transition-transform duration-300" style={{ fontFamily: "'EB Garamond', Garamond, Georgia, serif" }} role="img" aria-label="Punto interrogativo">?</span>
+                                    <span className="text-6xl sm:text-7xl leading-none text-[#111] select-none group-hover:scale-110 transition-transform duration-300" style={{ fontFamily: "'Libre Caslon Display', Georgia, serif" }} role="img" aria-label="Punto interrogativo">?</span>
                                 </div>
                                 <div className="px-3 pb-3">
                                     <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">?</h3>

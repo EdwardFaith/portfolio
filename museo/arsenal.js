@@ -379,7 +379,7 @@
         icon(ctx, W.id, sx + sw / 2, y + 40 + (h - 92) / 2, 1.15, "rgba(196,204,212,.85)");
       } else {
         ctx.fillStyle = "rgba(120,40,45,.35)";
-        ctx.font = "700 11px ui-monospace,monospace"; ctx.textAlign = "center";
+        ctx.font = "700 11px 'Libre Caslon Text', Georgia, serif"; ctx.textAlign = "center";
         ctx.fillText("VUOTO", sx + sw / 2, y + 40 + (h - 92) / 2 + 4);
         ctx.textAlign = "left";
       }
@@ -387,19 +387,19 @@
         : "rgba(220,60,60," + (0.45 + 0.4 * Math.sin(t * 2.4 + i)) + ")";
       ctx.beginPath(); ctx.arc(sx + sw / 2, y + 26, 4, 0, 6.3); ctx.fill();
       ctx.fillStyle = "rgba(196,204,212,.72)";
-      ctx.font = "700 10px ui-monospace,monospace"; ctx.textAlign = "center";
+      ctx.font = "700 10px 'Libre Caslon Text', Georgia, serif"; ctx.textAlign = "center";
       ctx.fillText(wname(W), sx + sw / 2, y + h - 22);
       ctx.textAlign = "left";
     }
     ctx.fillStyle = "rgba(200,208,216,.55)";
-    ctx.font = "900 12px ui-monospace,monospace";
+    ctx.font = "900 12px 'Libre Caslon Text', Georgia, serif";
     ctx.fillText("SALA D'ARMI \u00b7 E PER PRENDERE", x + 14, y - 46);
-    ctx.font = "700 10px ui-monospace,monospace";
+    ctx.font = "700 10px 'Libre Caslon Text', Georgia, serif";
     ctx.fillStyle = "rgba(150,40,42,.55)";
     ctx.fillText("8 MEMORIE \u00b7 4 ARMI - SCEGLINE DUE - IL RESTO RESTA SUL MURO", x + 14, y + h + 22);
     /* quante ne porti: due caselle, e si vede subito se sono vuote */
     var cs = sel(), k;
-    ctx.font = "900 10px ui-monospace,monospace";
+    ctx.font = "900 10px 'Libre Caslon Text', Georgia, serif";
     for (k = 0; k < MAXSEL; k++) {
       ctx.fillStyle = cs[k] ? "rgba(150,240,200,.9)" : "rgba(120,130,140,.45)";
       ctx.fillText(cs[k] ? wname(weaponOf(cs[k])) : "vuoto", x + 14 + k * 210, y - 26);
@@ -433,22 +433,22 @@
       ctx.fillStyle = can ? "rgba(190,150,60,.30)" : "rgba(150,40,42,.34)";
       ctx.fillRect(-w / 2 + 6, -13, w - 12, 26);
       ctx.fillStyle = can ? "rgba(240,210,140,.95)" : "rgba(240,150,150,.95)";
-      ctx.font = "900 11px ui-monospace,monospace"; ctx.textAlign = "center";
+      ctx.font = "900 11px 'Libre Caslon Text', Georgia, serif"; ctx.textAlign = "center";
       ctx.fillText(can ? "ARMA OK" : "SIGILLATA", 0, 4);
       ctx.restore();
     }
     icon(ctx, m.w, x + w / 2, y + 58, 0.72, done ? "rgba(150,240,200,.60)" : "rgba(200,208,216,.50)");
     ctx.textAlign = "center";
-    ctx.font = "900 30px ui-monospace,monospace";
+    ctx.font = "900 30px 'Libre Caslon Text', Georgia, serif";
     ctx.fillStyle = done ? "rgba(150,240,200,.9)" : "rgba(230,235,240,.5)";
     ctx.fillText(String(m.n), x + w / 2, y + h - 46);
     var blink = done ? 1 : (0.4 + 0.6 * Math.abs(Math.sin(t * 2 + m.n)));
     ctx.fillStyle = done ? "rgba(120,255,180,.95)" : "rgba(230,70,70," + blink + ")";
     ctx.beginPath(); ctx.arc(x + w / 2, y + h - 24, 5, 0, 6.3); ctx.fill();
-    ctx.font = "700 10px ui-monospace,monospace";
+    ctx.font = "700 10px 'Libre Caslon Text', Georgia, serif";
     ctx.fillStyle = done ? "rgba(150,240,200,.8)" : "rgba(196,204,212,.6)";
     ctx.fillText(mname(m), x + w / 2, y - 24);
-    ctx.font = "700 9px ui-monospace,monospace";
+    ctx.font = "700 9px 'Libre Caslon Text', Georgia, serif";
     ctx.fillStyle = "rgba(150,40,42,.75)";
     ctx.fillText("MEMORIA " + m.n, x + w / 2, y - 10);
     ctx.textAlign = "left";
@@ -478,19 +478,19 @@
       ctx.fillStyle = bl; ctx.fillRect(x - 200, y - 120, w + 400, h + 240);
       ctx.restore();
       ctx.textAlign = "center";
-      ctx.font = "900 22px ui-monospace,monospace";
+      ctx.font = "900 22px 'Libre Caslon Text', Georgia, serif";
       ctx.fillStyle = "rgba(230,240,255,.85)";
       ctx.fillText("CINEMA", x + w / 2, y + h / 2 - 6);
-      ctx.font = "700 11px ui-monospace,monospace";
+      ctx.font = "700 11px 'Libre Caslon Text', Georgia, serif";
       ctx.fillStyle = "rgba(200,220,255,.7)";
       ctx.fillText(d + " / " + MISSIONS.length + " NASTRI", x + w / 2, y + h / 2 + 18);
     } else {
       ctx.fillStyle = "rgba(6,8,10,.9)"; ctx.fillRect(x, y, w, h);
       ctx.textAlign = "center";
-      ctx.font = "900 20px ui-monospace,monospace";
+      ctx.font = "900 20px 'Libre Caslon Text', Georgia, serif";
       ctx.fillStyle = "rgba(230,70,70,.7)";
       ctx.fillText("CINEMA CHIUSO", x + w / 2, y + h / 2 - 4);
-      ctx.font = "700 11px ui-monospace,monospace";
+      ctx.font = "700 11px 'Libre Caslon Text', Georgia, serif";
       ctx.fillStyle = "rgba(196,204,212,.55)";
       ctx.fillText(d + " / " + MISSIONS.length + " PORTE APERTE", x + w / 2, y + h / 2 + 20);
       for (k = 0; k < 2; k++) {
@@ -503,7 +503,7 @@
       }
     }
     ctx.textAlign = "left";
-    ctx.font = "700 10px ui-monospace,monospace";
+    ctx.font = "700 10px 'Libre Caslon Text', Georgia, serif";
     ctx.fillStyle = "rgba(196,204,212,.5)";
     ctx.fillText("SALA DI PROIEZIONE \u00b7 GLI OTTO NASTRI", x, y - 30);
   }
@@ -531,17 +531,17 @@
         ctx.beginPath(); ctx.arc(ox + 20, oy + 24, 7, 0, 6.3); ctx.fill();
       } else {
         ctx.fillStyle = "rgba(120,130,140,.30)";
-        ctx.font = "700 10px ui-monospace,monospace"; ctx.textAlign = "center";
+        ctx.font = "700 10px 'Libre Caslon Text', Georgia, serif"; ctx.textAlign = "center";
         ctx.fillText("?", ox + 20, oy + 28);
         ctx.textAlign = "left";
       }
       ctx.fillStyle = "rgba(196,204,212,.45)";
-      ctx.font = "700 8px ui-monospace,monospace"; ctx.textAlign = "center";
+      ctx.font = "700 8px 'Libre Caslon Text', Georgia, serif"; ctx.textAlign = "center";
       ctx.fillText("M" + mm.n, ox + 20, oy + ch - 24);
       ctx.textAlign = "left";
     }
     ctx.fillStyle = doneCount() ? "rgba(150,240,200,.7)" : "rgba(196,204,212,.5)";
-    ctx.font = "700 10px ui-monospace,monospace";
+    ctx.font = "700 10px 'Libre Caslon Text', Georgia, serif";
     ctx.fillText("VETRINA \u00b7 REPERTI", x, y - 16);
   }
 
@@ -560,7 +560,7 @@
       for (i = 0; i < 7; i++) {
         ok = missionDone(MISSIONS[i].n);
         ctx.fillStyle = ok ? "rgba(150,240,200,.85)" : "rgba(90,200,150,.22)";
-        ctx.font = "700 9px ui-monospace,monospace";
+        ctx.font = "700 9px 'Libre Caslon Text', Georgia, serif";
         ctx.fillText((ok ? "\u2022 " : "\u25cb ") + "M" + MISSIONS[i].n + " " + (ok ? "OK" : "---"),
           x + 24, y + 34 + i * 16);
       }
@@ -569,14 +569,14 @@
       ctx.restore();
     } else {
       ctx.textAlign = "center";
-      ctx.font = "700 11px ui-monospace,monospace";
+      ctx.font = "700 11px 'Libre Caslon Text', Georgia, serif";
       ctx.fillStyle = "rgba(150,40,42,.6)";
       ctx.fillText("NESSUN TESTO", x + w / 2, y + (h - 26) / 2);
       ctx.textAlign = "left";
     }
     ctx.fillStyle = "rgba(0,0,0,.5)"; ctx.fillRect(x + 14, y + h - 58, w - 28, 14);
     ctx.fillStyle = "rgba(196,204,212,.4)";
-    ctx.font = "700 9px ui-monospace,monospace";
+    ctx.font = "700 9px 'Libre Caslon Text', Georgia, serif";
     ctx.fillText("TERMINALE \u00b7 TESTI RECUPERATI", x + 18, y + h - 48);
   }
 

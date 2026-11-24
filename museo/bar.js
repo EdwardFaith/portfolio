@@ -122,7 +122,7 @@
 
   function btn(label, fn, hot) {
     var b = el("button", "flex:1 1 auto;min-width:130px;padding:11px 14px;cursor:pointer;" +
-      "font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px;letter-spacing:0.16em;" +
+      "font-family:'Libre Caslon Text', Georgia, serif;font-size:11px;letter-spacing:0.16em;" +
       "text-transform:uppercase;border:1px solid rgba(231,226,214,0.2);" +
       "transition:background .18s,color .18s,border-color .18s;" +
       "background:" + (hot ? "#cfa14a" : "rgba(231,226,214,0.06)") + ";" +

@@ -598,7 +598,7 @@
       ctx.moveTo(-14, -22); ctx.lineTo(-8, -28); ctx.lineTo(20, -26); ctx.lineTo(14, -22);
       ctx.closePath(); ctx.fill();
       ctx.fillStyle = "rgba(240,230,200,0.55)";
-      ctx.font = "700 13px ui-monospace,monospace";
+      ctx.font = "700 13px 'Libre Caslon Text', Georgia, serif";
       ctx.fillText(sd % 2 ? "E" : "W", -6, -7);
     } else if (k === 1) {
       /* la palla */
@@ -742,7 +742,7 @@
     ctx.fillStyle = "#d8c86a";
     ctx.fillRect(x + 34, y + 208, w - 68, 30);
     ctx.fillStyle = "#231d08";
-    ctx.font = "700 17px ui-monospace,monospace";
+    ctx.font = "700 17px 'Libre Caslon Text', Georgia, serif";
     ctx.textAlign = "center";
     ctx.fillText(L("ALTA TENSIONE", "HIGH VOLTAGE"), x + w / 2, y + 229);
     ctx.textAlign = "left";
@@ -1008,17 +1008,17 @@
     if (!live) {
       var fl = 0.55 + 0.45 * Math.abs(Math.sin(t * 1.1));
       ctx.fillStyle = "rgba(214,58,44," + fl + ")";
-      ctx.font = "900 66px ui-monospace,monospace";
+      ctx.font = "900 66px 'Libre Caslon Text', Georgia, serif";
       ctx.fillText("OFFLINE", sx + sw / 2, sy + sh / 2 + 14);
       ctx.fillStyle = "rgba(214,58,44,0.5)";
-      ctx.font = "600 15px ui-monospace,monospace";
+      ctx.font = "600 15px 'Libre Caslon Text', Georgia, serif";
       ctx.fillText("NESSUNA RISPOSTA DAL NUCLEO", sx + sw / 2, sy + sh / 2 + 56);
     } else {
       ctx.fillStyle = "rgba(120,240,180,0.9)";
-      ctx.font = "900 52px ui-monospace,monospace";
+      ctx.font = "900 52px 'Libre Caslon Text', Georgia, serif";
       ctx.fillText("IN LINEA", sx + sw / 2, sy + sh / 2 - 4);
       ctx.fillStyle = "rgba(120,240,180,0.55)";
-      ctx.font = "600 15px ui-monospace,monospace";
+      ctx.font = "600 15px 'Libre Caslon Text', Georgia, serif";
       ctx.fillText("EDDARD INDUSTRIES · NUCLEO 04", sx + sw / 2, sy + sh / 2 + 34);
       /* il grafico che scorre */
       ctx.strokeStyle = "rgba(120,240,180,0.55)"; ctx.lineWidth = 2;
@@ -1035,7 +1035,7 @@
     ctx.fillStyle = "#8d7a3f";
     ctx.fillRect(x + w / 2 - 170, y + 352, 340, 40);
     ctx.fillStyle = "#20200f";
-    ctx.font = "800 19px ui-monospace,monospace";
+    ctx.font = "800 19px 'Libre Caslon Text', Georgia, serif";
     ctx.textAlign = "center";
     ctx.fillText("EDDARD INDUSTRIES", x + w / 2, y + 379);
     ctx.textAlign = "left";
@@ -1119,10 +1119,10 @@
       var fl = 0.5 + 0.5 * Math.abs(Math.sin(t * 1.3 + (kind === "archive" ? 0 : 1.6)));
       ctx.textAlign = "center";
       ctx.fillStyle = "rgba(214,58,44," + fl + ")";
-      ctx.font = "900 26px ui-monospace,monospace";
+      ctx.font = "900 26px 'Libre Caslon Text', Georgia, serif";
       ctx.fillText("OFFLINE", sx + sw / 2, sy + sh / 2 + 4);
       ctx.fillStyle = "rgba(214,58,44,0.45)";
-      ctx.font = "600 10px ui-monospace,monospace";
+      ctx.font = "600 10px 'Libre Caslon Text', Georgia, serif";
       ctx.fillText(L("COLLEGARE B.E.P.E.", "LINK B.E.P.E."), sx + sw / 2, sy + sh / 2 + 24);
       ctx.textAlign = "left";
       /* le righe di disturbo */
@@ -1181,7 +1181,7 @@
     var i, n = pageCount(), cols = 3, cw = (sw - 20) / cols, ch = 34;
     ctx.textAlign = "left";
     ctx.fillStyle = "rgba(140,220,240,0.75)";
-    ctx.font = "700 11px ui-monospace,monospace";
+    ctx.font = "700 11px 'Libre Caslon Text', Georgia, serif";
     ctx.fillText("OCCHIO NEL CIELO · PAGINE", sx + 6, sy + 14);
     ctx.fillStyle = "rgba(140,220,240,0.45)";
     ctx.fillText(n + "/" + PAGES.length, sx + sw - 34, sy + 14);
@@ -1207,18 +1207,18 @@
         ctx.strokeRect(cx0 + 0.5, cy0 + 0.5, cw - 9, ch - 1);
         ctx.setLineDash([]);
         ctx.fillStyle = "rgba(120,180,200,0.22)";
-        ctx.font = "600 9px ui-monospace,monospace";
+        ctx.font = "600 9px 'Libre Caslon Text', Georgia, serif";
         ctx.fillText(L("MANCA", "MISSING"), cx0 + 8, cy0 + ch / 2 + 3);
       }
     }
     /* il verdetto */
     if (st.puzzle) {
       ctx.fillStyle = "rgba(150,255,210," + (0.6 + 0.4 * Math.sin(t * 2)) + ")";
-      ctx.font = "700 11px ui-monospace,monospace";
+      ctx.font = "700 11px 'Libre Caslon Text', Georgia, serif";
       ctx.fillText(L("DIALOGO RICOMPOSTO", "DIALOGUE REBUILT"), sx + 6, sy + sh - 6);
     } else if (n > 0) {
       ctx.fillStyle = "rgba(150,200,220,0.4)";
-      ctx.font = "600 10px ui-monospace,monospace";
+      ctx.font = "600 10px 'Libre Caslon Text', Georgia, serif";
       ctx.fillText(L("ORDINE: 1·2·3·4·5·6", "ORDER: 1·2·3·4·5·6"), sx + 6, sy + sh - 6);
     }
   }
@@ -1240,14 +1240,14 @@
     var i, rowH = (sh - 26) / 8;
     ctx.textAlign = "left";
     ctx.fillStyle = "rgba(240,210,140,0.75)";
-    ctx.font = "700 11px ui-monospace,monospace";
+    ctx.font = "700 11px 'Libre Caslon Text', Georgia, serif";
     ctx.fillText(L("VIDEOTECA · 8 NASTRI", "VIDEO LIBRARY · 8 TAPES"), sx + 6, sy + 14);
     for (i = 0; i < TAPES.length; i++) {
       var ry = sy + 22 + i * rowH, open = TAPES[i].ok();
       ctx.fillStyle = open ? "rgba(240,210,140,0.10)" : "rgba(255,255,255,0.03)";
       ctx.fillRect(sx + 4, ry, sw - 8, rowH - 2);
       ctx.fillStyle = open ? "rgba(240,210,140,0.9)" : "rgba(160,150,130,0.30)";
-      ctx.font = (open ? "700 " : "600 ") + "9px ui-monospace,monospace";
+      ctx.font = (open ? "700 " : "600 ") + "9px 'Libre Caslon Text', Georgia, serif";
       ctx.fillText((i + 1) + " " + (open ? L(TAPES[i].it, TAPES[i].en) : "▮▮▮▮▮▮▮"), sx + 8, ry + rowH - 5);
       if (open) {
         ctx.fillStyle = "rgba(240,90,60,0.9)";
@@ -1312,7 +1312,7 @@
     ctx.fillStyle = "#d8c86a";
     ctx.fillRect(x + w / 2 - 44, y + h - 74, 88, 22);
     ctx.fillStyle = "#231d08";
-    ctx.font = "700 11px ui-monospace,monospace";
+    ctx.font = "700 11px 'Libre Caslon Text', Georgia, serif";
     ctx.textAlign = "center";
     ctx.fillText(L("CABINA", "BOOTH"), x + w / 2, y + h - 59);
     ctx.textAlign = "left";
@@ -1360,11 +1360,11 @@
       ctx.textAlign = "center";
       if (worn) {
         ctx.fillStyle = "rgba(150,255,210," + (0.55 + 0.35 * Math.sin(t * 2.4)) + ")";
-        ctx.font = "700 11px ui-monospace,monospace";
+        ctx.font = "700 11px 'Libre Caslon Text', Georgia, serif";
         ctx.fillText(L("ADDOSSO", "WORN"), cx, f - 24);
       } else {
         ctx.fillStyle = "rgba(190,200,210,0.30)";
-        ctx.font = "600 10px ui-monospace,monospace";
+        ctx.font = "600 10px 'Libre Caslon Text', Georgia, serif";
         var nm = M.PLAYER && M.PLAYER.skinName ? M.PLAYER.skinName(ORDER[i]) : ORDER[i];
         ctx.fillText(String(nm).toUpperCase(), cx, f - 24);
         /* il mirino: qui si può provare */
@@ -2131,10 +2131,10 @@
     c.fillRect(0, 0, w, h);
     /* la riga in alto */
     c.textAlign = "left";
-    c.font = "700 13px ui-monospace,monospace";
+    c.font = "700 13px 'Libre Caslon Text', Georgia, serif";
     c.fillStyle = "rgba(214,206,190,.85)";
     c.fillText(it ? "QUADRO ELETTRICO · CAMERA 04" : "BREAKER PANEL · ROOM 04", 26, 34);
-    c.font = "700 11px ui-monospace,monospace";
+    c.font = "700 11px 'Libre Caslon Text', Georgia, serif";
     c.fillStyle = st.power ? "rgba(140,240,190,.85)"
       : "rgba(240,90,70," + (0.55 + 0.45 * Math.sin(pk.t * 4)) + ")";
     c.textAlign = "right";
@@ -2194,7 +2194,7 @@
         c.beginPath(); c.arc(x, y, 6.5, 0, 6.283); c.fill();
       }
       /* il numero della fase */
-      c.font = "700 10px ui-monospace,monospace";
+      c.font = "700 10px 'Libre Caslon Text', Georgia, serif";
       c.fillStyle = pk.done[i] ? rgba2(PK.COL[i], 0.95) : "rgba(190,182,166,.45)";
       c.textAlign = "center";
       c.fillText(String(i + 1), cx - R * 0.72, cy + R * 0.72 + 4);
@@ -2202,7 +2202,7 @@
     c.textAlign = "left";
     /* il nucleo della stanza: si accende una fase per volta */
     c.textAlign = "center";
-    c.font = "900 20px ui-monospace,monospace";
+    c.font = "900 20px 'Libre Caslon Text', Georgia, serif";
     c.fillStyle = "rgba(220,214,200,.22)";
     c.fillText(String(pk.solved) + "/" + PK.N, cx, cy + 7);
     c.textAlign = "left";
@@ -2235,14 +2235,14 @@
       c.arc(lx + 34 + i * 40, ly + lh - 34, 6, 0, 6.283);
       c.fill();
     }
-    c.font = "700 10px ui-monospace,monospace";
+    c.font = "700 10px 'Libre Caslon Text', Georgia, serif";
     c.fillStyle = "rgba(214,206,190,.6)";
     c.textAlign = "center";
     c.fillText(it ? "FASI" : "PHASES", lx + lw / 2, ly + lh - 14);
     c.textAlign = "left";
 
     /* ---- la riga in basso ------------------------------------ */
-    c.font = "700 11px ui-monospace,monospace";
+    c.font = "700 11px 'Libre Caslon Text', Georgia, serif";
     c.fillStyle = pk.msgT > 0 ? "rgba(240,232,214,.92)" : "rgba(190,182,166,.42)";
     c.fillText(pk.msg, 26, h - 34);
     c.fillStyle = "rgba(160,154,140,.45)";
