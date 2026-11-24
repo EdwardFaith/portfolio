@@ -134,14 +134,15 @@
       id: "interattivo",
       num: "VI",
       title: "INTERATTIVO",
-      line: "sei porte. ognuna porta da un'altra parte, e tutte funzionano.",
+      line: "sette porte. ognuna porta da un'altra parte, e tutte funzionano.",
       works: [
-        { kind: "portal", href: "subconscio/subconscio.html", title: "Subconscio", sub: "scopri la verità e il sogno", icon: "❦" },
+        { kind: "portal", href: "subconscio/subconscio.html", title: "Subconscio", sub: "scopri la verità e il sogno", icon: "🧠" },
         { kind: "portal", href: "RadioKaoSs/index.html", title: "RaDiO KaOsS", sub: "live", icon: "◉", live: true },
         { kind: "portal", href: "lucidus/index.html", title: "Lucidus", sub: "converti i tuoi soldi in denti da latte", icon: "⌂" },
         { kind: "portal", href: "sandpay/index.html", title: "Sandpay", sub: "guerre passate", icon: "▚" },
         { kind: "portal", href: "simbolo/index.html", title: "Simbolo", sub: "muovi la testa e scappa dai simboli", icon: "✦" },
-        { kind: "portal", href: "eyes-in-the-sky/index.html", title: "Eyes in the Sky", sub: "scappa dai bulbi oculari, astronauta", icon: "◎" }
+        { kind: "portal", href: "eyes-in-the-sky/index.html", title: "Eyes in the Sky", sub: "scappa dai bulbi oculari, astronauta", icon: "◎" },
+        { kind: "portal", href: "punto-interrogativo/index.html?mode=display&layout=split", title: "?", sub: "ogni parola disegna la solitudine", icon: "?" }
       ]
     },
     {

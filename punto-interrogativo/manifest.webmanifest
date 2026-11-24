@@ -1,0 +1,9 @@
+{
+  "name": "?",
+  "short_name": "?",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#fcfcfa",
+  "theme_color": "#fcfcfa",
+  "start_url": "./?mode=controller"
+}

@@ -415,17 +415,21 @@
         const { useState, useEffect, useRef } = React;
 
         // ── Subconscio disintegration ──────────────────────────────
+        // Se si torna indietro dal Subconscio (cache del browser), la pagina
+        // ricompare com'era a metà effetto: invisibile e con il segno sopra.
+        // Qui la si rimette a posto.
+        function restoreFromSubconscious() {
+            document.querySelectorAll('.subc-punto-overlay, .subc-fragment').forEach(el => el.remove());
+            const root = document.getElementById('root');
+            if (root) { root.style.filter = ''; root.style.opacity = '1'; }
+        }
+        window.addEventListener('pageshow', restoreFromSubconscious);
+
         function triggerSubconsciousEffect(callback) {
             // Phase 1: fragment the page
             const body = document.body;
             const W = window.innerWidth, H = window.innerHeight;
             const FRAGS = 180;
-
-            // Il punto interrogativo al posto del coniglio
-            const puntoOverlay = document.createElement('div');
-            puntoOverlay.className = 'subc-punto-overlay';
-            puntoOverlay.innerHTML = '<span aria-hidden="true">?</span>';
-            body.appendChild(puntoOverlay);
 
             // Create white pixel fragments
             for (let i = 0; i < FRAGS; i++) {
@@ -456,15 +460,10 @@
                 root.style.opacity = '0';
             }
 
-            // Il punto interrogativo
-            setTimeout(() => { puntoOverlay.classList.add('visible'); }, 200);
-
             // After animation → navigate
             setTimeout(() => {
                 if (callback) callback();
-                // cleanup del segno
                 setTimeout(() => {
-                    if (puntoOverlay.parentNode) puntoOverlay.parentNode.removeChild(puntoOverlay);
                     if (root) { root.style.filter = ''; root.style.opacity = '1'; }
                 }, 400);
             }, 900);
@@ -1840,7 +1839,7 @@
                             >
                                 <div className="aspect-[4/3] bg-gradient-to-b from-neutral-950 via-neutral-900 to-black border border-neutral-800/80 relative overflow-hidden mb-2.5 flex items-center justify-center group-hover:border-red-900/50 transition-colors">
                                     <div className="absolute inset-0 bg-red-950/20 opacity-60 group-hover:opacity-100 transition-opacity"></div>
-                                    <span className="brand-font text-5xl sm:text-6xl font-bold leading-none text-red-600 select-none group-hover:scale-125 transition-transform duration-300 drop-shadow-[0_0_18px_rgba(220,38,38,0.6)] relative z-10" role="img" aria-label="Subconscio">?</span>
+                                    <span className="brand-font text-5xl sm:text-6xl font-bold leading-none text-red-600 select-none group-hover:scale-125 transition-transform duration-300 drop-shadow-[0_0_18px_rgba(220,38,38,0.6)] relative z-10" role="img" aria-label="Subconscio">🧠</span>
                                 </div>
                                 <div className="px-3 pb-3">
                                     <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Subconscio</h3>
@@ -1916,6 +1915,17 @@
                                 <div className="px-3 pb-3">
                                     <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">Eyes in the Sky</h3>
                                     <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">scappa dai bulbi oculari astroanuta! altriemnti ti prenderanno.</p>
+                                </div>
+                            </a>
+
+                            {/* ? — installazione: proiezione + tablet */}
+                            <a href="punto-interrogativo/index.html?mode=display&layout=split" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:border-white/25 hover:bg-neutral-800 transition-all duration-300">
+                                <div className="aspect-[4/3] bg-[#fcfcfa] relative overflow-hidden mb-2.5 flex items-center justify-center">
+                                    <span className="text-6xl sm:text-7xl leading-none text-[#111] select-none group-hover:scale-110 transition-transform duration-300" style={{ fontFamily: "'EB Garamond', Garamond, Georgia, serif" }} role="img" aria-label="Punto interrogativo">?</span>
+                                </div>
+                                <div className="px-3 pb-3">
+                                    <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">?</h3>
+                                    <p className="text-neutral-500 text-[10px] leading-tight font-mono uppercase">tocca il punto di domanda dal telefono: ogni parola disegna la solitudine.</p>
                                 </div>
                             </a>
 

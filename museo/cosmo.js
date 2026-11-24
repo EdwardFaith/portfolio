@@ -426,7 +426,8 @@
     var loc = root.location;
     if (!loc || !loc.href) return false;
     var dir = (Number(which) === 1) ? "godkiller" : "godkiller-deicida";
-    try { loc.href = dir + "/index.html"; return true; } catch (e) { return false; }
+    /* fs=1: il gioco si mette a schermo intero al primo tasto (schermo-intero.js) */
+    try { loc.href = dir + "/index.html?fs=1"; return true; } catch (e) { return false; }
   }
   CZ.openGodkiller = openGodkiller;
 

@@ -1,0 +1,78 @@
+:root {
+  --paper: #fcfcfa;
+  --ink: #111111;
+  --void: #08090a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: var(--paper); color: var(--ink); }
+body {
+  font-family: 'EB Garamond', Garamond, Georgia, serif;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
+}
+body.controller { overflow: auto; }
+.hidden { display: none !important; }
+
+/* ---------- STATO ZERO ---------- */
+.zero {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--paper);
+}
+.qmark {
+  font-size: min(62vh, 62vw);
+  line-height: 1;
+  cursor: pointer;
+  transition: opacity .5s ease;
+  padding: 0 .08em;
+}
+body.display .qmark { cursor: default; }
+.zero.leaving .qmark { opacity: 0; }
+
+.qr {
+  position: fixed; right: 2.2vw; bottom: 2.2vw; z-index: 50;
+  display: none; flex-direction: column; align-items: flex-end; gap: .4em;
+  padding: 8px; background: var(--paper);
+  opacity: .6; transition: opacity .6s ease;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #444;
+}
+body.display .qr { display: flex; }
+body.display .qr.gone { opacity: 0; pointer-events: none; }
+.qr img, .qr canvas { width: 96px; height: 96px; image-rendering: pixelated; display: block; }
+#qrlink { max-width: 260px; text-align: right; word-break: break-all; }
+#qrlink::before { content: attr(data-net); }
+body.controller:fullscreen, html:fullscreen body.controller { overflow-y: auto; }
+
+/* ---------- DIZIONARIO ---------- */
+.dict {
+  min-height: 100%;
+  padding: 7vh 7vw 14vh;
+  max-width: 980px; margin: 0 auto;
+}
+.dict-body { font-size: 24px; line-height: 1.42; color: var(--ink); }
+.dict-body .head { margin-bottom: .9em; }
+.dict-body .head .lemma { font-weight: 700; font-size: 1.25em; }
+.dict-body .sense { margin-bottom: .7em; text-align: justify; hyphens: auto; }
+.dict-body .num { font-weight: 700; }
+.dict-body .t { cursor: pointer; border-radius: 1px; transition: none; }
+@media (hover: hover) {
+  body.controller .dict-body .t:hover { background: var(--ink); color: var(--paper); }
+}
+.dict-body .t.inv { background: var(--ink) !important; color: var(--paper) !important; }
+.dict-body.fade { opacity: 0; }
+.dict-body { transition: opacity .25s ease; }
+
+/* ---------- PROIEZIONE ---------- */
+.stage { position: fixed; inset: 0; display: flex; background: var(--void); }
+.mirror {
+  flex: 0 0 50%; height: 100%;
+  background: var(--paper); overflow: hidden;
+  padding: 6vh 4vw;
+}
+.mirror .dict-body { font-size: 22px; }
+.mirror .t { cursor: default; }
+.drawing { flex: 1 1 auto; height: 100%; background: var(--void); position: relative; overflow: hidden; }
+.drawing canvas { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity .7s ease; }
+.drawing canvas.out { opacity: 0; }
+.stage.layout-drawing .mirror { display: none; }

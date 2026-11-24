@@ -411,8 +411,8 @@
       num: "V",
       title: { it: "INTERATTIVO", en: "INTERACTIVE" },
       line: {
-        it: "sei schermi che funzionano davvero · si aprono in un'altra scheda, sono siti interi.",
-        en: "six screens that actually work · they open in another tab, they are whole sites."
+        it: "sette schermi che funzionano davvero · si aprono in un'altra scheda, sono siti interi.",
+        en: "seven screens that actually work · they open in another tab, they are whole sites."
       },
       /* Una sala, sei giochi, sei schermi. Ogni gioco non è più due
          cose appese — lo schermo da una parte e la porta dall'altra —
@@ -425,7 +425,7 @@
         {
           kind: "lettering", text: "INTERATTIVO", textEn: "INTERACTIVE", w: 420, h: 190,
           sub: { it: "i siti e le installazioni", en: "sites and installations" },
-          small: { it: "radio · lucidus · sandpay · simbolo · eyes in the sky · subconscio nascosto dal ragno", en: "radio · lucidus · sandpay · simbolo · eyes in the sky · subconscio hidden by spider" }
+          small: { it: "radio · lucidus · sandpay · simbolo · eyes in the sky · ? · subconscio nascosto dal ragno", en: "radio · lucidus · sandpay · simbolo · eyes in the sky · ? · subconscio hidden by spider" }
         },
         {
           kind: "image", img: "RadioKaoSs/giff/1.gif", href: "RadioKaoSs/index.html", icon: "◉", live: true,
@@ -455,6 +455,14 @@
           kind: "image", img: "eyes-in-the-sky/bg.gif", href: "eyes-in-the-sky/index.html", icon: "◎",
           title: "Eyes in the Sky", sub: { it: "installazione · bulbi", en: "installation · eyeballs" },
           desc: { it: "scappa dai bulbi oculari astronauta! altrimenti ti prenderanno.", en: "run from the eyeballs, astronaut! otherwise they will get you." }
+        },
+        {
+          kind: "image", img: "punto-interrogativo/copertina.png", href: "punto-interrogativo/index.html?mode=display&layout=split", icon: "?",
+          title: "?", sub: { it: "installazione · proiezione e tablet", en: "installation · projection and tablet" },
+          desc: {
+            it: "un punto di domanda. toccalo dal telefono: si apre la sua definizione, e ogni parola che tocchi apre la sua, all'infinito. intanto, sul nero, le parole toccate compongono un corpo solo.",
+            en: "a question mark. touch it from your phone: its definition opens, and every word you touch opens its own, endlessly. meanwhile, on the black, the touched words build a single, lonely body."
+          }
         }
       ]
     },

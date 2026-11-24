@@ -254,8 +254,8 @@
       sez: "museo",
       n: { it: "INTERATTIVO", en: "INTERACTIVE" },
       d: {
-        it: "Sei schermi che funzionano davvero: radio, lucidus, sandpay, simbolo, eyes in the sky, e il subconscio, che sta dietro il ragno.",
-        en: "Six screens that actually work: radio, lucidus, sandpay, simbolo, eyes in the sky, and the subconscious, which sits behind the spider."
+        it: "Sette schermi che funzionano davvero: radio, lucidus, sandpay, simbolo, eyes in the sky, il punto di domanda, e il subconscio, che sta dietro il ragno.",
+        en: "Seven screens that actually work: radio, lucidus, sandpay, simbolo, eyes in the sky, the question mark, and the subconscious, which sits behind the spider."
       },
       fai: {
         it: "Scegli uno schermo e aprilo con E: sono siti interi, e si giocano in un'altra scheda. Il mouse qui non serve a niente.",
@@ -668,8 +668,8 @@
   /* l'offerta che chiude ogni nuvoletta: è Charles che si fa vivo, non
      un cartello — e vale anche per chi non ha meccaniche da imparare */
   var OFFERTA = {
-    it: "se hai bisogno sono qui e ti spiego.",
-    en: "if you need me I'm here to explain."
+    it: "sono qui, se ti serve una mano.",
+    en: "I'm here, if you need a hand."
   };
 
   /* ------------------------------------------------------------
@@ -1612,27 +1612,39 @@
     contaNuvoletta(quanto);
   }
 
-  function diceNovita(id) {
-    if (!nuvoletta) return false;
-    var n = NOVITA[id];
-    if (!n || visto(id)) return false;
-    segnaVisto(id);
-    mostraNuvoletta(T(n) + " — " + T(OFFERTA), ATTESA_NOVITA);
-    return true;
+  /* I COMANDI DEL POSTO, ALL'ARRIVO — ogni volta che si entra in una
+     zona nuova Charles dice SOLO i comandi di quel posto (non com'è la
+     zona, non i comandi di tutto il sito), una volta sola all'inizio
+     della visita, e la nuvoletta resta cinque secondi: «sono qui, se ti
+     serve una mano». Il resto lo spiega solo se lo chiami.
+     Se il posto ha una riga sua (NOVITA) si dice quella; altrimenti si
+     riassumono i tasti della sua sezione, senza la riga del «?». */
+  var ATTESA_ARRIVO = 5000;   /* ms: i comandi del posto, e poi via */
+  var detti = {};             /* posti già annunciati in questa visita */
+  try { detti = JSON.parse(root.sessionStorage.getItem("charles-detti") || "{}") || {}; } catch (e) { detti = {}; }
+
+  function comandiInBreve(id) {
+    if (NOVITA[id]) return T(NOVITA[id]);
+    var luogoId = LUOGHI[id] ? id : null;
+    var s = (luogoId && LUOGHI[luogoId].sez) || sezione();
+    var tab = TASTI[s] || TASTI.sito;
+    var righe = dito() ? tab.dito : tab.righe, out = [];
+    for (var i = 0; i < righe.length && out.length < 4; i++) {
+      if (righe[i][0] === "?") continue;
+      out.push(righe[i][0] + " " + (lingua() === "en" ? righe[i][2] : righe[i][1]));
+    }
+    return out.join(" · ");
   }
 
   function richiamo() {
     if (aperto || !nuvoletta) return;
     var id = luogo();
-    if (diceNovita(id)) return;
-    /* qui non c'è niente di nuovo da imparare: si fa vivo solo
-       nell'hub, solo per chi non l'ha mai aperto, e una volta sola */
-    if (id !== "hub") return;
-    var st = leggi();
-    if (st.nudge || st.aperto) return;
-    st.nudge = 1;
-    scrivi(st);
-    mostraNuvoletta(T(OFFERTA), ATTESA_OFFERTA);
+    if (detti[id]) return;
+    detti[id] = 1;
+    try { root.sessionStorage.setItem("charles-detti", JSON.stringify(detti)); } catch (e) { }
+    var c = comandiInBreve(id);
+    if (!c) return;
+    mostraNuvoletta(c + " — " + T(OFFERTA), ATTESA_ARRIVO);
   }
 
   /* ============================================================

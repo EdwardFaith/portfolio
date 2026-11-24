@@ -1,0 +1,40 @@
+?  — installazione (Proiezione + Tablet)
+=========================================
+
+AVVIO
+  Doppio clic su AVVIA.bat: si apre la Proiezione nel browser.
+  Premi F (schermo intero). Il tablet/telefono scansiona il QR.
+
+COLLEGAMENTO
+  Proiezione e tablet si parlano via internet tramite due ripetitori
+  pubblici (MQTT su wss://, porte 8084 e 8884): funziona anche se
+  sono su reti diverse o in 4G. Il QR sparisce appena il tablet si
+  collega e ricompare da solo se il tablet si scollega (~10 s).
+  Il tablet si ricollega in automatico (standby, cambio rete...).
+  Accanto al link: ● = proiezione collegata a internet, ○ = non ancora.
+
+  ATTENZIONE: il telefono deve poter APRIRE la pagina del QR.
+  Con AVVIA.bat il QR punta al PC (http://10.x.x.x:8080), quindi il
+  telefono deve stare sulla stessa Wi-Fi. Per usarlo da qualsiasi rete
+  il sito va pubblicato online (es. www.ebmaker.it/punto-interrogativo/).
+
+SCHERMO INTERO SUL TELEFONO/TABLET
+  Si attiva al primo tocco (Android, iPad). Lo schermo resta acceso.
+  Su iPhone Safari non lo permette: usa Condividi > "Aggiungi a
+  schermata Home" e apri l'icona "?": parte a tutto schermo.
+
+TASTI NASCOSTI (sul computer della proiezione)
+  F1  cambia modalità: Affiancata (Treccani + disegno) <-> Solo Disegno
+  M   come F1
+  R   torna allo Stato Zero (? + QR) per il visitatore successivo
+  U   carica i tuoi disegni delle pose per provarli subito
+  N   mostra subito una posa completa (prova)
+  F   schermo intero
+
+I TUOI DISEGNI
+  Metti le immagini in poses/ e scrivi i nomi in poses/poses.js.
+  Senza disegni l'installazione usa 52 silhouette di riserva.
+
+ONLINE
+  Se pubblichi la cartella su www.ebmaker.it/punto-interrogativo/,
+  il QR punta lì quando la proiezione è aperta in locale (localhost).
