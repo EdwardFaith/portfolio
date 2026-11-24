@@ -540,10 +540,10 @@
     c.textAlign = "center";
     c.textBaseline = "alphabetic";
     c.fillStyle = "rgba(70,18,12,0.62)";
-    c.font = "italic " + (11 * s).toFixed(0) + "px 'Libre Caslon Text', Georgia, serif";
+    c.font = "italic " + (11 * s).toFixed(0) + "px 'Shadows Into Light', cursive";
     c.fillText("LA DONNA DEL BOSCO", W / 2, y + 26 * s);
     c.fillStyle = "#2a0a06";
-    c.font = "italic " + (27 * s).toFixed(0) + "px 'Libre Caslon Text', Georgia, serif";
+    c.font = "italic " + (27 * s).toFixed(0) + "px 'Shadows Into Light', cursive";
     c.fillText("«vuoi rincarnarti?»", W / 2, y + 62 * s);
 
     /* le due risposte, in due riquadri: quella scelta si accende */
@@ -562,13 +562,13 @@
       c.lineWidth = on ? 2 * s : 1 * s;
       c.stroke();
       c.fillStyle = on ? "#7d1a0e" : "rgba(50,16,10,0.45)";
-      c.font = (on ? "italic " : "") + (21 * s).toFixed(0) + "px 'Libre Caslon Text', Georgia, serif";
+      c.font = (on ? "italic " : "") + (21 * s).toFixed(0) + "px 'Shadows Into Light', cursive";
       c.fillText(opz[i], bx + bw / 2, by + bh * 0.70);
     }
 
     /* il modo per rispondere */
     c.fillStyle = "rgba(60,20,14,0.45)";
-    c.font = (9.5 * s).toFixed(0) + "px 'Libre Caslon Text', Georgia, serif";
+    c.font = (9.5 * s).toFixed(0) + "px 'Shadows Into Light', cursive";
     c.fillText("←  →  scegli        E  conferma", W / 2, y + h - 10 * s);
 
     c.textAlign = "start";
@@ -642,7 +642,7 @@
 
       c.textAlign = "center";
       c.fillStyle = "#20100a";
-      c.font = "italic " + (23 * s).toFixed(0) + "px 'Libre Caslon Text', Georgia, serif";
+      c.font = "italic " + (23 * s).toFixed(0) + "px 'Shadows Into Light', cursive";
       c.fillText(frase.substring(0, n), W / 2, by + bh * 0.60);
       c.textAlign = "start";
     }

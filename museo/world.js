@@ -350,47 +350,47 @@
       x.lineWidth = 2;
       x.strokeRect(20, 48, w - 40, h - 96);
 
-      x.font = "400 24px 'Libre Caslon Display', system-ui, sans-serif";
+      x.font = "400 24px 'Shadows Into Light', system-ui, sans-serif";
       x.fillStyle = "#ffffff";
       x.textAlign = "center";
 
       if (topic === "doomsday") {
         x.fillStyle = "#ff3b3b";
         x.fillText("☢ DOOMSDAY COUNTDOWN ☢", w / 2, 90);
-        x.font = "900 38px 'Libre Caslon Text', Georgia, serif";
+        x.font = "900 38px 'Shadows Into Light', cursive";
         x.fillStyle = "#ffffff";
         x.fillText("[ 90 SECONDS TO MIDNIGHT ]", w / 2, 150);
-        x.font = "600 18px 'Libre Caslon Text', Georgia, serif";
+        x.font = "600 18px 'Shadows Into Light', cursive";
         x.fillStyle = "rgba(255,180,180,0.85)";
         x.fillText("NUCLEAR & CLIMATE EXTINCTION THRESHOLD", w / 2, 195);
         x.fillText("BULLETIN OF THE ATOMIC SCIENTISTS", w / 2, 230);
       } else if (topic === "climate") {
         x.fillStyle = "#ff7b22";
         x.fillText("▲ NASA GLOBAL WARMING TELEMETRY ▲", w / 2, 90);
-        x.font = "900 36px 'Libre Caslon Text', Georgia, serif";
+        x.font = "900 36px 'Shadows Into Light', cursive";
         x.fillStyle = "#ffffff";
         x.fillText("[ +1.48°C TEMP · CO2 422 PPM ]", w / 2, 150);
-        x.font = "600 18px 'Libre Caslon Text', Georgia, serif";
+        x.font = "600 18px 'Shadows Into Light', cursive";
         x.fillStyle = "rgba(255,200,160,0.85)";
         x.fillText("POLAR ICE SHEET DEPLETION: CRITICAL", w / 2, 195);
         x.fillText("SEA LEVEL RISE ACCELERATING", w / 2, 230);
       } else if (topic === "war") {
         x.fillStyle = "#ef4444";
         x.fillText("⚔ GLOBAL CONFLICT TRACKER (CFR) ⚔", w / 2, 90);
-        x.font = "900 36px 'Libre Caslon Text', Georgia, serif";
+        x.font = "900 36px 'Shadows Into Light', cursive";
         x.fillStyle = "#ffffff";
         x.fillText("[ ACTIVE WAR ZONES: ENGAGED ]", w / 2, 150);
-        x.font = "600 18px 'Libre Caslon Text', Georgia, serif";
+        x.font = "600 18px 'Shadows Into Light', cursive";
         x.fillStyle = "rgba(255,180,180,0.85)";
         x.fillText("UKRAINE · MIDDLE EAST · SUDAN · TAIWAN STRAIT", w / 2, 195);
         x.fillText("CRITICAL ESCALATION ALERTS ACTIVE", w / 2, 230);
       } else if (topic === "nuclear") {
         x.fillStyle = "#ff1e1e";
         x.fillText("⌖ SIPRI WORLD NUCLEAR ARSENALS ⌖", w / 2, 90);
-        x.font = "900 36px 'Libre Caslon Text', Georgia, serif";
+        x.font = "900 36px 'Shadows Into Light', cursive";
         x.fillStyle = "#ffffff";
         x.fillText("[ 12,121 NUCLEAR WARHEADS ]", w / 2, 150);
-        x.font = "600 18px 'Libre Caslon Text', Georgia, serif";
+        x.font = "600 18px 'Shadows Into Light', cursive";
         x.fillStyle = "rgba(255,180,180,0.85)";
         x.fillText("9,585 IN MILITARY STOCKPILES READY", w / 2, 195);
         x.fillText("TOTAL PLANETARY OVERKILL CAPACITY", w / 2, 230);
@@ -398,20 +398,20 @@
         x.fillStyle = "#38bdf8";
         x.fillText("⧖ WORLDOMETER BIOSPHERE FLUX ⧖", w / 2, 90);
         var co2Tons = (37400000000 + Math.floor(t * 1200)).toLocaleString();
-        x.font = "900 32px 'Libre Caslon Text', Georgia, serif";
+        x.font = "900 32px 'Shadows Into Light', cursive";
         x.fillStyle = "#ffffff";
         x.fillText("CO2: " + co2Tons + " TONS", w / 2, 145);
-        x.font = "600 18px 'Libre Caslon Text', Georgia, serif";
+        x.font = "600 18px 'Shadows Into Light', cursive";
         x.fillStyle = "rgba(180,220,255,0.85)";
         x.fillText("FOREST LOSS: 10M HECTARES / YR", w / 2, 195);
         x.fillText("GLOBAL POPULATION: 8.15 BILLION", w / 2, 230);
       } else if (topic === "atmosphere") {
         x.fillStyle = "#a855f7";
         x.fillText("◎ EARTH NULLSCHOOL ATMOSPHERE ◎", w / 2, 90);
-        x.font = "900 36px 'Libre Caslon Text', Georgia, serif";
+        x.font = "900 36px 'Shadows Into Light', cursive";
         x.fillStyle = "#ffffff";
         x.fillText("[ GLOBAL WIND & PM2.5 PARTICULATE ]", w / 2, 150);
-        x.font = "600 18px 'Libre Caslon Text', Georgia, serif";
+        x.font = "600 18px 'Shadows Into Light', cursive";
         x.fillStyle = "rgba(220,190,255,0.85)";
         x.fillText("SUPERFICIAL WIND VECTORS & CO ANOMALIES", w / 2, 195);
         x.fillText("CONTINUOUS PLANETARY FLUID SIMULATION", w / 2, 230);
@@ -421,7 +421,7 @@
       x.fillStyle = "rgba(255,30,30,0.9)";
       x.fillRect(w / 2 - 160, 252, 320, 36);
       x.fillStyle = "#ffffff";
-      x.font = "400 16px 'Libre Caslon Display', system-ui, sans-serif";
+      x.font = "400 16px 'Shadows Into Light', system-ui, sans-serif";
       var isTouch = (M.DEVICE && M.DEVICE.touch) ? M.DEVICE.touch() : (('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
       x.fillText(isTouch ? "→ TOCCA PER APRIRE" : "→ CLICCA / PREMI E PER APRIRE", w / 2, 276);
 
@@ -431,14 +431,14 @@
       x.fillStyle = "rgba(255,50,50,0.9)";
       x.beginPath(); x.arc(28, 26, 6, 0, 6.3); x.fill();
       x.fillStyle = "#ffffff";
-      x.font = "600 14px 'Libre Caslon Text', Georgia, serif";
+      x.font = "600 14px 'Shadows Into Light', cursive";
       var tc2 = ("0" + Math.floor(t / 60)).slice(-2) + ":" + ("0" + Math.floor(t % 60)).slice(-2) +
         ":" + ("0" + Math.floor((t * 24) % 24)).slice(-2);
       x.fillText("LIVE FEED · " + tc2, 44, 30);
 
       x.textAlign = "right";
       x.fillStyle = "rgba(255,200,200,0.7)";
-      x.font = "600 14px 'Libre Caslon Text', Georgia, serif";
+      x.font = "600 14px 'Shadows Into Light', cursive";
       x.fillText("LUCIDUS LAB", w - 24, 30);
       x.textAlign = "left";
 
@@ -471,10 +471,10 @@
       x.lineWidth = 3;
       x.strokeRect(18, 18, w - 36, h - 36);
       x.fillStyle = "rgba(238,232,220,0.9)";
-      x.font = "400 46px 'Libre Caslon Display', system-ui, sans-serif";
+      x.font = "400 46px 'Shadows Into Light', system-ui, sans-serif";
       x.fillText("PLAYLIST", 42, h * 0.44);
       x.fillStyle = "rgba(238,232,220,0.45)";
-      x.font = "400 20px 'Libre Caslon Display', system-ui, sans-serif";
+      x.font = "400 20px 'Shadows Into Light', system-ui, sans-serif";
       x.fillText(L("reel.sub", "si guarda dentro, uno dopo l'altro"), 42, h * 0.44 + 40);
     } else {
       /* il rumore di fondo: quando non c'è segnale, c'è sempre segnale */
@@ -503,12 +503,12 @@
       x.fillStyle = "rgba(8,8,10,0.62)";
       x.fillRect(0, h - 54, w, 54);
       x.fillStyle = "rgba(240,236,226,0.94)";
-      x.font = "400 22px 'Libre Caslon Display', system-ui, sans-serif";
+      x.font = "400 22px 'Shadows Into Light', system-ui, sans-serif";
       x.fillText(String(title).slice(0, 34), 16, h - 18);
     }
     /* il timecode, sempre: è un museo, non un sito */
     x.fillStyle = "rgba(231,226,214,0.42)";
-    x.font = "500 14px 'Libre Caslon Text', Georgia, serif";
+    x.font = "500 14px 'Shadows Into Light', cursive";
     var tc = ("0" + Math.floor(t / 60)).slice(-2) + ":" + ("0" + Math.floor(t % 60)).slice(-2) +
       ":" + ("0" + Math.floor((t * 24) % 24)).slice(-2);
     x.fillText("REC " + tc, 16, 26);
@@ -521,7 +521,7 @@
       x.fillStyle = "rgba(8,8,10,0.66)";
       x.fillRect(w - 168, 8, 160, 30);
       x.fillStyle = "rgba(220,38,38,0.95)";
-      x.font = "400 17px 'Libre Caslon Display', system-ui, sans-serif";
+      x.font = "400 17px 'Shadows Into Light', system-ui, sans-serif";
       x.textAlign = "right";
       x.fillText(m.work.clips.length + " VIDEO ›", w - 18, 29);
       x.textAlign = "left";
@@ -908,8 +908,8 @@
     var f = M.DATA && M.DATA.look && M.DATA.look.font;
     if (f === "mono") return "ui-monospace, 'Courier New', monospace";
     if (f === "serif") return "Georgia, 'Times New Roman', serif";
-    if (f === "segno") return "'Comic Sans MS', 'Segoe Script', cursive";
-    return "'Libre Caslon Display', system-ui, sans-serif";
+    if (f === "segno") return "'Shadows Into Light', cursive";
+    return "'Shadows Into Light', system-ui, sans-serif";
   }
 
   /* un metro vero: così un corpo si sceglie misurando, non a occhio */
@@ -2137,13 +2137,13 @@
       ctx.lineTo(vx + vw - 10, vy + vh * 0.42); ctx.closePath(); ctx.fill();
     }
     /* ---- il nome, verniciato via male ------------------------- */
-    ctx.font = "900 26px 'Libre Caslon Text', Georgia, serif"; ctx.textAlign = "left";
+    ctx.font = "900 26px 'Shadows Into Light', cursive"; ctx.textAlign = "left";
     ctx.fillStyle = "rgba(150,45,45,.30)";
     ctx.fillText("EDWARD INDUSTRIES", 1480, 116);
-    ctx.font = "700 11px 'Libre Caslon Text', Georgia, serif";
+    ctx.font = "700 11px 'Shadows Into Light', cursive";
     ctx.fillStyle = "rgba(150,45,45,.22)";
     ctx.fillText("DIREZIONE GENERALE \u00b7 MEMORIE DEL COSMO", 1480, 136);
-    ctx.font = "700 12px 'Libre Caslon Text', Georgia, serif";
+    ctx.font = "700 12px 'Shadows Into Light', cursive";
     ctx.fillStyle = "rgba(180,190,180,.18)";
     ctx.fillText("B-E-P-E \u00b7 ANNO 3013 DOPO TIX \u00b7 QUI NON TORNA NESSUNO", 1480, 158);
     if (done >= 8) {
@@ -3364,7 +3364,7 @@
       var gs = ind(x, p900, L) + 31;
       S2.paint(ctx, ["NON ENTRA", "8:15", "MANCA", "T 7"][(gs + 5) % 4],
         x + 60, ceilY + 420 + S2.rr(gs, 0, 90), 26, S2.rgba("#0d100e", 0.42),
-        { seed: gs, drip: false, font: "'Libre Caslon Text', Georgia, serif" });
+        { seed: gs, drip: false, font: "'Shadows Into Light', cursive" });
     }
 
     /* ---- i ragni di metallo, le ragnatele di cavi, le scintille.
@@ -3439,7 +3439,7 @@
     ctx.fillStyle = "rgba(239,68,68," + ea + ")";
     ctx.fillRect(ex + 4, ey + 4, 112, 42);
     ctx.fillStyle = "#ffffff";
-    ctx.font = "700 24px 'Libre Caslon Text', Georgia, serif";
+    ctx.font = "700 24px 'Shadows Into Light', cursive";
     ctx.textAlign = "center";
     ctx.fillText("EXIT", ex + 60, ey + 35);
     ctx.textAlign = "left";
@@ -3825,7 +3825,7 @@
       ctx.save();
       ctx.translate(gx + 30, ly);
       ctx.rotate(i === 2 ? -0.028 : 0.016);
-      ctx.font = "400 72px 'Libre Caslon Display', Impact, system-ui, sans-serif";
+      ctx.font = "400 72px 'Shadows Into Light', Impact, system-ui, sans-serif";
       ctx.textBaseline = "alphabetic";
       /* la spruzzata fuori registro: la vernice che si è allargata */
       ctx.fillStyle = "rgba(226,220,204,0.10)";
@@ -4455,10 +4455,10 @@
            un pannello da museo — sta sulla struttura, come il prezzo
            sul cartoncino della bancarella */
         ctx.fillStyle = "rgba(232,224,204,0.62)";
-        ctx.font = "700 13px 'Libre Caslon Text', system-ui, sans-serif";
+        ctx.font = "700 13px 'Shadows Into Light', system-ui, sans-serif";
         ctx.fillText("BIGLIETTERIA", bx4 + 26, by4 + 24);
         ctx.fillStyle = "rgba(232,224,204,0.24)";
-        ctx.font = "600 8px 'Libre Caslon Text', system-ui, sans-serif";
+        ctx.font = "600 8px 'Shadows Into Light', system-ui, sans-serif";
         ctx.fillText("NESSUN BIGLIETTO RICHIESTO", bx4 + 150, by4 + 23);
         /* la lampada appesa, e il suo cono */
         var blamp = 0.6 + 0.4 * Math.abs(Math.sin(t * 4.3 + bSeed));
@@ -4532,7 +4532,7 @@
         ctx.clip();
         S2.paint(ctx, "MATERIALI", tx + 16, ty + th - 52, 26,
           S2.rgba("#e7e2d6", 0.45),
-          { font: "'Libre Caslon Display', system-ui, sans-serif", seed: 3, drip: false, outline: false });
+          { font: "'Shadows Into Light', system-ui, sans-serif", seed: 3, drip: false, outline: false });
         ctx.restore();
         break;
       }
@@ -4584,7 +4584,7 @@
         ctx.shadowColor = "rgba(220,38,38," + (0.85 * on).toFixed(3) + ")";
         ctx.shadowBlur = 26 * on;
         ctx.fillStyle = "rgba(226,48,48," + (0.9 * on).toFixed(3) + ")";
-        ctx.font = "400 42px 'Libre Caslon Display', system-ui, sans-serif";
+        ctx.font = "400 42px 'Shadows Into Light', system-ui, sans-serif";
         ctx.textAlign = "center";
         ctx.fillText("KaOsS", p.x + p.w / 2, p.y + p.h - 26);
         ctx.restore();
@@ -4671,7 +4671,7 @@
         ctx.shadowColor = S2.rgba(pal.glow, 0.7 * pulse);
         ctx.shadowBlur = 12;
         ctx.fillStyle = S2.rgba("#ffe6b0", 0.5 + 0.35 * pulse);
-        ctx.font = "700 12px 'Libre Caslon Text', system-ui, sans-serif";
+        ctx.font = "700 12px 'Shadows Into Light', system-ui, sans-serif";
         ctx.textAlign = "center";
         ctx.fillText("KAOSS", jcx, jy + jw * 0.50);
         ctx.restore();
@@ -4748,7 +4748,7 @@
         ctx.shadowColor = "rgba(130,205,255," + (0.85 * neon).toFixed(3) + ")";
         ctx.shadowBlur = 26 * neon;
         ctx.fillStyle = "rgba(165,222,255," + (0.85 * neon).toFixed(3) + ")";
-        ctx.font = "400 34px 'Libre Caslon Display', system-ui, sans-serif";
+        ctx.font = "400 34px 'Shadows Into Light', system-ui, sans-serif";
         ctx.fillText("BAR", bx + bw / 2 - 38, shelfY - 120);
         ctx.restore();
 
@@ -4937,7 +4937,7 @@
         ctx.fillStyle = "#2b3138";
         ctx.fillRect(atx2 + 18, aty2 + ath2 - 26, atw - 36, 14);
         ctx.fillStyle = "rgba(240,240,236,0.35)";
-        ctx.font = "600 8px 'Libre Caslon Text', system-ui, sans-serif";
+        ctx.font = "600 8px 'Shadows Into Light', system-ui, sans-serif";
         ctx.fillText("CATALOGO · INVENTARIO", atx2 + 20, aty2 + ath2 - 16);
         ctx.fillStyle = "rgba(159,232,184,0.10)";
         ctx.fillRect(atx2 - 10, aky - 4, atw + 20, 10);
@@ -5000,7 +5000,7 @@
         ctx.fillStyle = "rgba(236,228,210,0.82)";
         ctx.fillRect(akx + 500, aky + 14, 76, 30);
         ctx.fillStyle = "rgba(30,26,22,0.75)";
-        ctx.font = "700 7px 'Libre Caslon Text', system-ui, sans-serif";
+        ctx.font = "700 7px 'Shadows Into Light', system-ui, sans-serif";
         ctx.fillText("MATERIALI", akx + 508, aky + 26);
         ctx.fillStyle = "rgba(30,26,22,0.4)";
         ctx.fillRect(akx + 508, aky + 31, 52, 2);
@@ -5070,9 +5070,9 @@
         ctx.fillStyle = "rgba(226,216,192,0.92)";
         ctx.fillRect(0, 0, 84, 46);
         ctx.fillStyle = "rgba(28,24,20,0.85)";
-        ctx.font = "400 17px 'Libre Caslon Display', system-ui, sans-serif";
+        ctx.font = "400 17px 'Shadows Into Light', system-ui, sans-serif";
         ctx.fillText("CD", 10, 22);
-        ctx.font = "700 11px 'Libre Caslon Text', system-ui, sans-serif";
+        ctx.font = "700 11px 'Shadows Into Light', system-ui, sans-serif";
         ctx.fillText("5 € · 3 per 12", 10, 38);
         ctx.restore();
 
@@ -5120,7 +5120,7 @@
           ctx.fillStyle = "rgba(232,224,204,0.85)";
           ctx.fillRect(srx + 36, sry + 16, 72, 12);
           ctx.fillStyle = "rgba(30,26,22,0.8)";
-          ctx.font = "700 7px 'Libre Caslon Text', system-ui, sans-serif";
+          ctx.font = "700 7px 'Shadows Into Light', system-ui, sans-serif";
           ctx.fillText(["PUNTATE", "ESTRATTI"][sm], srx + 42, sry + 25);
         }
 
@@ -6277,10 +6277,10 @@
   /* ---- le scritte: vernice, metallo, chiodi -------------------- */
   function drawText(ctx, room, p, t, look) {
     var S2 = scene(), pal = room.pal, i;
-    var font = "'Libre Caslon Display', system-ui, sans-serif";
+    var font = "'Shadows Into Light', system-ui, sans-serif";
     if (look && look.font === "mono") font = "ui-monospace, 'Courier New', monospace";
     else if (look && look.font === "serif") font = "Georgia, 'Times New Roman', serif";
-    else if (look && look.font === "segno") font = "'Comic Sans MS', 'Segoe Script', cursive";
+    else if (look && look.font === "segno") font = "'Shadows Into Light', cursive";
 
     if (p.kind === "paint") {
       S2.paint(ctx, p.text, p.x, p.y, p.size, S2.rgba(p.color, 0.9), {

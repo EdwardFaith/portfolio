@@ -975,8 +975,8 @@
   function fontOf() {
     if (look && look.font === "mono") return "ui-monospace, 'Courier New', monospace";
     if (look && look.font === "serif") return "Georgia, 'Times New Roman', serif";
-    if (look && look.font === "segno") return "'Comic Sans MS', 'Segoe Script', cursive";
-    return "'Libre Caslon Display', system-ui, sans-serif";
+    if (look && look.font === "segno") return "'Shadows Into Light', cursive";
+    return "'Shadows Into Light', system-ui, sans-serif";
   }
 
   /* un'opera appesa senza monitor: si incolla la sua texture */

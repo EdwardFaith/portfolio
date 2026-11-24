@@ -9535,11 +9535,11 @@
     /* il nome, sotto la faccia */
     c.textAlign = "left";
     c.textBaseline = "middle";
-    c.font = "400 " + Math.round(10 * s) + "px 'Libre Caslon Display', ui-monospace, monospace";
+    c.font = "400 " + Math.round(10 * s) + "px 'Shadows Into Light', ui-monospace, monospace";
     c.fillStyle = "rgba(226,232,214,0.92)";
     c.fillText("CHARLES", fx0, fy0 + fh + 13 * s);
     c.fillStyle = "rgba(140,160,140,0.75)";
-    c.font = "500 " + Math.round(8 * s) + "px 'Libre Caslon Text', Georgia, serif";
+    c.font = "500 " + Math.round(8 * s) + "px 'Shadows Into Light', cursive";
     c.fillText("KAOSS", fx0 + 58 * s, fy0 + fh + 13 * s);
     /* il puntino rosso: sta scrivendo */
     if (Math.floor(t * 2.4) % 2 === 0) {
@@ -10126,7 +10126,7 @@
         c.save();
         c.textAlign = "right";
         c.textBaseline = "middle";
-        c.font = "500 " + Math.round(11 * s2) + "px 'Libre Caslon Text', Georgia, serif";
+        c.font = "500 " + Math.round(11 * s2) + "px 'Shadows Into Light', cursive";
         c.fillStyle = "rgba(226,236,214,0.55)";
         c.fillText("E", w - 30 * s2, h - 26 * s2);
         c.restore();

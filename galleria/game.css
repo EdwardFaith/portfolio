@@ -21,7 +21,7 @@ html, body {
   overflow: hidden;
   background: var(--bg);
   color: var(--ink);
-  font-family: "Libre Caslon Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: "Shadows Into Light", system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
 }

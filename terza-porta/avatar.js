@@ -28,7 +28,7 @@
     var p = {
       fillStyle: "#000", strokeStyle: "#000", lineWidth: 1, lineCap: "butt",
       lineJoin: "miter", globalAlpha: 1, globalCompositeOperation: "source-over",
-      shadowBlur: 0, shadowColor: "#000", font: "10px 'Libre Caslon Text', Georgia, serif",
+      shadowBlur: 0, shadowColor: "#000", font: "10px 'Shadows Into Light', cursive",
       textAlign: "left", textBaseline: "top", filter: "none",
       save: function () { }, restore: function () { },
       translate: function () { }, rotate: function () { }, scale: function () { },

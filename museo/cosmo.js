@@ -1500,7 +1500,7 @@ function panelPc() {
       /* la scritta che resta sui monitor quando non arriva niente */
       ctx.save();
       S.paint(ctx, "NO SIGNAL", gx + gw / 2, gy + gh / 2 + 5, 20, "#cfd8d2",
-        { align: "center", drip: false, weight: 600, alpha: 0.13, font: "'Libre Caslon Text', Georgia, serif" });
+        { align: "center", drip: false, weight: 600, alpha: 0.13, font: "'Shadows Into Light', cursive" });
       ctx.restore();
       /* la polvere, e le dita di chi ci ha provato */
       ctx.fillStyle = "rgba(190,182,164,0.07)";
@@ -1529,7 +1529,7 @@ function panelPc() {
     ctx.beginPath(); ctx.arc(c.x + c.w - 66, c.y + c.h - 32, 3.6, 0, 6.3); ctx.fill();
     ctx.beginPath(); ctx.arc(c.x + c.w - 48, c.y + c.h - 32, 3.6, 0, 6.3); ctx.fill();
     S.paint(ctx, "B-E-P.E. 3000", c.x + 44, c.y + c.h - 27, 10, "rgba(200,206,210,0.30)",
-      { drip: false, weight: 600, font: "'Libre Caslon Text', Georgia, serif" });
+      { drip: false, weight: 600, font: "'Shadows Into Light', cursive" });
 
     /* ---- la tastiera: i tasti hanno la polvere dentro -------- */
     var kx = c.x - 6, ky = r.y - 22, kw = 214, kh = 22;
@@ -1674,13 +1674,13 @@ function panelPc() {
         ctx.lineWidth = 1.5;
         ctx.strokeRect(p.x + 28, p.y + p.h - 78, p.w - 56, 48);
 
-        S.paint(ctx, "▶ IN ONDA SUL TELO CINEMA", p.x + 42, p.y + p.h - 58, 10, "#5eead4", { font: "'Libre Caslon Text', Georgia, serif", weight: 700 });
-        S.paint(ctx, activeClip.title, p.x + 42, p.y + p.h - 38, 12, "#f0fdf4", { font: "'Libre Caslon Text', Georgia, serif", weight: 700 });
-        S.paint(ctx, "[PREMI E PER INGRANDIRE / SELEZIONARE]", p.x + p.w - 220, p.y + p.h - 40, 9, "#94a3b8", { font: "'Libre Caslon Text', Georgia, serif" });
+        S.paint(ctx, "▶ IN ONDA SUL TELO CINEMA", p.x + 42, p.y + p.h - 58, 10, "#5eead4", { font: "'Shadows Into Light', cursive", weight: 700 });
+        S.paint(ctx, activeClip.title, p.x + 42, p.y + p.h - 38, 12, "#f0fdf4", { font: "'Shadows Into Light', cursive", weight: 700 });
+        S.paint(ctx, "[PREMI E PER INGRANDIRE / SELEZIONARE]", p.x + p.w - 220, p.y + p.h - 40, 9, "#94a3b8", { font: "'Shadows Into Light', cursive" });
       } else {
         /* Nessun filmato ancora: solo B-E-P-E sbloccato */
-        S.paint(ctx, "MEMORIA ROBOT B-E-P-E ATTIVA", p.x + 34, p.y + 52, 12, "rgba(190,240,214,0.75)", { font: "'Libre Caslon Text', Georgia, serif", weight: 700 });
-        S.paint(ctx, "PROIEZIONE IN STANDBY · PORTA LE ALTRE CASSETTE", p.x + 34, p.y + 80, 10, "rgba(140,170,160,0.55)", { font: "'Libre Caslon Text', Georgia, serif" });
+        S.paint(ctx, "MEMORIA ROBOT B-E-P-E ATTIVA", p.x + 34, p.y + 52, 12, "rgba(190,240,214,0.75)", { font: "'Shadows Into Light', cursive", weight: 700 });
+        S.paint(ctx, "PROIEZIONE IN STANDBY · PORTA LE ALTRE CASSETTE", p.x + 34, p.y + 80, 10, "rgba(140,170,160,0.55)", { font: "'Shadows Into Light', cursive" });
       }
     } else {
       /* la scritta stampata sul tessuto: quando il segnale manca,
@@ -1690,10 +1690,10 @@ function panelPc() {
       ctx.shadowColor = "rgba(150,40,26,0.55)";
       ctx.shadowBlur = 26;
       S.paint(ctx, "NO SIGNAL", tx, ty, 54, "rgba(176,54,38,0.82)",
-        { align: "center", drip: true, weight: 800, seed: 5, font: "'Libre Caslon Display', system-ui, sans-serif" });
+        { align: "center", drip: true, weight: 800, seed: 5, font: "'Shadows Into Light', system-ui, sans-serif" });
       ctx.restore();
       S.paint(ctx, "SEGNALE VIDEO ASSENTE", tx, ty + 34, 14, "rgba(70,44,36,0.55)",
-        { align: "center", drip: false, weight: 600, font: "'Libre Caslon Text', Georgia, serif" });
+        { align: "center", drip: false, weight: 600, font: "'Shadows Into Light', cursive" });
       /* le barre di calibrazione, sbiadite: l'ultima cosa passata */
       for (i = 0; i < 7; i++) {
         ctx.fillStyle = "rgba(40,34,30," + (0.05 + i * 0.006) + ")";
@@ -1810,7 +1810,7 @@ function panelPc() {
       { drip: true, weight: 700, seed: 3 });
     S.paint(ctx, on ? "in onda" : "fuori servizio", p.x + 16, p.y - 10, 13,
       on ? "rgba(140,220,186,0.55)" : "rgba(176,90,64,0.55)",
-      { drip: false, weight: 600, font: "'Libre Caslon Text', Georgia, serif" });
+      { drip: false, weight: 600, font: "'Shadows Into Light', cursive" });
 
     /* i cavi: dalla macchina al muro, e giù per terra */
     ctx.strokeStyle = "rgba(10,12,14,0.85)";
@@ -2271,16 +2271,16 @@ function panelPc() {
 
     /* quello che c'è scritto */
     S.paint(ctx, "NAVE", 14, 40, 26, "rgba(216,208,186,0.72)",
-      { drip: false, weight: 700, font: "'Libre Caslon Text', Georgia, serif" });
+      { drip: false, weight: 700, font: "'Shadows Into Light', cursive" });
     S.paint(ctx, "MEMORIE DEL COSMO", 14, 76, 24, "rgba(226,220,204,0.86)",
       { drip: true, weight: 800, seed: 6 });
     ctx.fillStyle = "rgba(226,220,204,0.22)";
     ctx.fillRect(14, 88, b.w - 28, 2);
     S.paint(ctx, "otto portelli · otto memorie · una nave ferma", 14, 112, 11,
-      "rgba(198,206,200,0.52)", { drip: false, weight: 500, font: "'Libre Caslon Text', Georgia, serif" });
+      "rgba(198,206,200,0.52)", { drip: false, weight: 500, font: "'Shadows Into Light', cursive" });
     S.paint(ctx, done + " / 8 aperte", 14, 140, 17,
       done > 0 ? "rgba(140,224,190,0.80)" : "rgba(206,150,96,0.62)",
-      { drip: false, weight: 700, font: "'Libre Caslon Text', Georgia, serif" });
+      { drip: false, weight: 700, font: "'Shadows Into Light', cursive" });
     /* otto quadratini: uno per portello, accesi man mano */
     for (i = 0; i < 8; i++) {
       ctx.fillStyle = i < done ? "rgba(140,224,190,0.75)" : "rgba(180,190,186,0.16)";
@@ -2453,7 +2453,7 @@ function panelPc() {
         ctx.fillStyle = "rgba(190,182,164,0.10)";
         ctx.beginPath(); ctx.ellipse(sx + 70, sy + 96, 34, 5, 0, 0, 6.3); ctx.fill();
         S.paint(ctx, "IN MANO", sx + 70, sy + 76, 12, "rgba(140,224,190,0.55)",
-          { align: "center", drip: false, weight: 700, font: "'Libre Caslon Text', Georgia, serif" });
+          { align: "center", drip: false, weight: 700, font: "'Shadows Into Light', cursive" });
       } else {
         /* l'ombra sul pannello, poi l'arma, poi la luce sul filo */
         ctx.save();
@@ -2469,7 +2469,7 @@ function panelPc() {
     }
     /* la mano che manca: un segno col gesso, e nessuno lo cancella */
     S.paint(ctx, "DUE, NON TRE", x0 + 12, ry - 44, 15, "rgba(216,224,216,0.30)",
-      { drip: false, weight: 600, font: "'Libre Caslon Text', Georgia, serif" });
+      { drip: false, weight: 600, font: "'Shadows Into Light', cursive" });
   }
   /* ---- il banco dell'officina: si ripara quello che si è rotto --- */
   function shipBench(ctx, g, t) {
@@ -2627,7 +2627,7 @@ function panelPc() {
     }
     /* la scritta sul fianco del banco: la lamiera porta il nome */
     S.paint(ctx, "OFFICINA", tx + 96, ty + 54, 15, "rgba(186,198,192,0.22)",
-      { drip: false, weight: 700, font: "'Libre Caslon Text', Georgia, serif" });
+      { drip: false, weight: 700, font: "'Shadows Into Light', cursive" });
   }
   /* ---- la consolle di partenza: due armi, e poi si va ---------- */
   function shipDep(ctx, g, t) {
@@ -2686,10 +2686,10 @@ function panelPc() {
     }
     S.paint(ctx, n + "/" + MAXSEL, sx0 + sw - 46, sy0 + 34, 20,
       ready ? "rgba(140,224,190,0.85)" : "rgba(206,150,96,0.70)",
-      { drip: false, weight: 700, font: "'Libre Caslon Text', Georgia, serif" });
+      { drip: false, weight: 700, font: "'Shadows Into Light', cursive" });
     S.paint(ctx, ready ? "PRONTO" : "ARMATI", sx0 + 6, sy0 + 52, 10,
       ready ? "rgba(140,224,190,0.60)" : "rgba(206,150,96,0.45)",
-      { drip: false, weight: 600, font: "'Libre Caslon Text', Georgia, serif" });
+      { drip: false, weight: 600, font: "'Shadows Into Light', cursive" });
 
     /* il bottone: grande, rosso, e nessuno lo preme da anni */
     var bx2 = hx + hw - 74, by2 = hy + 40, bp = ready ? 0.55 + 0.45 * Math.abs(Math.sin(t * 2.6)) : 0.35;
@@ -2721,7 +2721,7 @@ function panelPc() {
     ctx.fillStyle = "rgba(228,224,206,0.86)";
     ctx.fillRect(0, 0, 92, 34);
     ctx.fillStyle = "rgba(60,54,44,0.55)";
-    ctx.font = "600 8px 'Libre Caslon Text', Georgia, serif";
+    ctx.font = "600 8px 'Shadows Into Light', cursive";
     ctx.textAlign = "left";
     ctx.fillText("MEMORIE DEL COSMO", 4, 10);
     ctx.fillText(n >= MAXSEL ? "2 ARMI · 1 PORTELLO" : n + " ARMI · TROPPO POCHE", 4, 20);
@@ -2740,7 +2740,7 @@ function panelPc() {
     ctx.fillStyle = ready ? "rgba(226,90,70,0.9)" : "rgba(180,60,50,0.55)";
     ctx.beginPath(); ctx.arc(lvx - 2, ready ? lvy - 44 : lvy - 18, 7, 0, 6.3); ctx.fill();
     S.paint(ctx, "RESTA / VAI", lvx - 26, lvy + 34, 9, "rgba(190,200,194,0.35)",
-      { drip: false, weight: 600, font: "'Libre Caslon Text', Georgia, serif" });
+      { drip: false, weight: 600, font: "'Shadows Into Light', cursive" });
 
     /* i cavi: dalla consolle al pavimento, e poi verso il muro */
     ctx.strokeStyle = "rgba(8,10,12,0.9)";
@@ -3045,13 +3045,13 @@ function panelPc() {
 
     /* la faccia: non e' una memoria, e lo dice sopra il numero */
     S.paint(ctx, "PORTA 9", cx, y + 44, 15, "rgba(126,196,178,0.62)",
-      { align: "center", drip: true, weight: 700, seed: 5.7, font: "'Libre Caslon Text', Georgia, serif" });
+      { align: "center", drip: true, weight: 700, seed: 5.7, font: "'Shadows Into Light', cursive" });
     S.paint(ctx, "IX", cx, y + 132, 72, "rgba(226,120,74,0.76)",
       { align: "center", drip: true, weight: 900, seed: 2.3 });
     S.paint(ctx, "GIOCO ETERNO", cx, y + 170, 17, "rgba(236,232,216,0.72)",
-      { align: "center", drip: true, weight: 800, seed: 9.1, font: "'Libre Caslon Text', Georgia, serif" });
+      { align: "center", drip: true, weight: 800, seed: 9.1, font: "'Shadows Into Light', cursive" });
     S.paint(ctx, "ONDATE INFINITE · EDWARD INDUSTRIES", cx, y + 192, 9, "rgba(196,206,202,0.42)",
-      { align: "center", drip: false, weight: 700, font: "'Libre Caslon Text', Georgia, serif" });
+      { align: "center", drip: false, weight: 700, font: "'Shadows Into Light', cursive" });
 
     /* la lampadina di stato: qui e' sempre accesa, e lampeggia */
     var lx = dx + w - 30, ly = y + 24, lcol = "#7de2b8";
@@ -3088,7 +3088,7 @@ function panelPc() {
     /* si entra sempre: nessun lucchetto, nessuna saldatura */
     S.paint(ctx, isTouch ? "TOCCA PER SCENDERE" : "PREMI E PER SCENDERE", cx, y + 296, 10,
       "rgba(120,224,180,0.66)",
-      { align: "center", drip: false, weight: 700, font: "'Libre Caslon Text', Georgia, serif" });
+      { align: "center", drip: false, weight: 700, font: "'Shadows Into Light', cursive" });
   }
 
   /* ---- la faccia del portello: il numero, e se si apre o no ----- */
@@ -3099,7 +3099,7 @@ function panelPc() {
 
     /* ---- il numero: vernice bianca, e sotto il nero che si vede -- */
     S.paint(ctx, "MEMORIA", cx, y + 36, 13, "rgba(196,206,200,0.40)",
-      { align: "center", drip: false, weight: 600, font: "'Libre Caslon Text', Georgia, serif" });
+      { align: "center", drip: false, weight: 600, font: "'Shadows Into Light', cursive" });
     S.paint(ctx, String(n), cx, y + 116, 82,
       open ? "rgba(160,236,204,0.86)" : (hot ? "rgba(240,222,180,0.90)" : "rgba(214,210,196,0.62)"),
       { align: "center", drip: true, weight: 800, seed: n * 3.1 });
@@ -3188,7 +3188,7 @@ function panelPc() {
       ctx.lineWidth = 2.4;
       ctx.beginPath(); ctx.arc(wx2, wy2 + 24, 6, 3.14, 6.28); ctx.stroke();
       S.paint(ctx, "SIGILLATA", cx, y + 296, 14, "rgba(196,120,96,0.55)",
-        { align: "center", drip: false, weight: 700, font: "'Libre Caslon Text', Georgia, serif" });
+        { align: "center", drip: false, weight: 700, font: "'Shadows Into Light', cursive" });
     }
 
     /* ---- aperto: la luce esce, e cade sul pavimento -------------- */
@@ -3207,7 +3207,7 @@ function panelPc() {
       ctx.closePath();
       ctx.fill();
       S.paint(ctx, "APERTA", cx, y + 296, 14, "rgba(150,236,206,0.62)",
-        { align: "center", drip: false, weight: 700, font: "'Libre Caslon Text', Georgia, serif" });
+        { align: "center", drip: false, weight: 700, font: "'Shadows Into Light', cursive" });
     }
     /* ---- armato: il primo portello aspetta solo te -------------- */
     if (hot) {
@@ -3219,7 +3219,7 @@ function panelPc() {
       ctx.fillStyle = sg3;
       ctx.fillRect(dx - 40, y, w + 80, h);
       S.paint(ctx, "ENTRA", cx, y + 296, 16, "rgba(255,200,120," + (0.5 + 0.4 * pulse) + ")",
-        { align: "center", drip: false, weight: 800, font: "'Libre Caslon Text', Georgia, serif" });
+        { align: "center", drip: false, weight: 800, font: "'Shadows Into Light', cursive" });
       /* la freccia, col gesso, che punta al portello */
       ctx.strokeStyle = "rgba(255,214,140," + (0.35 + 0.3 * pulse) + ")";
       ctx.lineWidth = 4;

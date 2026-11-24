@@ -540,7 +540,7 @@
       ctx.save();
       ctx.translate(gx, FLOOR - 96);
       ctx.rotate(-0.05);
-      ctx.font = "italic 30px 'Libre Caslon Display', system-ui, sans-serif";
+      ctx.font = "italic 30px 'Shadows Into Light', system-ui, sans-serif";
       ctx.fillStyle = "rgba(0,0,0,0.30)";
       ctx.fillText("SONO QUI", 2, 2);
       ctx.fillStyle = alpha(p.accent, 0.72);
@@ -583,10 +583,10 @@
      ogni voce è una pila di ripieghi: se un font non c'è, il
      sistema ne mette un altro e il muro resta scritto lo stesso. */
   var STACKS = {
-    grotesk: "'Libre Caslon Display', ui-sans-serif, system-ui, -apple-system, sans-serif",
+    grotesk: "'Shadows Into Light', ui-sans-serif, system-ui, -apple-system, sans-serif",
     mono: "ui-monospace, 'SF Mono', Menlo, Consolas, 'Courier New', monospace",
     serif: "Georgia, 'Times New Roman', 'Palatino Linotype', serif",
-    segno: "'Segoe Script', 'Bradley Hand', 'Brush Script MT', 'Comic Sans MS', cursive"
+    segno: "'Shadows Into Light', cursive"
   };
   var FONT = STACKS.grotesk;
   var FONTNAME = "grotesk";

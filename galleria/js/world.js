@@ -78,7 +78,7 @@
 
   /* ---------- testo -------------------------------------------- */
   function font(px, weight) {
-    return (weight || 600) + " " + Math.max(1, px) + "px 'Libre Caslon Display', system-ui, sans-serif";
+    return (weight || 600) + " " + Math.max(1, px) + "px 'Shadows Into Light', system-ui, sans-serif";
   }
   function wrap(ctx, str, maxW) {
     var out = [], para = String(str).split("\n");

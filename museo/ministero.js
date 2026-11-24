@@ -380,10 +380,10 @@
     S2.paint(ctx, "ATTESA", glass.x + 14, glass.y + 40, 22, "rgba(200,226,230,0.30)",
       { weight: 800, drip: false, alpha: 0.5 });
     ctx.fillStyle = "rgba(200,226,230,0.20)";
-    ctx.font = "400 40px 'Libre Caslon Display', system-ui, sans-serif";
+    ctx.font = "400 40px 'Shadows Into Light', system-ui, sans-serif";
     ctx.fillText("∞", glass.x + 14, glass.y + 96);
     ctx.fillStyle = "rgba(200,226,230,0.22)";
-    ctx.font = "600 10px 'Libre Caslon Text', system-ui, sans-serif";
+    ctx.font = "600 10px 'Shadows Into Light', system-ui, sans-serif";
     ctx.fillText("nessun numero chiamato", glass.x + 14, glass.y + 122);
 
     /* le scanline, perché è un tubo */
@@ -531,7 +531,7 @@
     }
     /* il numero della panchina, verniciato sul cemento */
     ctx.fillStyle = "rgba(226,220,206,0.16)";
-    ctx.font = "400 34px 'Libre Caslon Display', system-ui, sans-serif";
+    ctx.font = "400 34px 'Shadows Into Light', system-ui, sans-serif";
     ctx.fillText(String(k + 1), b.x + b.w - 44, f - h + 44);
   }
 
@@ -673,11 +673,11 @@
     ctx.textAlign = "center";
     ctx.fillStyle = "rgba(" + sg.soft + "," + (0.55 * flick).toFixed(3) + ")";
     ctx.font = "800 " + (sg.top.length > 12 ? 12 : 15) +
-      "px 'Libre Caslon Display', system-ui, sans-serif";
+      "px 'Shadows Into Light', system-ui, sans-serif";
     ctx.fillText(sg.top, c.cx, marY + 21);
     ctx.fillStyle = "rgba(" + sg.rgb + "," + (0.95 * flick).toFixed(3) + ")";
     ctx.font = "900 " + (sg.name.length > 10 ? 19 : 21) +
-      "px 'Libre Caslon Display', system-ui, sans-serif";
+      "px 'Shadows Into Light', system-ui, sans-serif";
     ctx.fillText(sg.name, c.cx, marY + 43);
     ctx.restore();
     /* il vetro davanti al marquee */
@@ -821,21 +821,21 @@
     var tf = sg.screen.length > 10 ? 21 : 26;
     ctx.textAlign = "center";
     ctx.fillStyle = "rgba(" + sg.rgb + ",0.30)";
-    ctx.font = "400 " + tf + "px 'Libre Caslon Display', system-ui, sans-serif";
+    ctx.font = "400 " + tf + "px 'Shadows Into Light', system-ui, sans-serif";
     ctx.fillText(sg.screen, s.x + s.w / 2 + 2, s.y + 62);
     ctx.fillStyle = "rgba(" + sg.warm + ",0.96)";
     ctx.fillText(sg.screen, s.x + s.w / 2, s.y + 60);
     ctx.fillStyle = "rgba(" + sg.rgb + ",0.72)";
-    ctx.font = "700 11px 'Libre Caslon Text', system-ui, sans-serif";
+    ctx.font = "700 11px 'Shadows Into Light', system-ui, sans-serif";
     ctx.fillText(sg.screenSub, s.x + s.w / 2, s.y + 78);
 
     /* la riga che dice cosa fare: accesa e spenta */
     var on = (t % 1.6) < 1.15 ? 1 : 0.12;
     ctx.fillStyle = "rgba(120,240,190," + (0.90 * on).toFixed(3) + ")";
-    ctx.font = "800 12px 'Libre Caslon Text', system-ui, sans-serif";
+    ctx.font = "800 12px 'Shadows Into Light', system-ui, sans-serif";
     ctx.fillText("PREMI E", s.x + s.w / 2, s.y + s.h - 34);
     ctx.fillStyle = "rgba(226,220,206," + (0.42 * on).toFixed(3) + ")";
-    ctx.font = "600 9px 'Libre Caslon Text', system-ui, sans-serif";
+    ctx.font = "600 9px 'Shadows Into Light', system-ui, sans-serif";
     ctx.fillText("1 GIOCATORE · GETTONE 1", s.x + s.w / 2, s.y + s.h - 20);
 
     /* il punteggio più alto, che è di nessuno */

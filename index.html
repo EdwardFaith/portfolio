@@ -67,10 +67,10 @@
     <script>
         /* un solo carattere per tutto il sito: anche le classi font-sans / font-mono / font-serif */
         tailwind.config = { theme: { extend: { fontFamily: {
-            sans: ['"Libre Caslon Text"', 'Georgia', 'serif'],
-            serif: ['"Libre Caslon Text"', 'Georgia', 'serif'],
-            mono: ['"Libre Caslon Text"', 'Georgia', 'serif'],
-            display: ['"Libre Caslon Display"', 'Georgia', 'serif']
+            sans: ['"Shadows Into Light"', 'Georgia', 'serif'],
+            serif: ['"Shadows Into Light"', 'Georgia', 'serif'],
+            mono: ['"Shadows Into Light"', 'Georgia', 'serif'],
+            display: ['"Shadows Into Light"', 'Georgia', 'serif']
         } } } };
     </script>
 
@@ -78,7 +78,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap"
         rel="stylesheet">
 
     <!-- la radio del museo, anche qui: il ◉ in alto a destra e la sua
@@ -106,7 +106,7 @@
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
-            font-family: 'Libre Caslon Text', system-ui, sans-serif;
+            font-family: 'Shadows Into Light', system-ui, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             -webkit-overflow-scrolling: touch;
@@ -121,8 +121,8 @@
         h2,
         h3,
         .brand-font {
-            font-family: 'Libre Caslon Display', Georgia, serif;
-            font-synthesis: none; /* Libre Caslon Display ha un solo peso: niente grassetto finto */
+            font-family: 'Shadows Into Light', cursive;
+            font-synthesis: none; /* Shadows Into Light ha un solo peso: niente grassetto finto */
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
@@ -250,7 +250,7 @@
             font-weight: 700;
             line-height: 1;
             color: #dc2626;
-            font-family: 'Libre Caslon Display', Georgia, serif;
+            font-family: 'Shadows Into Light', cursive;
             text-shadow: 0 0 40px rgba(220, 38, 38, 0.55);
             animation: puntoSpin 1.2s ease-in-out;
             display: inline-block;
@@ -386,7 +386,7 @@
             z-index: 6;
             margin: 0;
             padding: 0;
-            font-family: 'Libre Caslon Text', Georgia, serif;
+            font-family: 'Shadows Into Light', cursive;
             font-size: clamp(0.75rem, 1.6vw, 0.875rem);
             font-weight: 700;
             line-height: 1;
@@ -977,9 +977,9 @@
            macchina da scrivere. Vale per i titoli e per l'interfaccia;
            le descrizioni restano in un carattere solo — un testo lungo
            misto non si legge, un titolo misto sì. */
-        /* ora un carattere solo, come tutto il sito: Libre Caslon Display */
+        /* ora un carattere solo, come tutto il sito: Shadows Into Light */
         const MIX_FONTS = [
-            "'Libre Caslon Display', Georgia, serif"
+            "'Shadows Into Light', cursive"
         ];
 
         const TitleMix = ({ text, className = "" }) => {
@@ -1976,7 +1976,7 @@
                             {/* ? — installazione: proiezione + tablet */}
                             <a href="punto-interrogativo/index.html?mode=display&layout=split" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:border-white/25 hover:bg-neutral-800 transition-all duration-300">
                                 <div className="aspect-[4/3] bg-[#fcfcfa] relative overflow-hidden mb-2.5 flex items-center justify-center">
-                                    <span className="text-6xl sm:text-7xl leading-none text-[#111] select-none group-hover:scale-110 transition-transform duration-300" style={{ fontFamily: "'Libre Caslon Display', Georgia, serif" }} role="img" aria-label="Punto interrogativo">?</span>
+                                    <span className="text-6xl sm:text-7xl leading-none text-[#111] select-none group-hover:scale-110 transition-transform duration-300" style={{ fontFamily: "'Shadows Into Light', cursive" }} role="img" aria-label="Punto interrogativo">?</span>
                                 </div>
                                 <div className="px-3 pb-3">
                                     <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">?</h3>

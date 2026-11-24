@@ -1272,7 +1272,7 @@
   function SH() { return cv.height / dpr; }
 
   function FONT(size, weight) {
-    return (weight || 600) + " " + size + "px \"Libre Caslon Display\", \"Helvetica Neue\", system-ui, sans-serif";
+    return (weight || 600) + " " + size + "px \"Shadows Into Light\", \"Helvetica Neue\", system-ui, sans-serif";
   }
   function text(c, s, x, y, size, color, align, weight) {
     c.font = FONT(size, weight);
