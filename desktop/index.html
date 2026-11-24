@@ -48,7 +48,7 @@
   #menu { position: fixed; left: 8px; bottom: 44px; z-index: 9001; background: var(--carta); border: 2px solid var(--ink); box-shadow: 6px 6px 0 rgba(20,18,16,.85); min-width: 220px; }
   #menu button, #menu a { display: block; width: 100%; text-align: left; font: inherit; color: var(--ink); background: none; border: 0; padding: 9px 14px; text-decoration: none; cursor: pointer; }
   #menu button:hover, #menu a:hover { background: var(--ink); color: var(--carta); }
-  @media (max-width: 640px) { .icona { width: 82px; } .finestra { resize: none; } }
+  @media (max-width: 640px) { #icone { flex-direction: row; height: auto; justify-content: space-around; } #schermo { overflow-y: auto; } .icona { width: 30%; } .icona span { font-size: 11px; } .finestra { resize: none; } .cartella .icona { width: 30%; } .titolo button { width: 36px; height: 30px; } }
 </style>
 </head>
 <body>

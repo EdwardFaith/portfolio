@@ -120,7 +120,7 @@ async function build() {
   const start = sala.nodes[0].view;
   viaggio.place(start.pos, 0, -0.05);
 
-  const sentinella = mobile ? createSentinella({ say, onRicalibra: () => viaggio.align() }) : null;
+  const sentinella = null;   // niente fotocamera dietro: dal telefono si guarda solo la stanza
 
   /* ---------- post-produzione, misurata ---------- */
   const composer = new EffectComposer(renderer);
@@ -143,10 +143,10 @@ async function build() {
   /* ---------- entrare ---------- */
   $('loading').hidden = true; $('entra').hidden = false;
   $('istruzioni').innerHTML = mobile
-    ? 'muovi il telefono per guardarti intorno<br>tocca il pavimento o una cosa per andarci<br><small>la fotocamera veglia: se cammini ti mostra dove metti i piedi</small>'
+    ? 'muovi il telefono per guardarti intorno<br>tocca il pavimento o una cosa per andarci'
     : 'clicca per prendere il mouse: muovi il mouse per guardarti intorno · W A S D o le frecce per camminare<br>clic su quello che hai al centro per usarlo · Esc libera il mouse';
   $('entra-btn').addEventListener('click', async () => {
-    if (mobile) { await viaggio.enableGyro(); if (sentinella) await sentinella.start(); }
+    if (mobile) { try { const de = document.documentElement; await (de.requestFullscreen ? de.requestFullscreen({ navigationUI: "hide" }) : de.webkitRequestFullscreen && de.webkitRequestFullscreen()); } catch (e) { } try { screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {}); } catch (e) { } await viaggio.enableGyro(); }
     try { await listener.context.resume(); } catch (e) { }
     $('entra').classList.add('via'); setTimeout(() => { $('entra').hidden = true; }, 900);
     viaggio.enable(true);
