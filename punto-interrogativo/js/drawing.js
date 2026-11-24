@@ -232,6 +232,7 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
     if (!current) return false;
+    if (photo) return drawPhoto(now);
     ctx.font = `${(cellW / CHAR_RATIO).toFixed(2)}px "IBM Plex Mono", monospace`;
     ctx.textBaseline = 'top';
     let still = false;
@@ -289,8 +290,82 @@
   }
 
   /* ---------------- API ---------------- */
+  /* ---------------- LA FOTO CHE SI DEFINISCE ----------------
+     Con la telecamera non si disegnano più figure: si disegna la foto.
+     A ogni tocco una foto nuova, e un grado di dettaglio in più: prima
+     solo i contorni più forti, poi sempre più parti, fino all'immagine
+     quasi intera. Le lettere sono le parole della ricerca, di fila. */
+  const DETAIL = [0.06, 0.12, 0.2, 0.3, 0.42, 0.55, 0.68, 0.8, 0.9];
+  let photo = null;   // { level, lum, rank, cells, born, stream }
+
+  function photoGrid(shot) {
+    const m = coverMap(shot), n = cols * ROWS, lum = new Float32Array(n);
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < cols; c++) {
+      const x = Math.floor((m.ox + (c + 0.5) / cols * m.vx) * shot.w), y = Math.floor((m.oy + (r + 0.5) / ROWS * m.vy) * shot.h);
+      const i = (Math.min(shot.h - 1, y) * shot.w + Math.min(shot.w - 1, x)) * 4;
+      lum[r * cols + c] = (0.299 * shot.data[i] + 0.587 * shot.data[i + 1] + 0.114 * shot.data[i + 2]) / 255;
+    }
+    // contrasto
+    const s = Array.from(lum).sort((a, b) => a - b), lo = s[Math.floor(n * 0.02)], hi = s[Math.floor(n * 0.98)] || 1;
+    for (let k = 0; k < n; k++) lum[k] = Math.max(0, Math.min(1, (lum[k] - lo) / Math.max(0.05, hi - lo)));
+    // importanza di ogni cella: contorni forti prima, poi le parti chiare
+    const score = new Float32Array(n);
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < cols; c++) {
+      const k = r * cols + c, g = (dr, dc) => lum[Math.min(ROWS - 1, Math.max(0, r + dr)) * cols + Math.min(cols - 1, Math.max(0, c + dc))];
+      const e = Math.abs(g(0, 1) - g(0, -1)) + Math.abs(g(1, 0) - g(-1, 0));
+      score[k] = e * 1.6 + lum[k] * 0.6;
+    }
+    const order = Array.from({ length: n }, (_, k) => k).sort((a, b) => score[b] - score[a]);
+    const rank = new Uint32Array(n); order.forEach((k, i) => (rank[k] = i));
+    return { lum, rank };
+  }
+
+  function pushPhoto(word, shot) {
+    const stream = researchStream(word);
+    const g = photoGrid(shot);
+    const level = photo ? Math.min(DETAIL.length - 1, photo.level + 1) : 0;
+    const limit = Math.floor(DETAIL[level] * cols * ROWS);
+    const before = photo ? photo.cells : null;
+    const cells = new Uint8Array(cols * ROWS);
+    for (let k = 0; k < cells.length; k++) {
+      if (g.rank[k] >= limit) continue;
+      cells[k] = 1 + Math.min(4, Math.floor(g.lum[k] * 5));   // 1..5: dal grigio al bianco
+    }
+    photo = { level, cells, before, born: performance.now(), stream, shot };
+    current = { cells, bandCells: [[], [], [], [], []], env: null, specs: [] };
+    step = 0;
+    loop2();
+  }
+
+  function drawPhoto(now) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
+    ctx.font = `${(cellW / CHAR_RATIO).toFixed(2)}px "IBM Plex Mono", monospace`;
+    ctx.textBaseline = 'top';
+    const t = Math.min(1, (now - photo.born) / 700), s = photo.stream;
+    let n = 0;
+    for (let k = 0; k < photo.cells.length; k++) {
+      const v = photo.cells[k];
+      if (!v) continue;
+      const ch = s[n++ % s.length];
+      if (ch === ' ') continue;
+      const isNew = !photo.before || !photo.before[k];
+      if (isNew && Math.random() > t) continue;            // i dettagli nuovi compaiono in un attimo
+      ctx.fillStyle = isNew && t < 1 ? '#ffffff' : LEVELS[v - 1];
+      ctx.fillText(ch, (k % cols) * cellW, Math.floor(k / cols) * cellH + cellH * 0.04);
+    }
+    return t < 1;
+  }
+
+  function loop2() {
+    const tick = () => { if (photo && drawPhoto(performance.now())) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }
+
   // word: il testo della ricerca; shot: la foto scattata a questo tocco (o null)
   function push(word, shot) {
+    if (shot && shot.data) return pushPhoto(word, shot);
+    photo = null;
     if (fading) { pendingWord = [word, shot]; return; }
     if (!current) newPose();
     if (step >= 5) {
@@ -312,6 +387,7 @@
   }
 
   function reset() {
+    photo = null;
     current = null; step = 0; words = []; bandStart = []; pendingWord = null; fading = false;
     history.length = 0;
     canvas.classList.remove('out');
@@ -334,6 +410,12 @@
   function resize() {
     if (!canvas) return;
     layout();
+    if (photo) {   // cambia il formato: la stessa foto, allo stesso dettaglio, sulla griglia nuova
+      const g = photoGrid(photo.shot), limit = Math.floor(DETAIL[photo.level] * cols * ROWS), cells = new Uint8Array(cols * ROWS);
+      for (let k = 0; k < cells.length; k++) if (g.rank[k] < limit) cells[k] = 1 + Math.min(4, Math.floor(g.lum[k] * 5));
+      photo.cells = cells; photo.before = null; current.cells = cells;
+      drawPhoto(performance.now() + 1000); return;
+    }
     if (current) {
       Object.assign(current, compose(current.specs));
       current.env = current.shot ? envFromShot(current.shot) : null;
@@ -371,6 +453,12 @@
   function init(cv) {
     canvas = cv; ctx = canvas.getContext('2d');
     layout();
+    if (photo) {   // cambia il formato: la stessa foto, allo stesso dettaglio, sulla griglia nuova
+      const g = photoGrid(photo.shot), limit = Math.floor(DETAIL[photo.level] * cols * ROWS), cells = new Uint8Array(cols * ROWS);
+      for (let k = 0; k < cells.length; k++) if (g.rank[k] < limit) cells[k] = 1 + Math.min(4, Math.floor(g.lum[k] * 5));
+      photo.cells = cells; photo.before = null; current.cells = cells;
+      drawPhoto(performance.now() + 1000); return;
+    }
     window.addEventListener('resize', resize);
     if (document.fonts && document.fonts.load) document.fonts.load('16px "IBM Plex Mono"').then(() => draw(performance.now() + TYPE_MS));
     loadFromList(window.POSE_IMAGES);
