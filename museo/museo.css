@@ -6,7 +6,7 @@
     --faint: rgba(231, 226, 214, 0.24);
     --red: #dc2626;
     --bg: #07080a;
-    --font: "Shadows Into Light", system-ui, -apple-system, sans-serif;
+    --font: Consolas, "Lucida Console", Inconsolata, ui-monospace, Menlo, monospace;
     --zoom: 0;
 }
 * { box-sizing: border-box; }

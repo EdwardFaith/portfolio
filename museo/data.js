@@ -547,38 +547,39 @@
       num: "VIII",
       title: { it: "ZONA LARGA", en: "WIDE ZONE" },
       line: {
-        it: "collaborazioni & media · una rubrica per raccontare artisti e chiunque voglia essere raccontato.",
-        en: "collaborations & media · a column to tell the story of artists and anyone who wants to be told."
+        it: "il computer · tutte le cartelle del sito: i video, le canzoni, i disegni, i giochi, il museo 3D.",
+        en: "the computer · every folder of the site: videos, songs, drawings, games, the 3D museum."
       },
-      feature: {
-        kind: "video", yt: "Jr15_es8qso",
-        title: "Zona Larga: Michelangelo Toffetti", sub: { it: "video ritratto · rubrica", en: "video portrait · column" }
-      },
-      works: [
+      /* ---- la zona larga non è più una rubrica: è un computer ------
+         Nel museo è una stanza buia, piena di polvere e di lumache, con
+         un computer alto come un cabinato (world.js, arch "brutalist").
+         Ci si entra e si apre il desktop (desktop/index.html), con le
+         cartelle di tutto il sito. Le collaborazioni non stanno più sul
+         muro: stanno nel desktop, in Collaborazioni/<nome>. */
+      desktop: "desktop/index.html",
+      collab: [
         {
-          kind: "lettering", text: "ZONA\nLARGA", textEn: "WIDE\nZONE", w: 400, h: 200,
-          sub: { it: "collaborazioni & media", en: "collaborations & media" },
-          small: { it: "rubrica · archivio visivo", en: "column · visual archive" }
-        },
-        {
-          kind: "note", w: 330, h: 226,
-          title: { it: "LA RUBRICA", en: "THE COLUMN" },
-          text: {
-            it: "Lavoro in stretta collaborazione con l'artista o lo studio per creare narrazioni visive uniche.\n\nZona Larga è una rubrica creata per raccontare artisti e chiunque voglia essere raccontato. Un archivio visivo che esplora l'identità creativa attraverso il video.",
-            en: "I work closely with the artist or the studio to create unique visual narratives.\n\nZona Larga is a column made to tell the story of artists and anyone who wants to be told. A visual archive exploring creative identity through video."
-          }
-        },
-        {
-          kind: "note", w: 330, h: 250,
-          title: { it: "MICHELANGELO TOFFETTI", en: "MICHELANGELO TOFFETTI" },
+          name: "Michelangelo Toffetti", yt: "Jr15_es8qso", title: "Zona Larga: Michelangelo Toffetti",
           text: {
             it: "(Treviglio, 1976) è un artista italiano che spazia tra scultura, pittura materica e fotografia. Figlio dello scultore Mario Toffetti, ha appreso le tecniche scultoree nella bottega paterna, evolvendo poi verso un linguaggio che include ritratti arcaici, figure mitologiche e dinamiche futuriste, attivo anche nel settore pittorico.",
             en: "(Treviglio, 1976) is an Italian artist working across sculpture, matter painting and photography. Son of the sculptor Mario Toffetti, he learned sculpting in his father's workshop, then moved towards a language including archaic portraits, mythological figures and futuristic dynamics, also active as a painter."
           }
         }
-        /* il video ritratto è uno solo: sta in fondo alla parete, ed è
-           lo stesso che la guida accende dalla sua voce. Appeso due
-           volte sembrava che la puntata fosse due. */
+      ],
+      works: [
+        {
+          kind: "lettering", text: "ZONA\nLARGA", textEn: "WIDE\nZONE", w: 400, h: 200,
+          sub: { it: "il computer", en: "the computer" },
+          small: { it: "tutte le cartelle del sito", en: "every folder of the site" }
+        },
+        {
+          kind: "note", w: 330, h: 226,
+          title: { it: "IL COMPUTER", en: "THE COMPUTER" },
+          text: {
+            it: "Zona Larga è il mio computer: un desktop con tutte le cartelle del sito. Dentro ogni cartella ci sono i file: i video, le canzoni, i disegni, i giochi, il museo e il museo 3D. Si apre una cartella, si clicca un file, e lo si guarda.",
+            en: "Wide Zone is my computer: a desktop with every folder of the site. Inside each folder are the files: videos, songs, drawings, games, the museum and the 3D museum. Open a folder, click a file, and look at it."
+          }
+        }
       ]
     },
     {
@@ -1079,40 +1080,18 @@
     },
 
     zona: {
-      who: "snail",
-      custom: "bar",
-      pad: 1000,
-      name: "LA LUMACA DEL BAR",
-      led: "ZONA LARGA · H24",
-      role: "zona larga · collaborazioni & media",
-      hello: "«Zona Larga. Il pinguino è fuggito, il banco l'ho preso io. Vado piano e non ho fretta. Chiedi poco.»",
-      extra: [
-        {
-          n: "1",
-          t: "il concept della zona",
-          x: "«Collaborazioni e interviste video. Raccontiamo artisti e storie visive. Qui si ascolta, non si corre.»"
-        },
-        {
-          n: "2",
-          t: "perché una lumaca",
-          x: "«Perché il pinguino era troppo svelto. Io lascio la scia e me la prendo comoda. Il banco è mio adesso.»",
-          note: "servizio lento garantito"
-        },
-        {
-          n: "3",
-          t: "la prima puntata: Michelangelo Toffetti",
-          x: "«Michelangelo Toffetti: scultura, pittura materica, figure arcaiche. Prima puntata della serie.»"
-        },
-        {
-          n: "▶",
-          t: "guardala",
-          x: "«Quattro minuti di video ritratto, senza chiacchiere inutili. Schiaccia e guarda.»",
-          yt: "Jr15_es8qso",
-          ytTitle: "Zona Larga: Michelangelo Toffetti",
-          ytSub: "video ritratto"
-        }
-      ],
-      close: "«Io striscio via. Non aspettarmi.»"
+      /* nessuna guida: la guida è il computer. Avvicinarsi al
+         cabinato apre il desktop (main.js, openZone → desktop). */
+      who: "pc",
+      custom: "pc",
+      pad: 0,
+      desktop: true,
+      name: "IL COMPUTER",
+      led: "ZONA LARGA",
+      role: "zona larga · il computer",
+      hello: "«C:\\Desktop — tutte le cartelle del sito.»",
+      extra: [],
+      close: ""
     }
   };
   GUIDES.interattivo = GUIDES.codec;
@@ -1143,7 +1122,7 @@
     kaoss: { rabbit: 4, daisy: 0 },
     cosmo: { rabbit: 0, daisy: 4 },
     illustrazioni: { rabbit: 2, daisy: 2 },
-    zona: { rabbit: 3, daisy: 2 },
+    zona: { rabbit: 0, daisy: 0 },
     bio: { rabbit: 0, daisy: 0 },
     materiali: { rabbit: 0, daisy: 0 },
     visual: { rabbit: 0, daisy: 0 },

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zona Larga · il computer di Emanuele Baccigalupi</title>
+<link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=block" rel="stylesheet">
+<meta name="description" content="Il computer di Emanuele Baccigalupi: tutte le cartelle del sito, con i video, le canzoni, i disegni, i giochi e il museo 3D.">
+<style>
+  /* il computer: un desktop bianco, le cartelle, le finestre.
+     --pc è il carattere da computer di tutto il sito: si cambia qui. */
+  :root { --pc: Consolas, "Lucida Console", Inconsolata, ui-monospace, Menlo, monospace; --carta: #fbfaf7; --ink: #141210; --rosso: #c4211c; --barra: #141210; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--carta); color: var(--ink); font-family: var(--pc); font-size: 14px; -webkit-user-select: none; user-select: none; }
+  #schermo { position: fixed; inset: 0 0 40px 0; padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 14px max(14px, env(safe-area-inset-left)); }
+  #icone { display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; gap: 6px 10px; height: 100%; }
+  .icona { width: 96px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; border: 1px dashed transparent; background: none; font: inherit; color: inherit; text-align: center; }
+  .icona:hover, .icona:focus-visible { border-color: rgba(20,18,16,.35); outline: none; }
+  .icona.scelta { background: rgba(196,33,28,.08); border-color: var(--rosso); }
+  .icona svg, .icona img { width: 46px; height: 46px; object-fit: cover; }
+  .icona span { font-size: 12px; line-height: 1.25; word-break: break-word; max-height: 3.8em; overflow: hidden; }
+  /* la barra in basso */
+  #barra { position: fixed; left: 0; right: 0; bottom: 0; height: 40px; background: var(--barra); color: #eee; display: flex; align-items: center; gap: 6px; padding: 0 max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(8px, env(safe-area-inset-left)); z-index: 9000; }
+  #avvio { font: inherit; color: #fff; background: var(--rosso); border: 0; padding: 6px 12px; cursor: pointer; letter-spacing: .1em; }
+  #schede { display: flex; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; }
+  #schede button { font: inherit; font-size: 12px; color: #ddd; background: #2a2622; border: 0; padding: 6px 10px; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+  #schede button.su { background: #4a4440; color: #fff; }
+  #ora { font-size: 12px; opacity: .8; padding: 0 6px; }
+  /* le finestre */
+  .finestra { position: fixed; min-width: 280px; min-height: 160px; background: var(--carta); border: 2px solid var(--ink); box-shadow: 6px 6px 0 rgba(20,18,16,.85); display: flex; flex-direction: column; resize: both; overflow: hidden; }
+  .finestra.max { left: 0 !important; top: 0 !important; width: 100vw !important; height: calc(100vh - 40px) !important; resize: none; box-shadow: none; }
+  .titolo { display: flex; align-items: center; gap: 8px; background: var(--ink); color: #fff; padding: 4px 6px 4px 10px; cursor: move; touch-action: none; }
+  .titolo b { font-weight: 400; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .titolo button { font: inherit; color: #fff; background: none; border: 1px solid rgba(255,255,255,.4); width: 26px; height: 22px; line-height: 1; cursor: pointer; padding: 0; }
+  .titolo button:hover { background: var(--rosso); border-color: var(--rosso); }
+  .percorso { font-size: 12px; padding: 4px 10px; border-bottom: 1px solid rgba(20,18,16,.2); opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .corpo { flex: 1; overflow: auto; min-height: 0; }
+  .cartella { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; padding: 10px; }
+  .corpo iframe, .corpo video { width: 100%; height: 100%; border: 0; display: block; background: #000; }
+  .corpo .img { width: 100%; height: 100%; object-fit: contain; background: #111; display: block; }
+  .corpo .testo { padding: 16px 20px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
+  .corpo .audio { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .corpo .audio audio { width: 100%; }
+  .piede { display: flex; justify-content: flex-end; gap: 8px; padding: 6px 10px; border-top: 1px solid rgba(20,18,16,.2); }
+  .piede a, .piede button { font: inherit; font-size: 12px; color: var(--ink); background: none; border: 1px solid var(--ink); padding: 3px 10px; text-decoration: none; cursor: pointer; }
+  .piede a:hover, .piede button:hover { background: var(--ink); color: var(--carta); }
+  #menu { position: fixed; left: 8px; bottom: 44px; z-index: 9001; background: var(--carta); border: 2px solid var(--ink); box-shadow: 6px 6px 0 rgba(20,18,16,.85); min-width: 220px; }
+  #menu button, #menu a { display: block; width: 100%; text-align: left; font: inherit; color: var(--ink); background: none; border: 0; padding: 9px 14px; text-decoration: none; cursor: pointer; }
+  #menu button:hover, #menu a:hover { background: var(--ink); color: var(--carta); }
+  @media (max-width: 640px) { .icona { width: 82px; } .finestra { resize: none; } }
+</style>
+</head>
+<body>
+  <div id="schermo"><div id="icone" role="list" aria-label="le cartelle del sito"></div></div>
+  <div id="barra">
+    <button id="avvio" type="button" aria-haspopup="true">EB</button>
+    <div id="schede" aria-label="finestre aperte"></div>
+    <span id="ora"></span>
+  </div>
+  <div id="menu" hidden>
+    <a href="../index.html" target="_blank" rel="noopener">il sito</a>
+    <a href="../museo.html" target="_blank" rel="noopener">il museo (gioco)</a>
+    <a href="../radio-kaoss.html" target="_blank" rel="noopener">Radio KaOsS 3D</a>
+    <button type="button" id="chiudi-tutto">chiudi le finestre</button>
+  </div>
+
+  <script>window.MUSEO = window.MUSEO || {};</script>
+  <script src="../museo/data.js"></script>
+  <script src="../museo/radio-fila.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    const R = (window.MUSEO.DATA && window.MUSEO.DATA.rooms) || [];
+    const room = id => R.find(r => r.id === id) || { works: [] };
+    const it = v => (v && typeof v === 'object') ? (v.it || v.en || '') : (v || '');
+    const up = p => /^(https?:|mailto:|\/)/.test(p) ? p : '../' + p;
+    const yt = (id, title) => ({ type: 'video', name: title + '.mp4', yt: id });
+
+    /* ---------- le cartelle, costruite dai dati del museo ---------- */
+    const reels = id => room(id).works.filter(w => w.kind === 'reel').map(w => ({
+      type: 'dir', name: it(w.title), kids: (w.clips || []).map(c => yt(c.yt, it(c.title)))
+    }));
+    const notes = id => room(id).works.filter(w => w.kind === 'note' && w.text).map(w => ({ type: 'txt', name: it(w.title).toLowerCase() + '.txt', text: it(w.text) }));
+    const links = (id, ext) => room(id).works.filter(w => w.href).map(w => ({ type: /^(https?:|mailto:)/.test(w.href) ? 'out' : 'web', name: it(w.title) + (ext || '.lnk'), href: up(w.href), img: w.img ? up(w.img) : null }));
+    const images = id => room(id).works.filter(w => w.kind === 'image' && w.img && !w.href).map(w => ({ type: 'img', name: it(w.title) + '.jpg', src: up(w.img) }));
+    const songs = (window.MUSEO.FILA ? window.MUSEO.FILA.list() : []).map(s => ({ type: 'audio', name: s.title + '.mp3', src: s.url }));
+    const kaossReels = reels('kaoss');
+    const spot = kaossReels.find(d => /spot/i.test(d.name));
+    const zona = room('zona');
+
+    const TREE = [
+      { type: 'dir', name: 'Radio KaOsS', kids: [
+        ...notes('kaoss'),
+        ...kaossReels.filter(d => d !== spot),
+        spot && { type: 'dir', name: 'Spot & sponsor', kids: spot.kids },
+        { type: 'dir', name: 'Canzoni', kids: songs },
+        { type: 'web', name: 'Radio KaOsS dal vivo.lnk', href: '../RadioKaoSs/index.html' },
+        { type: 'tab', name: 'Radio KaOsS 3D · computer.lnk', href: '../radio-kaoss.html' }, { type: 'tab', name: 'Radio KaOsS 3D · telefono.lnk', href: '../radio-kaoss.html?telefono' }
+      ] },
+      { type: 'dir', name: 'Memorie del Cosmo', kids: [
+        yt('kdEGkCbDpNo', 'Memorie del Cosmo · il film'),
+        ...notes('cosmo'), ...reels('cosmo'),
+        ...links('cosmo', '.exe')
+      ] },
+      { type: 'dir', name: 'Visual & AI', kids: [...notes('visual'), ...reels('visual').flatMap(d => d.kids)] },
+      { type: 'dir', name: 'Codice', kids: [...links('interattivo', '.exe'), { type: 'web', name: 'il museo.exe', href: '../museo.html' }] },
+      { type: 'dir', name: 'Illustrazioni', kids: [...images('illustrazioni'), ...notes('illustrazioni')] },
+      { type: 'dir', name: 'Materiali', kids: [
+        { type: 'dir', name: 'Cortometraggi', kids: [yt('Q5Rq2qlxAIA', 'Radio KaOsS ! · episodio 1'), yt('ixXZo5-G5jo', 'Radio KaOsS !! · episodio 2'), yt('2Jwhzy_S8os', 'Radio KaOsS !!! · episodio 3'), yt('kdEGkCbDpNo', 'Memorie del Cosmo · cortometraggio')] },
+        { type: 'dir', name: 'Canzoni', kids: songs },
+        spot && { type: 'dir', name: 'Pubblicità', kids: spot.kids },
+        ...notes('materiali')
+      ] },
+      { type: 'dir', name: 'Collaborazioni', kids: (zona.collab || []).map(c => ({ type: 'dir', name: c.name, kids: [
+        c.yt ? yt(c.yt, c.title || c.name) : null,
+        c.text ? { type: 'txt', name: c.name.toLowerCase() + '.txt', text: it(c.text) } : null
+      ] })) },
+      { type: 'dir', name: 'Laboratorio Lucidus', kids: links('lucidus') },
+      { type: 'dir', name: 'Chi sono', kids: [
+        { type: 'img', name: 'Emanuele Baccigalupi.jpg', src: '../immagini/io.png' },
+        { type: 'txt', name: 'chi sono.txt', text: it(room('bio').line) }
+      ] },
+      { type: 'dir', name: 'Contatti', kids: [...notes('contatti'), ...links('contatti')] },
+      { type: 'dir', name: 'Libri', kids: ['anche i conigli hanno le ali', 'appunti il diabolcio', 'eye in the sky coretto'].map(b => ({ type: 'book', name: b + '.txt', src: '../libri/' + b + '.txt', odt: '../libri/' + b + '.odt' })) },
+      { type: 'dir', name: 'Museo 3D', kids: [
+        { type: 'tab', name: 'Radio KaOsS 3D · computer.lnk', href: '../radio-kaoss.html' }, { type: 'tab', name: 'Radio KaOsS 3D · telefono.lnk', href: '../radio-kaoss.html?telefono' },
+        { type: 'txt', name: 'leggimi.txt', text: 'Qui, piano piano, nasce il museo in 3D.\nUna stanza alla volta.\n\nLa prima è Radio KaOsS.' }
+      ] },
+      { type: 'web', name: 'il museo.exe', href: '../museo.html' },
+      { type: 'tab', name: 'il sito.lnk', href: '../index.html' }
+    ];
+    const clean = n => { if (n && n.kids) n.kids = n.kids.filter(Boolean).map(clean); return n; };
+    TREE.forEach(clean);
+
+    /* ---------- le icone ---------- */
+    const ICON = {
+      dir: '<svg viewBox="0 0 48 48"><path d="M3 12h16l4 4h22v24H3z" fill="#f2efe8" stroke="#141210" stroke-width="2"/><path d="M3 18h42" stroke="#141210" stroke-width="2"/></svg>',
+      video: '<svg viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="30" fill="#141210"/><rect x="8" y="12" width="32" height="22" fill="#2a2622"/><path d="M21 17l9 6-9 6z" fill="#c4211c"/><path d="M18 42h12" stroke="#141210" stroke-width="2"/></svg>',
+      audio: '<svg viewBox="0 0 48 48"><rect x="6" y="12" width="36" height="24" rx="3" fill="#f2efe8" stroke="#141210" stroke-width="2"/><circle cx="17" cy="24" r="5" fill="none" stroke="#141210" stroke-width="2"/><circle cx="31" cy="24" r="5" fill="none" stroke="#141210" stroke-width="2"/><path d="M12 32h24" stroke="#c4211c" stroke-width="2"/></svg>',
+      txt: '<svg viewBox="0 0 48 48"><path d="M10 4h20l8 8v32H10z" fill="#fff" stroke="#141210" stroke-width="2"/><path d="M15 18h18M15 24h18M15 30h12" stroke="#141210" stroke-width="2"/></svg>',
+      img: '<svg viewBox="0 0 48 48"><rect x="5" y="8" width="38" height="32" fill="#fff" stroke="#141210" stroke-width="2"/><path d="M8 36l10-12 8 8 6-6 8 10z" fill="#141210"/><circle cx="33" cy="17" r="3" fill="#c4211c"/></svg>',
+      book: '<svg viewBox="0 0 48 48"><path d="M8 6h28v36H8z" fill="#c4211c" stroke="#141210" stroke-width="2"/><path d="M12 6v36M16 14h16" stroke="#141210" stroke-width="2"/></svg>',
+      tab: '<svg viewBox="0 0 48 48"><rect x="4" y="6" width="40" height="32" fill="#fff" stroke="#141210" stroke-width="2"/><path d="M20 28l12-12M24 16h8v8" fill="none" stroke="#c4211c" stroke-width="2.5"/></svg>',
+      web: '<svg viewBox="0 0 48 48"><rect x="4" y="6" width="40" height="32" fill="#fff" stroke="#141210" stroke-width="2"/><path d="M4 13h40" stroke="#141210" stroke-width="2"/><circle cx="9" cy="9.5" r="1.5" fill="#c4211c"/><path d="M14 22h20M14 28h14" stroke="#141210" stroke-width="2"/><path d="M20 44l4-6 4 6" fill="none" stroke="#141210" stroke-width="2"/></svg>',
+      out: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="#fff" stroke="#141210" stroke-width="2"/><path d="M6 24h36M24 6c-8 10-8 26 0 36M24 6c8 10 8 26 0 36" fill="none" stroke="#141210" stroke-width="1.5"/></svg>'
+    };
+    const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    function iconEl(node, path) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'icona'; b.setAttribute('role', 'listitem');
+      const pic = node.img ? `<img src="${node.img}" alt="">` : node.type === 'video' && node.yt ? `<img src="https://i.ytimg.com/vi/${node.yt}/default.jpg" alt="">` : ICON[node.type] || ICON.txt;
+      b.innerHTML = pic + `<span>${esc(node.name)}</span>`;
+      b.title = node.name;
+      b.addEventListener('click', () => open(node, path));
+      return b;
+    }
+    const desk = document.getElementById('icone');
+    TREE.forEach(n => desk.appendChild(iconEl(n, ['C:', 'Desktop'])));
+
+    /* ---------- le finestre ---------- */
+    let z = 10, n = 0;
+    const tasks = document.getElementById('schede');
+    const small = () => innerWidth < 700;
+    function win(title, path, build, size) {
+      const w = document.createElement('section'); w.className = 'finestra'; w.setAttribute('role', 'dialog'); w.setAttribute('aria-label', title);
+      const W = Math.min(size?.[0] || 640, innerWidth - 20), H = Math.min(size?.[1] || 440, innerHeight - 70);
+      Object.assign(w.style, { left: Math.max(4, 60 + (n % 8) * 28) + 'px', top: Math.max(4, 30 + (n % 8) * 24) + 'px', width: W + 'px', height: H + 'px', zIndex: ++z });
+      n++;
+      w.innerHTML = `<div class="titolo"><b>${esc(title)}</b><button type="button" class="mx" aria-label="ingrandisci">□</button><button type="button" class="x" aria-label="chiudi">✕</button></div><div class="percorso">${esc(path.join('\\'))}</div><div class="corpo"></div>`;
+      document.body.appendChild(w);
+      if (small()) w.classList.add('max');
+      const tab = document.createElement('button'); tab.type = 'button'; tab.textContent = title; tasks.appendChild(tab);
+      const focus = () => { w.style.zIndex = ++z; [...tasks.children].forEach(t => t.classList.toggle('su', t === tab)); };
+      const close = () => { w.remove(); tab.remove(); };
+      w.addEventListener('pointerdown', focus); tab.addEventListener('click', focus);
+      w.querySelector('.x').addEventListener('click', close);
+      w.querySelector('.mx').addEventListener('click', () => w.classList.toggle('max'));
+      // trascinare la finestra per la barra del titolo
+      const bar = w.querySelector('.titolo');
+      bar.addEventListener('pointerdown', e => {
+        if (e.target.closest('button') || w.classList.contains('max')) return;
+        const sx = e.clientX - w.offsetLeft, sy = e.clientY - w.offsetTop; bar.setPointerCapture(e.pointerId);
+        const mv = ev => { w.style.left = Math.max(-w.offsetWidth + 60, Math.min(innerWidth - 60, ev.clientX - sx)) + 'px'; w.style.top = Math.max(0, Math.min(innerHeight - 80, ev.clientY - sy)) + 'px'; };
+        const upf = () => { bar.removeEventListener('pointermove', mv); bar.removeEventListener('pointerup', upf); };
+        bar.addEventListener('pointermove', mv); bar.addEventListener('pointerup', upf);
+      });
+      build(w.querySelector('.corpo'), w);
+      focus();
+      return w;
+    }
+    function foot(w, html) { const f = document.createElement('div'); f.className = 'piede'; f.innerHTML = html; w.appendChild(f); }
+
+    function open(node, path) {
+      const p = [...path, node.name];
+      if (node.type === 'dir') return win(node.name, p, c => { const g = document.createElement('div'); g.className = 'cartella'; node.kids.forEach(k => g.appendChild(iconEl(k, p))); c.appendChild(g); }, [560, 380]);
+      if (node.type === 'video') return win(node.name, p, c => { c.innerHTML = `<iframe src="https://www.youtube.com/embed/${node.yt}?autoplay=1&rel=0&modestbranding=1&playsinline=1" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="${esc(node.name)}"></iframe>`; }, [760, 470]);
+      if (node.type === 'img') return win(node.name, p, c => { c.innerHTML = `<img class="img" src="${node.src}" alt="${esc(node.name)}">`; }, [620, 520]);
+      if (node.type === 'txt') return win(node.name, p, c => { c.innerHTML = `<div class="testo">${esc(node.text)}</div>`; }, [520, 420]);
+      if (node.type === 'audio') return win(node.name, p, c => { c.innerHTML = `<div class="audio"><b>${esc(node.name.replace(/\.mp3$/, ''))}</b><audio controls autoplay src="${node.src}"></audio><span style="opacity:.6">Radio KaOsS · le canzoni</span></div>`; }, [420, 200]);
+      if (node.type === 'out' || node.type === 'tab') { window.open(node.href, '_blank', 'noopener'); return; }
+      if (node.type === 'book') return win(node.name, p, (c, w) => { c.innerHTML = '<div class="testo">apro il libro…</div>'; fetch(node.src).then(r => r.text()).then(t => { c.firstChild.textContent = t; }).catch(() => { c.firstChild.textContent = 'il libro non si apre'; }); foot(w, '<a href="' + node.odt + '" download>scarica .odt</a>'); }, [620, 560]);
+      if (node.type === 'web') {
+        if (node.top) { window.top.location.href = node.href; return; }
+        return win(node.name, p, (c, w) => { c.innerHTML = `<iframe src="${node.href}" allow="autoplay; fullscreen; camera; gyroscope; accelerometer" title="${esc(node.name)}"></iframe>`; foot(w, `<a href="${node.href}" target="_blank" rel="noopener">apri a tutto schermo</a>`); }, [900, 600]);
+      }
+    }
+
+    /* ---------- la barra ---------- */
+    const menu = document.getElementById('menu');
+    document.getElementById('avvio').addEventListener('click', e => { e.stopPropagation(); menu.hidden = !menu.hidden; });
+    document.addEventListener('click', () => { menu.hidden = true; });
+    document.getElementById('chiudi-tutto').addEventListener('click', () => { document.querySelectorAll('.finestra').forEach(w => w.remove()); tasks.innerHTML = ''; });
+    const ora = document.getElementById('ora');
+    const tick = () => { const d = new Date(); ora.textContent = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); };
+    tick(); setInterval(tick, 20000);
+
+    // ?apri=Museo%203D apre subito una cartella
+    const q = new URLSearchParams(location.search).get('apri');
+    if (q) { const t = TREE.find(x => x.name.toLowerCase() === q.toLowerCase()); if (t) open(t, ['C:', 'Desktop']); }
+  })();
+  </script>
+</body>
+</html>

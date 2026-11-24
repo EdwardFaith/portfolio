@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Radio KaOsS — la sala, in 3D</title>
+<meta name="description" content="La sala di Radio KaOsS del museo di Emanuele Baccigalupi, in uno spazio 3D da esplorare a 360 gradi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #ebe4d1; --red: #c4211c; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: #070606; color: var(--ink); overflow: hidden; font-family: "Shadows Into Light", cursive; }
+  #scena, #scena canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+  #scena canvas:active { cursor: grabbing; }
+  .ui { position: fixed; z-index: 10; font-size: 18px; letter-spacing: .04em; }
+  #torna { top: max(14px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left)); color: var(--ink); text-decoration: none; opacity: .7; }
+  #torna:hover { opacity: 1; color: #fff; }
+  #suono { top: max(14px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); background: none; border: 0; color: var(--ink); font: inherit; opacity: .6; cursor: pointer; }
+  #etichetta { position: fixed; left: 0; top: 0; z-index: 11; pointer-events: none; padding: 3px 10px; background: rgba(8,7,6,.72); border-left: 2px solid var(--red); font-size: 17px; opacity: 0; transition: opacity .15s; white-space: nowrap; }
+  #etichetta.on { opacity: 1; }
+  #sottotitolo { position: fixed; left: 50%; bottom: max(28px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 11; max-width: min(86vw, 760px); text-align: center; font-size: 22px; line-height: 1.3; color: #f3eee2; text-shadow: 0 0 8px #000, 0 0 2px #000; opacity: 0; transition: opacity .6s; pointer-events: none; }
+  #sottotitolo.on { opacity: 1; }
+  #loading, #entra { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: radial-gradient(ellipse at center, #1a1513 0%, #050404 75%); padding: 24px; transition: opacity .9s; }
+  #entra.via { opacity: 0; pointer-events: none; }
+  #loading h1, #entra h1 { font-weight: 400; font-size: clamp(44px, 9vw, 96px); margin: 0 0 8px; color: var(--ink); }
+  #loading p { opacity: .6; font-size: 20px; }
+  #istruzioni { font-size: 20px; line-height: 1.5; opacity: .75; margin: 10px 0 28px; }
+  #entra-btn { font: inherit; font-size: 28px; color: var(--ink); background: none; border: 1px solid rgba(235,228,209,.4); padding: 10px 34px; cursor: pointer; }
+  #entra-btn:hover, #entra-btn:focus-visible { border-color: var(--red); color: #fff; outline: none; }
+  .avviso { font-size: 15px; opacity: .45; margin-top: 22px; }
+  .tv-overlay { position: fixed; z-index: 5; overflow: hidden; border-radius: 6% / 8%; filter: contrast(1.15) saturate(.75) sepia(.15); box-shadow: 0 0 30px rgba(150,180,255,.25); }
+  .tv-overlay iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .tv-scan { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); }
+  /* il lettore del concept: una pagina scritta a mano, appoggiata sul muro */
+  .lettore { position: fixed; inset: 0; z-index: 15; display: flex; align-items: center; justify-content: center; padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); background: rgba(4,3,3,.35); opacity: 0; transition: opacity .35s; }
+  .lettore.on { opacity: 1; }
+  .l-foglio { width: min(780px, 100%); max-height: 100%; display: flex; flex-direction: column; background: rgba(22,20,17,.94); border: 1px solid rgba(235,228,209,.14); box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+  .l-testa, .l-piede { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; }
+  .l-titolo { color: var(--red); font-size: 26px; }
+  .l-testo { overflow-y: auto; padding: 4px 28px 8px; font-size: clamp(19px, 2.3vw, 24px); line-height: 1.55; color: var(--ink); outline: none; }
+  .l-testo p { margin: 0 0 16px; }
+  .l-testo .r { color: #e0322b; }
+  .lettore button { font: inherit; font-size: 20px; color: var(--ink); background: none; border: 1px solid rgba(235,228,209,.25); padding: 4px 16px; cursor: pointer; }
+  .lettore button:hover:not(:disabled), .lettore button:focus-visible { border-color: var(--red); color: #fff; outline: none; }
+  .lettore button:disabled { opacity: .25; cursor: default; }
+  .l-chiudi { border: 0 !important; font-size: 24px !important; padding: 0 6px !important; }
+  .l-num { opacity: .6; font-size: 18px; }
+  /* il teletrasporto: un battito di ciglia */
+  #punto { position: fixed; left: 0; top: 0; z-index: 3; width: 36px; height: 16px; border-radius: 50%; background: radial-gradient(ellipse, rgba(0,0,0,.75), rgba(0,0,0,0) 70%); pointer-events: none; opacity: 0; transition: opacity .15s; }
+  #velo { position: fixed; inset: 0; z-index: 4; background: #000; opacity: 0; pointer-events: none; }
+  /* la sentinella: la realtà che compare sopra il sito quando cammini */
+  .realta { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 6; opacity: 0; pointer-events: none; }
+  .ostacolo { position: fixed; left: 50%; top: 18%; transform: translateX(-50%); z-index: 16; text-align: center; background: rgba(120,8,6,.88); color: #fff; padding: 14px 26px; border: 1px solid #ff5a3c; }
+  .ostacolo b { display: block; font-size: 34px; font-weight: 400; }
+  .ostacolo span { font-size: 18px; }
+  .tv-overlay.gioco { border-radius: 2%; filter: none; box-shadow: 0 0 40px rgba(255,220,180,.25); }
+  #istruzioni small { font-size: 16px; opacity: .7; }
+  /* l'anteprima: il video muto e in bianco e nero dentro lo schermo che guardi */
+  .tv-anteprima { position: fixed; z-index: 5; overflow: hidden; pointer-events: none; border-radius: 6% / 8%; filter: grayscale(1) contrast(1.3) brightness(.8); }
+  .tv-anteprima iframe { width: 100%; height: 100%; border: 0; display: block; pointer-events: none; }
+  /* la finestra: il video vero, grande, a colori */
+  .finestra-video { position: fixed; inset: 0; z-index: 15; display: flex; align-items: center; justify-content: center; background: rgba(3,2,2,.55); opacity: 0; transition: opacity .3s; padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+  .finestra-video.on { opacity: 1; }
+  .fv-box { width: min(1100px, 100%); background: #120d0b; border: 1px solid rgba(235,228,209,.18); box-shadow: 0 20px 70px rgba(0,0,0,.7); }
+  .fv-testa { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; font-size: 22px; color: var(--ink); }
+  .fv-chiudi { font: inherit; font-size: 24px; color: var(--ink); background: none; border: 0; cursor: pointer; }
+  .fv-video { aspect-ratio: 16 / 9; max-height: calc(100vh - 90px); }
+  .fv-video iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { #entra, #sottotitolo { transition: none; } }
+  body.mirino::after { content: ""; position: fixed; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border: 2px solid rgba(255,255,255,.8); border-radius: 50%; pointer-events: none; z-index: 50; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+  <div id="scena"></div>
+  <div id="velo"></div>
+  <div id="punto" aria-hidden="true"></div>
+  <a id="torna" class="ui" href="index.html">← il sito</a>
+  <button id="suono" class="ui" type="button">suono: sì</button>
+  <div id="etichetta"></div>
+  <div id="sottotitolo" role="status" aria-live="polite"></div>
+
+  <div id="loading">
+    <h1>radio kaoss</h1>
+    <p id="loading-step">si accende la luce…</p>
+  </div>
+  <div id="entra" hidden>
+    <h1>radio kaoss</h1>
+    <p id="istruzioni"></p>
+    <button id="entra-btn" type="button">entra</button>
+    <p class="avviso">c'è del suono · sul telefono serve la fotocamera</p>
+  </div>
+
+  <section id="testo-muri" class="sr" aria-label="I testi scritti sui muri"></section>
+
+  <script>
+    // aperta con un doppio clic sul file: il browser non carica i pezzi 3D. Lo diciamo chiaro.
+    if (location.protocol === 'file:') document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('loading-step').innerHTML = 'aperta come file la stanza non si apre (il browser blocca il 3D).<br>sul sito online funziona; sul computer apri <b>AVVIA-SITO.bat</b> nella cartella del sito.';
+    });
+  </script>
+  <script src="museo/radio-fila.js"></script>
+  <script type="module" src="kaoss3d/main.js"></script>
+</body>
+</html>

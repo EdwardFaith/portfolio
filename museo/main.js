@@ -443,6 +443,7 @@
       var gz = guideFor(room);
       var nz = gz ? txt(gz.name, "zone.name") : "";
       if (room && room.id === "lucidus") return "parla con Satan";
+      if (room && room.id === "zona") return "entra nel computer";
       return (say("talk.zone") || "parlare con la guida") + (nz ? " · " + nz : "");
     }
     if (t.talk === "guide") return say("talk.cat") || "il catalogo della zona";
@@ -1788,7 +1789,37 @@
   /* si entra nella guida: la camera si stringe su di lei, il pannello
      si apre con il ritratto che respira, e le voci sono quelle della
      stanza. Non è un cartello: è uno che ti risponde. */
+  /* ---- il computer della zona larga ---------------------------
+     Il cabinato non ha una guida che parla: ci si avvicina, ci si
+     entra, e lo schermo diventa tutta la finestra. Dentro c'è il
+     desktop (desktop/index.html) con le cartelle del sito. Esc o la
+     X in alto riportano nella stanza buia. */
+  function openDesktop() {
+    if (document.getElementById("zl-desktop")) return;
+    var d = document.createElement("div");
+    d.id = "zl-desktop";
+    d.setAttribute("role", "dialog");
+    d.setAttribute("aria-label", "il computer della zona larga");
+    d.style.cssText = "position:fixed;inset:0;z-index:99999;background:#050505;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .35s";
+    d.innerHTML = '<iframe src="desktop/index.html" title="il computer" allow="autoplay; fullscreen; gyroscope; accelerometer" style="width:100%;height:100%;border:0;background:#fbfaf7;transform:scale(.92);transition:transform .45s"></iframe>' +
+      '<button type="button" aria-label="esci dal computer" style="position:fixed;top:10px;right:10px;z-index:2;font:16px \'Lucida Console\',Consolas,monospace;background:#141210;color:#fff;border:0;padding:6px 12px;cursor:pointer">esci ✕</button>';
+    document.body.appendChild(d);
+    var fr = d.querySelector("iframe");
+    requestAnimationFrame(function () { d.style.opacity = "1"; fr.style.transform = "scale(1)"; });
+    function close() {
+      removeEventListener("keydown", onKey, true);
+      d.remove();
+      closeFocus();
+    }
+    function onKey(e) { if (e.key === "Escape") { e.stopPropagation(); close(); } }
+    addEventListener("keydown", onKey, true);
+    d.querySelector("button").addEventListener("click", close);
+    target = null;
+  }
+  G.openDesktop = openDesktop;
+
   function openZone(p) {
+    if ((p && p.desktop) || (room && room.id === "zona")) { openDesktop(); return; }
     var g = guideFor(room);
     if (!g || !M.PANEL || !M.PANEL.zone) return;
     /* dove sta la guida: la scrivania ha la sua donna, il bancone il

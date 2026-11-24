@@ -92,6 +92,7 @@
 
     hud.appendChild(bottone);
     hud.appendChild(nome);
+    if (ANCORA) hud.style.display = "none";   // con un posto suo, si mostra solo quando lo trova
     doc.body.appendChild(hud);
     /* ---- il ◉ appena montato sa già com'è la radio ----------------
        Se si arriva da un'altra pagina con la stazione accesa, radio.js
@@ -113,11 +114,10 @@
   function sistemaPosto() {
     if (!ANCORA || !hud || !doc.body) return;
     var posto = doc.querySelector(ANCORA);
-    if (!posto) {
-      hud.classList.remove("in-linea");
-      if (hud.parentNode !== doc.body) doc.body.appendChild(hud);
-      return;
-    }
+    /* il posto non c'è ancora (la pagina si sta disegnando): il ◉ non
+       si parcheggia nell'angolo in alto a destra, aspetta nascosto */
+    if (!posto) { hud.style.display = "none"; return; }
+    hud.style.display = "";
     hud.classList.add("in-linea");
     /* il ◉ va subito DOPO il segnaposto, nella stessa riga, non dentro:
        il segnaposto è uno span vuoto e l'HUD è un div, e un div dentro

@@ -676,11 +676,11 @@
     },
     zona: {
       pal: {
-        sky: "#070a10", wall: "#3f4b58", floor: "#171e26", glow: "#a8cdf0",
-        accent: "#ff2a1c", metal: "#2a333d", cloud: "#1a222c"
+        sky: "#050505", wall: "#1b1b1c", floor: "#0e0e0f", glow: "#e8ecf0",
+        accent: "#c4211c", metal: "#202124", cloud: "#121213"
       },
-      fog: "#151d27", fogAmt: 0.30,
-      lights: [[820, 250, 660, "#bcd8f4", 0.36], [2600, 240, 700, "#8fb6e0", 0.30]]
+      fog: "#0a0a0b", fogAmt: 0.42,
+      lights: [[755, 260, 560, "#e6ecf2", 0.30]]
     },
     lucidus: {
       pal: {
@@ -1529,19 +1529,29 @@
          bancone serve a far parlare, non a far bere. Sta a metà del
          primo tratto di muro, non sulla soglia: si entra, si vede il
          bancone, e ci si arriva camminando. */
-      var zbar = prop("bar", 560, f - 150, 560, 150, {
-        seed: s + 2, front: true, talk: "zone", zone: room.id, who: "snail"
+      /* ---- la zona larga: una stanza buia, polvere e lumache ------
+         Al posto del bancone c'è un computer, alto come un cabinato:
+         ci si avvicina, ci si entra, e dentro c'è il desktop con tutte
+         le cartelle del sito (desktop/index.html). Niente guida: il
+         computer è la guida. */
+      var zpc = prop("pc", 640, f - 340, 230, 340, {
+        seed: s + 2, front: true, talk: "zone", zone: room.id, desktop: true
       });
-      zbar.penguinX = 750;
-      zbar.hubX = 750;
-      room.bar = zbar;
-      for (i = 0; i < 5; i++) {
+      zpc.penguinX = 755;
+      zpc.hubX = 755;
+      room.bar = zpc;
+      for (i = 0; i < 4; i++) {
         var px = 1500 + i * 880;
-
         prop("column", px, 120, 130, f - 120);
         solid(px, f - 400, 130, 400);
-        prop("bench", px + 300, f - 56, 220, 56);
       }
+      /* le lumache: per terra, sulle colonne, sul cabinato */
+      for (i = 0; i < 14; i++) {
+        var sx = 260 + ((i * 397 + s * 31) % 3600);
+        prop("lumaca", sx, f - 2, 40, 20, { seed: i + 1, sp: 3 + (i % 5) * 1.6, dir: i % 3 ? 1 : -1 });
+      }
+      prop("lumaca", 690, f - 340, 40, 20, { seed: 77, sp: 2, dir: 1, top: true });
+      prop("polvere", 0, 0, 4200, f, { seed: s });
     } else if (arch === "office") {
       /* ---- l'ufficio abbandonato ----------------------------------
          La scrivania non sta più a ridosso della porta: sta a metà del
@@ -1769,7 +1779,7 @@
       lucidus: [[500, 210, 520, "#ff2222", 0.40, 1], [1500, 200, 680, "#ff3333", 0.52], [2500, 210, 520, "#ff2222", 0.40, 1]],
       warehouse: [[620, 300, 600, "#d8b06a", 0.4], [1500, 280, 640, "#d8b06a", 0.34], [2300, 320, 600, "#d8b06a", 0.34]],
       office: [[900, 200, 520, "#d8d2c0", 0.22, 1], [1900, 210, 540, "#d8d2c0", 0.18], [2700, 220, 520, "#d8d2c0", 0.16, 1]],
-      brutalist: [[800, 260, 640, "#c8ccd0", 0.34], [2600, 240, 700, "#c8ccd0", 0.30]],
+      brutalist: [[755, 260, 560, "#e6ecf2", 0.30]],
       house: [[600, 420, 380, "#e8b87a", 0.55], [2200, 420, 380, "#e8b87a", 0.42]]
     }[arch] || [];
     for (i = 0; i < lights.length; i++) {
@@ -3439,7 +3449,7 @@
     ctx.fillStyle = "rgba(239,68,68," + ea + ")";
     ctx.fillRect(ex + 4, ey + 4, 112, 42);
     ctx.fillStyle = "#ffffff";
-    ctx.font = "700 24px 'Shadows Into Light', cursive";
+    ctx.font = "700 24px Consolas, 'Lucida Console', monospace";
     ctx.textAlign = "center";
     ctx.fillText("EXIT", ex + 60, ey + 35);
     ctx.textAlign = "left";
@@ -3905,10 +3915,95 @@
 
   /* ---- i mobili: un interruttore, mille oggetti ---------------- */
 
+  /* ---- il computer della zona larga, alto come un cabinato -----
+     Dentro lo schermo c'è già il desktop: bianco, con le cartelle. */
+  function drawPC(ctx, p, t, S2) {
+    var x = p.x, y = p.y, w = p.w, h = p.h;
+    /* l'alone bianco dello schermo nel buio */
+    var cx = x + w / 2, cy = y + h * 0.3;
+    var g = ctx.createRadialGradient(cx, cy, 10, cx, cy, 340);
+    g.addColorStop(0, "rgba(235,240,245,0.20)");
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - 340, cy - 340, 680, 680);
+    /* il mobile */
+    ctx.fillStyle = "#16171a";
+    ctx.beginPath();
+    ctx.moveTo(x + 12, y); ctx.lineTo(x + w - 12, y); ctx.lineTo(x + w, y + 24);
+    ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x, y + 24); ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.08)"; ctx.lineWidth = 2; ctx.stroke();
+    /* l'insegna in alto */
+    ctx.fillStyle = "#0b0b0c"; ctx.fillRect(x + 16, y + 8, w - 32, 30);
+    ctx.fillStyle = "#e8e6e0"; ctx.font = "16px 'Lucida Console', Consolas, monospace";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("ZONA LARGA", cx, y + 24);
+    /* lo schermo: il desktop bianco */
+    var sx = x + 20, sy = y + 52, sw = w - 40, sh = 128;
+    ctx.fillStyle = "#050505"; ctx.fillRect(sx - 6, sy - 6, sw + 12, sh + 12);
+    var fl = 0.94 + Math.sin(t * 13) * 0.02 + (Math.sin(t * 2.3) > 0.97 ? -0.15 : 0);
+    ctx.globalAlpha = fl;
+    ctx.fillStyle = "#f6f5f1"; ctx.fillRect(sx, sy, sw, sh);
+    for (var i = 0; i < 8; i++) {
+      var fx = sx + 10 + (i % 4) * 46, fy = sy + 12 + Math.floor(i / 4) * 46;
+      ctx.fillStyle = "#e9e5da"; ctx.strokeStyle = "#141210"; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(fx, fy + 4); ctx.lineTo(fx + 12, fy + 4); ctx.lineTo(fx + 15, fy + 7);
+      ctx.lineTo(fx + 28, fy + 7); ctx.lineTo(fx + 28, fy + 24); ctx.lineTo(fx, fy + 24); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#141210"; ctx.fillRect(fx - 2, fy + 29, 32, 2);
+    }
+    ctx.fillStyle = "#141210"; ctx.fillRect(sx, sy + sh - 12, sw, 12);
+    ctx.fillStyle = "#c4211c"; ctx.fillRect(sx + 3, sy + sh - 10, 18, 8);
+    /* le righe del tubo */
+    ctx.fillStyle = "rgba(0,0,0,0.06)";
+    for (var ry = sy; ry < sy + sh; ry += 3) ctx.fillRect(sx, ry, sw, 1);
+    ctx.globalAlpha = 1;
+    /* la tastiera, inclinata */
+    ctx.fillStyle = "#222327";
+    ctx.beginPath(); ctx.moveTo(x - 8, y + 206); ctx.lineTo(x + w + 8, y + 206); ctx.lineTo(x + w, y + 232); ctx.lineTo(x, y + 232); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#3a3b40";
+    for (var k = 0; k < 11; k++) ctx.fillRect(x + 8 + k * ((w - 16) / 11), y + 212, (w - 16) / 11 - 3, 6);
+    ctx.fillRect(x + 40, y + 222, w - 80, 5);
+    /* la scritta sotto, e lo sportello */
+    ctx.fillStyle = "rgba(232,230,224,0.75)"; ctx.font = "12px 'Lucida Console', Consolas, monospace";
+    ctx.fillText("entra nel computer", cx, y + 258);
+    ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.strokeRect(x + 30, y + 276, w - 60, h - 296);
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  }
+
   function drawProp(ctx, room, p, t, pal) {
     var S2 = scene();
     var f = room.floorY, r, b;
     switch (p.kind) {
+      case "pc":
+        drawPC(ctx, p, t, S2);
+        break;
+      case "lumaca": {
+        /* scivolano piano avanti e indietro, lasciando la scia */
+        var span = p.top ? 60 : 220, ph = (t * p.sp + p.seed * 37) % (span * 2);
+        var off = ph < span ? ph : span * 2 - ph, d = (ph < span ? 1 : -1) * p.dir;
+        var lx = p.x + off * p.dir;
+        ctx.fillStyle = "rgba(200,225,215,0.07)";
+        ctx.fillRect(Math.min(p.x, lx), p.y - 2, Math.abs(lx - p.x) + 8, 3);
+        ctx.save();
+        ctx.translate(lx, p.y);
+        if (d < 0) ctx.scale(-1, 1);
+        if (S2.snail) S2.snail(ctx, 0, 0, 0.34, t, { seed: p.seed });
+        ctx.restore();
+        break;
+      }
+      case "polvere": {
+        /* la polvere nel buio: granelli che galleggiano piano */
+        ctx.fillStyle = "rgba(220,215,200,0.22)";
+        for (var di = 0; di < 140; di++) {
+          var dx0 = ((di * 733 + p.seed * 17) % p.w);
+          var dy0 = ((di * 389) % p.h);
+          var dx = dx0 + Math.sin(t * 0.21 + di) * 22;
+          var dy = (dy0 + t * (4 + di % 6)) % p.h;
+          ctx.fillRect(dx, dy, di % 4 ? 1.5 : 2.5, di % 4 ? 1.5 : 2.5);
+        }
+        break;
+      }
       case "lockers":
         S2.lockers(ctx, p.x, p.y, p.w, p.h, pal, room.seed);
         ctx.fillStyle = S2.rgba("#000000", 0.35);

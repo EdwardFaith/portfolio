@@ -65,20 +65,26 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        /* un solo carattere per tutto il sito: anche le classi font-sans / font-mono / font-serif */
+        /* i testi sono in carattere da computer (quello dei popup ERRORE), i titoli in Shadows Into Light (quello della scritta EXIT) */
         tailwind.config = { theme: { extend: { fontFamily: {
-            sans: ['"Shadows Into Light"', 'Georgia', 'serif'],
-            serif: ['"Shadows Into Light"', 'Georgia', 'serif'],
-            mono: ['"Shadows Into Light"', 'Georgia', 'serif'],
-            display: ['"Shadows Into Light"', 'Georgia', 'serif']
+            sans: ['Consolas', '"Lucida Console"', 'Inconsolata', 'ui-monospace', 'Menlo', 'monospace'],
+            serif: ['Consolas', '"Lucida Console"', 'Inconsolata', 'ui-monospace', 'Menlo', 'monospace'],
+            mono: ['Consolas', '"Lucida Console"', 'Inconsolata', 'ui-monospace', 'Menlo', 'monospace'],
+            display: ['Consolas', '"Lucida Console"', 'Inconsolata', 'monospace']
         } } } };
     </script>
 
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- la pagina resta nera finché i caratteri non sono pronti (al massimo 2,5 s):
+         prima si vedeva per un attimo il carattere vecchio -->
+    <style>html.font-attesa body{visibility:hidden}</style>
+    <script>(function(){var d=document.documentElement;d.classList.add("font-attesa");function via(){d.classList.remove("font-attesa")}setTimeout(via,2500);if(!(document.fonts&&document.fonts.load))return via();document.addEventListener("DOMContentLoaded",function(){Promise.all([document.fonts.load("1em \"Shadows Into Light\""),document.fonts.load("1em Inconsolata")]).then(via,via)})})();</script>
+
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap"
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&family=Inconsolata:wght@400;700&display=block">
+    <link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&family=Inconsolata:wght@400;700&display=block"
         rel="stylesheet">
 
     <!-- la radio del museo, anche qui: il ◉ in alto a destra e la sua
@@ -91,6 +97,8 @@
             --text-main: #ffffff;
             --text-muted: #a3a3a3;
             --accent-red: #dc2626;
+            --pc: Consolas, "Lucida Console", Inconsolata, ui-monospace, Menlo, monospace;
+            --titoli: Consolas, "Lucida Console", Inconsolata, ui-monospace, Menlo, monospace;
         }
 
         html {
@@ -106,7 +114,7 @@
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
-            font-family: 'Shadows Into Light', system-ui, sans-serif;
+            font-family: var(--pc);
             background-color: var(--bg-color);
             color: var(--text-main);
             -webkit-overflow-scrolling: touch;
@@ -121,8 +129,8 @@
         h2,
         h3,
         .brand-font {
-            font-family: 'Shadows Into Light', cursive;
-            font-synthesis: none; /* Shadows Into Light ha un solo peso: niente grassetto finto */
+            font-family: var(--titoli); font-weight: 700;
+            font-synthesis: weight;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
@@ -180,6 +188,19 @@
         .corti-fila > * { width: 100%; }
         @media (min-width: 768px) { .corti-fila > * { width: calc(50% - 0.75rem); } }
         @media (min-width: 1024px) { .corti-fila > * { width: calc((100% - 6rem) / 5); } }
+
+        /* ─── CHARLES IN VHS (riquadro «clicca su di me») ─── */
+        .vhs { animation: vhsJitter 3.2s steps(1) infinite; }
+        .vhs-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 8px; filter: contrast(1.2) saturate(0.7) brightness(0.95); }
+        .vhs-r { mix-blend-mode: screen; opacity: .55; filter: sepia(1) saturate(6) hue-rotate(-50deg) brightness(.8); transform: translateX(3px); animation: vhsShiftR 2.6s infinite; }
+        .vhs-b { mix-blend-mode: screen; opacity: .5; filter: sepia(1) saturate(6) hue-rotate(170deg) brightness(.8); transform: translateX(-3px); animation: vhsShiftB 2.6s infinite; }
+        .vhs-band { position: absolute; left: 0; right: 0; height: 18%; top: -20%; background: linear-gradient(to bottom, transparent, rgba(255,255,255,.14) 45%, rgba(255,255,255,.05) 55%, transparent); backdrop-filter: blur(1px) saturate(1.6); animation: vhsBand 4.5s linear infinite; }
+        .vhs-rec { position: absolute; top: 8px; left: 10px; font-size: 10px; letter-spacing: .15em; color: rgba(255,255,255,.8); text-shadow: 1px 0 rgba(255,0,0,.7), -1px 0 rgba(0,120,255,.7); }
+        @keyframes vhsBand { from { top: -20%; } to { top: 110%; } }
+        @keyframes vhsShiftR { 0%, 88%, 100% { transform: translateX(3px); } 90% { transform: translateX(9px); } 94% { transform: translateX(-2px); } }
+        @keyframes vhsShiftB { 0%, 88%, 100% { transform: translateX(-3px); } 91% { transform: translateX(-8px); } 95% { transform: translateX(2px); } }
+        @keyframes vhsJitter { 0%, 100% { transform: none; } 47% { transform: translate(1px, -1px) skewX(-1.5deg); } 48% { transform: translate(-2px, 0) skewX(2deg); } 49% { transform: none; } 81% { transform: translateY(2px); } 82% { transform: none; } }
+        @media (prefers-reduced-motion: reduce) { .vhs, .vhs-r, .vhs-b, .vhs-band { animation: none; } }
 
         /* ─── SUBCONSCIO disintegration ─── */
         @keyframes subcParticleFloat {
@@ -979,7 +1000,7 @@
            misto non si legge, un titolo misto sì. */
         /* ora un carattere solo, come tutto il sito: Shadows Into Light */
         const MIX_FONTS = [
-            "'Shadows Into Light', cursive"
+            "var(--titoli)"
         ];
 
         const TitleMix = ({ text, className = "" }) => {
@@ -1273,13 +1294,15 @@
                         aria-label="Clicca sul coniglio e seguilo nel museo"
                         className="relative shrink-0 w-full sm:w-[260px] h-[190px] bg-black border border-neutral-800 hover:border-red-600 focus:outline-none focus:border-red-600 transition-colors group cursor-pointer overflow-hidden"
                     >
-                        <img
-                            src="simbolo/player.gif/player.gif"
-                            alt="Il giocatore del Codice, in gioco: un tubo catodico con un occhio"
-                            loading="lazy"
-                            decoding="async"
-                            className="absolute inset-0 w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
-                        />
+                        {/* Charles su nastro VHS: l'immagine, due copie sdoppiate (rosso e blu),
+                            la banda di disturbo che scorre e il tremolio del nastro */}
+                        <div className="vhs absolute inset-0 transition-transform duration-300 group-hover:scale-105">
+                            <img src="immagini/personaggi/charles.png" alt="Charles" loading="lazy" decoding="async" className="vhs-img" />
+                            <img src="immagini/personaggi/charles.png" alt="" aria-hidden="true" loading="lazy" decoding="async" className="vhs-img vhs-r" />
+                            <img src="immagini/personaggi/charles.png" alt="" aria-hidden="true" loading="lazy" decoding="async" className="vhs-img vhs-b" />
+                            <span className="vhs-band" aria-hidden="true"></span>
+                            <span className="vhs-rec" aria-hidden="true">▶ PLAY</span>
+                        </div>
                         {/* le righe del tubo e la vignetta: l'aria del museo */}
                         <span
                             aria-hidden="true"
@@ -1469,39 +1492,66 @@
             );
         };
 
-        const PortfolioSection = () => (
-            <section id="portfolio" className="py-12 md:py-24 bg-neutral-950 border-t border-neutral-900">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="mb-16">
-                        <span className="text-red-600 font-mono text-xs uppercase tracking-[0.3em] mb-4 block">Collaborazioni & Media</span>
-                        <h2 className="section-title text-white mb-6">Zona<br /><span className="text-neutral-600">Larga</span></h2>
+        /* ---- Zona Larga: il computer ----------------------------------
+           Non è più una rubrica: è il mio computer. Uno schermo bianco
+           con le cartelle del sito; ci si clicca dentro e si accende il
+           desktop vero (desktop/index.html). Le collaborazioni (Michelangelo
+           Toffetti) stanno lì, nella cartella Collaborazioni. */
+        const PortfolioSection = () => {
+            const [acceso, setAcceso] = useState(false);
+            const cartelle = ['Radio KaOsS', 'Memorie del Cosmo', 'Visual & AI', 'Codice', 'Illustrazioni', 'Materiali', 'Collaborazioni', 'Museo 3D'];
+            return (
+                <section id="portfolio" className="py-12 md:py-24 bg-neutral-950 border-t border-neutral-900">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="mb-12">
+                            <span className="text-red-600 font-mono text-xs uppercase tracking-[0.3em] mb-4 block">Il computer</span>
+                            <h2 className="section-title text-white mb-6">Zona<br /><span className="text-neutral-600">Larga</span></h2>
+                            <div className="prose prose-invert text-neutral-400 leading-relaxed max-w-2xl">
+                                <p>
+                                    <strong>Zona Larga</strong> è il mio computer. Un desktop con tutte le cartelle del sito: Radio KaOsS, Memorie del Cosmo, i visual, i giochi, i disegni, le canzoni, le collaborazioni.
+                                    Dentro ogni cartella ci sono i file: li apri e li guardi. C'è anche la cartella <strong>Museo 3D</strong>, dove pian piano nasce il museo in tre dimensioni.
+                                </p>
+                                <p className="text-neutral-500 text-sm">Clicca dentro lo schermo per accenderlo.</p>
+                            </div>
+                        </div>
 
-                        <div className="prose prose-invert text-neutral-400 leading-relaxed max-w-2xl">
-                            <p>
-                                Lavoro in stretta collaborazione con l'artista o lo studio per creare narrazioni visive uniche.
-                                <strong>Zona Larga</strong> è una rubrica creata per raccontare artisti e chiunque voglia essere raccontato. Un archivio visivo che esplora l'identità creativa attraverso il video.
-                            </p>
+                        {/* il computer */}
+                        <div className="max-w-5xl mx-auto">
+                            <div className="bg-neutral-800 p-3 md:p-5 rounded-md border border-neutral-700 shadow-2xl shadow-black">
+                                <div className="relative w-full bg-[#fbfaf7] overflow-hidden" style={{ aspectRatio: '16 / 10' }}>
+                                    {acceso ? (
+                                        <iframe src="desktop/index.html" title="Zona Larga · il computer" className="absolute inset-0 w-full h-full border-0" allow="autoplay; fullscreen; gyroscope; accelerometer" allowFullScreen></iframe>
+                                    ) : (
+                                        <button type="button" onClick={() => setAcceso(true)} aria-label="accendi il computer" className="absolute inset-0 w-full h-full text-left cursor-pointer group" style={{ fontFamily: 'var(--pc)' }}>
+                                            <div className="absolute inset-0 p-4 md:p-6 flex flex-col flex-wrap content-start gap-2 md:gap-4">
+                                                {cartelle.map(c => (
+                                                    <div key={c} className="w-20 md:w-24 flex flex-col items-center gap-1 text-neutral-900">
+                                                        <svg viewBox="0 0 48 48" className="w-9 h-9 md:w-11 md:h-11"><path d="M3 12h16l4 4h22v24H3z" fill="#f2efe8" stroke="#141210" strokeWidth="2" /><path d="M3 18h42" stroke="#141210" strokeWidth="2" /></svg>
+                                                        <span className="text-[10px] md:text-xs text-center leading-tight">{c}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="absolute left-0 right-0 bottom-0 h-7 md:h-9 bg-[#141210] flex items-center px-2">
+                                                <span className="bg-red-700 text-white text-xs px-2 py-0.5">EB</span>
+                                            </div>
+                                            <span className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/5 transition">
+                                                <span className="bg-[#141210] text-white text-xs md:text-sm px-3 py-1.5 opacity-80 group-hover:opacity-100">▶ accendi</span>
+                                            </span>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="mx-auto w-1/4 h-6 bg-neutral-800 border-x border-neutral-700"></div>
+                            <div className="mx-auto w-2/5 h-2 bg-neutral-700 rounded-sm"></div>
+                            <div className="flex justify-center gap-6 mt-6 text-xs font-mono uppercase tracking-widest">
+                                <a href="desktop/index.html" target="_blank" rel="noopener" className="text-neutral-400 hover:text-red-500">apri a tutto schermo</a>
+                                <a href="radio-kaoss.html" target="_blank" rel="noopener" className="text-neutral-400 hover:text-red-500">museo 3D · radio kaoss</a>
+                            </div>
                         </div>
                     </div>
-
-                    {/* Michelangelo Toffetti Feature */}
-                    <div className="grid lg:grid-cols-2 gap-12 items-center bg-neutral-900/30 p-8 border border-neutral-800">
-                        {/* Description */}
-                        <div className="prose prose-invert text-neutral-400 leading-relaxed text-justify-custom">
-                            <h3 className="text-white text-xl font-bold mb-4">Michelangelo Toffetti</h3>
-                            <p>
-                                (Treviglio, 1976) è un artista italiano che spazia tra scultura, pittura materica e fotografia. Figlio dello scultore Mario Toffetti, ha appreso le tecniche scultoree nella bottega paterna, evolvendo poi verso un linguaggio che include ritratti arcaici, figure mitologiche e dinamiche futuriste, attivo anche nel settore pittorico.
-                            </p>
-                        </div>
-
-                        {/* Video */}
-                        <div className="w-full aspect-video bg-black border border-neutral-800 relative shadow-2xl shadow-red-900/10">
-                            <VideoPlaceholder label="Zona Larga: Michelangelo Toffetti" extraClass="w-full h-full" videoId="Jr15_es8qso" />
-                        </div>
-                    </div>
-                </div>
-            </section>
-        );
+                </section>
+            );
+        };
 
         const CosmoSection = () => {
             const [showConcept, setShowConcept] = useState(false);
