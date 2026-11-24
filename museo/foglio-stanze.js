@@ -1305,7 +1305,7 @@
       c.translate(tx2, ty2);
       c.rotate(rr(reg.seed, 2480 + i, -0.06, 0.06));
       c.fillStyle = "rgba(226,226,220," + (0.10 + r(reg.seed, 2490 + i) * 0.12).toFixed(2) + ")";
-      c.font = "400 " + Math.round(rr(reg.seed, 2500 + i, 15, 25)) + "px 'Shadows Into Light', system-ui, sans-serif";
+      c.font = "400 " + Math.round(rr(reg.seed, 2500 + i, 15, 25)) + "px Consolas, Inconsolata, system-ui, sans-serif";
       c.fillText(TAGS[Math.floor(r(reg.seed, 2510 + i) * TAGS.length)], 0, 0);
       c.restore();
     }
@@ -1584,7 +1584,7 @@
       c.ellipse(x + f.w * 0.5, y + f.h * 0.42, f.w * 0.16, f.h * 0.13, 0.2, 0, 6.3);
       c.fill();
       c.fillStyle = "rgba(40,28,18,0.35)";
-      c.font = "500 9px 'Shadows Into Light', cursive";
+      c.font = "500 9px Consolas, Inconsolata, cursive";
       c.textAlign = "center";
       c.fillText("senza titolo", x + f.w / 2, y + f.h - 10);
       c.textAlign = "left";
@@ -1999,7 +1999,7 @@
 
     /* il cartello: qui si scende */
     c.fillStyle = "rgba(240,230,208,0.35)";
-    c.font = "500 11px 'Shadows Into Light', cursive";
+    c.font = "500 11px Consolas, Inconsolata, cursive";
     c.textAlign = "center";
     c.fillText("sotto", hx, y0 - 14);
     c.textAlign = "left";
@@ -2806,7 +2806,7 @@
         rr2(c, sx, sy, 92, 26, 3);
         c.fill();
         c.fillStyle = "rgba(255,238,222,0.92)";
-        c.font = "600 11px 'Shadows Into Light', cursive";
+        c.font = "600 11px Consolas, Inconsolata, cursive";
         c.textAlign = "center";
         c.fillText("U S C I T A", sx + 46, sy + 18);
         c.textAlign = "left";
@@ -2818,7 +2818,7 @@
         rr2(c, dx - 40, 148, 80, 22, 2);
         c.fill();
         c.fillStyle = "rgba(240,230,206,0.6)";
-        c.font = "600 10px 'Shadows Into Light', cursive";
+        c.font = "600 10px Consolas, Inconsolata, cursive";
         c.textAlign = "center";
         c.fillText("S O P R A", dx, 163);
         c.textAlign = "left";
@@ -3126,19 +3126,19 @@
     c.fillStyle = "rgba(48,34,20,0.82)";
     var size = 15, label = sp(reg.name.toUpperCase(), 2);
     c.textAlign = "center";
-    c.font = "400 " + size + "px \"Shadows Into Light\", system-ui, sans-serif";
+    c.font = "400 " + size + "px Consolas, Inconsolata, system-ui, sans-serif";
     while (size > 9 && c.measureText(label).width > 238) {
       size -= 1;
-      c.font = "400 " + size + "px \"Shadows Into Light\", system-ui, sans-serif";
+      c.font = "400 " + size + "px Consolas, Inconsolata, system-ui, sans-serif";
     }
     c.fillText(label, 0, 2);
     /* la riga sotto: se e' lunga si stringe, o si taglia. Non esce
        dalla targhetta, che una targhetta non e' un muro. */
     var sub = String(reg.sub || ""), ss = 9.5;
-    c.font = "500 " + ss + "px 'Shadows Into Light', cursive";
+    c.font = "500 " + ss + "px Consolas, Inconsolata, cursive";
     while (ss > 7 && c.measureText(sub).width > 226) {
       ss -= 0.5;
-      c.font = "500 " + ss + "px 'Shadows Into Light', cursive";
+      c.font = "500 " + ss + "px Consolas, Inconsolata, cursive";
     }
     while (sub.length > 6 && c.measureText(sub).width > 226) sub = sub.slice(0, -1);
     if (sub !== String(reg.sub || "")) sub = sub.replace(/[\s,;:.]+$/, "") + "\u2026";
@@ -3220,7 +3220,7 @@
         c.fillStyle = "rgba(199,154,63,0.85)";
         c.fillRect(x - w / 2 - 6, top + 24, w + 12, 5);
         c.fillStyle = "rgba(240,228,200,0.55)";
-        c.font = "500 9px 'Shadows Into Light', cursive";
+        c.font = "500 9px Consolas, Inconsolata, cursive";
         c.textAlign = "center";
         c.fillText("cabina", x, top + 16);
         c.textAlign = "left";
@@ -3243,7 +3243,7 @@
         rr2(c, x - 36, top - 24, 72, 17, 2);
         c.fill();
         c.fillStyle = "rgba(250,240,224,0.82)";
-        c.font = "600 9px 'Shadows Into Light', cursive";
+        c.font = "600 9px Consolas, Inconsolata, cursive";
         c.textAlign = "center";
         c.fillText("occupato", x, top - 11);
         c.textAlign = "left";

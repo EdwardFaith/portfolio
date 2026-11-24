@@ -19,8 +19,8 @@
   --ch-ink: var(--ink, #e7e2d6);
   --ch-dim: var(--dim, #9a958c);
   --ch-faint: var(--faint, rgba(231, 226, 214, 0.16));
-  --ch-font: var(--font, "Shadows Into Light", system-ui, -apple-system, sans-serif);
-  --ch-mono: 'Shadows Into Light', cursive;
+  --ch-font: var(--font, Consolas, Inconsolata, system-ui, -apple-system, sans-serif);
+  --ch-mono: Consolas, Inconsolata, cursive;
 }
 
 [hidden] { display: none !important; }

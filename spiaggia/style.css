@@ -16,7 +16,7 @@ html, body {
   overflow: hidden;
   background: #04040a;
   color: #e8e2d6;
-  font-family: 'Shadows Into Light', system-ui, -apple-system, sans-serif;
+  font-family: Consolas, Inconsolata, system-ui, -apple-system, sans-serif;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }

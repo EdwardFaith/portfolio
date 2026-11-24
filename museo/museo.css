@@ -660,7 +660,7 @@ body.desktop-device #touch { display: none; }
 }
 .zone-note {
     margin: -4px 0 10px; padding: 5px 9px;
-    font-family: 'Shadows Into Light', cursive;
+    font-family: Consolas, Inconsolata, cursive;
     font-size: 10px; letter-spacing: 0.04em; color: #b9c8c2;
     background: rgba(120, 200, 180, 0.06);
     border-left: 2px solid rgba(120, 200, 180, 0.40);
@@ -929,7 +929,7 @@ body.desktop-device #touch { display: none; }
         radial-gradient(ellipse at 14% 0%, rgba(255, 253, 244, 0.95), rgba(255, 253, 244, 0) 62%),
         linear-gradient(158deg, #ece5d2 0%, #dcd2ba 100%);
     color: #2b2419;
-    font-family: 'Shadows Into Light', cursive;
+    font-family: Consolas, Inconsolata, cursive;
     font-size: 15px;
     line-height: 1.7;
     cursor: pointer;
@@ -1290,7 +1290,7 @@ body.desktop-device #touch { display: none; }
 
 .srv-terminal {
     position: relative;
-    font-family: 'Shadows Into Light', cursive;
+    font-family: Consolas, Inconsolata, cursive;
     color: #a8e6cf;
 }
 .srv-crt-glass {
@@ -1552,7 +1552,7 @@ body.desktop-device #touch { display: none; }
     border-radius: 4px;
     overflow: hidden;
     color: #e2e8f0;
-    font-family: 'Shadows Into Light', cursive;
+    font-family: Consolas, Inconsolata, cursive;
     animation: sfFadeIn 0.22s ease-out;
 }
 @keyframes sfFadeIn {

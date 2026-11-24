@@ -682,12 +682,12 @@
     c.fillStyle = "rgba(226,220,204,0.86)";
     c.fillRect(-larg * 0.62, -alt * 0.72, larg * 1.24, alt * 0.16);
     c.fillStyle = "rgba(126,26,26,0.92)";
-    c.font = "700 " + Math.max(7, Math.round(11 * d.s)) + "px 'Shadows Into Light', cursive";
+    c.font = "700 " + Math.max(7, Math.round(11 * d.s)) + "px Consolas, Inconsolata, cursive";
     c.textAlign = "center";
     c.textBaseline = "middle";
     c.fillText("LATTE MATERNO", 0, -alt * 0.72 + alt * 0.07);
     c.fillStyle = "rgba(30,28,26,0.75)";
-    c.font = "500 " + Math.max(5, Math.round(7 * d.s)) + "px 'Shadows Into Light', cursive";
+    c.font = "500 " + Math.max(5, Math.round(7 * d.s)) + "px Consolas, Inconsolata, cursive";
     c.fillText("reparto 7", 0, -alt * 0.72 + alt * 0.125);
 
     /* il manometro e la scaletta */
@@ -1064,7 +1064,7 @@
     c.fillStyle = "rgba(28,27,24,0.85)";
     c.fillRect(-11, -46, 22, 22);
     c.fillStyle = "rgba(206,200,184,0.5)";
-    c.font = "700 9px 'Shadows Into Light', cursive";
+    c.font = "700 9px Consolas, Inconsolata, cursive";
     c.textAlign = "center";
     c.textBaseline = "middle";
     c.fillText("7", 0, -35);
@@ -1225,7 +1225,7 @@
     c.moveTo(-17, -92); c.lineTo(17, -92);
     c.stroke();
     c.fillStyle = "rgba(226,222,208,0.32)";
-    c.font = "700 7px 'Shadows Into Light', cursive";
+    c.font = "700 7px Consolas, Inconsolata, cursive";
     c.textAlign = "center";
     c.textBaseline = "middle";
     c.fillText("7", 0, -84);
@@ -1528,7 +1528,7 @@
     c.stroke();
     /* la targhetta sotto: un numero, e nient'altro */
     c.fillStyle = "rgba(214,208,192,0.36)";
-    c.font = "700 " + Math.round(10 * s) + "px 'Shadows Into Light', cursive";
+    c.font = "700 " + Math.round(10 * s) + "px Consolas, Inconsolata, cursive";
     c.textAlign = "center";
     c.textBaseline = "middle";
     c.fillText(String(1 + d), 0, -12 * s);

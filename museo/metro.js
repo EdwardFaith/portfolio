@@ -441,17 +441,17 @@
     ctx.fillStyle = "#c9cec2";
     ctx.beginPath(); ctx.arc(x + 34, y + h / 2, 18, 0, 6.3); ctx.fill();
     ctx.fillStyle = "#101512";
-    ctx.font = "700 20px 'Shadows Into Light', cursive";
+    ctx.font = "700 20px Consolas, Inconsolata, cursive";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(g.linea, x + 34, y + h / 2 + 1);
 
     ctx.textAlign = "left";
     ctx.fillStyle = "rgba(226,232,222,0.92)";
-    ctx.font = "700 14px 'Shadows Into Light', cursive";
+    ctx.font = "700 14px Consolas, Inconsolata, cursive";
     ctx.fillText("METROPOLITANA", x + 62, y + 26);
     ctx.fillStyle = "rgba(168,180,166,0.8)";
-    ctx.font = "400 11px 'Shadows Into Light', cursive";
+    ctx.font = "400 11px Consolas, Inconsolata, cursive";
     ctx.fillText(t2("direzione  le terre", "direction  the lands"), x + 62, y + 45);
 
     var on = Math.sin(t * 2.2) > -0.2;
@@ -1124,7 +1124,7 @@
     ctx.lineWidth = 2.4;
     ctx.strokeRect(x + 30, y + TH * 0.62, 52, 52);
     ctx.fillStyle = "rgba(226,232,222,0.9)";
-    ctx.font = "700 30px 'Shadows Into Light', cursive";
+    ctx.font = "700 30px Consolas, Inconsolata, cursive";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(g.linea, x + 56, y + TH * 0.62 + 27);

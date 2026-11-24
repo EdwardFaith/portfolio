@@ -1331,7 +1331,7 @@
        guida — la lastra scura, la riga rossa, il testo chiaro. Ma è un
        fumetto, non una scheda: due righe, e via di lì — prima era una
        lastra alta cinque righe sopra la testa, e si mangiava il mondo */
-    c.font = "400 " + Math.round(12.5 * s) + "px 'Shadows Into Light', system-ui, -apple-system, sans-serif";
+    c.font = "400 " + Math.round(12.5 * s) + "px Consolas, Inconsolata, system-ui, -apple-system, sans-serif";
     c.textAlign = "left";
     c.textBaseline = "middle";
 
@@ -1999,7 +1999,7 @@
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.font = "500 " + Math.round(Math.max(13, Math.min(20, W / 62))) +
-          "px 'Shadows Into Light', system-ui, -apple-system, sans-serif";
+          "px Consolas, Inconsolata, system-ui, -apple-system, sans-serif";
         ctx.fillText(percheMorto, W / 2, H * 0.52);
         ctx.restore();
       }

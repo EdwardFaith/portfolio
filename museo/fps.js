@@ -780,7 +780,7 @@
     var BW = W.W, BH = W.H, p = G.p, it = !(M.lang && M.lang.l === "en");
     var gid = G.guns[G.gunI] || "pistol", hpw = 62, hpk = Math.max(0, p.hp) / p.max;
 
-    ctx.font = "bold 8px 'Shadows Into Light', cursive";
+    ctx.font = "bold 8px Consolas, Inconsolata, cursive";
     ctx.textBaseline = "top";
     ctx.textAlign = "left";
 
@@ -813,7 +813,7 @@
       var t = Math.max(0, G.timer);
       var mm = Math.floor(t / 60), ss = Math.floor(t % 60);
       ctx.textAlign = "center";
-      ctx.font = "bold 15px 'Shadows Into Light', cursive";
+      ctx.font = "bold 15px Consolas, Inconsolata, cursive";
       ctx.fillStyle = t < 20
         ? "rgba(255,96,72," + (0.55 + 0.45 * Math.abs(Math.sin(G.time * 5))).toFixed(2) + ")"
         : "rgba(236,226,210,.82)";
@@ -822,23 +822,23 @@
       ctx.fillRect(BW * 0.22, 25, BW * 0.56, 2);
       ctx.fillStyle = "rgba(232,120,100,.85)";
       ctx.fillRect(BW * 0.22, 25, BW * 0.56 * (t / ESCAPE_TIME), 2);
-      ctx.font = "bold 8px 'Shadows Into Light', cursive";
+      ctx.font = "bold 8px Consolas, Inconsolata, cursive";
     }
 
     /* quello che il gioco ti dice */
     if (G.sayT > 0) {
       var a = Math.min(1, G.sayT);
       ctx.textAlign = "center";
-      ctx.font = "bold 9px 'Shadows Into Light', cursive";
+      ctx.font = "bold 9px Consolas, Inconsolata, cursive";
       ctx.fillStyle = "rgba(238,232,220," + (0.45 + 0.5 * a).toFixed(2) + ")";
       ctx.fillText(G.say, BW / 2, BH * 0.74);
     }
     if (G.state === "found") {
       ctx.textAlign = "center";
       ctx.fillStyle = "rgba(255,255,255,.95)";
-      ctx.font = "bold 11px 'Shadows Into Light', cursive";
+      ctx.font = "bold 11px Consolas, Inconsolata, cursive";
       ctx.fillText(it ? "TI STA LEGGENDO IL PENSIERO." : "IT IS READING YOUR THOUGHTS.", BW / 2, BH * 0.32);
-      ctx.font = "bold 22px 'Shadows Into Light', cursive";
+      ctx.font = "bold 22px Consolas, Inconsolata, cursive";
       ctx.fillText(it ? "SCAPPA." : "RUN.", BW / 2, BH * 0.42);
     }
 
@@ -863,7 +863,7 @@
       ctx.fillRect(0, 0, BW, BH);
       ctx.textAlign = "center";
       ctx.fillStyle = "rgba(232,226,212," + Math.min(1, k * 1.4).toFixed(2) + ")";
-      ctx.font = "bold 12px 'Shadows Into Light', cursive";
+      ctx.font = "bold 12px Consolas, Inconsolata, cursive";
       ctx.fillText(M.lang && M.lang.l === "en" ? "THE TAPE IS YOURS." : "IL NASTRO È TUO.", BW / 2, BH * 0.44);
       ctx.textAlign = "left";
       return;

@@ -2,12 +2,12 @@
    GRAFFITI — scritte sui muri, disegnate su tela trasparente.
    · spray(): bomboletta, con alone e colature
    · scrawl(): grafia fitta a pennarello, per i testi lunghi
-   Il carattere è quello del sito: Shadows Into Light.
+   Il carattere è quello del sito: Consolas.
    ========================================================= */
 import * as THREE from 'three';
 import { rng, canvas, Q } from './tex.js';
 
-export const FONT = '"Shadows Into Light", "Segoe Print", cursive';
+export const FONT = 'Consolas, Inconsolata, "Segoe Print", cursive';
 export async function fontsReady() {
   try { await document.fonts.load(`40px ${FONT}`); await document.fonts.ready; } catch (e) { }
 }

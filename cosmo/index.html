@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="it" data-orienta="landscape"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>SPEDIZIONE · MEMORIE DEL COSMO</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap">
+<!DOCTYPE html><html lang="it" data-orienta="landscape"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>SPEDIZIONE · MEMORIE DEL COSMO</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;overflow:hidden;background:#050607;font-family:'Shadows Into Light', cursive;color:#cfd3d6;-webkit-user-select:none;user-select:none}
+*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;overflow:hidden;background:#050607;font-family:Consolas, Inconsolata, cursive;color:#cfd3d6;-webkit-user-select:none;user-select:none}
 #cv{display:block;touch-action:none}
 #crt{position:fixed;inset:0;pointer-events:none;z-index:10;background:repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0,rgba(0,0,0,.13) 1px,transparent 1px,transparent 3px)}
 #crt::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(0,0,0,.4) 100%);box-shadow:inset 0 0 120px rgba(0,0,0,.45)}
@@ -17,7 +17,7 @@ body.vetro #crt{display:none}
 #back span{position:relative;z-index:2}
 
 /* Orientamento forzato orizzontale su telefono */
-#ruotaOverlay{display:none;position:fixed;inset:0;z-index:999999;background:#050607;color:#f0e2c4;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:20px;font-family:'Shadows Into Light', cursive}
+#ruotaOverlay{display:none;position:fixed;inset:0;z-index:999999;background:#050607;color:#f0e2c4;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:20px;font-family:Consolas, Inconsolata, cursive}
 @media (orientation: portrait) and (pointer: coarse){#ruotaOverlay{display:flex}}
 @media (orientation: portrait) and (max-width: 900px){body.touch-device #ruotaOverlay{display:flex}}
 .ruota-phone{width:46px;height:76px;border:2.5px solid #e8b44a;border-radius:8px;animation:phoneRotate 2.2s ease-in-out infinite;position:relative}
@@ -52,7 +52,7 @@ body.touch-device #ver { display: none !important; }
   background: rgba(10, 14, 18, 0.78);
   border: 1px solid rgba(232, 180, 74, 0.35);
   color: #e8b44a;
-  font-family: 'Shadows Into Light', cursive;
+  font-family: Consolas, Inconsolata, cursive;
   font-weight: 700;
   font-size: 14px;
   display: flex;
@@ -1128,7 +1128,7 @@ function clamp(v,a,b){return v<a?a:v>b?b:v}
 function lerp(a,b,k){return a+(b-a)*k}
 function rgba(c,a){if(!c||c.charAt(0)!=="#")return c;var n=parseInt(c.slice(1),16);return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+a+")"}
 function rnd(i){var v=Math.sin(i*127.1+311.7)*43758.5453;return v-Math.floor(v)}
-function txt(s,x,y,sz,col,al,w){ctx.font=(w||700)+" "+sz+"px 'Shadows Into Light', cursive";ctx.fillStyle=col;ctx.textAlign=al||"left";ctx.textBaseline="alphabetic";ctx.fillText(s,x,y)}
+function txt(s,x,y,sz,col,al,w){ctx.font=(w||700)+" "+sz+"px Consolas, Inconsolata, cursive";ctx.fillStyle=col;ctx.textAlign=al||"left";ctx.textBaseline="alphabetic";ctx.fillText(s,x,y)}
 /* ---- tastiera e mouse -------------------------------------- */
 var keys={},mouse={x:VW/2,y:VH/2,down:false};
 function kn(e){var k=e.key.toLowerCase();if(k===" ")k="space";return k}
@@ -3066,7 +3066,7 @@ function drawBarrel(s){
   ctx.fillStyle="#172216";ctx.fillRect(x,y,w,h);
   ctx.fillStyle="#273824";ctx.fillRect(x,y+6,w,4);ctx.fillRect(x,y+h-10,w,4);
   ctx.fillStyle="rgba(212,232,58,0.78)";ctx.fillRect(x+2,y+h/2-6,w-4,12);
-  ctx.fillStyle="#121a11";ctx.font="bold 10px 'Shadows Into Light', cursive";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillStyle="#121a11";ctx.font="bold 10px Consolas, Inconsolata, cursive";ctx.textAlign="center";ctx.textBaseline="middle";
   ctx.fillText("☣",x+w/2,y+h/2);
   ctx.fillStyle="rgba(111,240,140,"+(0.14+0.12*Math.sin(time*3+s.x))+")";ctx.fillRect(x+w/4,y-8,w/2,8);
 }

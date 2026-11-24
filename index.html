@@ -65,7 +65,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        /* i testi sono in carattere da computer (quello dei popup ERRORE), i titoli in Shadows Into Light (quello della scritta EXIT) */
+        /* i testi sono in carattere da computer (quello dei popup ERRORE), i titoli in Consolas (quello della scritta EXIT) */
         tailwind.config = { theme: { extend: { fontFamily: {
             sans: ['Consolas', '"Lucida Console"', 'Inconsolata', 'ui-monospace', 'Menlo', 'monospace'],
             serif: ['Consolas', '"Lucida Console"', 'Inconsolata', 'ui-monospace', 'Menlo', 'monospace'],
@@ -80,11 +80,11 @@
     <!-- la pagina resta nera finché i caratteri non sono pronti (al massimo 2,5 s):
          prima si vedeva per un attimo il carattere vecchio -->
     <style>html.font-attesa body{visibility:hidden}</style>
-    <script>(function(){var d=document.documentElement;d.classList.add("font-attesa");function via(){d.classList.remove("font-attesa")}setTimeout(via,2500);if(!(document.fonts&&document.fonts.load))return via();document.addEventListener("DOMContentLoaded",function(){Promise.all([document.fonts.load("1em \"Shadows Into Light\""),document.fonts.load("1em Inconsolata")]).then(via,via)})})();</script>
+    <script>(function(){var d=document.documentElement;d.classList.add("font-attesa");function via(){d.classList.remove("font-attesa")}setTimeout(via,2500);if(!(document.fonts&&document.fonts.load))return via();document.addEventListener("DOMContentLoaded",function(){Promise.all([document.fonts.load("1em Consolas, Inconsolata"),document.fonts.load("1em Inconsolata")]).then(via,via)})})();</script>
 
     <!-- Google Fonts -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&family=Inconsolata:wght@400;700&display=block">
-    <link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&family=Inconsolata:wght@400;700&display=block"
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=block">
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=block"
         rel="stylesheet">
 
     <!-- la radio del museo, anche qui: il ◉ in alto a destra e la sua
@@ -271,7 +271,7 @@
             font-weight: 700;
             line-height: 1;
             color: #dc2626;
-            font-family: 'Shadows Into Light', cursive;
+            font-family: Consolas, Inconsolata, cursive;
             text-shadow: 0 0 40px rgba(220, 38, 38, 0.55);
             animation: puntoSpin 1.2s ease-in-out;
             display: inline-block;
@@ -407,7 +407,7 @@
             z-index: 6;
             margin: 0;
             padding: 0;
-            font-family: 'Shadows Into Light', cursive;
+            font-family: Consolas, Inconsolata, cursive;
             font-size: clamp(0.75rem, 1.6vw, 0.875rem);
             font-weight: 700;
             line-height: 1;
@@ -998,7 +998,7 @@
            macchina da scrivere. Vale per i titoli e per l'interfaccia;
            le descrizioni restano in un carattere solo — un testo lungo
            misto non si legge, un titolo misto sì. */
-        /* ora un carattere solo, come tutto il sito: Shadows Into Light */
+        /* ora un carattere solo, come tutto il sito: Consolas */
         const MIX_FONTS = [
             "var(--titoli)"
         ];
@@ -2026,7 +2026,7 @@
                             {/* ? — installazione: proiezione + tablet */}
                             <a href="punto-interrogativo/index.html?mode=display&layout=split" target="_blank" className="group block bg-neutral-900 border border-neutral-800 p-1 hover:border-white/25 hover:bg-neutral-800 transition-all duration-300">
                                 <div className="aspect-[4/3] bg-[#fcfcfa] relative overflow-hidden mb-2.5 flex items-center justify-center">
-                                    <span className="text-6xl sm:text-7xl leading-none text-[#111] select-none group-hover:scale-110 transition-transform duration-300" style={{ fontFamily: "'Shadows Into Light', cursive" }} role="img" aria-label="Punto interrogativo">?</span>
+                                    <span className="text-6xl sm:text-7xl leading-none text-[#111] select-none group-hover:scale-110 transition-transform duration-300" style={{ fontFamily: "Consolas, Inconsolata, cursive" }} role="img" aria-label="Punto interrogativo">?</span>
                                 </div>
                                 <div className="px-3 pb-3">
                                     <h3 className="text-sm font-bold text-white mb-0.5 tracking-wide">?</h3>

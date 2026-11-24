@@ -317,7 +317,7 @@
       c.lineWidth = Math.max(1, w * 0.006);
       c.strokeRect(sx - w * 0.20, sy0, w * 0.40, h * 0.055);
       c.fillStyle = "rgba(228,214,180," + (0.70 + 0.20 * Math.sin(t * 2.4)).toFixed(2) + ")";
-      c.font = "700 " + Math.max(8, Math.round(h * 0.030)) + "px 'Shadows Into Light', cursive";
+      c.font = "700 " + Math.max(8, Math.round(h * 0.030)) + "px Consolas, Inconsolata, cursive";
       c.textAlign = "center";
       c.textBaseline = "middle";
       c.fillText(k.insegna, sx, sy0 + h * 0.028);

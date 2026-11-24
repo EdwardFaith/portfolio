@@ -1800,17 +1800,17 @@
     ctx.save();
     ctx.textAlign = "center";
 
-    ctx.font = "700 10px 'Shadows Into Light', system-ui, sans-serif";
+    ctx.font = "700 10px Consolas, Inconsolata, system-ui, sans-serif";
     ctx.fillStyle = "rgba(226,236,248,0.38)";
     ctx.fillText(slot ? slot.table : "IL TAVOLO DELLA DONNA", cx, yTable);
 
-    ctx.font = "400 14px 'Shadows Into Light', system-ui, sans-serif";
+    ctx.font = "400 14px Consolas, Inconsolata, system-ui, sans-serif";
     ctx.fillStyle = "rgba(226,236,248,0.55)";
     ctx.fillText(this.endless ? "N O N   S I   C H I U D E" : "S O P R A V V I V I", cx, yMode);
 
     if (this.endless) {
       /* il tavolo della donna non ha un cronometro: ha le ondate */
-      ctx.font = "400 40px 'Shadows Into Light', system-ui, sans-serif";
+      ctx.font = "400 40px Consolas, Inconsolata, system-ui, sans-serif";
       if (this.waveGap > 0) {
         /* l'ondata è chiusa: si vede subito, e si legge l'arrivo */
         ctx.fillStyle = "rgba(255,209,102," + (0.55 + 0.45 * Math.abs(Math.sin(t * 3))).toFixed(3) + ")";
@@ -1821,11 +1821,11 @@
       }
     } else if (this.phase === "boss" || this.phase === "won") {
       /* scaduto il tempo non si vince: arriva il guardiano */
-      ctx.font = "400 40px 'Shadows Into Light', system-ui, sans-serif";
+      ctx.font = "400 40px Consolas, Inconsolata, system-ui, sans-serif";
       ctx.fillStyle = this.phase === "won" ? "#e9f1ff" : "#ffb08a";
       ctx.fillText("IL GUARDIANO", cx, yBig);
     } else {
-      ctx.font = "400 44px 'Shadows Into Light', system-ui, sans-serif";
+      ctx.font = "400 44px Consolas, Inconsolata, system-ui, sans-serif";
       ctx.fillStyle = left <= 6 ? "#ffd166" : "#e9f1ff";
       ctx.fillText(label, cx, yBig);
     }
@@ -1836,7 +1836,7 @@
     }
 
     /* il conto dell'ondata (o quanti ne hai stesi) e i guardiani */
-    ctx.font = "700 10px 'Shadows Into Light', system-ui, sans-serif";
+    ctx.font = "700 10px Consolas, Inconsolata, system-ui, sans-serif";
     var riga;
     if (this.endless) {
       riga = this.waveGap > 0
@@ -1855,7 +1855,7 @@
       var bw = 460, bx = cx - bw / 2, by = 288;
       var frac = Math.max(0, Math.min(1, boss.hp / boss.maxHp));
 
-      ctx.font = "700 10px 'Shadows Into Light', system-ui, sans-serif";
+      ctx.font = "700 10px Consolas, Inconsolata, system-ui, sans-serif";
       ctx.fillStyle = boss.enraged ? "rgba(255,150,120,0.95)" : "rgba(255,226,190,0.85)";
       ctx.fillText(boss.k.nome + (boss.enraged ? " · FURIOSO" : ""), cx, by - 7);
 
@@ -1874,17 +1874,17 @@
       ctx.fillRect(0, 0, SP.Beach.VIEW.w, SP.Beach.VIEW.h);
 
       var won = this.phase === "won";
-      ctx.font = "700 11px 'Shadows Into Light', system-ui, sans-serif";
+      ctx.font = "700 11px Consolas, Inconsolata, system-ui, sans-serif";
       ctx.fillStyle = "rgba(220,230,245," + (0.5 * k).toFixed(3) + ")";
       ctx.fillText(won ? "IL TAVOLO SI SPEGNE"
         : (this.endless ? "IL TAVOLO DELLA DONNA TI RIMETTE GIÙ" : "LA SABBIA TI HA PRESO"), 800, 402);
 
-      ctx.font = "400 40px 'Shadows Into Light', system-ui, sans-serif";
+      ctx.font = "400 40px Consolas, Inconsolata, system-ui, sans-serif";
       ctx.fillStyle = won ? "rgba(232,246,255," + k.toFixed(3) + ")" : "rgba(255,138,114," + k.toFixed(3) + ")";
       ctx.fillText(won ? "SEI ANCORA IN PIEDI"
         : (this.endless ? "ONDATA " + this.wave : "ERANO TROPPI, ANCHE PER LA SPADA"), 800, 452);
 
-      ctx.font = "400 12px 'Shadows Into Light', system-ui, sans-serif";
+      ctx.font = "400 12px Consolas, Inconsolata, system-ui, sans-serif";
       ctx.fillStyle = "rgba(220,230,245," + (0.6 * k).toFixed(3) + ")";
       ctx.fillText(won ? "il tavolo resta aperto"
         : (this.endless

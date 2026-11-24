@@ -888,11 +888,11 @@
       c.save();
       c.globalAlpha = 0.30;
       c.fillStyle = "#d8d2c0";
-      c.font = "400 " + fs + "px 'Shadows Into Light', ui-monospace, monospace";
+      c.font = "400 " + fs + "px Consolas, Inconsolata, ui-monospace, monospace";
       c.textAlign = "left";
       c.fillText("LATTE MATERNO", sx, h * 0.46);
       c.globalAlpha = 0.16;
-      c.font = "400 " + Math.round(fs * 0.52) + "px 'Shadows Into Light', ui-monospace, monospace";
+      c.font = "400 " + Math.round(fs * 0.52) + "px Consolas, Inconsolata, ui-monospace, monospace";
       c.fillText("REPARTO MUNGITURA · SOLO PERSONALE AUTORIZZATO", sx, h * 0.46 + fs * 0.72);
       c.restore();
       /* le colature: la vernice è colata, e non è stata pulita */
@@ -972,10 +972,10 @@
     c.lineWidth = 2;
     c.strokeRect(x - 34, base - 150, 68, 40);
     c.fillStyle = "rgba(30,28,26,0.92)";
-    c.font = "400 " + Math.max(11, Math.round(h * 0.019)) + "px 'Shadows Into Light', ui-monospace, monospace";
+    c.font = "400 " + Math.max(11, Math.round(h * 0.019)) + "px Consolas, Inconsolata, ui-monospace, monospace";
     c.textAlign = "center";
     c.fillText("ALT", x, base - 124);
-    c.font = "400 " + Math.max(7, Math.round(h * 0.011)) + "px 'Shadows Into Light', ui-monospace, monospace";
+    c.font = "400 " + Math.max(7, Math.round(h * 0.011)) + "px Consolas, Inconsolata, ui-monospace, monospace";
     c.fillText("PERMESSO", x, base - 117);
     c.textAlign = "left";
 
@@ -1069,13 +1069,13 @@
 
     /* l'insegna sopra la serranda: la sola cosa pulita */
     var fs = Math.max(13, Math.round(Math.min(26, h * 0.030)));
-    c.font = "400 " + fs + "px 'Shadows Into Light', ui-monospace, monospace";
+    c.font = "400 " + fs + "px Consolas, Inconsolata, ui-monospace, monospace";
     c.textAlign = "center";
     c.fillStyle = "rgba(238,232,216,0.92)";
     c.fillText("LATTE MATERNO", x, base - alto - 44);
     c.fillStyle = "rgba(198,38,32,0.92)";
     c.fillRect(x - 74, base - alto - 36, 148, 3);
-    c.font = "400 " + Math.round(fs * 0.52) + "px 'Shadows Into Light', ui-monospace, monospace";
+    c.font = "400 " + Math.round(fs * 0.52) + "px Consolas, Inconsolata, ui-monospace, monospace";
     c.fillStyle = "rgba(206,200,186,0.70)";
     c.fillText("100% MADRE · 1000 L", x, base - alto - 24);
     c.textAlign = "left";

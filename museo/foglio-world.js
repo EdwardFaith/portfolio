@@ -1661,7 +1661,7 @@
   };
 
   /* ---- le scritte sul muro: poche, storte, grafite ---- */
-  var FONT = '"Shadows Into Light", "Helvetica Neue", system-ui, sans-serif';
+  var FONT = 'Consolas, Inconsolata, "Helvetica Neue", system-ui, sans-serif';
   W.paintSigns = function (ctx, reg, cam, t, sc) {
     var T = (M.FOWTEXT && M.FOWTEXT.signs) || {};
     setCam(ctx, cam, sc, 1);

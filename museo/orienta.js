@@ -205,7 +205,7 @@
     if (hudEscEl && doc.body && doc.body.contains(hudEscEl)) return hudEscEl;
     hudEscEl = doc.createElement("div");
     hudEscEl.id = "escHoldHud";
-    hudEscEl.style.cssText = "position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:999999;background:rgba(8,10,14,0.94);border:1px solid rgba(220,38,38,0.7);padding:8px 18px;border-radius:28px;display:none;align-items:center;gap:12px;color:#f0f2f5;font-family:'Shadows Into Light', cursive;font-size:12px;font-weight:700;letter-spacing:1.5px;box-shadow:0 6px 24px rgba(0,0,0,0.85);pointer-events:none;user-select:none;backdrop-filter:blur(8px);transition:opacity 0.2s;";
+    hudEscEl.style.cssText = "position:fixed;top:24px;left:50%;transform:translateX(-50%);z-index:999999;background:rgba(8,10,14,0.94);border:1px solid rgba(220,38,38,0.7);padding:8px 18px;border-radius:28px;display:none;align-items:center;gap:12px;color:#f0f2f5;font-family:Consolas, Inconsolata, cursive;font-size:12px;font-weight:700;letter-spacing:1.5px;box-shadow:0 6px 24px rgba(0,0,0,0.85);pointer-events:none;user-select:none;backdrop-filter:blur(8px);transition:opacity 0.2s;";
     hudEscEl.innerHTML = '<svg width="26" height="26" viewBox="0 0 36 36" style="transform:rotate(-90deg);display:block;"><circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="3.5"></circle><circle id="escRingCircle" cx="18" cy="18" r="14" fill="none" stroke="#dc2626" stroke-width="3.5" stroke-dasharray="88" stroke-dashoffset="88" stroke-linecap="round"></circle></svg><span id="escHudText" style="text-transform:uppercase;">TIENI PREMUTO ESC</span>';
     (doc.body || doc.documentElement).appendChild(hudEscEl);
     return hudEscEl;

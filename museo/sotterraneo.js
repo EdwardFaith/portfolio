@@ -224,7 +224,7 @@
     ctx.scale(1, 0.44);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "700 30px 'Shadows Into Light', cursive";
+    ctx.font = "700 30px Consolas, Inconsolata, cursive";
     var word = say("sot.engraved", "NON ENTRARE");
     ctx.fillStyle = "rgba(0,0,0,0.9)";
     ctx.fillText(word, 1.6, 1.6);
@@ -446,7 +446,7 @@
     ctx.strokeRect(x + 6, y + 6, w - 12, h - 12);
     /* la scritta */
     ctx.textAlign = "center";
-    ctx.font = "700 " + Math.max(9, Math.round(w * 0.088)) + "px 'Shadows Into Light', cursive";
+    ctx.font = "700 " + Math.max(9, Math.round(w * 0.088)) + "px Consolas, Inconsolata, cursive";
     ctx.fillStyle = "rgba(0,0,0,0.85)";
     ctx.fillText("NO SIGNAL", x + w / 2 + 1, y + h * 0.52 + 1);
     ctx.fillStyle = "rgba(236,233,226,0.9)";
@@ -556,7 +556,7 @@
       var a = Math.min(1, wordOn * 4) * (d === 1 ? 0.92 : 0.55);
       var fs = Math.round(h * (d === 1 ? 0.05 : 0.03));
       ctx.save();
-      ctx.font = "700 " + fs + "px 'Shadows Into Light', cursive";
+      ctx.font = "700 " + fs + "px Consolas, Inconsolata, cursive";
       ctx.textAlign = "center";
       var jx = (Math.random() - 0.5) * 6, jy = (Math.random() - 0.5) * 4;
       ctx.fillStyle = "rgba(0,0,0,0.8)";
