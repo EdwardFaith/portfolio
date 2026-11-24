@@ -282,7 +282,7 @@
     ctx.save();
     ctx.translate(x, y);
     if (opt.rot) ctx.rotate(opt.rot);
-    ctx.font = (opt.weight || 700) + " " + size + "px " + (opt.font || "Space Grotesk, system-ui, sans-serif");
+    ctx.font = (opt.weight || 700) + " " + size + "px " + (opt.font || "'Libre Caslon Display', Georgia, serif");
     ctx.textAlign = opt.align || "left";
     ctx.textBaseline = "alphabetic";
     ctx.globalAlpha = opt.alpha == null ? 0.92 : opt.alpha;
@@ -317,7 +317,7 @@
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     /* l alone */
-    ctx.font = "700 " + size + "px " + (opt.font || "Space Grotesk, system-ui, sans-serif");
+    ctx.font = "700 " + size + "px " + (opt.font || "'Libre Caslon Display', Georgia, serif");
     ctx.textAlign = opt.align || "left";
     ctx.shadowColor = color;
     ctx.shadowBlur = size * (0.5 + 0.2 * fl);
@@ -422,7 +422,7 @@
     /* la targhetta e le manopole */
     if (opt.label) {
       ctx.fillStyle = S.rgba("#e7e2d6", 0.30);
-      ctx.font = "600 9px 'Space Grotesk', system-ui, sans-serif";
+      ctx.font = "600 9px 'Libre Caslon Text', system-ui, sans-serif";
       ctx.fillText(opt.label, gx, y + h - 6);
     }
     ctx.fillStyle = S.rgba("#e7e2d6", 0.22);
@@ -621,7 +621,7 @@
       ctx.fillStyle = S.rgba("#0b0d0c", 0.9);
       ctx.fillRect(x + w + 30, y + 34, 44, 34);
       ctx.fillStyle = S.rgba(pal.accent || "#dc2626", 0.85);
-      ctx.font = "700 22px 'Space Grotesk', system-ui, sans-serif";
+      ctx.font = "400 22px 'Libre Caslon Display', system-ui, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(opt.num, x + w + 52, y + 59);
       ctx.textAlign = "left";
@@ -665,10 +665,10 @@
       ctx.textAlign = "center";
       /* il nome intero, rimpicciolito quanto serve: mai tagliato */
       var label = opt.title.toUpperCase(), fs = 13;
-      ctx.font = "600 " + fs + "px 'Space Grotesk', system-ui, sans-serif";
+      ctx.font = "400 " + fs + "px 'Libre Caslon Display', system-ui, sans-serif";
       while (ctx.measureText(label).width > w - 2 && fs > 8) {
         fs -= 0.5;
-        ctx.font = "600 " + fs + "px 'Space Grotesk', system-ui, sans-serif";
+        ctx.font = "400 " + fs + "px 'Libre Caslon Display', system-ui, sans-serif";
       }
       ctx.fillText(label, x + w / 2, y - 65 + (13 - fs) * 0.35);
       ctx.restore();
@@ -2550,7 +2550,7 @@
       ctx.fillRect(x + 4 + i * 9, y + h, 3, 4);
     }
     ctx.fillStyle = S.rgba("#cfd6d2", 0.28);
-    ctx.font = "600 8px monospace";
+    ctx.font = "600 8px 'Libre Caslon Text', Georgia, serif";
     ctx.fillText("BX" + Math.floor(S.rr(seed, 100, 999)), x + 6, y + h * 0.55);
     ctx.beginPath(); ctx.arc(x + 8, y + 8, 2, 0, 6.3); ctx.fill();
   };
@@ -2605,7 +2605,7 @@
     ctx.fillStyle = "rgba(10,10,11,0.55)";
     ctx.fillRect(x, y, w, 16);
     ctx.fillStyle = S.rgba(color || "#e7e2d6", 0.72);
-    ctx.font = "500 10px 'Space Grotesk', system-ui, sans-serif";
+    ctx.font = "500 10px 'Libre Caslon Text', system-ui, sans-serif";
     ctx.fillText(String(text).toUpperCase().slice(0, Math.floor(w / 6.2)), x + 4, y + 11.5);
     ctx.restore();
   };
@@ -3032,7 +3032,7 @@
     ctx.lineWidth = 1;
     ctx.strokeRect(-65, ry + h + 2, 130, 16);
     ctx.fillStyle = "#ffffff";
-    ctx.font = "700 9px monospace";
+    ctx.font = "700 9px 'Libre Caslon Text', Georgia, serif";
     ctx.textAlign = "center";
     ctx.fillText("SATAN // SUBJ 01", 0, ry + h + 13);
     ctx.textAlign = "left";

@@ -19,8 +19,8 @@
   --ch-ink: var(--ink, #e7e2d6);
   --ch-dim: var(--dim, #9a958c);
   --ch-faint: var(--faint, rgba(231, 226, 214, 0.16));
-  --ch-font: var(--font, "Space Grotesk", system-ui, -apple-system, sans-serif);
-  --ch-mono: ui-monospace, "SFMono-Regular", "Consolas", monospace;
+  --ch-font: var(--font, "Libre Caslon Text", system-ui, -apple-system, sans-serif);
+  --ch-mono: 'Libre Caslon Text', Georgia, serif;
 }
 
 [hidden] { display: none !important; }

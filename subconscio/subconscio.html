@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anche i conigli hanno le ali</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@300;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Libre+Caslon+Display&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #050505;
@@ -21,7 +21,7 @@
             overflow: hidden;
             background: var(--bg);
             color: var(--white);
-            font-family: 'Courier Prime', monospace;
+            font-family: 'Libre Caslon Text', Georgia, serif;
             user-select: none;
         }
 
@@ -124,7 +124,7 @@
             z-index: 10000; pointer-events: none;
         }
         #ui h1 {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Libre Caslon Display', Georgia, serif;
             font-size: clamp(1.2rem, 3.5vw, 2.2rem);
             font-weight: 900;
             text-transform: uppercase;
@@ -145,7 +145,7 @@
             border: 1px solid rgba(240,240,240,0.12);
             padding: 7px 14px;
             cursor: pointer;
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Libre Caslon Text', sans-serif;
             font-size: 0.6rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -176,7 +176,7 @@
             animation: rabbitBounce 0.9s ease-in-out infinite;
         }
         #loader p {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Libre Caslon Text', sans-serif;
             font-size: 0.65rem;
             letter-spacing: 5px;
             text-transform: uppercase;
@@ -359,7 +359,7 @@
         const c = document.createElement('canvas');
         c.width = c.height = 800;
         const ctx = c.getContext('2d');
-        ctx.font = '560px sans-serif';
+        ctx.font = '560px 'Libre Caslon Text', Georgia, serif';
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
         ctx.fillText('🐇', 400, 400);

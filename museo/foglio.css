@@ -1,4 +1,4 @@
-﻿/* ================================================================
+/* ================================================================
    MONDO DEL FOGLIO — il foglio che si apre in fondo a Radio Kaoss.
    Non ruba niente al museo: il museo resta sotto, congelato, e
    questo canvas gli sta sopra, sotto il velo VHS.
@@ -34,7 +34,7 @@ body.desktop-device #fglTouch { display: none !important; }
     background: rgba(12, 11, 10, 0.55);
     border: 1px solid rgba(231, 226, 214, 0.28);
     color: rgba(231, 226, 214, 0.82);
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: 'Libre Caslon Text', system-ui, sans-serif;
     font-size: 17px; line-height: 1; letter-spacing: 0.04em;
     -webkit-tap-highlight-color: transparent; touch-action: none;
 }

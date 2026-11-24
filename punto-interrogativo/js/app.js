@@ -138,6 +138,8 @@
     console.log('[?] link tablet:', ctrlUrl);
 
     window.Drawing.init($('drawCanvas'));
+    // la telecamera si accende subito (il browser chiede il permesso la prima volta) e resta accesa
+    if (window.Camera) window.Camera.start();
 
     function applyLayout() {
       stage.classList.toggle('layout-drawing', layout === 'drawing');
@@ -187,7 +189,11 @@
           const wasZero = !active;
           activate();
           if (wasZero) setTimeout(() => showDef(msg), 470); else showDef(msg);
-          window.Drawing.push(msg.def.name);
+          // il corpo si scrive con la ricerca: la parola toccata e la sua definizione
+          // ...e a ogni tocco una foto della stanza: le figure vanno dove sono le persone
+          const shot = window.Camera ? window.Camera.snap() : null;
+          if (shot) console.log(`[?] foto: ${shot.people.length} persone, ${shot.ms} ms`);
+          window.Drawing.push(msg.def.name + ' ' + msg.def.senses.join(' '), shot);
         }
       }
     });
@@ -214,6 +220,8 @@
       if (k === 'm') toggleLayout();
       else if (k === 'u') uploader.click();
       else if (k === 'r') toZero(true);
+      else if (k === 'c') { if (window.Camera) window.Camera.cycle(); }   // C: webcam accesa / successiva / spenta
+      else if (k === 'v') { if (window.Camera) window.Camera.toggleMirror(); }   // V: specchia la foto
       else if (k === 'n') { activate(); setTimeout(() => window.Drawing.preview(), active ? 0 : 500); }
       else if (k === 'f') { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => { }); else document.exitFullscreen(); }
     });

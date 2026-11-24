@@ -976,7 +976,7 @@
     if (look && look.font === "mono") return "ui-monospace, 'Courier New', monospace";
     if (look && look.font === "serif") return "Georgia, 'Times New Roman', serif";
     if (look && look.font === "segno") return "'Comic Sans MS', 'Segoe Script', cursive";
-    return "'Space Grotesk', system-ui, sans-serif";
+    return "'Libre Caslon Display', system-ui, sans-serif";
   }
 
   /* un'opera appesa senza monitor: si incolla la sua texture */

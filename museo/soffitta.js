@@ -330,9 +330,9 @@
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "rgba(255,204,140," + (0.62 + 0.28 * on) + ")";
-    ctx.font = "700 13px 'Space Grotesk', system-ui, sans-serif";
+    ctx.font = "700 13px 'Libre Caslon Text', system-ui, sans-serif";
     ctx.fillText(lang() === "en" ? "\u25B2 ATTIC" : "\u25B2 SOFFITTA", tx + 64, ty + 19);
-    ctx.font = "10px 'Space Grotesk', system-ui, sans-serif";
+    ctx.font = "10px 'Libre Caslon Text', system-ui, sans-serif";
     ctx.fillStyle = "rgba(226,206,178,0.55)";
     ctx.fillText(lang() === "en" ? "do not open at night" : "non aprire di notte", tx + 64, ty + 38);
 
@@ -1621,10 +1621,10 @@
       ctx.strokeRect(tx2, ty2, tw, th);
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = "700 11px 'Space Grotesk', system-ui, sans-serif";
+      ctx.font = "700 11px 'Libre Caslon Text', system-ui, sans-serif";
       ctx.fillStyle = open ? "rgba(255,214,150,0.95)" : "rgba(188,176,156,0.66)";
       ctx.fillText(d.sub, cxp, ty2 + 10);
-      ctx.font = "9px 'Space Grotesk', system-ui, sans-serif";
+      ctx.font = "9px 'Libre Caslon Text', system-ui, sans-serif";
       ctx.fillStyle = open ? "rgba(255,226,180,0.72)" : "rgba(176,92,74,0.9)";
       ctx.fillText(d.hint, cxp, ty2 + 22);
     }

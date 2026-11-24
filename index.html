@@ -69,7 +69,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Instrument+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
     <!-- la radio del museo, anche qui: il ◉ in alto a destra e la sua
@@ -97,7 +97,7 @@
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Libre Caslon Text', system-ui, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             -webkit-overflow-scrolling: touch;
@@ -112,7 +112,8 @@
         h2,
         h3,
         .brand-font {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Libre Caslon Display', Georgia, serif;
+            font-synthesis: none; /* Libre Caslon Display ha un solo peso: niente grassetto finto */
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
@@ -240,7 +241,7 @@
             font-weight: 700;
             line-height: 1;
             color: #dc2626;
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Libre Caslon Display', Georgia, serif;
             text-shadow: 0 0 40px rgba(220, 38, 38, 0.55);
             animation: puntoSpin 1.2s ease-in-out;
             display: inline-block;
@@ -376,7 +377,7 @@
             z-index: 6;
             margin: 0;
             padding: 0;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-family: 'Libre Caslon Text', Georgia, serif;
             font-size: clamp(0.75rem, 1.6vw, 0.875rem);
             font-weight: 700;
             line-height: 1;
@@ -795,6 +796,40 @@
                 };
             }, []);
 
+            /* INTERNET BUONO → VIDEO, INTERNET SCARSO → RESTA LA GIF
+               Prima si chiede al browser com'è la connessione (Chrome e
+               Android lo sanno dire); se non lo sa, si misura quanto ci ha
+               messo la GIF di sfondo a scaricarsi: nessun download in più.
+               Finché non si sa, i video aspettano. */
+            const [netOk, setNetOk] = useState(() => {
+                const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                if (!c) return null;
+                if (c.saveData) return false;
+                if (c.effectiveType && /(^|-)(2g|3g)$/.test(c.effectiveType)) return false;
+                if (typeof c.downlink === 'number' && c.downlink > 0 && c.downlink < 2) return false;
+                return c.effectiveType ? true : null;
+            });
+            const misuraDallaGif = (e) => {
+                if (netOk !== null) return;
+                const url = e && e.currentTarget && e.currentTarget.currentSrc;
+                const entry = performance.getEntriesByType('resource').reverse().find(r => url && r.name === url);
+                if (!entry || !entry.duration) { setNetOk(true); return; }
+                if (entry.transferSize > 0) {
+                    const mbps = entry.transferSize * 8 / entry.duration / 1000;   // megabit al secondo
+                    setNetOk(mbps >= 2.5);
+                } else {
+                    setNetOk(entry.duration < 2500);   // dalla cache o senza misura: basta il tempo
+                }
+            };
+            useEffect(() => {
+                const c = navigator.connection;
+                if (!c || !c.addEventListener) return;
+                // se la connessione peggiora mentre si guarda il sito, i video si fermano
+                const onChange = () => { if (c.saveData || /(^|-)(2g|3g)$/.test(c.effectiveType || '')) setNetOk(false); };
+                c.addEventListener('change', onChange);
+                return () => c.removeEventListener('change', onChange);
+            }, []);
+
             // Defer YouTube embeds slightly so page loads instantly for Google & users
             useEffect(() => {
                 const timer = setTimeout(() => setStarted(true), 1800);
@@ -852,11 +887,11 @@
                 `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&loop=1&playlist=${id}&disablekb=1&iv_load_policy=3`;
 
             const iframeOpacity = (isActive, isReady) => {
-                if (isOffline || !isReady || !isActive || !started) return 0;
+                if (isOffline || !netOk || !isReady || !isActive || !started) return 0;
                 return fading ? 0 : 0.55;
             };
 
-            const videoVisible = started && !fading && (
+            const videoVisible = started && netOk && !fading && (
                 (activeSlot === 'A' && readyA) ||
                 (activeSlot === 'B' && readyB)
             );
@@ -881,6 +916,7 @@
                     <img
                         src="giff-presentazione/bg.gif"
                         alt=""
+                        onLoad={misuraDallaGif}
                         className="absolute inset-0 w-full h-full object-cover object-center filter grayscale contrast-125"
                         style={{
                             zIndex: 1,
@@ -890,7 +926,7 @@
                     />
 
                     {/* Layer 2: YouTube iframes - Lazy loaded */}
-                    {started && (
+                    {started && netOk && (
                         <iframe
                             key={`A-${slotA}`}
                             src={embedUrl(HERO_VIDEOS[slotA])}
@@ -902,7 +938,7 @@
                             title="bg-a"
                         />
                     )}
-                    {started && (activeSlot === 'B' || fading) && (
+                    {started && netOk && (activeSlot === 'B' || fading) && (
                         <iframe
                             key={`B-${slotB}`}
                             src={embedUrl(HERO_VIDEOS[slotB])}
@@ -933,12 +969,12 @@
            le descrizioni restano in un carattere solo — un testo lungo
            misto non si legge, un titolo misto sì. */
         const MIX_FONTS = [
-            "'Space Grotesk', system-ui, sans-serif",
+            "'Libre Caslon Display', Georgia, serif",
             "Georgia, 'Times New Roman', serif",
             "'Courier New', monospace",
-            "'Arial Black', 'Space Grotesk', sans-serif",
+            "'Arial Black', 'Libre Caslon Display', sans-serif",
             "'Palatino Linotype', Palatino, Georgia, serif",
-            "'Trebuchet MS', 'Space Grotesk', sans-serif"
+            "'Trebuchet MS', 'Libre Caslon Text', sans-serif"
         ];
 
         const TitleMix = ({ text, className = "" }) => {

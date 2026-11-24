@@ -12,6 +12,7 @@
   const LEVELS = ['#52525b', '#71717a', '#a1a1aa', '#d4d4d8', '#ffffff'];
   const THRESH = [0.13, 0.3, 0.48, 0.66, 0.84];
   const BG = '#08090a';
+  const ENV_LEVELS = ['#26262b', '#3a3a41'];   // la stanza: più scura delle figure
   const TYPE_MS = 1300;
   const FADE_MS = 750;
   const DEFAULT_WORDS = ['solitudine', 'silenzio', 'corpo', 'vuoto', 'attesa'];
@@ -85,38 +86,52 @@
     cellW = W / cols;
   }
 
-  function compose(src, anchorIdx, scale) {
-    const cells = new Uint8Array(cols * ROWS);
-    // dimensioni in "unità di riga": una cella è larga CHAR_RATIO e alta 1
-    const gridWu = cols * CHAR_RATIO, gridHu = ROWS;
-    const aspect = src.w / src.h;
-    let fh = scale * gridHu, fw = fh * aspect;
-    const maxW = gridWu * 0.8;
-    if (fw > maxW) { fw = maxW; fh = fw / aspect; }
-    const a = ANCHORS[anchorIdx];
-    const m = 2;
-    let left = a.x * gridWu - fw / 2, top = a.y * gridHu - fh / 2;
-    left = Math.max(m * CHAR_RATIO, Math.min(gridWu - fw - m * CHAR_RATIO, left));
-    top = Math.max(m, Math.min(gridHu - fh - m * 0.5, top));
-    const sx = src.w / fw, sy = src.h / fh;
-    for (let r = 0; r < ROWS; r++) {
-      for (let cI = 0; cI < cols; cI++) {
-        const ux = cI * CHAR_RATIO - left, uy = r - top;
-        if (ux + CHAR_RATIO < 0 || uy + 1 < 0 || ux > fw || uy > fh) continue;
-        let sum = 0, mx = 0, n = 0;
-        for (let yy = 0; yy < 3; yy++) for (let xx = 0; xx < 3; xx++) {
-          const px = Math.floor((ux + (xx + 0.5) / 3 * CHAR_RATIO) * sx), py = Math.floor((uy + (yy + 0.5) / 3) * sy);
-          let v = 0;
-          if (px >= 0 && py >= 0 && px < src.w && py < src.h) v = src.lum[py * src.w + px];
-          sum += v; if (v > mx) mx = v; n++;
-        }
-        const v = 0.6 * (sum / n) + 0.4 * mx;
-        let lvl = 0;
-        for (let t = 0; t < THRESH.length; t++) if (v >= THRESH[t]) lvl = t + 1;
-        cells[r * cols + cI] = lvl;
-      }
+  /* dove va una figura, in "unità di griglia" (una cella è larga CHAR_RATIO, alta 1).
+     spec.anchor: posizione scelta dal caso (senza telecamera)
+     spec.person: dove sta una persona nella foto (cx, piedi, altezza: 0..1 della griglia) */
+  function placement(spec) {
+    const src = spec.src, gridWu = cols * CHAR_RATIO, gridHu = ROWS, aspect = src.w / src.h, m = 2;
+    let fw, fh, left, top;
+    if (spec.person) {
+      const p = spec.person;
+      fh = Math.max(12, Math.min(gridHu * 0.95, p.h * gridHu * 0.9)); fw = fh * aspect;
+      if (fw > gridWu * 0.6) { fw = gridWu * 0.6; fh = fw / aspect; }
+      left = p.cx * gridWu - fw / 2; top = p.feet * gridHu - fh;
+    } else {
+      fh = spec.scale * gridHu; fw = fh * aspect;
+      if (fw > gridWu * 0.8) { fw = gridWu * 0.8; fh = fw / aspect; }
+      const a = ANCHORS[spec.anchor];
+      left = a.x * gridWu - fw / 2; top = a.y * gridHu - fh / 2;
     }
-    // bande: le righe occupate dalla figura divise in 5 parti (dall'alto)
+    left = Math.max(m * CHAR_RATIO, Math.min(gridWu - fw - m * CHAR_RATIO, left));
+    top = Math.max(1, Math.min(gridHu - fh - m * 0.5, top));
+    return { src, fw, fh, left, top };
+  }
+
+  function compose(specs) {
+    const cells = new Uint8Array(cols * ROWS);
+    specs.map(placement).forEach(({ src, fw, fh, left, top }) => {
+      const sx = src.w / fw, sy = src.h / fh;
+      for (let r = 0; r < ROWS; r++) {
+        for (let cI = 0; cI < cols; cI++) {
+          const ux = cI * CHAR_RATIO - left, uy = r - top;
+          if (ux + CHAR_RATIO < 0 || uy + 1 < 0 || ux > fw || uy > fh) continue;
+          let sum = 0, mx = 0, n = 0;
+          for (let yy = 0; yy < 3; yy++) for (let xx = 0; xx < 3; xx++) {
+            const px = Math.floor((ux + (xx + 0.5) / 3 * CHAR_RATIO) * sx), py = Math.floor((uy + (yy + 0.5) / 3) * sy);
+            let v = 0;
+            if (px >= 0 && py >= 0 && px < src.w && py < src.h) v = src.lum[py * src.w + px];
+            sum += v; if (v > mx) mx = v; n++;
+          }
+          const v = 0.6 * (sum / n) + 0.4 * mx;
+          let lvl = 0;
+          for (let t = 0; t < THRESH.length; t++) if (v >= THRESH[t]) lvl = t + 1;
+          const k = r * cols + cI;
+          if (lvl > cells[k]) cells[k] = lvl;
+        }
+      }
+    });
+    // bande: le righe occupate dalle figure divise in 5 parti (dall'alto)
     const rowsUsed = [];
     for (let r = 0; r < ROWS; r++) { for (let cI = 0; cI < cols; cI++) if (cells[r * cols + cI]) { rowsUsed.push(r); break; } }
     const bandOfRow = new Int8Array(ROWS).fill(-1);
@@ -126,22 +141,91 @@
     return { cells, bandCells };
   }
 
-  function newPose() {
+  function pickSource() {
     let src = null;
     for (let tries = 0; tries < 6 && !src; tries++) src = nextSource();
-    if (!src) src = figureSource(0);
+    return src || figureSource(0);
+  }
+
+  function newPose() {
     let anchor; do { anchor = Math.floor(Math.random() * ANCHORS.length); } while (anchor === lastAnchor);
     lastAnchor = anchor;
-    const scale = 0.55 + Math.random() * 0.33;
-    current = { src, anchor, scale };
-    Object.assign(current, compose(src, anchor, scale));
+    current = { specs: [{ src: pickSource(), anchor, scale: 0.55 + Math.random() * 0.33 }], env: null, shot: null };
+    Object.assign(current, compose(current.specs));
     step = 0; words = []; bandStart = [];
   }
 
+  /* ---------------- LA FOTO: persone e stanza ---------------- */
+  // la foto copre la griglia (come "cover"): quanto si ritaglia e da dove
+  function coverMap(shot) {
+    const ga = cols * CHAR_RATIO / ROWS, fa = shot.w / shot.h;
+    if (fa > ga) { const vx = ga / fa; return { ox: (1 - vx) / 2, oy: 0, vx, vy: 1 }; }
+    const vy = fa / ga; return { ox: 0, oy: (1 - vy) / 2, vx: 1, vy };
+  }
+
+  function peopleOnGrid(shot) {
+    const m = coverMap(shot);
+    return shot.people.map(p => ({
+      cx: ((p.x0 + p.x1) / 2 - m.ox) / m.vx,
+      feet: Math.min(1, (p.y1 - m.oy) / m.vy),
+      h: (p.y1 - p.y0) / m.vy
+    })).filter(p => p.cx > -0.1 && p.cx < 1.1);
+  }
+
+  // la stanza: i contorni della foto diventano parole tenui (1 = appena visibile, 2 = contorno forte)
+  function envFromShot(shot) {
+    if (!shot || !shot.data) return null;
+    const m = coverMap(shot), lum = new Float32Array(cols * ROWS);
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < cols; c++) {
+      const x = Math.floor((m.ox + (c + 0.5) / cols * m.vx) * shot.w), y = Math.floor((m.oy + (r + 0.5) / ROWS * m.vy) * shot.h);
+      const i = (Math.min(shot.h - 1, y) * shot.w + Math.min(shot.w - 1, x)) * 4;
+      lum[r * cols + c] = (0.299 * shot.data[i] + 0.587 * shot.data[i + 1] + 0.114 * shot.data[i + 2]) / 255;
+    }
+    const mag = new Float32Array(cols * ROWS);
+    let max = 0;
+    for (let r = 1; r < ROWS - 1; r++) for (let c = 1; c < cols - 1; c++) {
+      const g = (dr, dc) => lum[(r + dr) * cols + c + dc];
+      const gx = -g(-1, -1) - 2 * g(0, -1) - g(1, -1) + g(-1, 1) + 2 * g(0, 1) + g(1, 1);
+      const gy = -g(-1, -1) - 2 * g(-1, 0) - g(-1, 1) + g(1, -1) + 2 * g(1, 0) + g(1, 1);
+      const v = Math.hypot(gx, gy); mag[r * cols + c] = v; if (v > max) max = v;
+    }
+    const sorted = Array.from(mag).sort((a, b) => b - a);
+    const t1 = Math.max(0.05 * max, sorted[Math.floor(sorted.length * 0.16)]), t2 = sorted[Math.floor(sorted.length * 0.05)];
+    const env = new Uint8Array(cols * ROWS);
+    for (let k = 0; k < env.length; k++) env[k] = mag[k] >= t2 ? 2 : mag[k] >= t1 ? 1 : 0;
+    return env;
+  }
+
+  // a ogni scatto: le figure si spostano dove sono adesso le persone; nuova posa a ogni nuovo ciclo
+  function applyShot(shot, fresh) {
+    const people = peopleOnGrid(shot);
+    if (!current) newPose();
+    if (people.length) {
+      const old = current.specs.filter(s => s.person);
+      current.specs = people.map((p, i) => ({ src: (!fresh && old[i]) ? old[i].src : pickSource(), person: p }));
+    }
+    // nessuna persona nella foto: la figura resta dove l'ha messa il caso
+    current.shot = shot;
+    current.env = envFromShot(shot);
+    Object.assign(current, compose(current.specs));
+  }
+
   /* ---------------- DISEGNO ---------------- */
-  function letters(word) {
-    const s = window.Lexicon.lettersOnly(word);
-    return s.length ? s : 'segno';
+  /* LE PAROLE DELLA RICERCA — ogni banda del corpo è scritta con il testo
+     della definizione aperta in quel clic (la parola toccata e poi le sue
+     accezioni), parola dopo parola, separate da uno spazio. Se il testo
+     finisce prima della banda, continua con le ricerche precedenti: il
+     corpo è fatto del percorso che il visitatore ha compiuto.
+     Solo lettere: niente punteggiatura né simboli. */
+  const history = [];   // testi delle ricerche, dal più recente
+  function clean(s) {
+    return String(s || '').toLowerCase().replace(/[^a-zà-öø-ÿ\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function researchStream(text) {
+    const t = clean(text) || 'segno';
+    history.unshift(t);
+    if (history.length > 16) history.pop();
+    return history.join(' ');
   }
 
   function draw(now) {
@@ -151,9 +235,22 @@
     ctx.font = `${(cellW / CHAR_RATIO).toFixed(2)}px "IBM Plex Mono", monospace`;
     ctx.textBaseline = 'top';
     let still = false;
+    // la stanza della foto, scritta con le ricerche più vecchie: tenue, dietro le figure
+    if (current.env) {
+      const s = history.slice().reverse().join(' ') || 'silenzio';
+      let n = 0;
+      for (let k = 0; k < current.env.length; k++) {
+        const e = current.env[k];
+        if (!e || current.cells[k]) continue;
+        const ch = s[n++ % s.length];
+        if (ch === ' ') continue;
+        ctx.fillStyle = ENV_LEVELS[e - 1];
+        ctx.fillText(ch, (k % cols) * cellW, Math.floor(k / cols) * cellH + cellH * 0.04);
+      }
+    }
     for (let b = 0; b < step; b++) {
       const list = current.bandCells[b];
-      const w = letters(words[b]);
+      const w = words[b] || 'segno';
       const p = Math.min(1, (now - bandStart[b]) / TYPE_MS);
       if (p < 1) still = true;
       const visible = Math.floor(list.length * p);
@@ -165,8 +262,10 @@
         if (latest) lvl = Math.min(4, lvl + 1);
         let col = LEVELS[lvl];
         if (latest && i > visible - 24 && p < 1) col = '#ffffff';
+        const ch = w[i % w.length];
+        if (ch === ' ') continue;   // lo spazio tra due parole resta nero
         ctx.fillStyle = col;
-        ctx.fillText(w[i % w.length], cI * cellW, r * cellH + cellH * 0.04);
+        ctx.fillText(ch, cI * cellW, r * cellH + cellH * 0.04);
       }
     }
     return still;
@@ -182,44 +281,52 @@
     requestAnimationFrame(tick);
   }
 
-  function addBand(word) {
-    words[step] = word;
+  function addBand(text) {
+    words[step] = researchStream(text);
     bandStart[step] = performance.now();
     step++;
     loop();
   }
 
   /* ---------------- API ---------------- */
-  function push(word) {
-    if (fading) { pendingWord = word; return; }
+  // word: il testo della ricerca; shot: la foto scattata a questo tocco (o null)
+  function push(word, shot) {
+    if (fading) { pendingWord = [word, shot]; return; }
     if (!current) newPose();
     if (step >= 5) {
-      // 6° clic: la figura svanisce nel nero e rinasce altrove
+      // 6° clic: la figura svanisce nel nero e rinasce (dove sono le persone, se c'è la foto)
       fading = true;
       canvas.classList.add('out');
       setTimeout(() => {
         newPose();
+        if (shot) applyShot(shot, true);
         addBand(word);
         canvas.classList.remove('out');
         fading = false;
-        if (pendingWord) { const w = pendingWord; pendingWord = null; push(w); }
+        if (pendingWord) { const p = pendingWord; pendingWord = null; push(p[0], p[1]); }
       }, FADE_MS);
       return;
     }
+    if (shot) applyShot(shot, step === 0);
     addBand(word);
   }
 
   function reset() {
     current = null; step = 0; words = []; bandStart = []; pendingWord = null; fading = false;
+    history.length = 0;
     canvas.classList.remove('out');
     draw(performance.now());
   }
 
   function preview() {
-    const hist = words.length ? words.slice() : DEFAULT_WORDS;
+    // prova (tasto N): usa la ricerca già fatta, o cinque voci di esempio
+    const had = words.slice();
+    const streams = had.length ? had : DEFAULT_WORDS.map(w => {
+      const d = window.Lexicon.lookup(w); return researchStream(d.name + ' ' + d.senses.join(' '));
+    });
     newPose();
     const t = performance.now() - TYPE_MS;
-    for (let b = 0; b < 5; b++) { words[b] = hist[b % hist.length]; bandStart[b] = t; }
+    for (let b = 0; b < 5; b++) { words[b] = streams[b % streams.length]; bandStart[b] = t; }
     step = 5;
     draw(performance.now());
   }
@@ -227,7 +334,10 @@
   function resize() {
     if (!canvas) return;
     layout();
-    if (current) Object.assign(current, compose(current.src, current.anchor, current.scale));
+    if (current) {
+      Object.assign(current, compose(current.specs));
+      current.env = current.shot ? envFromShot(current.shot) : null;
+    }
     draw(performance.now() + TYPE_MS);
   }
 
