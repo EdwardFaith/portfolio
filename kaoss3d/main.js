@@ -21,6 +21,7 @@ import { buildCorridoio, Y as CORR_Y } from './corridoio.js';
 import { openWindow, closeWindow } from '../stanza/video.js';
 import { createViaggio } from './viaggio.js';
 import { createSentinella } from './sentinella.js';
+import { creaSuoni } from './suoni.js';
 
 const $ = id => document.getElementById(id);
 // ?cuoci=desktop|telefono: si cuociono le texture (vedi tools/cuoci-server.js)
@@ -96,6 +97,7 @@ async function build() {
     luci.slice(max).forEach(l => { l.visible = false; l.castShadow = false; });
   }
   ctx.limitaLuci = limitaLuci;
+  const suoni = creaSuoni(listener); ctx.suoni = suoni;   // il sound design: ambienti, passi, porte
   ambito('live');
   const cantina = buildCantina(scene, ctx);
   limitaLuci(cantina.group, 6);
@@ -200,38 +202,17 @@ async function build() {
     canStand: freeSpot,
     onTap(x, y, type) {
       const p = pick(x, y); if (!p) return;
-      // sul telefono non ci si teletrasporta: si cammina con la levetta, e le cose si toccano da vicino
-      if (mobile && type !== 'mouse') {
-        if (p.floor) return;
-        const it = p.it;
-        if (!it.view || camera.position.distanceTo(p.punto) < 3.6) { say(it.label); if (it.action) it.action(); }
-        else say('avvicinati · ' + it.label);
-        return;
-      }
-      if (p.floor) {   // un punto del pavimento: ci vai, guardando nella stessa direzione
-        const d = new THREE.Vector3(); camera.getWorldDirection(d); d.y = 0; d.normalize();
-        const y = p.floor.y + 1.6;
-        // nel gioco i passi sono corti: non si scavalcano i ragni con un salto solo
-        const qui = STANZE[zona()].obj;
-        if (qui && qui.passoMax) {
-          const dx = p.floor.x - camera.position.x, dz = p.floor.z - camera.position.z, dd = Math.hypot(dx, dz);
-          if (dd > qui.passoMax) { p.floor.x = camera.position.x + dx / dd * qui.passoMax; p.floor.z = camera.position.z + dz / dd * qui.passoMax; }
-          if (!freeSpot(p.floor.x, p.floor.z)) return;
-        }
-        viaggio.go({ pos: [p.floor.x, y, p.floor.z], look: [p.floor.x + d.x, y + Math.tan(viaggio.st.pitch) * 0.3, p.floor.z + d.z] });
-        return;
-      }
+      // non ci si teletrasporta più: si cammina (W A S D, frecce, levetta) e le cose si usano da vicino
+      if (p.floor) return;
       const it = p.it;
-      if (type !== 'mouse') say(it.label);
-      if (it.view && !viaggio.here(it.view)) viaggio.go(it.view, it.action || it.onArrive);
-      else if (it.action) it.action();
+      if (!it.view || camera.position.distanceTo(p.punto) < 4) { say(it.label); suoni.evento('tocco'); const f = it.action || it.onArrive; if (f) f(); }
+      else say('avvicinati · ' + it.label);
     },
     onHover(x, y) {
       const p = pick(x, y);
       renderer.domElement.style.cursor = p ? 'pointer' : 'grab';
       if (p && p.it) { label.textContent = p.it.label; label.style.transform = `translate(${x + 16}px, ${y + 14}px)`; label.classList.add('on'); } else label.classList.remove('on');
-      // sul pavimento: un'ombra leggera dove andresti
-      if (p && p.floor) { marker.style.opacity = '1'; marker.style.transform = `translate(${x - 18}px, ${y - 8}px)`; } else marker.style.opacity = '0';
+      marker.style.opacity = '0';   // niente più punto sul pavimento: non ci si teletrasporta
     }
   });
   ctx.viaggio = viaggio; ctx.camera = camera;
@@ -331,6 +312,7 @@ async function build() {
     }
     const qui = STANZE[z].obj;
     if (qui) qui.update(t, dt, camera, renderer); else sala.update(t, dt, camera, renderer);
+    if (!COTTURA) suoni.update(dt, (qui && qui.ambiente) || z, qui && qui.suono, camera, !!viaggio.st.trip);
     if (sentinella) sentinella.update(t, dt);
     film.uniforms.t.value = t;
     composer.render();

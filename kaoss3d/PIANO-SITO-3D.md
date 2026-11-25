@@ -80,8 +80,16 @@ poi «vuoi giocare?». Se dici sì, la casa infinita: bagno, cucina, salotto, ca
 l'altra; la tana in fondo porta alla stanza dopo; i ragni ti inseguono se ti vedono. Se ti prendono: nero
 e glitch, nessuna scritta, e sei di nuovo davanti a lui: «le bugie hanno le gambe corte?». Record in
 localStorage. Per le prove: `window.__stanze` (avanza(sec), muori()).
-Sul telefono non ci si teletrasporta: si cammina con la levetta in basso a sinistra e le cose si toccano
-da vicino.
+Il fanciullo è una sagoma nera seduta a gambe incrociate, con gli occhi rossi e il coniglio in grembo.
+Nella casa hai in mano una pistola ad acqua (spaventa i ragni, il serbatoio si svuota e si ricarica) e una
+spada: i ragni salgono anche sui muri e sparano tele; quando il cerchio al centro diventa verde le tagli,
+altrimenti resti intrappolato 3 secondi. Computer: tasto sinistro tenuto = acqua, destro o spazio = spada.
+Telefono: i tasti «acqua» e «spada» a destra.
+Non ci si teletrasporta più, né col telefono né col computer: si cammina (W A S D, frecce, levetta) e le
+cose si usano da vicino.
+Il sound design è in `kaoss3d/suoni.js`: un ambiente sintetizzato per ogni stanza, i passi che cambiano col
+pavimento, le porte, il campanello dell'ascensore; nel gioco il carillon vicino al bambino, il cuore che
+batte quando i ragni cacciano, le zampette. Tutto passa da «suono: sì/no».
 I bottoni 2–6: in lavorazione. Indirizzi diretti: `?stanza=ascensore`, `?stanza=gioco1`.
 
 ### (vecchia idea) Interattivo
