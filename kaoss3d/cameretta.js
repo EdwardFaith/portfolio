@@ -227,7 +227,18 @@ export async function buildCameretta(scene, ctx) {
   // i palazzi, neri, con le insegne
   const nero = new THREE.MeshBasicMaterial({ color: 0x030206 });
   const finA = [new THREE.MeshBasicMaterial({ color: 0xff2a4a }), new THREE.MeshBasicMaterial({ color: 0x2affd6 }), new THREE.MeshBasicMaterial({ color: 0x5a1030 }), new THREE.MeshBasicMaterial({ color: 0xffb02a })];
-  const insegna = (txt, col) => { const c = canvas(512, 128), f = c.getContext('2d'); f.font = `bold 70px ${FONT}`; f.textAlign = 'center'; f.textBaseline = 'middle'; f.shadowColor = col; f.shadowBlur = 24; f.fillStyle = col; f.fillText(txt, 256, 66); f.fillText(txt, 256, 66); f.shadowBlur = 0; f.fillStyle = 'rgba(255,255,255,.7)'; f.fillText(txt, 256, 66); return new THREE.MeshBasicMaterial({ map: toTex(c), transparent: true, toneMapped: false, fog: false, depthWrite: false }); };
+  /* un'insegna al neon: la scritta si adatta alla tavola (niente parole tagliate),
+     il bagliore colorato, il cuore bianco dei tubi, la tavola scura dietro */
+  const insegna = (txt, col, verticale) => {
+    const W = verticale ? 256 : 1024, Hc = verticale ? 1024 : 256, c = canvas(W, Hc), f = c.getContext('2d');
+    f.fillStyle = 'rgba(6,4,10,.85)'; f.fillRect(8, 8, W - 16, Hc - 16);
+    f.strokeStyle = col; f.globalAlpha = 0.5; f.lineWidth = 6; f.strokeRect(16, 16, W - 32, Hc - 32); f.globalAlpha = 1;
+    f.textAlign = 'center'; f.textBaseline = 'middle';
+    const scrivi = (t, x, y, size) => { f.font = `bold ${size}px ${FONT}`; f.shadowColor = col; f.shadowBlur = 30; f.fillStyle = col; f.fillText(t, x, y); f.fillText(t, x, y); f.shadowBlur = 0; f.fillStyle = 'rgba(255,255,255,.85)'; f.fillText(t, x, y); };
+    if (verticale) { const lettere = txt.replace(/ /g, '').split(''); const passo = (Hc - 80) / lettere.length, size = Math.min(150, passo * 0.95); lettere.forEach((l, i) => scrivi(l, W / 2, 50 + passo * (i + 0.5), size)); }
+    else { let size = 130; f.font = `bold ${size}px ${FONT}`; while (f.measureText(txt).width > W - 80 && size > 30) { size -= 4; f.font = `bold ${size}px ${FONT}`; } scrivi(txt, W / 2, Hc / 2 + 6, size); }
+    return new THREE.MeshBasicMaterial({ map: toTex(c), transparent: true, toneMapped: false, fog: false, depthWrite: false });
+  };
   const INSEGNE = [['EDWARD INDUSTRIES', '#ff2a4a'], ['NON C\'È DIO NEL RITMO', '#2affd6'], ['TIX', '#ff2aa8'], ['DOPO TIX · 3013', '#ffb02a'], ['B-E-P-E', '#ff2a4a'], ['BALLA O FIORISCI', '#2affd6']];
   const neonFuori = [];
   const rc = rng(910);
@@ -238,8 +249,17 @@ export async function buildCameretta(scene, ctx) {
     const h = Math.max(6, cima + 16);
     const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), nero); b.position.set(x, -16 + h / 2, z); fuori.add(b);
     for (let j = 0; j < 9; j++) if (rc() < 0.45) { const f = new THREE.Mesh(new THREE.PlaneGeometry(0.5 + rc(), 0.4), finA[rc() * 4 | 0]); f.position.set(x - w / 2 + 0.6 + rc() * (w - 1.2), -14 + rc() * (h - 4), z + d / 2 + 0.03); fuori.add(f); }
-    if (rc() < 0.35) { const [txt, col] = INSEGNE[rc() * INSEGNE.length | 0]; const m = insegna(txt, col); const s2 = new THREE.Mesh(new THREE.PlaneGeometry(Math.min(w * 1.1, 9), Math.min(w * 1.1, 9) / 4), m); s2.position.set(x, -16 + h * (0.4 + rc() * 0.5), z + d / 2 + 0.06); fuori.add(s2); neonFuori.push({ m, f: rc() * 10 }); }
+    if (rc() < 0.3 && z < -30) { const [txt, col] = INSEGNE[rc() * INSEGNE.length | 0]; const m = insegna(txt, col); const lw = Math.min(w * 1.1, 10); const s2 = new THREE.Mesh(new THREE.PlaneGeometry(lw, lw / 4), m); s2.position.set(x, -16 + h * (0.5 + rc() * 0.4), z + d / 2 + 0.06); fuori.add(s2); neonFuori.push({ m, f: rc() * 10 }); }
   }
+  /* le insegne grandi, proprio davanti alle finestre: si leggono dal letto e dalla scrivania */
+  const tralicciM = new THREE.MeshBasicMaterial({ color: 0x050308 });
+  [['NON C\'È DIO NEL RITMO', '#2affd6', -7, 2.5, -20, 9, 0.25], ['EDWARD INDUSTRIES', '#ff2a4a', 8, 6, -26, 10, -0.3], ['DIO DEVE MORIRE', '#ff2aa8', 0.6, -1.6, -10.5, 4.6, 0.0], ['BALLA O FIORISCI', '#ffb02a', 15, -1, -22, 7, -0.45]].forEach(([txt, col, x, y, z, w, ry], i) => {
+    const m = insegna(txt, col); const sg = new THREE.Mesh(new THREE.PlaneGeometry(w, w / 4), m); sg.position.set(x, y, z); sg.rotation.y = ry; fuori.add(sg);
+    const asta = new THREE.Mesh(new THREE.BoxGeometry(0.25, 20, 0.25), tralicciM); asta.position.set(x, y - 10 - w / 8, z - 0.2); fuori.add(asta);
+    const alone = new THREE.PointLight(new THREE.Color(col), 40, 18, 1.4); alone.position.set(x, y, z + 2); fuori.add(alone);
+    neonFuori.push({ m, f: i * 2.3 });
+  });
+  const vert = insegna('B-E-P-E TIX', '#ff2a4a', true); const sv = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 8.8), vert); sv.position.set(-5.2, 0.5, -13); sv.rotation.y = 0.25; fuori.add(sv); neonFuori.push({ m: vert, f: 7 });
   const strada = new THREE.Mesh(new THREE.PlaneGeometry(220, 120), new THREE.MeshStandardMaterial({ color: 0x0a0810, roughness: 0.15, metalness: 0.6 })); strada.rotation.x = -Math.PI / 2; strada.position.set(0, -16, -40); fuori.add(strada);
   // le luci della città riflesse sull'asfalto bagnato
   [[-10, -14, -20, 0xff2a4a], [12, -14, -30, 0x2affd6], [0, -14, -12, 0xff2aa8]].forEach(([x, y, z, c]) => { const l = new THREE.PointLight(c, 30, 30, 1.2); l.position.set(x, y, z); fuori.add(l); });
@@ -258,8 +278,8 @@ export async function buildCameretta(scene, ctx) {
 
   /* ---------------- il letto, col coniglio di peluche ---------------- */
   const legno = new THREE.MeshStandardMaterial({ color: 0x2a1c14, roughness: 0.7 });
-  const lx = X0 + 0.5, lz = 0.6;
-  box(0.95, 0.3, 2.0, legno, lx, 0.15, lz); box(0.95, 0.75, 0.06, legno, lx, 0.375, lz + 1.0); box(0.95, 0.5, 0.06, legno, lx, 0.25, lz - 1.0);
+  const lx = X0 + 0.5, lz = Z0 + 1.08;   // contro il muro di sinistra, sotto la finestra: la testata guarda il vetro
+  box(0.95, 0.3, 2.0, legno, lx, 0.15, lz); box(0.95, 0.75, 0.06, legno, lx, 0.375, lz - 1.0); box(0.95, 0.5, 0.06, legno, lx, 0.25, lz + 1.0);
   box(0.88, 0.16, 1.9, new THREE.MeshStandardMaterial({ color: 0xbab0a0, roughness: 0.95 }), lx, 0.38, lz);
   // la coperta disfatta, coi pianeti stampati
   const cop = canvas(256, 512), cpf = cop.getContext('2d'); cpf.fillStyle = '#1a2a5a'; cpf.fillRect(0, 0, 256, 512);
@@ -267,9 +287,9 @@ export async function buildCameretta(scene, ctx) {
   const cg2 = new THREE.PlaneGeometry(1.15, 1.5, 16, 20), cpp = cg2.attributes.position;
   for (let i = 0; i < cpp.count; i++) { const x = cpp.getX(i), y = cpp.getY(i); let z = Math.sin(x * 9 + y * 4) * 0.03 + Math.sin(y * 13) * 0.02; if (x > 0.44) z -= (x - 0.44) * 1.6; if (x < -0.44) z -= (-0.44 - x) * 1.6; cpp.setZ(i, z); }
   cg2.computeVertexNormals();
-  const coperta = new THREE.Mesh(cg2, new THREE.MeshStandardMaterial({ map: toTex(cop), roughness: 0.95, side: THREE.DoubleSide })); coperta.rotation.x = -Math.PI / 2; coperta.position.set(lx, 0.48, lz - 0.2); coperta.castShadow = coperta.receiveShadow = true; g.add(coperta);
-  const cusc = box(0.6, 0.12, 0.35, new THREE.MeshStandardMaterial({ color: 0xd8d0c0, roughness: 1 }), lx, 0.52, lz + 0.75); cusc.rotation.z = 0.08;
-  const pel = coniglio(980, 'bianco', 0.9); pel.g.position.set(lx + 0.05, 0.58, lz + 0.62); pel.g.rotation.y = Math.PI * 0.85; g.add(pel.g);
+  const coperta = new THREE.Mesh(cg2, new THREE.MeshStandardMaterial({ map: toTex(cop), roughness: 0.95, side: THREE.DoubleSide })); coperta.rotation.x = -Math.PI / 2; coperta.position.set(lx, 0.48, lz + 0.2); coperta.rotation.z = Math.PI; coperta.castShadow = coperta.receiveShadow = true; g.add(coperta);
+  const cusc = box(0.6, 0.12, 0.35, new THREE.MeshStandardMaterial({ color: 0xd8d0c0, roughness: 1 }), lx, 0.52, lz - 0.75); cusc.rotation.z = 0.08;
+  const pel = coniglio(980, 'bianco', 0.9); pel.g.position.set(lx + 0.05, 0.58, lz - 0.62); pel.g.rotation.y = 0.45; g.add(pel.g);
   colliders.push({ x: lx, z: lz, w: 1.0, d: 2.1 });
   await tick();
 
@@ -311,7 +331,24 @@ export async function buildCameretta(scene, ctx) {
     f.fillStyle = 'rgba(0,0,0,.18)'; for (let y = 0; y < h; y += 3) f.fillRect(0, y, w, 1);
     mTex.needsUpdate = true;
   }
-  const nPC = { id: 'computer', label: 'il computer', view: view(at(X1 - 1.35, 1.3, sz0), at(X1, 1.05, sz0)) }; nodes.push(nPC);
+  /* la sedia girevole: seduta e schienale imbottiti, la colonna, la stella a cinque razze con le rotelle */
+  const sedia = new THREE.Group(); sedia.position.set(sx0 - 0.62, 0, sz0 + 0.05); sedia.rotation.y = -Math.PI / 2 + 0.35; g.add(sedia);
+  const imbott = new THREE.MeshStandardMaterial({ color: 0x1a1c24, roughness: 0.85 });
+  const plast = new THREE.MeshStandardMaterial({ color: 0x0c0c10, roughness: 0.5, metalness: 0.3 });
+  const cromo = new THREE.MeshStandardMaterial({ color: 0x8a8e99, metalness: 0.9, roughness: 0.25 });
+  const seduta = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.08, 0.44), imbott); seduta.position.y = 0.47; sedia.add(seduta);
+  const schienale = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.07), imbott); schienale.position.set(0, 0.8, -0.22); schienale.rotation.x = -0.1; sedia.add(schienale);
+  const supporto = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.3, 0.03), plast); supporto.position.set(0, 0.55, -0.24); sedia.add(supporto);
+  [-1, 1].forEach(k => { const b = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.03, 0.26), plast); b.position.set(k * 0.25, 0.66, 0); sedia.add(b); const v = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.16, 0.03), plast); v.position.set(k * 0.25, 0.57, -0.05); sedia.add(v); });
+  const colonna = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.32, 12), cromo); colonna.position.y = 0.27; sedia.add(colonna);
+  for (let i = 0; i < 5; i++) {
+    const a = i / 5 * Math.PI * 2;
+    const razza = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.025, 0.3), plast); razza.position.set(Math.sin(a) * 0.15, 0.1, Math.cos(a) * 0.15); razza.rotation.y = a; sedia.add(razza);
+    const rotella = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.02, 10), plast); rotella.rotation.z = Math.PI / 2; rotella.position.set(Math.sin(a) * 0.29, 0.03, Math.cos(a) * 0.29); sedia.add(rotella);
+  }
+  sedia.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } });
+  colliders.push({ x: sx0 - 0.62, z: sz0 + 0.05, w: 0.55, d: 0.55 });
+  const nPC = { id: 'computer', label: 'il computer', view: view(at(X1 - 1.5, 1.45, sz0 - 0.35), at(X1, 1.05, sz0)) }; nodes.push(nPC);
   const apri = () => { apriMontaggio(ctx); say('il montaggio di Memorie del Cosmo'); };
   [vetroCrt, scocca].forEach(m => interact.push({ mesh: m, label: 'il computer · il montaggio di Memorie del Cosmo', view: nPC.view, action: apri }));
   const luceCrt = new THREE.PointLight(0x9ac4ff, 2.5, 3, 1.5); luceCrt.position.set(sx0 - 0.45, 1.05, sz0); g.add(luceCrt);
