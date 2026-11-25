@@ -100,6 +100,10 @@
     <p class="avviso">c'è del suono · sul telefono si apre a schermo intero</p>
   </div>
 
+  <script>
+    // dal Sito 3D di liminal.exe: il caricamento si chiama come il posto dove si arriva
+    if (/[?&]stanza=corridoio\b/.test(location.search)) { document.querySelector('#loading h1').textContent = 'sito 3D'; document.getElementById('loading-step').textContent = 'si accendono le lampadine…'; document.title = 'liminal.exe · sito 3D'; }
+  </script>
   <section id="testo-muri" class="sr" aria-label="I testi scritti sui muri"></section>
 
   <script>

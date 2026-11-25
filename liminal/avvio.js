@@ -184,7 +184,7 @@
       '<button type="button" class="scelta" data-v="classico">' + ic.classico + '<div><b>Sito classico</b><span>l\'interfaccia del sito: le sezioni, i lavori, la radio</span></div></button>' +
       '<button type="button" class="scelta" data-v="gioco">' + ic.gioco + '<div><b>Sito 2D</b><span>il gioco: il museo da attraversare a piedi</span></div></button>' +
       '<button type="button" class="scelta" data-v="desktop">' + ic.desktop + '<div><b>Sito desktop</b><span>Zona Larga: accesso ai file dell\'artista</span></div></button>' +
-      '<button type="button" class="scelta" data-v="tre"><em>in lavorazione</em>' + ic.tre + '<div><b>Sito 3D</b><span>lo spazio a tre dimensioni: si apre da Radio KaOsS</span></div></button>' +
+      '<button type="button" class="scelta" data-v="tre"><em>in costruzione</em>' + ic.tre + '<div><b>Sito 3D</b><span>il corridoio: ogni porta è una stanza</span></div></button>' +
       '</div><div class="piccolo">liminal.exe · motore liminal</div>');
     f.addEventListener('click', function (e) {
       var b = e.target.closest('.scelta'); if (!b) return;
@@ -192,7 +192,7 @@
       var v = b.dataset.v;
       if (v === 'gioco') { location.href = BASE + 'museo.html'; return; }
       if (v === 'desktop') { location.href = BASE + 'desktop/index.html?acceso'; return; }
-      if (v === 'tre') { errore3D(); return; }
+      if (v === 'tre') { location.href = BASE + 'radio-kaoss.html?stanza=corridoio'; return; }
       // il sito classico: lo schermo si spegne e si apre l'altra pagina
       L.style.opacity = '0';
       setTimeout(function () { location.href = BASE + 'sito.html'; }, 380);
@@ -206,11 +206,11 @@
     var e = document.createElement('div'); e.className = 'errore'; e.setAttribute('role', 'alertdialog');
     e.innerHTML = '<div class="err"><div class="err-t"><span>liminal.exe — errore critico</span><span>✕</span></div>' +
       '<div class="err-c"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="#c4211c"/><path d="M15 15l18 18M33 15L15 33" stroke="#fff" stroke-width="4.5"/></svg>' +
-      '<div><b>ERRORE 0x3D · SITO 3D IN LAVORAZIONE</b><p>Il motore liminal non riesce ancora a costruire la terza dimensione.<br>Apro l\'unica stanza che esiste già: <span style="color:#ff6a5a">Radio KaOsS 3D</span>.</p></div></div>' +
+      '<div><b>ERRORE 0x3D · SITO 3D IN LAVORAZIONE</b><p>Il motore liminal non riesce ancora a costruire la terza dimensione.<br>Si apre il corridoio: per ora solo la porta di <span style="color:#ff6a5a">Radio KaOsS</span> è costruita.</p></div></div>' +
       '<div class="err-barra"><i></i></div></div>';
     L.appendChild(e);
     L.classList.add('scatto'); setTimeout(function () { L.classList.remove('scatto'); }, 170);
     try { if (navigator.vibrate) navigator.vibrate([90, 60, 90]); } catch (er) { /* niente */ }
-    setTimeout(function () { location.href = BASE + 'radio-kaoss.html'; }, 2900);
+    setTimeout(function () { location.href = BASE + 'radio-kaoss.html?stanza=corridoio'; }, 2900);
   }
 })();

@@ -43,14 +43,17 @@ function snail(seed) {
 }
 
 /* aree: [x0, x1, z0, z1, y] — il pavimento o il piano di un tavolo */
-export function buildLumache(scene, areas, count = 10) {
+/* evita: rettangoli { x, z, w, d } dove le lumache non entrano (mobili, casse, porte) */
+export function buildLumache(scene, areas, count = 10, evita = []) {
   const list = [], r = rng(808);
   const trailMat = new THREE.LineBasicMaterial({ color: 0xcfd8d0, transparent: true, opacity: 0.35 });
   for (let i = 0; i < count; i++) {
     const area = areas[i % areas.length];
     const sn = snail(900 + i);
     sn.area = area;
-    sn.g.position.set(area[0] + r() * (area[1] - area[0]), area[4] + 0.002, area[2] + r() * (area[3] - area[2]));
+    let px, pz, tent = 0;
+    do { px = area[0] + r() * (area[1] - area[0]); pz = area[2] + r() * (area[3] - area[2]); tent++; } while (tent < 20 && area[4] < 0.05 && evita.some(c => Math.abs(px - c.x) < c.w / 2 + 0.1 && Math.abs(pz - c.z) < c.d / 2 + 0.1));
+    sn.g.position.set(px, area[4] + 0.002, pz);
     sn.heading = r() * Math.PI * 2; sn.speed = 0.012 + r() * 0.01; sn.phase = r() * 10;
     scene.add(sn.g);
     const pts = new Float32Array(160 * 3), geo = new THREE.BufferGeometry();
@@ -65,7 +68,8 @@ export function buildLumache(scene, areas, count = 10) {
       // gira piano, e torna indietro dai bordi
       sn.heading += (Math.sin(t * 0.13 + sn.phase) * 0.25) * dt;
       const nx = p.x + Math.cos(sn.heading) * 0.4, nz = p.z - Math.sin(sn.heading) * 0.4;
-      if (nx < a[0] + m || nx > a[1] - m || nz < a[2] + m || nz > a[3] - m) sn.heading += dt * 1.2;
+      const dentro = a[4] < 0.05 && evita.some(c => Math.abs(nx - c.x) < c.w / 2 + 0.05 && Math.abs(nz - c.z) < c.d / 2 + 0.05);
+      if (nx < a[0] + m || nx > a[1] - m || nz < a[2] + m || nz > a[3] - m || dentro) sn.heading += dt * 1.2;
       const pulse = 0.5 + 0.5 * Math.sin(t * 2.2 + sn.phase);
       const v = sn.speed * (0.4 + pulse);
       p.x += Math.cos(sn.heading) * v * dt; p.z -= Math.sin(sn.heading) * v * dt;

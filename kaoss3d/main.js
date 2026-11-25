@@ -16,6 +16,9 @@ import { fontsReady } from '../stanza/graffiti.js';
 import { KAOSS } from '../stanza/dati.js';
 import { buildNotte, SUN_FROM } from './notte.js';
 import { buildSala } from './sala.js';
+import { buildCantina, Y0 as CANTINA_Y, portaLive } from './cantina.js';
+import { buildCorridoio, Y as CORR_Y } from './corridoio.js';
+import { openWindow, closeWindow } from '../stanza/video.js';
 import { createViaggio } from './viaggio.js';
 import { createSentinella } from './sentinella.js';
 
@@ -46,10 +49,10 @@ const view = (pos, look) => ({ pos, look });
 async function build() {
   status('i muri…'); await tick();
   const room = buildRoom(scene);
-  // in questa sala non c'è la botola: il subconscio sta dietro il ragno, nell'Interattivo
+  // la botola non c'è: alla stanza del live si va dalla porta tra gli spot e le canzoni
   const trap = room.interact.find(i => /botola/.test(i.label)); if (trap) trap.mesh.parent.visible = false;
   const interact = room.interact.filter(i => i !== trap);
-  const door = interact.find(i => /porta/.test(i.label)); if (door) door.label = 'la porta · torna al museo';
+  const door = interact.find(i => /porta/.test(i.label));
   status('la luce…'); await tick();
   const lights = buildLights(scene, quality, { sunFrom: SUN_FROM, sunColor: 0xff3a1a, sunIntensity: 2.8, rayColor: 0xff4a2a });
   lights.hemi.color.set(0x5a1a1a); lights.hemi.groundColor.set(0x120405); lights.hemi.intensity = 0.35;
@@ -68,12 +71,76 @@ async function build() {
   status('la sala…'); await tick();
   const sala = await buildSala(scene, ctx);
   interact.push(...sala.interact);
+  status('la stanza del live…'); await tick();
+  const cantina = buildCantina(scene, ctx);
+  interact.push(...cantina.interact);
+  /* la porta della stanza del live: sul muro di destra, tra gli spot e le canzoni */
+  const portaL = portaLive('LIVE');
+  portaL.position.set(6 - 0.02, 0, -0.95); portaL.rotation.y = -Math.PI / 2; scene.add(portaL);
+  const davantiPorta = { pos: [4.5, 1.6, -0.95], look: [6, 1.35, -0.95] };
+  const scendi = () => viaggio.go(cantina.entry, () => say('la stanza del live. sulla parete c\'è lo schermo di Radio KaOsS live'));
+  portaL.traverse(m => { if (m.isMesh) interact.push({ mesh: m, label: 'la porta · la stanza del live', view: davantiPorta, action: scendi }); });
+  ctx.salire = () => viaggio.go(davantiPorta, () => say('di nuovo nella sala'));
+  /* il corridoio: l'hub del sito 3D. La porta della sala torna lì. */
+  status('il corridoio…'); await tick();
+  const corridoio = buildCorridoio(scene, ctx);
+  interact.push(...corridoio.interact);
+  if (door) { door.label = 'la porta · torna al corridoio'; door.action = () => viaggio.go(corridoio.porta.kaoss.view, () => say('il corridoio')); }
+
+  /* ---------- le stanze: ognuna sta a un suo piano (Y) ----------
+     La sala è a 0; la stanza del live e il corridoio si costruiscono
+     subito; le altre stanze si caricano solo quando si apre la loro
+     porta nel corridoio (import dinamico): il sito 3D resta leggero. */
+  const STANZE = { sala: { Y: 0, obj: null }, live: { Y: CANTINA_Y, obj: cantina }, corridoio: { Y: CORR_Y, obj: corridoio } };
+  const MODULI = {
+    visual: { zona: 'cinema', file: './cinema.js', fn: 'buildCinema', nome: 'il cinema' },
+    chi: { zona: 'cucina', file: './cucina.js', fn: 'buildCucina', nome: 'la cucina' },
+    cosmo: { zona: 'cameretta', file: './cameretta.js', fn: 'buildCameretta', nome: 'la cameretta' }
+  };
+  const zona = () => {
+    const y = camera.position.y - 1.6; let best = 'sala', bd = 1e9;
+    for (const id in STANZE) { const d = Math.abs(y - STANZE[id].Y); if (d < bd) { bd = d; best = id; } }
+    return best;
+  };
+  const caricando = {};
+  async function caricaStanza(id) {
+    const m = MODULI[id];
+    if (STANZE[m.zona]) return STANZE[m.zona].obj;
+    if (!caricando[id]) caricando[id] = (async () => {
+      const mod = await import(m.file);
+      const obj = await mod[m.fn](scene, ctx);
+      obj.group.visible = false;
+      interact.push(...obj.interact);
+      STANZE[m.zona] = { Y: obj.Y, obj };
+      return obj;
+    })();
+    return caricando[id];
+  }
+  ctx.entra = async id => {
+    if (id === 'kaoss') { viaggio.go(sala.nodes[0].view, () => say('la sala di Radio KaOsS')); return; }
+    if (!MODULI[id]) return;
+    say('si apre la porta… ' + MODULI[id].nome);
+    velo.style.transition = 'opacity .4s'; velo.style.opacity = '0.85';
+    try {
+      const o = await caricaStanza(id);
+      velo.style.opacity = '0'; setTimeout(() => { velo.style.transition = ''; }, 450);
+      viaggio.go(o.entry, () => say(o.benvenuto || MODULI[id].nome));
+    } catch (e) { console.error(e); velo.style.opacity = '0'; say('la porta non si apre: ' + e.message); }
+  };
+  ctx.alCorridoio = id => viaggio.go(corridoio.porta[id].view, () => say('il corridoio'));
+  ctx.openWindow = openWindow; ctx.closeWindow = closeWindow;
 
   /* ---------- puntare e toccare ---------- */
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   // dove si può stare in piedi: dentro la stanza, fuori dai mobili
   const blockers = [...sala.colliders, { x: -3.5, z: 5.3, w: 1.2, d: 0.6 }];
   function freeSpot(x, z) {
+    const st = STANZE[zona()].obj;
+    if (st) {   // nella stanza del live o nel corridoio: i suoi muri e le sue cose
+      const b = st.bounds;
+      if (x < b.x0 || x > b.x1 || z < b.z0 || z > b.z1) return false;
+      return !st.colliders.some(c => Math.abs(x - c.x) < c.w / 2 + 0.3 && Math.abs(z - c.z) < c.d / 2 + 0.3);
+    }
     if (x < -5.4 || x > 5.4 || z < -4.4 || z > 4.4) return false;
     return !blockers.some(c => Math.abs(x - c.x) < c.w / 2 + 0.35 && Math.abs(z - c.z) < c.d / 2 + 0.35);
   }
@@ -88,7 +155,8 @@ async function build() {
       if (!it && h.object.isMesh && h.object.material && h.object.material.transparent && h.object.material.opacity < 0.6) continue;   // i vetri non fermano il dito
       if (it) return h.distance < 12 ? { it } : null;
       // il pavimento: ci si trasporta lì
-      if (h.point.y < 0.06 && h.face && h.face.normal && Math.abs(h.point.x) < 6 && Math.abs(h.point.z) < 5 && freeSpot(h.point.x, h.point.z)) return { floor: h.point.clone() };
+      const fy = STANZE[zona()].Y;
+      if (Math.abs(h.point.y - fy) < 0.06 && h.face && h.face.normal && Math.abs(h.point.x) < 40 && Math.abs(h.point.z) < 40 && freeSpot(h.point.x, h.point.z)) return { floor: h.point.clone() };
       return null;
     }
     return null;
@@ -101,7 +169,8 @@ async function build() {
       const p = pick(x, y); if (!p) return;
       if (p.floor) {   // un punto del pavimento: ci vai, guardando nella stessa direzione
         const d = new THREE.Vector3(); camera.getWorldDirection(d); d.y = 0; d.normalize();
-        viaggio.go({ pos: [p.floor.x, 1.6, p.floor.z], look: [p.floor.x + d.x, 1.6 + Math.tan(viaggio.st.pitch) * 0.3, p.floor.z + d.z] });
+        const y = p.floor.y + 1.6;
+        viaggio.go({ pos: [p.floor.x, y, p.floor.z], look: [p.floor.x + d.x, y + Math.tan(viaggio.st.pitch) * 0.3, p.floor.z + d.z] });
         return;
       }
       const it = p.it;
@@ -145,15 +214,33 @@ async function build() {
   $('istruzioni').innerHTML = mobile
     ? 'muovi il telefono per guardarti intorno<br>tocca il pavimento o una cosa per andarci'
     : 'clicca per prendere il mouse: muovi il mouse per guardarti intorno · W A S D o le frecce per camminare<br>clic su quello che hai al centro per usarlo · Esc libera il mouse';
-  $('entra-btn').addEventListener('click', async () => {
+  const benvenuto = { live: 'La stanza del live. Sulla parete c\'è lo schermo di Radio KaOsS live.', corridoio: 'Il corridoio. Ogni porta è una stanza del sito.', sala: 'La sala di Radio KaOsS. Al bancone c\'è chi trasmette: vai a sentirlo.' };
+  /* le cose che il browser concede solo dopo un gesto (schermo intero, giroscopio
+     sugli iPhone, l'audio): si chiedono al primo tocco, una volta sola */
+  let gestoFatto = false;
+  async function dopoIlGesto() {
+    if (gestoFatto) return; gestoFatto = true;
     if (mobile) { try { const de = document.documentElement; await (de.requestFullscreen ? de.requestFullscreen({ navigationUI: "hide" }) : de.webkitRequestFullscreen && de.webkitRequestFullscreen()); } catch (e) { } try { screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {}); } catch (e) { } await viaggio.enableGyro(); }
     try { await listener.context.resume(); } catch (e) { }
+  }
+  $('entra-btn').addEventListener('click', async () => {
+    await dopoIlGesto();
     $('entra').classList.add('via'); setTimeout(() => { $('entra').hidden = true; }, 900);
     viaggio.enable(true);
-    setTimeout(() => say('La sala di Radio KaOsS. Al bancone c\'è chi trasmette: vai a sentirlo.'), 1300);
+    setTimeout(() => say(benvenuto[zona()]), 1300);
   });
+  /* entrare senza premere niente: finito il caricamento si è già dentro */
+  function entraDaSolo() {
+    $('entra').hidden = true;
+    viaggio.enable(true);
+    if (mobile) viaggio.enableGyro();   // su Android il sensore parte subito; sugli iPhone al primo tocco
+    const primo = () => { removeEventListener('pointerdown', primo, true); dopoIlGesto(); };
+    addEventListener('pointerdown', primo, true);
+    setTimeout(() => say(benvenuto[zona()] + (mobile ? '' : ' Clicca per guardarti intorno col mouse.')), 700);
+  }
 
   const clock = new THREE.Clock();
+  let zonaOra = null;
   let frames = 0, fpsT = 0, lowered = false;
   renderer.setAnimationLoop(() => {
     const dt = Math.min(0.05, clock.getDelta()), t = clock.elapsedTime;
@@ -161,7 +248,20 @@ async function build() {
     lights.update(t, dt, reduced);
     notte(t, dt, camera);
     animateCurtain(room.curtain, t);
-    sala.update(t, dt, camera, renderer);
+    // si disegna solo la stanza dove si è: la sala (con la notte fuori) o una delle altre
+    const z = zona();
+    if (z !== zonaOra) {
+      const prima = zonaOra; zonaOra = z;
+      const gruppi = Object.values(STANZE).filter(s => s.obj).map(s => s.obj.group);
+      scene.children.forEach(o => {
+        if (gruppi.includes(o) || o === camera) return;
+        if (z === 'sala') { if (prima !== null) o.visible = o.userData._vis !== undefined ? o.userData._vis : true; }
+        else if (prima === 'sala' || prima === null) { o.userData._vis = o.visible; o.visible = false; }
+      });
+      for (const id in STANZE) if (STANZE[id].obj) STANZE[id].obj.group.visible = id === z;
+    }
+    const qui = STANZE[z].obj;
+    if (qui) qui.update(t, dt, camera, renderer); else sala.update(t, dt, camera, renderer);
     if (sentinella) sentinella.update(t, dt);
     film.uniforms.t.value = t;
     composer.render();
@@ -172,6 +272,10 @@ async function build() {
 
   // per le prove: ?auto entra da solo; &cam=x,y,z,yaw,pitch
   const qp = new URLSearchParams(location.search);
+  // ?stanza=live: si entra direttamente nella stanza del live
+  const entrata = { live: cantina.entry, corridoio: corridoio.entry }[qp.get('stanza')];
+  if (entrata) { const e = entrata; viaggio.place(e.pos, Math.atan2(-(e.look[0] - e.pos[0]), -(e.look[2] - e.pos[2])), -0.05); }
+  if (entrata && !qp.has('auto')) entraDaSolo();
   if (qp.has('auto')) {
     $('entra').hidden = true; viaggio.enable(true);
     const c = (qp.get('cam') || '').split(',').map(Number);
