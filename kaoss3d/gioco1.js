@@ -64,27 +64,186 @@ function foglioTex(seed, righe) {
   return toTex(c);
 }
 
-/* il bambino: una sagoma nera, proporzioni di bambino (testa grande),
-   che tiene in braccio un coniglio */
+/* IL FANCIULLO: un bambino vero, non più una sagoma. Pelle pallida, la
+   camicia da notte bianca sporca che arriva sotto le ginocchia, i piedi
+   nudi e sporchi, i capelli scuri spettinati che gli cadono sugli occhi.
+   Gli occhi: tutti neri, lucidi, senza il bianco. Tiene in braccio un
+   coniglio (lo mette chi lo usa). I fili gli escono dalla schiena. */
+function camiciaTex() {
+  const r = rng(1660), c = canvas(512, 512), f = c.getContext('2d');
+  f.fillStyle = '#d9d2c2'; f.fillRect(0, 0, 512, 512);
+  // la trama del cotone
+  for (let i = 0; i < 9000; i++) { f.fillStyle = r() < 0.5 ? 'rgba(255,255,250,.08)' : 'rgba(80,70,50,.06)'; f.fillRect(r() * 512, r() * 512, 1 + r() * 3, 1); }
+  // le pieghe verticali, morbide
+  for (let x = 0; x < 512; x += 18 + r() * 30) { const g2 = f.createLinearGradient(x - 10, 0, x + 10, 0); g2.addColorStop(0, 'rgba(0,0,0,0)'); g2.addColorStop(0.5, `rgba(60,50,35,${0.06 + r() * 0.1})`); g2.addColorStop(1, 'rgba(0,0,0,0)'); f.fillStyle = g2; f.fillRect(x - 10, 0, 20, 512); }
+  // lo sporco: sale dal basso (ha camminato nella cenere), macchie, una ruggine
+  const sp = f.createLinearGradient(0, 512, 0, 300); sp.addColorStop(0, 'rgba(50,40,28,.6)'); sp.addColorStop(1, 'rgba(50,40,28,0)'); f.fillStyle = sp; f.fillRect(0, 300, 512, 212);
+  for (let i = 0; i < 26; i++) { f.fillStyle = `rgba(${60 + r() * 40},${45 + r() * 25},${25},${0.06 + r() * 0.14})`; torn(f, r, r() * 512, 200 + r() * 312, 8 + r() * 40, 6 + r() * 30, 0.6, 18); f.fill(); }
+  for (let i = 0; i < 3; i++) { f.fillStyle = `rgba(110,40,20,${0.15 + r() * 0.15})`; torn(f, r, 120 + r() * 280, 120 + r() * 200, 10 + r() * 22, 14 + r() * 30, 0.7, 16); f.fill(); }
+  // l'orlo scucito
+  f.strokeStyle = 'rgba(40,30,20,.5)'; f.lineWidth = 2; f.beginPath(); for (let x = 0; x <= 512; x += 6) f.lineTo(x, 500 + Math.sin(x * 0.3) * 3 + r() * 4); f.stroke();
+  const t = toTex(c); t.wrapS = THREE.RepeatWrapping; return t;
+}
 function bambino() {
   const g = new THREE.Group();
-  const nero = new THREE.MeshStandardMaterial({ color: 0x040404, roughness: 0.5 });
-  const tornio = (pts, zs = 0.75) => { const m = new THREE.Mesh(new THREE.LatheGeometry(pts.map(([a, b]) => new THREE.Vector2(a, b)), 28), nero); m.scale.z = zs; return m; };
-  const tronco = (r0, r1, l) => { const geo = new THREE.CylinderGeometry(r1, r0, l, 14); geo.translate(0, -l / 2, 0); return new THREE.Mesh(geo, nero); };
-  const palla = r => new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), nero);
+  const pelle = new THREE.MeshStandardMaterial({ color: 0xd6c8ba, roughness: 0.62 });
+  const sporca = new THREE.MeshStandardMaterial({ color: 0x8a7a6a, roughness: 0.85 });
+  const stoffa = new THREE.MeshStandardMaterial({ map: camiciaTex(), roughness: 0.92, side: THREE.DoubleSide });
+  const capelli = new THREE.MeshStandardMaterial({ color: 0x17100b, roughness: 0.55 });
+  const occhio = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.04, metalness: 0.3 });
+  const occhiaia = new THREE.MeshStandardMaterial({ color: 0x5a4640, roughness: 0.8 });
+  const labbra = new THREE.MeshStandardMaterial({ color: 0x8a5a58, roughness: 0.6 });
+  const tornio = (pts, m, zs = 0.78, seg = 30) => { const o = new THREE.Mesh(new THREE.LatheGeometry(pts.map(([a, b]) => new THREE.Vector2(a, b)), seg), m); o.scale.z = zs; return o; };
+  const tronco = (r0, r1, l, m) => { const geo = new THREE.CylinderGeometry(r1, r0, l, 14); geo.translate(0, -l / 2, 0); return new THREE.Mesh(geo, m); };
+  const palla = (rad, m, ws = 16, hs = 12) => new THREE.Mesh(new THREE.SphereGeometry(rad, ws, hs), m);
+
   const bacino = new THREE.Group(); bacino.position.y = 0.6; g.add(bacino);
-  bacino.add(tornio([[0, -0.06], [0.1, -0.05], [0.12, 0.02], [0.11, 0.1]]));
-  const busto = new THREE.Group(); busto.position.y = 0.09; bacino.add(busto);
-  busto.add(tornio([[0.11, 0], [0.12, 0.1], [0.13, 0.2], [0.135, 0.3], [0.1, 0.36], [0.05, 0.38], [0.04, 0.42], [0, 0.43]], 0.72));
-  const testa = new THREE.Group(); testa.position.y = 0.5; busto.add(testa);
-  const cr = palla(0.115); cr.scale.set(0.95, 1.05, 1); testa.add(cr);
-  // i capelli spettinati: qualche ciocca
-  for (let i = 0; i < 9; i++) { const c = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.09, 6), nero); const a = i / 9 * Math.PI * 2; c.position.set(Math.cos(a) * 0.09, 0.08, Math.sin(a) * 0.09); c.rotation.set(Math.sin(a) * 0.9, 0, -Math.cos(a) * 0.9); testa.add(c); }
-  const gambe = [-1, 1].map(k => { const a = new THREE.Group(); a.position.set(k * 0.06, -0.03, 0); bacino.add(a); a.add(tronco(0.055, 0.042, 0.3)); const gi = new THREE.Group(); gi.position.y = -0.3; a.add(gi); gi.add(tronco(0.042, 0.032, 0.26)); const pi = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, 0.16), nero); pi.position.set(0, -0.28, 0.04); gi.add(pi); return a; });
-  // le braccia piegate, a culla, davanti al petto
-  const braccia = [-1, 1].map(k => { const s = new THREE.Group(); s.position.set(k * 0.13, 0.32, 0); busto.add(s); s.add(palla(0.04)); s.add(tronco(0.035, 0.028, 0.2)); const go = new THREE.Group(); go.position.y = -0.2; s.add(go); go.add(tronco(0.028, 0.022, 0.18)); const m = palla(0.026); m.scale.set(0.8, 1.3, 0.7); m.position.y = -0.2; go.add(m); s.rotation.x = -0.55; s.rotation.z = k * 0.15; go.rotation.x = -1.35; go.rotation.z = -k * 0.55; return { s, go }; });
+  // la gonna della camicia: dal bacino sotto le ginocchia, un po' svasata e mossa
+  const gonna = tornio([[0.112, 0.08], [0.122, 0], [0.138, -0.12], [0.155, -0.24], [0.172, -0.34], [0.182, -0.39]], stoffa, 0.8, 36);
+  { const p = gonna.geometry.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), a = Math.atan2(z, x), k = Math.max(0, -y) * 0.06; p.setX(i, x * (1 + Math.sin(a * 7) * k)); p.setZ(i, z * (1 + Math.sin(a * 7) * k)); } gonna.geometry.computeVertexNormals(); }
+  bacino.add(gonna);
+  const busto = new THREE.Group(); busto.position.y = 0.08; bacino.add(busto);
+  // il petto, stretto (è magro), dentro la camicia
+  busto.add(tornio([[0.112, 0], [0.118, 0.08], [0.124, 0.18], [0.128, 0.26], [0.118, 0.32], [0.085, 0.355], [0.045, 0.37], [0.04, 0.375]], stoffa, 0.7));
+  const collo = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.034, 0.08, 12), pelle); collo.position.y = 0.4; busto.add(collo);
+  const colletto = new THREE.Mesh(new THREE.TorusGeometry(0.042, 0.008, 6, 20), stoffa); colletto.rotation.x = Math.PI / 2; colletto.position.y = 0.37; colletto.scale.y = 0.8; busto.add(colletto);
+  // i bottoni, uno manca
+  [0.33, 0.27, 0.15].forEach(y => { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.004, 10), new THREE.MeshStandardMaterial({ color: 0xe8e2d0, roughness: 0.3 })); b.rotation.x = Math.PI / 2; b.position.set(0, y, 0.088 + (0.33 - y) * 0.03); busto.add(b); });
+  // la testa: grande come quella dei bambini, il mento piccolo
+  const testa = new THREE.Group(); testa.position.y = 0.53; busto.add(testa);
+  const cranio = palla(0.105, pelle, 32, 24); cranio.scale.set(0.92, 1.04, 0.98); testa.add(cranio);
+  const viso = palla(0.08, pelle, 24, 18); viso.scale.set(0.95, 0.95, 0.8); viso.position.set(0, -0.04, 0.03); testa.add(viso);
+  // gli occhi: due cavità con dentro il nero lucido, le occhiaie viola sotto
+  [-1, 1].forEach(k => {
+    const ca = palla(0.024, occhiaia, 14, 10); ca.scale.set(1.1, 0.9, 0.5); ca.position.set(k * 0.036, -0.006, 0.083); testa.add(ca);
+    const o = palla(0.019, occhio, 16, 12); o.scale.set(1.05, 0.95, 0.75); o.position.set(k * 0.036, -0.004, 0.088); testa.add(o);
+    const lu = palla(0.0035, new THREE.MeshBasicMaterial({ color: 0xffffff }), 6, 4); lu.position.set(k * 0.036 + 0.006, 0.003, 0.1015); testa.add(lu);
+    const so = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.004, 0.01), capelli); so.position.set(k * 0.037, 0.026, 0.092); so.rotation.z = -k * 0.18; testa.add(so);
+  });
+  const naso = palla(0.012, pelle, 10, 8); naso.scale.set(0.9, 1, 1.1); naso.position.set(0, -0.03, 0.1); testa.add(naso);
+  const bocca = new THREE.Mesh(new THREE.CapsuleGeometry(0.0035, 0.022, 3, 8), labbra); bocca.rotation.z = Math.PI / 2; bocca.position.set(0, -0.062, 0.088); testa.add(bocca);
+  [-1, 1].forEach(k => { const o = palla(0.018, pelle, 10, 8); o.scale.set(0.45, 1, 0.8); o.position.set(k * 0.098, -0.01, 0); testa.add(o); });
+  // i capelli: una calotta scura e tante ciocche che cadono avanti, spettinate
+  const calotta = new THREE.Mesh(new THREE.SphereGeometry(0.112, 28, 16, 0, Math.PI * 2, 0, Math.PI * 0.56), capelli); calotta.scale.set(0.95, 1.05, 1.02); calotta.rotation.x = -0.22; calotta.position.set(0, 0.008, -0.006); testa.add(calotta);
+  const rc = rng(1661);
+  for (let i = 0; i < 46; i++) {
+    const a = rc() * Math.PI * 2, front = Math.cos(a - Math.PI / 2);   // a = π/2 è davanti
+    const L = 0.05 + rc() * 0.05 + (front < 0 ? 0.03 : 0);
+    const c = new THREE.Mesh(new THREE.ConeGeometry(0.012 + rc() * 0.01, L, 5), capelli);
+    const R = 0.1;
+    c.position.set(Math.cos(a) * R * 0.92, 0.05 - rc() * 0.03 - (front > 0.6 ? 0.025 : 0), Math.sin(a) * R * 0.95);
+    // la punta in giù e verso fuori, con un po' di disordine
+    c.rotation.set(Math.PI + Math.sin(a) * 0.5 + (rc() - 0.5) * 0.4, 0, -Math.cos(a) * 0.5 + (rc() - 0.5) * 0.4);
+    testa.add(c);
+  }
+  // la frangia sugli occhi
+  for (let i = 0; i < 9; i++) { const c = new THREE.Mesh(new THREE.ConeGeometry(0.011, 0.07 + rc() * 0.03, 5), capelli); c.position.set(-0.06 + i * 0.015, 0.05, 0.085 - Math.abs(i - 4) * 0.004); c.rotation.set(Math.PI - 0.35, 0, (rc() - 0.5) * 0.5); testa.add(c); }
+  // le braccia: le maniche fino al gomito, poi la pelle; piegate a culla
+  const braccia = [-1, 1].map(k => {
+    const s = new THREE.Group(); s.position.set(k * 0.122, 0.31, 0); busto.add(s);
+    s.add(palla(0.036, stoffa));
+    const manica = tronco(0.042, 0.036, 0.17, stoffa); s.add(manica);
+    const go = new THREE.Group(); go.position.y = -0.17; s.add(go);
+    go.add(palla(0.025, pelle)); go.add(tronco(0.024, 0.019, 0.16, pelle));
+    // la mano: il palmo e le dita
+    const mano = new THREE.Group(); mano.position.y = -0.165; go.add(mano);
+    const palmo = palla(0.022, pelle); palmo.scale.set(1, 1.15, 0.55); mano.add(palmo);
+    for (let d = 0; d < 4; d++) { const dito = new THREE.Mesh(new THREE.CapsuleGeometry(0.0055, 0.024, 3, 6), pelle); dito.position.set((d - 1.5) * 0.0095, -0.03, 0.004); dito.rotation.x = 0.5; mano.add(dito); }
+    const pollice = new THREE.Mesh(new THREE.CapsuleGeometry(0.006, 0.018, 3, 6), pelle); pollice.position.set(k * -0.018, -0.008, 0.012); pollice.rotation.set(0.6, 0, k * 0.7); mano.add(pollice);
+    s.rotation.x = -0.5; s.rotation.z = k * 0.14; go.rotation.x = -1.4; go.rotation.z = -k * 0.6;
+    return { s, go };
+  });
+  // le gambe magre sotto la camicia, i piedi nudi sporchi
+  [-1, 1].forEach(k => {
+    const a = new THREE.Group(); a.position.set(k * 0.055, -0.03, 0); bacino.add(a);
+    a.add(tronco(0.045, 0.034, 0.3, pelle));
+    const gi = new THREE.Group(); gi.position.y = -0.3; a.add(gi);
+    gi.add(palla(0.034, pelle)); gi.add(tronco(0.033, 0.024, 0.25, pelle));
+    const pie = new THREE.Group(); pie.position.set(0, -0.265, 0.02); gi.add(pie);
+    const pianta = palla(0.03, sporca); pianta.scale.set(0.85, 0.5, 1.9); pie.add(pianta);
+    for (let d = 0; d < 5; d++) { const dito = palla(0.0075 - Math.abs(d - (k > 0 ? 0 : 4)) * 0.0006, sporca, 6, 5); dito.position.set((d - 2) * 0.011 * -k, -0.006, 0.055 - Math.abs(d - 2) * 0.004); pie.add(dito); }
+    const cav = palla(0.024, sporca); cav.scale.set(1, 1.1, 1); cav.position.y = 0.02; pie.add(cav);
+    a.rotation.z = k * 0.03;
+  });
+  // le prese nella schiena, da dove escono i fili
+  const presaM = new THREE.MeshStandardMaterial({ color: 0x101010, metalness: 0.6, roughness: 0.4 });
+  [[0, 0.22], [-0.05, 0.14], [0.05, 0.14], [0, 0.06]].forEach(([x, y]) => { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.016, 0.02, 10), presaM); p.rotation.x = Math.PI / 2; p.position.set(x, y, -0.088); busto.add(p); });
   g.traverse(o => { if (o.isMesh) o.castShadow = true; });
   return { g, busto, testa, braccia };
+}
+
+/* la ragnatela che sparano i ragni: raggi, spirale, fili appiccicosi */
+function telaCanvas(seed, S = 256, vero = false) {
+  const r = rng(seed), c = vero ? Object.assign(document.createElement('canvas'), { width: S, height: S }) : canvas(S, S), f = c.getContext('2d'), cx = S / 2, R = S * 0.48;
+  f.clearRect(0, 0, S, S); f.strokeStyle = 'rgba(240,240,235,.9)'; f.lineCap = 'round';
+  const N = 14, ang = []; for (let i = 0; i < N; i++) ang.push(i / N * Math.PI * 2 + (r() - 0.5) * 0.2);
+  f.lineWidth = S / 180; ang.forEach(a => { f.beginPath(); f.moveTo(cx, cx); f.lineTo(cx + Math.cos(a) * R * (0.85 + r() * 0.15), cx + Math.sin(a) * R * (0.85 + r() * 0.15)); f.stroke(); });
+  f.lineWidth = S / 260;
+  for (let k = 0.08; k < 0.95; k += 0.055 + r() * 0.02) { f.beginPath(); ang.concat([ang[0] + Math.PI * 2]).forEach((a, i) => { const rr2 = R * k * (0.94 + r() * 0.1), x = cx + Math.cos(a) * rr2, y = cx + Math.sin(a) * rr2; i ? f.quadraticCurveTo(cx + Math.cos(a - 0.2) * rr2 * 0.96, cx + Math.sin(a - 0.2) * rr2 * 0.96, x, y) : f.moveTo(x, y); }); f.stroke(); }
+  // le gocce di colla
+  f.fillStyle = 'rgba(255,255,250,.85)'; for (let i = 0; i < 90; i++) { const a = r() * Math.PI * 2, d = r() * R; f.beginPath(); f.arc(cx + Math.cos(a) * d, cx + Math.sin(a) * d, S / 300 + r() * S / 260, 0, 7); f.fill(); }
+  return c;
+}
+
+/* LA PISTOLA AD ACQUA: plastica verde e arancione, il serbatoio trasparente
+   sopra con l'acqua che cala mentre spari, la pompa sotto la canna. */
+function pistolaAcqua() {
+  const g = new THREE.Group();
+  const verde = new THREE.MeshStandardMaterial({ color: 0x2fae4a, roughness: 0.35 });
+  const arancio = new THREE.MeshStandardMaterial({ color: 0xf07a18, roughness: 0.4 });
+  const giallo = new THREE.MeshStandardMaterial({ color: 0xf2c21a, roughness: 0.4 });
+  const vetro = new THREE.MeshStandardMaterial({ color: 0xcfe8f0, roughness: 0.05, transparent: true, opacity: 0.35, depthWrite: false });
+  const acquaM = new THREE.MeshStandardMaterial({ color: 0x3a9ade, roughness: 0.1, transparent: true, opacity: 0.8, emissive: 0x0a2a4a });
+  // la canna: una capsula lunga, il davanti più stretto
+  const canna = new THREE.Mesh(new THREE.CapsuleGeometry(0.028, 0.2, 6, 16), verde); canna.rotation.x = Math.PI / 2; g.add(canna);
+  const punta = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.02, 0.06, 14), giallo); punta.rotation.x = Math.PI / 2; punta.position.z = -0.15; g.add(punta);
+  const ugello = new THREE.Object3D(); ugello.position.z = -0.185; g.add(ugello);
+  // il calcio e l'impugnatura
+  const imp = new THREE.Mesh(new THREE.BoxGeometry(0.036, 0.12, 0.05), verde); imp.position.set(0, -0.07, 0.07); imp.rotation.x = -0.28; g.add(imp);
+  [0, 1, 2].forEach(i => { const s = new THREE.Mesh(new THREE.BoxGeometry(0.038, 0.008, 0.052), arancio); s.position.set(0, -0.04 - i * 0.03, 0.062 + i * 0.008); s.rotation.x = -0.28; g.add(s); });
+  // il grilletto e la guardia
+  const gril = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.035, 0.012), arancio); gril.position.set(0, -0.042, 0.02); gril.rotation.x = 0.3; g.add(gril);
+  const guardia = new THREE.Mesh(new THREE.TorusGeometry(0.028, 0.005, 6, 16, Math.PI), verde); guardia.rotation.set(0, Math.PI / 2, Math.PI); guardia.position.set(0, -0.03, 0.025); g.add(guardia);
+  // la pompa sotto la canna
+  const pompa = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.09, 14), arancio); pompa.rotation.x = Math.PI / 2; pompa.position.set(0, -0.035, -0.07); g.add(pompa);
+  [-0.035, -0.07, -0.105].forEach(z => { const r2 = new THREE.Mesh(new THREE.TorusGeometry(0.021, 0.003, 5, 16), giallo); r2.position.set(0, -0.035, z); g.add(r2); });
+  // il serbatoio sopra: vetro, e dentro l'acqua
+  const serb = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.034, 0.1, 18), vetro); serb.rotation.x = Math.PI / 2; serb.position.set(0, 0.05, 0.02); g.add(serb);
+  const tappo = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.02, 12), giallo); tappo.position.set(0, 0.088, 0.02); g.add(tappo);
+  const acqua = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.092), acquaM); acqua.geometry.translate(0, 0.03, 0); acqua.position.set(0, 0.022, 0.02); g.add(acqua);
+  const attacco = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.02, 0.06), verde); attacco.position.set(0, 0.022, 0.02); g.add(attacco);
+  // la mano che la tiene: le dita attorno all'impugnatura
+  const pelleM = new THREE.MeshStandardMaterial({ color: 0xc8a48a, roughness: 0.6 });
+  const pugno = new THREE.Mesh(new THREE.SphereGeometry(0.04, 14, 10), pelleM); pugno.scale.set(0.9, 1.1, 1.05); pugno.position.set(0.006, -0.085, 0.075); g.add(pugno);
+  const polso = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.034, 0.2, 12), pelleM); polso.position.set(0.02, -0.15, 0.16); polso.rotation.x = -0.9; g.add(polso);
+  g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; o.renderOrder = 10; } });
+  return { g, ugello, livello(k) { acqua.scale.y = Math.max(0.02, k); } };
+}
+
+/* LA SPADA: lama d'acciaio con lo sguscio, la guardia a croce,
+   l'impugnatura fasciata di cuoio, il pomolo. L'origine è nel pugno. */
+function spada() {
+  const g = new THREE.Group();
+  const acciaio = new THREE.MeshStandardMaterial({ color: 0xd8dce2, metalness: 0.75, roughness: 0.22, emissive: 0x15181c });
+  const ottone = new THREE.MeshStandardMaterial({ color: 0xb08a3a, metalness: 0.8, roughness: 0.35 });
+  const cuoio = new THREE.MeshStandardMaterial({ color: 0x3a2214, roughness: 0.8 });
+  // la lama: un profilo che si stringe in punta, estruso sottile con lo smusso (il filo)
+  const L = 0.62, w = 0.024, sh = new THREE.Shape();
+  sh.moveTo(-w, 0); sh.lineTo(-w * 0.92, L * 0.78); sh.quadraticCurveTo(-w * 0.7, L * 0.93, 0, L); sh.quadraticCurveTo(w * 0.7, L * 0.93, w * 0.92, L * 0.78); sh.lineTo(w, 0); sh.lineTo(-w, 0);
+  const lamaG = new THREE.ExtrudeGeometry(sh, { depth: 0.002, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.008, bevelSegments: 2, curveSegments: 10 });
+  lamaG.translate(0, 0.1, -0.001);
+  const lama = new THREE.Mesh(lamaG, acciaio); g.add(lama);
+  const sguscio = new THREE.Mesh(new THREE.BoxGeometry(0.008, L * 0.7, 0.009), new THREE.MeshStandardMaterial({ color: 0x8a9098, metalness: 0.8, roughness: 0.3 })); sguscio.position.y = 0.1 + L * 0.37; g.add(sguscio);
+  const guardia = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.018, 0.026), ottone); guardia.position.y = 0.09; g.add(guardia);
+  [-1, 1].forEach(k => { const b = new THREE.Mesh(new THREE.SphereGeometry(0.016, 10, 8), ottone); b.position.set(k * 0.082, 0.09, 0); g.add(b); });
+  const imp = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.018, 0.13, 12), cuoio); imp.position.y = 0.02; g.add(imp);
+  for (let i = 0; i < 7; i++) { const f2 = new THREE.Mesh(new THREE.TorusGeometry(0.0175, 0.003, 5, 14), cuoio); f2.rotation.x = Math.PI / 2; f2.position.y = -0.035 + i * 0.018; g.add(f2); }
+  const pomolo = new THREE.Mesh(new THREE.SphereGeometry(0.024, 14, 10), ottone); pomolo.position.y = -0.055; g.add(pomolo);
+  const pelleM = new THREE.MeshStandardMaterial({ color: 0xc8a48a, roughness: 0.6 });
+  const pugno = new THREE.Mesh(new THREE.SphereGeometry(0.042, 14, 10), pelleM); pugno.scale.set(1.15, 1.1, 0.9); pugno.position.set(0, 0.02, 0.01); g.add(pugno);
+  const polso = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.034, 0.2, 12), pelleM); polso.position.set(0, 0.0, 0.12); polso.rotation.x = Math.PI / 2; g.add(polso);
+  g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; o.renderOrder = 10; } });
+  return g;
 }
 
 /* ---------------------------------------------------------
@@ -270,7 +429,7 @@ export async function buildGioco1(scene, ctx) {
   for (let i = 0; i < NL; i++) {
     const a = i / NL * Math.PI * 2 + rr() * 0.3, R = 1.8 + rr() * 3.6;
     let x = BX + Math.cos(a) * R, z = BZ + Math.sin(a) * R * 0.9; x = Math.max(-RX + 0.5, Math.min(RX - 0.5, x)); z = Math.max(-RZ + 0.6, Math.min(RZ - 1.2, z));
-    const p0 = new THREE.Vector3(BX + Math.cos(a) * 0.1, 0.55 + rr() * 0.3, BZ - 0.05 + Math.sin(a) * 0.06);
+    const p0 = new THREE.Vector3(BX + (rr() - 0.5) * 0.1, 0.72 + rr() * 0.18, BZ - 0.1);   // dalle prese nella schiena
     const curva = new THREE.CatmullRomCurve3([p0, new THREE.Vector3(BX + Math.cos(a) * 0.35, 0.03, BZ + Math.sin(a) * 0.35), new THREE.Vector3((BX + x) / 2 + (rr() - 0.5) * 0.8, 0.02, (BZ + z) / 2 + (rr() - 0.5) * 0.8), new THREE.Vector3(x, 0.06, z)]);
     landa.add(new THREE.Mesh(new THREE.TubeGeometry(curva, 40, 0.011, 5), filoM));
     const lamp = new THREE.Group(); lamp.position.set(x, 0, z); lamp.rotation.z = (rr() - 0.5) * 1.4; landa.add(lamp);
@@ -396,6 +555,84 @@ export async function buildGioco1(scene, ctx) {
   document.body.appendChild(hud);
   const flash = document.createElement('div'); flash.style.cssText = 'position:fixed;inset:0;z-index:25;background:#8a0000;opacity:0;pointer-events:none;transition:opacity .4s'; document.body.appendChild(flash);
 
+  /* ---------- le armi: la pistola ad acqua (spaventa i ragni) e la spada (taglia le tele) ---------- */
+  const telefono = matchMedia('(pointer: coarse)').matches || innerWidth < 820;
+  const mano = new THREE.Group(); mano.visible = false; ctx.camera.add(mano);
+  const PIS = pistolaAcqua(); PIS.g.position.set(0.19, -0.2, -0.42); PIS.g.rotation.set(0.05, 0.1, 0); mano.add(PIS.g);
+  const spadaBase = new THREE.Group(); spadaBase.position.set(-0.21, -0.26, -0.42); mano.add(spadaBase);
+  const SPA = spada(); spadaBase.add(SPA); SPA.rotation.set(-0.55, 0, -0.32);
+  if (telefono) { mano.position.set(0, 0.03, 0.04); mano.scale.setScalar(0.85); }
+  // le gocce: un pugno di punti che volano e cadono
+  const NG = hi ? 260 : 160, gPos = new Float32Array(NG * 3).fill(-999), gVel = new Float32Array(NG * 3), gVita = new Float32Array(NG);
+  const gGeo = new THREE.BufferGeometry(); gGeo.setAttribute('position', new THREE.BufferAttribute(gPos, 3));
+  const gocce = new THREE.Points(gGeo, new THREE.PointsMaterial({ color: 0xa8dcff, size: 0.05, transparent: true, opacity: 0.85, depthWrite: false })); gocce.frustumCulled = false; gocce.visible = false; g.add(gocce);
+  let gNext = 0, gAcc = 0;
+  // la tela: una texture per i colpi in volo, e un disegno a tutto schermo per quando ti prende
+  const telaT = toTex(telaCanvas(1670, 256));
+  const telaM = new THREE.MeshBasicMaterial({ map: telaT, transparent: true, side: THREE.DoubleSide, depthWrite: false, fog: false });
+  const tele = [];
+  const arm = { acqua: 1, vuota: false, spruzzo: false, spadaT: 9, spadaCd: 0, trap: null, sSpr: 0 };
+  // l'interfaccia: il cerchio del tempo, la tela addosso, i tasti del telefono
+  const anello = document.createElement('div'); anello.style.cssText = 'position:fixed;left:50%;top:50%;width:100px;height:100px;margin:-50px 0 0 -50px;border-radius:50%;border:3px solid rgba(255,255,255,.75);z-index:13;pointer-events:none;display:none;box-shadow:0 0 14px rgba(0,0,0,.7),inset 0 0 14px rgba(0,0,0,.5)';
+  const bersaglio = document.createElement('div'); bersaglio.style.cssText = 'position:fixed;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:2px dashed rgba(255,255,255,.55);z-index:13;pointer-events:none;display:none';
+  document.body.append(anello, bersaglio);
+  const addosso = document.createElement('canvas'); addosso.width = 512; addosso.height = 512;
+  addosso.style.cssText = 'position:fixed;left:-10vmax;top:-10vmax;width:calc(100vw + 20vmax);height:calc(100vh + 20vmax);z-index:26;pointer-events:none;display:none;opacity:.92';
+  addosso.getContext('2d').drawImage(telaCanvas(1671, 512, true), 0, 0); document.body.appendChild(addosso);
+  const tasti = document.createElement('div'); tasti.style.cssText = 'position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(30px,env(safe-area-inset-bottom));z-index:14;display:none;flex-direction:column;align-items:center;gap:14px';
+  const tasto = (txt, size) => { const b = document.createElement('div'); b.textContent = txt; b.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:600 14px Consolas,monospace;color:#f0ead8;background:rgba(255,255,255,.08);border:1.5px solid rgba(235,228,209,.5);touch-action:none;user-select:none;-webkit-user-select:none`; tasti.appendChild(b); return b; };
+  const tSpada = tasto('spada', 72), tAcqua = tasto('acqua', 88);
+  document.body.appendChild(tasti);
+  const attivo = () => inCasa && g.visible;
+  tAcqua.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); arm.spruzzo = true; tAcqua.style.background = 'rgba(110,180,255,.35)'; });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(tp => tAcqua.addEventListener(tp, e => { e.stopPropagation(); arm.spruzzo = false; tAcqua.style.background = 'rgba(255,255,255,.08)'; }));
+  tSpada.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); fendente(); tSpada.style.background = 'rgba(255,255,255,.3)'; setTimeout(() => { tSpada.style.background = 'rgba(255,255,255,.08)'; }, 150); });
+  // sul computer: il tasto sinistro (tenuto) spruzza, il destro o lo spazio danno il fendente
+  addEventListener('mousedown', e => { if (!attivo() || !document.pointerLockElement) return; if (e.button === 0) arm.spruzzo = true; if (e.button === 2) fendente(); });
+  addEventListener('mouseup', e => { if (e.button === 0) arm.spruzzo = false; });
+  addEventListener('contextmenu', e => { if (attivo()) e.preventDefault(); });
+  addEventListener('keydown', e => { if (!attivo()) return; if (e.code === 'Space' || e.code === 'KeyF') { e.preventDefault(); fendente(); } });
+  // i suoni: rumore filtrato, passano dal volume del sito (e dal "suono: no")
+  function suono(tipo) {
+    try {
+      const AC = ctx.listener.context; if (AC.state !== 'running') return;
+      const len = { spruzzo: 0.12, taglio: 0.22, colpo: 0.5, tela: 0.3 }[tipo], buf = AC.createBuffer(1, Math.floor(AC.sampleRate * len), AC.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) { const k = i / d.length; d[i] = (Math.random() * 2 - 1) * (tipo === 'taglio' ? Math.sin(k * Math.PI) : 1 - k); }
+      const s = AC.createBufferSource(); s.buffer = buf; const f = AC.createBiquadFilter(); const gn = AC.createGain();
+      f.type = tipo === 'colpo' ? 'lowpass' : 'bandpass'; f.frequency.value = { spruzzo: 2600, taglio: 1500, colpo: 300, tela: 900 }[tipo];
+      if (tipo === 'taglio') f.frequency.exponentialRampToValueAtTime(5000, AC.currentTime + len);
+      gn.gain.value = { spruzzo: 0.12, taglio: 0.5, colpo: 0.7, tela: 0.25 }[tipo];
+      s.connect(f); f.connect(gn); gn.connect(ctx.listener.getInput()); s.start();
+    } catch (e) { }
+  }
+  function fendente() {
+    if (!attivo() || arm.trap || arm.spadaCd > 0) return;
+    arm.spadaT = 0; arm.spadaCd = 0.42; suono('taglio');
+    // taglia le tele che sono a portata adesso: né troppo presto né troppo tardi
+    tele.forEach(w => { if (w.morta) return; const d = w.m.position.distanceTo(camL); if (d > 0.2 && d < 2.7) { w.morta = true; w.k = 0; } });
+  }
+  function intrappola() {
+    if (arm.trap) { arm.trap.t = 3; return; }
+    arm.trap = { t: 3, x: ctx.camera.position.x, z: ctx.camera.position.z }; arm.spruzzo = false;
+    suono('colpo'); try { navigator.vibrate && navigator.vibrate([200, 80, 200]); } catch (e) { }
+    addosso.style.display = 'block'; hud.dataset.prima = hud.textContent; hud.textContent = 'intrappolato';
+  }
+  function libera() { if (!arm.trap) return; arm.trap = null; addosso.style.display = 'none'; if (hud.dataset.prima) hud.textContent = hud.dataset.prima; }
+  function pulisciTele() { tele.forEach(w => { g.remove(w.m); w.m.material.dispose(); w.m.geometry.dispose(); }); tele.length = 0; }
+  function armi(si) {
+    mano.visible = si; gocce.visible = si; tasti.style.display = si && telefono ? 'flex' : 'none';
+    if (!si) { arm.spruzzo = false; libera(); pulisciTele(); anello.style.display = bersaglio.style.display = 'none'; gPos.fill(-999); gGeo.attributes.position.needsUpdate = true; }
+    arm.acqua = 1; arm.vuota = false;
+  }
+  function spara(q, da) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.9), telaM.clone()); m.position.copy(da); m.scale.setScalar(0.25); g.add(m);
+    tele.push({ m, v: Math.min(10.5, 6.5 + livello * 0.3), fatto: 0, morta: false, k: 0, giro: (Math.random() - 0.5) * 6 });
+    suono('tela');
+  }
+  // i muri della stanza (coordinate della stanza): normale verso dentro, tangente, centro, mezza lunghezza
+  const MW = [{ n: [0, 0, 1], t: [1, 0, 0], b: [0, 0, -hd], L: hw }, { n: [0, 0, -1], t: [-1, 0, 0], b: [0, 0, hd], L: hw }, { n: [1, 0, 0], t: [0, 0, -1], b: [-hw, 0, 0], L: hd }, { n: [-1, 0, 0], t: [0, 0, 1], b: [hw, 0, 0], L: hd }];
+  MW.forEach(w => { w.ry = Math.atan2(w.n[0], w.n[2]); });
+
   let stanza = null, livello = 0, inCasa = false, ragniC = [], uscitaIt = null, colliderCasa = [];
   const TIPI = ['bagno', 'cucina', 'salotto', 'camera'];
   const NOMI = { bagno: 'il bagno', cucina: 'la cucina', salotto: 'il salotto', camera: 'la camera da letto' };
@@ -428,13 +665,13 @@ export async function buildGioco1(scene, ctx) {
     uscitaIt = { mesh: tana, label: 'la tana · la stanza dopo', view: { pos: [CX + tx, Y + 1.6, -hd + 1.6], look: [CX + tx, Y + 0.6, -hd] }, action: () => avanti() };
     ctx.interact.push(uscitaIt);
     // i ragni: più stanze fai, più sono e più corrono
-    ragniC.forEach(q => casa.remove(q.s.g)); ragniC = [];
+    ragniC.forEach(q => casa.remove(q.s.g)); ragniC = []; pulisciTele(); libera();
     const n = Math.min(hi ? 10 : 6, 2 + Math.floor(livello * 0.8));
     for (let i = 0; i < n; i++) {
       const s = ragno(1900 + livello * 13 + i, 0.32 + r() * 0.26);
       let x, z, k = 0; do { x = CX + (r() - 0.5) * (W - 4); z = -hd + 2 + r() * (D - 12); k++; } while (k < 40 && !liberoCasa(x, z, 0.8));
       s.g.position.set(x - CX, 0, z); stanza.add(s.g);
-      ragniC.push({ s, stato: 'vaga', dir: r() * 6.28, meta: null, pausa: r() * 2, allerta: 0, perso: 0, vel: Math.min(3.3, 2.0 + livello * 0.12) });
+      ragniC.push({ s, stato: 'vaga', dir: r() * 6.28, meta: null, pausa: r() * 2, allerta: 0, perso: 0, vel: Math.min(3.3, 2.0 + livello * 0.12), sup: null, u: 0, v: 0, tela: 2 + r() * 3, ferma: 0, calmo: 0, paura: 0, bagnato: 0 });
     }
     ctx.limitaLuci && ctx.limitaLuci(stanza, 6);
     hud.textContent = `stanza ${livello} · ${NOMI[tipo]} · record ${+(localStorage.getItem(RECORD) || 0)}`;
@@ -444,7 +681,7 @@ export async function buildGioco1(scene, ctx) {
   function battito(fn) { if (velo) { velo.style.transition = 'opacity .35s'; velo.style.opacity = '1'; } setTimeout(() => { fn(); if (velo) velo.style.opacity = '0'; setTimeout(() => { if (velo) velo.style.transition = ''; }, 400); }, 380); }
   function piazza() { ctx.viaggio.place([CX, Y + 1.6, hd - 2.5], 0, -0.05); }
   function inizia() {
-    battito(() => { livello = 0; inCasa = true; casa.visible = true; landa.visible = false; const s = nuovaStanza(); piazza(); hud.style.display = 'block'; say(`${NOMI[s.tipo]}. trova la tana in fondo. non farti vedere dai ragni`); });
+    battito(() => { livello = 0; inCasa = true; casa.visible = true; landa.visible = false; const s = nuovaStanza(); piazza(); hud.style.display = 'block'; armi(true); say(`${NOMI[s.tipo]}. trova la tana in fondo. ` + (telefono ? 'acqua: tienila premuta, spaventa i ragni. spada: taglia le tele quando il cerchio è verde' : 'acqua: tieni premuto il mouse. spada: tasto destro o spazio, quando il cerchio è verde')); });
   }
   function avanti() {
     battito(() => { const s = nuovaStanza(); piazza(); say(`stanza ${livello} · ${NOMI[s.tipo]}`); });
@@ -473,7 +710,7 @@ export async function buildGioco1(scene, ctx) {
     const arrivo = livello, rec = +(localStorage.getItem(RECORD) || 0);
     if (arrivo > rec) try { localStorage.setItem(RECORD, String(arrivo)); } catch (e) { }
     try { navigator.vibrate && navigator.vibrate([60, 40, 60, 40, 220]); } catch (e) { }
-    hud.style.display = 'none';
+    hud.style.display = 'none'; armi(false);
     glitch(1700, () => {
       casa.visible = false; landa.visible = true;
       if (uscitaIt) { const i = ctx.interact.indexOf(uscitaIt); if (i >= 0) ctx.interact.splice(i, 1); uscitaIt = null; }
@@ -489,7 +726,7 @@ export async function buildGioco1(scene, ctx) {
   let aperturaT = 0;
   let nebbia = null;
   // per le prove: lo stato dei ragni e la stanza (window.__stanze)
-  window.__stanze = { get ragni() { return ragniC.map(q => ({ stato: q.stato, x: +(q.s.g.position.x + CX).toFixed(1), z: +q.s.g.position.z.toFixed(1), dir: +q.dir.toFixed(2) })); }, get livello() { return livello; }, get inCasa() { return inCasa; }, muori: () => preso() };
+  window.__stanze = { get ragni() { return ragniC.map(q => ({ stato: q.stato, x: +(q.s.g.position.x + CX).toFixed(1), z: +q.s.g.position.z.toFixed(1), dir: +q.dir.toFixed(2) })); }, get livello() { return livello; }, get inCasa() { return inCasa; }, muori: () => preso(), get arm() { return arm; }, get tele() { return tele.length; }, fendente: () => fendente(), get ragniMuro() { return ragniC.filter(q => q.sup !== null).length; } };
   const obj = {
     Y, group: g, interact, nodes, entry,
     benvenuto: 'il fanciullo',
@@ -499,7 +736,7 @@ export async function buildGioco1(scene, ctx) {
     attiva(si) {
       // la nebbia della landa è nera, non rossa; il dialogo e il HUD vivono solo qui
       if (si) { if (scene.fog) { nebbia = { c: scene.fog.color.getHex(), d: scene.fog.density }; scene.fog.color.set(0x000000); scene.fog.density = 0.0016; } aperturaT = 0; }
-      else { if (nebbia && scene.fog) { scene.fog.color.setHex(nebbia.c); scene.fog.density = nebbia.d; } chiudiDialogo(); hud.style.display = 'none'; clearInterval(glitchT); nero.style.display = 'none'; if (inCasa) { inCasa = false; casa.visible = false; landa.visible = true; } }
+      else { if (nebbia && scene.fog) { scene.fog.color.setHex(nebbia.c); scene.fog.density = nebbia.d; } chiudiDialogo(); hud.style.display = 'none'; clearInterval(glitchT); nero.style.display = 'none'; armi(false); if (inCasa) { inCasa = false; casa.visible = false; landa.visible = true; } }
     },
     update(t, dt, cam) {
       if (!g.visible) return;
@@ -539,29 +776,133 @@ export async function buildGioco1(scene, ctx) {
       if (dialogo || dlg.style.display !== 'none') chiudiDialogo();
       const u = stanza.userData;
       u.lampada.intensity = 120 * (u.rotta && (Math.sin(t * 9) > 0.7 || Math.random() < 0.03) ? 0.15 : 0.95 + Math.sin(t * 40) * 0.03);
-      const px = camL.x, pz = camL.z;
+      const px = camL.x, pz = camL.z, py = camL.y;
+      const avanti3 = ctx.camera.getWorldDirection(new THREE.Vector3());
+      // ---- intrappolato: fermo dove sei, la tela addosso che trema ----
+      if (arm.trap) {
+        arm.trap.t -= dt; cam.position.x = arm.trap.x; cam.position.z = arm.trap.z;
+        addosso.style.transform = `translate(${(Math.random() - 0.5) * 14}px,${(Math.random() - 0.5) * 14}px) rotate(${Math.sin(t * 9) * 2}deg)`;
+        addosso.style.opacity = String(0.55 + 0.4 * Math.min(1, arm.trap.t / 0.6));
+        if (arm.trap.t <= 0) libera();
+      }
+      // ---- la pistola ad acqua ----
+      if (arm.acqua < 0.02) arm.vuota = true; else if (arm.acqua > 0.25) arm.vuota = false;
+      const spruzza = arm.spruzzo && !arm.vuota;
+      if (spruzza) {
+        arm.acqua = Math.max(0, arm.acqua - dt * 0.32);
+        const u = PIS.ugello.getWorldPosition(new THREE.Vector3()); g.worldToLocal(u);
+        gAcc += dt * 190;
+        while (gAcc >= 1) {
+          gAcc--; const i = gNext; gNext = (gNext + 1) % NG;
+          gPos[i * 3] = u.x; gPos[i * 3 + 1] = u.y; gPos[i * 3 + 2] = u.z;
+          gVel[i * 3] = avanti3.x * 10 + (Math.random() - 0.5) * 0.7; gVel[i * 3 + 1] = avanti3.y * 10 + 0.8 + (Math.random() - 0.5) * 0.7; gVel[i * 3 + 2] = avanti3.z * 10 + (Math.random() - 0.5) * 0.7; gVita[i] = 1.1;
+        }
+        arm.sSpr -= dt; if (arm.sSpr <= 0) { suono('spruzzo'); arm.sSpr = 0.09; }
+        // i ragni nel getto: si spaventano e scappano
+        ragniC.forEach(q => {
+          const c = centroRagno(q), v = c.clone().sub(camL), d = v.length();
+          if (d < 8 && v.normalize().dot(avanti3) > Math.cos(0.3 + 0.25 / Math.max(1, d))) { if (q.stato !== 'paura') { q.s.g.rotation.x = q.sup === null ? 0 : q.s.g.rotation.x; } q.stato = 'paura'; q.paura = 2.8; q.meta = null; q.bagnato = 1; }
+        });
+      } else { arm.acqua = Math.min(1, arm.acqua + dt * 0.13); gAcc = 0; }
+      PIS.livello(arm.acqua);
+      PIS.g.position.z = -0.42 + (spruzza ? Math.sin(t * 70) * 0.004 + 0.01 : 0);
+      for (let i = 0; i < NG; i++) {
+        if (gVita[i] <= 0) continue;
+        gVita[i] -= dt; gVel[i * 3 + 1] -= 9.8 * dt;
+        gPos[i * 3] += gVel[i * 3] * dt; gPos[i * 3 + 1] += gVel[i * 3 + 1] * dt; gPos[i * 3 + 2] += gVel[i * 3 + 2] * dt;
+        if (gVita[i] <= 0 || gPos[i * 3 + 1] < 0.02) { gVita[i] = 0; gPos[i * 3 + 1] = -999; }
+      }
+      gGeo.attributes.position.needsUpdate = true;
+      // ---- la spada: il fendente da sinistra a destra, poi torna ----
+      arm.spadaCd = Math.max(0, arm.spadaCd - dt);
+      if (arm.spadaT < 1) {
+        arm.spadaT = Math.min(1, arm.spadaT + dt / 0.42);
+        const k = arm.spadaT, a = k < 0.4 ? THREE.MathUtils.smootherstep(k / 0.4, 0, 1) : 1 - THREE.MathUtils.smoothstep((k - 0.4) / 0.6, 0, 1);
+        spadaBase.position.set(-0.21 + 0.36 * a, -0.26 + 0.1 * Math.sin(a * Math.PI), -0.42 - 0.08 * a);
+        SPA.rotation.set(-0.55 - 0.65 * a, 0.2 * a, -0.32 - 1.45 * a);
+      }
+      // ---- le tele in volo ----
+      let vicina = 99;
+      for (let i = tele.length - 1; i >= 0; i--) {
+        const w = tele[i];
+        if (w.morta) {
+          // tagliata: si strappa, si accartoccia, sparisce
+          w.k += dt / 0.35; w.m.scale.x *= 1 + dt * 3; w.m.scale.y *= 1 - dt * 2.5; w.m.rotation.z += dt * 8; w.m.material.opacity = Math.max(0, 1 - w.k);
+          w.m.position.y -= dt * 1.5;
+          if (w.k >= 1) { g.remove(w.m); w.m.material.dispose(); w.m.geometry.dispose(); tele.splice(i, 1); }
+          continue;
+        }
+        const meta = new THREE.Vector3(px, py - 0.08, pz), v = meta.sub(w.m.position), d = v.length();
+        if (d < 0.25) { g.remove(w.m); w.m.material.dispose(); w.m.geometry.dispose(); tele.splice(i, 1); intrappola(); continue; }
+        const passo2 = Math.min(d, w.v * dt); w.m.position.addScaledVector(v.normalize(), passo2); w.fatto += passo2;
+        w.m.lookAt(ctx.camera.position); w.m.rotateZ(w.giro * t);
+        w.m.scale.setScalar(0.25 + Math.min(1, w.fatto / 3.5) * 0.85);
+        vicina = Math.min(vicina, d);
+      }
+      // il cerchio del tempo: si stringe sul bersaglio; quando è verde, è il momento
+      if (vicina < 10 && !arm.trap) {
+        const ora = vicina > 0.2 && vicina < 2.7, dim = 46 + Math.max(0, vicina - 2.7) * 34;
+        anello.style.display = bersaglio.style.display = 'block';
+        anello.style.width = anello.style.height = dim + 'px'; anello.style.margin = `${-dim / 2}px 0 0 ${-dim / 2}px`;
+        anello.style.borderColor = ora ? 'rgba(90,255,140,.95)' : 'rgba(255,255,255,.75)'; anello.style.background = ora ? 'rgba(90,255,140,.18)' : 'none';
+      } else anello.style.display = bersaglio.style.display = 'none';
+
+      // ---- i ragni: sul pavimento o sui muri ----
       ragniC.forEach(q => {
-        const sp2 = q.s.g.position, wx = sp2.x + CX, wz = sp2.z;
-        const dx = px - wx, dz = pz - wz, dist = Math.hypot(dx, dz);
-        const versoMe = Math.atan2(dx, dz); let ang = versoMe - q.dir; while (ang > Math.PI) ang -= 2 * Math.PI; while (ang < -Math.PI) ang += 2 * Math.PI;
-        const vede = (dist < 13 && Math.abs(ang) < 0.65) || dist < 4;
+        const c = centroRagno(q), dx = px - c.x, dz = pz - c.z, dh = Math.hypot(dx, dz), d3 = c.distanceTo(camL);
+        const versoMe = Math.atan2(dx, dz);
+        if (q.calmo > 0) q.calmo -= dt;
+        if (q.bagnato > 0) q.bagnato -= dt;
+        let vede;
+        if (q.sup === null) { let ang = versoMe - q.dir; while (ang > Math.PI) ang -= 2 * Math.PI; while (ang < -Math.PI) ang += 2 * Math.PI; vede = (dh < 13 && Math.abs(ang) < 0.65) || dh < 4; }
+        else vede = d3 < 9;
+        if (arm.trap && d3 < 16) vede = true;   // intrappolato: arrivano tutti
+        if (q.calmo > 0) vede = false;
+        // sputa la tela (fermo un attimo, poi parte)
+        if (q.ferma > 0) { q.ferma -= dt; q.s.update(dt, 0, t); if (q.ferma <= 0) spara(q, c); return; }
+        if (q.stato === 'caccia') {
+          q.tela -= dt;
+          if (q.tela <= 0 && d3 > 3.5 && d3 < 14 && !arm.trap && tele.filter(w => !w.morta).length < 2) { q.ferma = 0.4; q.tela = Math.max(2.6, 6 - livello * 0.25) + Math.random() * 3; if (q.sup === null) q.s.g.rotation.x = -0.3; return; }
+          if (q.sup === null) q.s.g.rotation.x = 0;
+        }
+        if (q.stato === 'paura') {
+          q.paura -= dt;
+          if (q.sup === null) { q.dir = gira(q.dir, versoMe + Math.PI, dt * 8); passo(q, q.vel * 1.25, dt, t); }
+          else sulMuro(q, q.u, H - 1.4, q.vel * 1.1);
+          if (q.paura <= 0) { q.stato = 'vaga'; q.calmo = 2.5; q.meta = null; }
+          return;
+        }
         if (q.stato === 'vaga') {
-          if (vede) { q.stato = 'allerta'; q.allerta = 0.6; }
-          else {
-            if (q.pausa > 0) { q.pausa -= dt; q.s.update(dt, 0, t); return; }
-            if (!q.meta) { for (let i = 0; i < 10; i++) { const mx = CX + (Math.random() - 0.5) * (W - 4), mz = (Math.random() - 0.5) * (D - 4); if (liberoCasa(mx, mz, 0.6)) { q.meta = { x: mx, z: mz }; break; } } if (!q.meta) { q.pausa = 1; return; } }
-            const ddx = q.meta.x - wx, ddz = q.meta.z - wz, dd = Math.hypot(ddx, ddz);
-            if (dd < 0.5) { q.meta = null; q.pausa = 1 + Math.random() * 3; return; }
+          if (vede) { q.stato = 'allerta'; q.allerta = 0.6; return; }
+          if (q.pausa > 0) { q.pausa -= dt; q.s.update(dt, 0, t); return; }
+          if (q.sup === null) {
+            if (!q.meta) {
+              // a volte va verso un muro, per salirci
+              if (Math.random() < 0.45) { const w = Math.floor(Math.random() * 4), Lm = MW[w].L - 2.5, u = (Math.random() - 0.5) * 2 * Lm, fx = MW[w].b[0] + MW[w].n[0] * 1 + MW[w].t[0] * u + CX, fz = MW[w].b[2] + MW[w].n[2] * 1 + MW[w].t[2] * u; if (liberoCasa(fx, fz, 0.2)) q.meta = { x: fx, z: fz, muro: w, u }; }
+              if (!q.meta) for (let i = 0; i < 10; i++) { const mx = CX + (Math.random() - 0.5) * (W - 4), mz = (Math.random() - 0.5) * (D - 4); if (liberoCasa(mx, mz, 0.6)) { q.meta = { x: mx, z: mz }; break; } }
+              if (!q.meta) { q.pausa = 1; return; }
+            }
+            const ddx = q.meta.x - c.x, ddz = q.meta.z - c.z, dd = Math.hypot(ddx, ddz);
+            if (dd < 0.5) { if (q.meta.muro != null) { attacca(q, q.meta.muro, q.meta.u); q.meta = null; } else { q.meta = null; q.pausa = 1 + Math.random() * 3; } return; }
             q.dir = gira(q.dir, Math.atan2(ddx, ddz), dt * 3); passo(q, 0.9, dt, t);
+          } else {
+            if (!q.meta) q.meta = Math.random() < 0.3 ? { u: q.u, v: 0, giu: true } : { u: THREE.MathUtils.clamp(q.u + (Math.random() - 0.5) * 10, -MW[q.sup].L + 1.5, MW[q.sup].L - 1.5), v: 1.5 + Math.random() * (H - 4) };
+            if (sulMuro(q, q.meta.u, q.meta.v, 1.0)) { const giu = q.meta.giu; q.meta = null; if (giu) stacca(q); q.pausa = giu ? 0.4 : 1 + Math.random() * 3; }
           }
         } else if (q.stato === 'allerta') {
-          q.dir = gira(q.dir, versoMe, dt * 6); q.allerta -= dt; q.s.update(dt, 0.2, t);
-          q.s.g.rotation.x = -0.25;   // si alza sulle zampe di dietro
-          if (q.allerta <= 0) { q.stato = 'caccia'; q.s.g.rotation.x = 0; }
+          q.allerta -= dt; q.s.update(dt, 0.2, t);
+          if (q.sup === null) { q.dir = gira(q.dir, versoMe, dt * 6); q.s.dir.rotation.y = q.dir; q.s.g.rotation.x = -0.25; }   // si alza sulle zampe di dietro
+          if (q.allerta <= 0) { q.stato = 'caccia'; if (q.sup === null) q.s.g.rotation.x = 0; }
         } else {   // caccia
-          q.dir = gira(q.dir, versoMe, dt * 4); passo(q, q.vel, dt, t);
-          if (dist < 0.85 + q.s.s * 1.5) preso();
-          if (dist > 18) { q.perso += dt; if (q.perso > 2.5) { q.stato = 'vaga'; q.perso = 0; q.meta = null; } } else q.perso = 0;
+          if (q.sup === null) {
+            q.dir = gira(q.dir, versoMe, dt * 4); passo(q, q.vel, dt, t);
+            if (dh < 0.85 + q.s.s * 1.5) preso();
+          } else {
+            // scende dal muro dritto verso di te
+            const w = MW[q.sup], up = (px - CX - w.b[0]) * w.t[0] + (pz - w.b[2]) * w.t[2];
+            if (sulMuro(q, THREE.MathUtils.clamp(up, -w.L + 1, w.L - 1), 0, q.vel) || q.v < 0.15) stacca(q);
+          }
+          if (d3 > 20) { q.perso += dt; if (q.perso > 2.5) { q.stato = 'vaga'; q.perso = 0; q.meta = null; } } else q.perso = 0;
         }
       });
       function gira(a, b, k) { let d = b - a; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return a + THREE.MathUtils.clamp(d, -k, k); }
@@ -573,8 +914,34 @@ export async function buildGioco1(scene, ctx) {
         else { q.dir += 1.2; q.meta = null; }
         q.s.dir.rotation.y = q.dir; q.s.update(dt2, Math.min(1.6, v / 1.2), t2);
       }
+      // sul muro: u lungo il muro, v in altezza; la "direzione" ruota attorno alla normale
+      function sulMuro(q, tu, tv, v) {
+        const du = tu - q.u, dv = tv - q.v, d = Math.hypot(du, dv);
+        if (d < 0.25) { q.s.update(dt, 0, t); return true; }
+        q.dir = gira(q.dir, Math.atan2(du, -dv), dt * 5);
+        const st2 = Math.min(d, v * dt), Lm = MW[q.sup].L - 0.8;
+        q.u = THREE.MathUtils.clamp(q.u + Math.sin(q.dir) * st2, -Lm, Lm); q.v = THREE.MathUtils.clamp(q.v - Math.cos(q.dir) * st2, 0, H - 1.2);
+        mettiSulMuro(q); q.s.update(dt, Math.min(1.6, v / 1.2), t);
+        return false;
+      }
     }
   };
+  function centroRagno(q) {
+    const p = q.s.g.position, s = q.s.s * 1.05;
+    if (q.sup === null) return new THREE.Vector3(p.x + CX, s, p.z);
+    const w = MW[q.sup]; return new THREE.Vector3(p.x + CX + w.n[0] * s, p.y, p.z + w.n[2] * s);
+  }
+  function mettiSulMuro(q) {
+    const w = MW[q.sup];
+    q.s.g.position.set(w.b[0] + w.n[0] * 0.03 + w.t[0] * q.u, q.v, w.b[2] + w.n[2] * 0.03 + w.t[2] * q.u);
+    q.s.g.rotation.set(Math.PI / 2, w.ry, 0, 'YXZ'); q.s.dir.rotation.y = q.dir;
+  }
+  function attacca(q, w, u) { q.sup = w; q.u = u; q.v = 0.05; q.dir = Math.PI; mettiSulMuro(q); }
+  function stacca(q) {
+    const w = MW[q.sup];
+    q.s.g.rotation.set(0, 0, 0, 'XYZ'); q.s.g.position.set(w.b[0] + w.n[0] * 1 + w.t[0] * q.u, 0, w.b[2] + w.n[2] * 1 + w.t[2] * q.u);
+    q.dir = Math.atan2(w.n[0], w.n[2]); q.s.dir.rotation.y = q.dir; q.sup = null;
+  }
   let tProva = 0;
   window.__stanze.avanza = (sec) => { for (let i = 0; i < sec * 20; i++) { tProva += 0.05; obj.update(tProva, 0.05, ctx.camera); } };
   return obj;
