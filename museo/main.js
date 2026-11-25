@@ -443,7 +443,7 @@
       var gz = guideFor(room);
       var nz = gz ? txt(gz.name, "zone.name") : "";
       if (room && room.id === "lucidus") return "parla con Satan";
-      if (room && room.id === "zona") return "entra nel computer";
+      if (room && room.id === "zona") return "accesso ai file dell'artista";
       return (say("talk.zone") || "parlare con la guida") + (nz ? " · " + nz : "");
     }
     if (t.talk === "guide") return say("talk.cat") || "il catalogo della zona";
@@ -1801,7 +1801,7 @@
     d.setAttribute("role", "dialog");
     d.setAttribute("aria-label", "il computer della zona larga");
     d.style.cssText = "position:fixed;inset:0;z-index:99999;background:#050505;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .35s";
-    d.innerHTML = '<iframe src="desktop/index.html" title="il computer" allow="autoplay; fullscreen; gyroscope; accelerometer" style="width:100%;height:100%;border:0;background:#fbfaf7;transform:scale(.92);transition:transform .45s"></iframe>' +
+    d.innerHTML = '<iframe src="desktop/index.html" title="il computer" allow="autoplay; fullscreen; gyroscope; accelerometer" style="width:100%;height:100%;border:0;background:#000;transform:scale(.92);transition:transform .45s"></iframe>' +
       '<button type="button" aria-label="esci dal computer" style="position:fixed;top:10px;right:10px;z-index:2;font:16px \'Lucida Console\',Consolas,monospace;background:#141210;color:#fff;border:0;padding:6px 12px;cursor:pointer">esci ✕</button>';
     document.body.appendChild(d);
     var fr = d.querySelector("iframe");
@@ -1813,6 +1813,9 @@
     }
     function onKey(e) { if (e.key === "Escape") { e.stopPropagation(); close(); } }
     addEventListener("keydown", onKey, true);
+    /* "arresta il sistema" dentro liminal.exe: si torna nella stanza */
+    function onMsg(e) { if (e.data === "zl-desktop-exit") { removeEventListener("message", onMsg); if (document.getElementById("zl-desktop")) close(); } }
+    addEventListener("message", onMsg);
     d.querySelector("button").addEventListener("click", close);
     target = null;
   }

@@ -3,67 +3,185 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Zona Larga · il computer di Emanuele Baccigalupi</title>
-<link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=block" rel="stylesheet">
-<meta name="description" content="Il computer di Emanuele Baccigalupi: tutte le cartelle del sito, con i video, le canzoni, i disegni, i giochi e il museo 3D.">
+<title>liminal.exe · accesso ai file dell'artista</title>
+<meta name="description" content="Accesso ai file dell'artista Emanuele Baccigalupi: video, canzoni, disegni, giochi e il museo 3D.">
 <style>
-  /* il computer: un desktop bianco, le cartelle, le finestre.
-     --pc è il carattere da computer di tutto il sito: si cambia qui. */
-  :root { --pc: Consolas, "Lucida Console", Inconsolata, ui-monospace, Menlo, monospace; --carta: #fbfaf7; --ink: #141210; --rosso: #c4211c; --barra: #141210; }
+  /* liminal.exe — il computer della zona larga (motore liminal).
+     Un desktop vero: sfondo, icone, finestre, barra con il menu,
+     spegnimento, riavvio e impostazioni (salvate in localStorage). */
+  :root {
+    --ui: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --accent: #3a7bd5;
+    --bar: rgba(18,22,30,.82);
+    --win: #f3f3f3; --win-ink: #1b1b1b; --win-line: #d6d6d6;
+    --icon: 46px;
+  }
+  body.scuro { --win: #22252b; --win-ink: #eceff4; --win-line: #3a3e46; }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--carta); color: var(--ink); font-family: var(--pc); font-size: 14px; -webkit-user-select: none; user-select: none; }
-  #schermo { position: fixed; inset: 0 0 40px 0; padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 14px max(14px, env(safe-area-inset-left)); }
-  #icone { display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; gap: 6px 10px; height: 100%; }
-  .icona { width: 96px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; border: 1px dashed transparent; background: none; font: inherit; color: inherit; text-align: center; }
-  .icona:hover, .icona:focus-visible { border-color: rgba(20,18,16,.35); outline: none; }
-  .icona.scelta { background: rgba(196,33,28,.08); border-color: var(--rosso); }
-  .icona svg, .icona img { width: 46px; height: 46px; object-fit: cover; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color: #fff; font: 13px/1.35 var(--ui); -webkit-user-select: none; user-select: none; }
+  #sfondo { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #schermo { position: fixed; inset: 0 0 44px 0; padding: 10px; }
+  body.barra-su #schermo { inset: 44px 0 0 0; }
+  #icone { position: relative; display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; gap: 2px; height: 100%; }
+  .icona { width: calc(var(--icon) + 46px); padding: 6px 3px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: default; border: 1px solid transparent; border-radius: 3px; background: none; font: inherit; color: #fff; text-align: center; }
+  #icone .icona span { text-shadow: 0 1px 2px #000, 0 0 4px rgba(0,0,0,.8); }
+  .icona:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.18); }
+  .icona.scelta, .icona:focus-visible { background: color-mix(in srgb, var(--accent) 38%, transparent); border-color: color-mix(in srgb, var(--accent) 70%, white); outline: none; }
+  .icona svg, .icona img { width: var(--icon); height: var(--icon); object-fit: cover; filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
   .icona span { font-size: 12px; line-height: 1.25; word-break: break-word; max-height: 3.8em; overflow: hidden; }
-  /* la barra in basso */
-  #barra { position: fixed; left: 0; right: 0; bottom: 0; height: 40px; background: var(--barra); color: #eee; display: flex; align-items: center; gap: 6px; padding: 0 max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(8px, env(safe-area-inset-left)); z-index: 9000; }
-  #avvio { font: inherit; color: #fff; background: var(--rosso); border: 0; padding: 6px 12px; cursor: pointer; letter-spacing: .1em; }
-  #schede { display: flex; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; }
-  #schede button { font: inherit; font-size: 12px; color: #ddd; background: #2a2622; border: 0; padding: 6px 10px; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-  #schede button.su { background: #4a4440; color: #fff; }
-  #ora { font-size: 12px; opacity: .8; padding: 0 6px; }
+  .cartella .icona { color: var(--win-ink); }
+  .cartella .icona:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+
+  /* la barra */
+  #barra { position: fixed; left: 0; right: 0; bottom: 0; height: 44px; background: var(--bar); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px); border-top: 1px solid rgba(255,255,255,.08); display: flex; align-items: center; gap: 4px; padding: 0 6px; z-index: 9000; }
+  body.barra-su #barra { top: 0; bottom: auto; border-top: 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+  #avvio { height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 12px 0 8px; font: 600 13px var(--ui); color: #fff; background: none; border: 0; border-radius: 4px; cursor: pointer; letter-spacing: .02em; }
+  #avvio:hover, #avvio.su { background: rgba(255,255,255,.12); }
+  #avvio svg { width: 22px; height: 22px; }
+  #schede { display: flex; gap: 3px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  #schede button { position: relative; height: 36px; font: 12px var(--ui); color: #e6e6e6; background: rgba(255,255,255,.05); border: 0; border-radius: 4px; padding: 0 12px; max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+  #schede button:hover { background: rgba(255,255,255,.12); }
+  #schede button.su { background: rgba(255,255,255,.17); }
+  #schede button::after { content: ""; position: absolute; left: 30%; right: 30%; bottom: 2px; height: 2px; border-radius: 2px; background: var(--accent); }
+  #schede button.ridotta::after { left: 42%; right: 42%; opacity: .6; }
+  #vassoio { display: flex; align-items: center; gap: 2px; color: #ddd; }
+  #vassoio > * { height: 36px; display: flex; align-items: center; padding: 0 8px; border-radius: 4px; font: 12px var(--ui); color: inherit; background: none; border: 0; cursor: default; }
+  #vassoio > button:hover { background: rgba(255,255,255,.1); }
+  #ora { flex-direction: column; justify-content: center; text-align: right; line-height: 1.2; }
+  #mostra { width: 6px; padding: 0 !important; border-left: 1px solid rgba(255,255,255,.25) !important; border-radius: 0 !important; }
+
+  /* il menu avvio */
+  #menu { position: fixed; left: 6px; bottom: 50px; z-index: 9001; width: min(400px, calc(100vw - 12px)); background: rgba(26,30,38,.94); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; box-shadow: 0 18px 50px rgba(0,0,0,.55); overflow: hidden; animation: su .16s ease-out; }
+  body.barra-su #menu { top: 50px; bottom: auto; }
+  @keyframes su { from { transform: translateY(10px); opacity: 0; } }
+  #cerca { margin: 14px 14px 6px; width: calc(100% - 28px); padding: 8px 12px; border-radius: 4px; border: 1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.35); color: #fff; font: 13px var(--ui); outline: none; }
+  #cerca:focus { border-color: var(--accent); }
+  #menu h3 { margin: 10px 18px 4px; font: 600 11px var(--ui); text-transform: uppercase; letter-spacing: .08em; color: #9aa3b2; }
+  #programmi { max-height: min(46vh, 360px); overflow-y: auto; padding: 0 8px 8px; }
+  #programmi button, .piede-menu button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; font: 13px var(--ui); color: #eee; background: none; border: 0; border-radius: 4px; padding: 7px 10px; cursor: pointer; }
+  #programmi button svg, #programmi button img { width: 22px; height: 22px; object-fit: cover; flex: none; }
+  #programmi button:hover, .piede-menu button:hover { background: rgba(255,255,255,.09); }
+  .piede-menu { display: flex; align-items: center; gap: 4px; padding: 8px 10px; background: rgba(0,0,0,.25); border-top: 1px solid rgba(255,255,255,.07); }
+  .piede-menu .utente { flex: 1; display: flex; align-items: center; gap: 10px; padding-left: 6px; color: #ddd; }
+  .piede-menu .utente i { width: 28px; height: 28px; border-radius: 50%; background: #111 center/cover; box-shadow: 0 0 0 1px rgba(255,255,255,.2); }
+  .piede-menu button { width: auto; }
+  #spegni-menu { position: absolute; right: 10px; bottom: 50px; background: rgba(36,40,50,.98); border: 1px solid rgba(255,255,255,.12); border-radius: 6px; padding: 4px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  #spegni-menu button { display: block; width: 100%; font: 13px var(--ui); color: #eee; background: none; border: 0; text-align: left; padding: 7px 14px; border-radius: 4px; cursor: pointer; }
+  #spegni-menu button:hover { background: rgba(255,255,255,.1); }
+
+  /* menu col tasto destro */
+  #ctx { position: fixed; z-index: 9500; min-width: 210px; background: rgba(36,40,50,.97); border: 1px solid rgba(255,255,255,.12); border-radius: 6px; padding: 4px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+  #ctx button { display: block; width: 100%; font: 13px var(--ui); color: #eee; background: none; border: 0; text-align: left; padding: 7px 14px; border-radius: 4px; cursor: pointer; }
+  #ctx button:hover { background: rgba(255,255,255,.1); }
+  #ctx hr { border: 0; border-top: 1px solid rgba(255,255,255,.1); margin: 4px 6px; }
+
   /* le finestre */
-  .finestra { position: fixed; min-width: 280px; min-height: 160px; background: var(--carta); border: 2px solid var(--ink); box-shadow: 6px 6px 0 rgba(20,18,16,.85); display: flex; flex-direction: column; resize: both; overflow: hidden; }
-  .finestra.max { left: 0 !important; top: 0 !important; width: 100vw !important; height: calc(100vh - 40px) !important; resize: none; box-shadow: none; }
-  .titolo { display: flex; align-items: center; gap: 8px; background: var(--ink); color: #fff; padding: 4px 6px 4px 10px; cursor: move; touch-action: none; }
-  .titolo b { font-weight: 400; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .titolo button { font: inherit; color: #fff; background: none; border: 1px solid rgba(255,255,255,.4); width: 26px; height: 22px; line-height: 1; cursor: pointer; padding: 0; }
-  .titolo button:hover { background: var(--rosso); border-color: var(--rosso); }
-  .percorso { font-size: 12px; padding: 4px 10px; border-bottom: 1px solid rgba(20,18,16,.2); opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .finestra { position: fixed; min-width: 300px; min-height: 180px; background: var(--win); color: var(--win-ink); border: 1px solid rgba(0,0,0,.35); border-radius: 8px; box-shadow: 0 14px 44px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.06); display: flex; flex-direction: column; resize: both; overflow: hidden; animation: apri .14s ease-out; }
+  @keyframes apri { from { transform: scale(.96); opacity: 0; } }
+  .finestra.max { left: 0 !important; top: 0 !important; width: 100vw !important; height: calc(100vh - 44px) !important; resize: none; border-radius: 0; }
+  body.barra-su .finestra.max { top: 44px !important; }
+  .finestra.ridotta { display: none; }
+  .finestra:not(.attiva) .titolo { opacity: .72; }
+  .titolo { display: flex; align-items: center; gap: 8px; height: 34px; padding-left: 12px; cursor: default; touch-action: none; border-bottom: 1px solid var(--win-line); }
+  .finestra.attiva .titolo { box-shadow: inset 0 2px 0 var(--accent); }
+  .titolo svg, .titolo img { width: 16px; height: 16px; object-fit: cover; }
+  .titolo b { font-weight: 400; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+  .titolo button { font: 14px var(--ui); color: inherit; background: none; border: 0; width: 46px; height: 34px; line-height: 1; cursor: pointer; padding: 0; }
+  .titolo button:hover { background: rgba(127,127,127,.18); }
+  .titolo button.x:hover { background: #e81123; color: #fff; }
+  .percorso { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 5px 10px; border-bottom: 1px solid var(--win-line); }
+  .percorso span { flex: 1; padding: 4px 10px; border: 1px solid var(--win-line); border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .85; }
+  .percorso button { font: 14px var(--ui); color: inherit; background: none; border: 0; border-radius: 4px; width: 28px; height: 26px; cursor: pointer; }
+  .percorso button:hover:not(:disabled) { background: rgba(127,127,127,.18); }
+  .percorso button:disabled { opacity: .3; cursor: default; }
   .corpo { flex: 1; overflow: auto; min-height: 0; }
-  .cartella { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; padding: 10px; }
+  .cartella { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px; padding: 10px; }
   .corpo iframe, .corpo video { width: 100%; height: 100%; border: 0; display: block; background: #000; }
   .corpo .img { width: 100%; height: 100%; object-fit: contain; background: #111; display: block; }
-  .corpo .testo { padding: 16px 20px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
+  .corpo .testo { padding: 16px 22px; font: 14px/1.6 Consolas, "Lucida Console", monospace; white-space: pre-wrap; -webkit-user-select: text; user-select: text; }
   .corpo .audio { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
   .corpo .audio audio { width: 100%; }
-  .piede { display: flex; justify-content: flex-end; gap: 8px; padding: 6px 10px; border-top: 1px solid rgba(20,18,16,.2); }
-  .piede a, .piede button { font: inherit; font-size: 12px; color: var(--ink); background: none; border: 1px solid var(--ink); padding: 3px 10px; text-decoration: none; cursor: pointer; }
-  .piede a:hover, .piede button:hover { background: var(--ink); color: var(--carta); }
-  #menu { position: fixed; left: 8px; bottom: 44px; z-index: 9001; background: var(--carta); border: 2px solid var(--ink); box-shadow: 6px 6px 0 rgba(20,18,16,.85); min-width: 220px; }
-  #menu button, #menu a { display: block; width: 100%; text-align: left; font: inherit; color: var(--ink); background: none; border: 0; padding: 9px 14px; text-decoration: none; cursor: pointer; }
-  #menu button:hover, #menu a:hover { background: var(--ink); color: var(--carta); }
-  @media (max-width: 640px) { #icone { flex-direction: row; height: auto; justify-content: space-around; } #schermo { overflow-y: auto; } .icona { width: 30%; } .icona span { font-size: 11px; } .finestra { resize: none; } .cartella .icona { width: 30%; } .titolo button { width: 36px; height: 30px; } }
+  .stato { font-size: 11px; padding: 3px 10px; border-top: 1px solid var(--win-line); opacity: .7; }
+  .piede { display: flex; justify-content: flex-end; gap: 8px; padding: 6px 10px; border-top: 1px solid var(--win-line); }
+  .piede a, .piede button { font: 12px var(--ui); color: var(--win-ink); background: none; border: 1px solid var(--win-line); border-radius: 4px; padding: 4px 12px; text-decoration: none; cursor: pointer; }
+  .piede a:hover, .piede button:hover { border-color: var(--accent); }
+
+  /* impostazioni */
+  .imp { display: flex; height: 100%; }
+  .imp nav { width: 170px; flex: none; padding: 10px 6px; border-right: 1px solid var(--win-line); }
+  .imp nav button { display: block; width: 100%; text-align: left; font: 13px var(--ui); color: inherit; background: none; border: 0; border-radius: 4px; padding: 8px 12px; cursor: pointer; }
+  .imp nav button.su { background: color-mix(in srgb, var(--accent) 18%, transparent); box-shadow: inset 3px 0 0 var(--accent); }
+  .imp section { flex: 1; padding: 16px 22px; overflow: auto; }
+  .imp h2 { font: 600 20px var(--ui); margin: 0 0 14px; }
+  .imp h4 { font: 600 13px var(--ui); margin: 18px 0 8px; }
+  .anteprima { width: 100%; max-width: 360px; aspect-ratio: 16/10; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+  .anteprima canvas { width: 100%; height: 100%; display: block; }
+  .scelte { display: flex; flex-wrap: wrap; gap: 8px; }
+  .scelte button { border: 2px solid transparent; border-radius: 5px; padding: 0; cursor: pointer; background: none; overflow: hidden; }
+  .scelte button.su { border-color: var(--accent); }
+  .scelte canvas { width: 108px; height: 68px; display: block; }
+  .scelte .col { width: 34px; height: 34px; border-radius: 50%; }
+  .imp label.riga { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--win-line); border-radius: 5px; margin-bottom: 6px; }
+  .imp select, .imp input[type=range] { font: 13px var(--ui); }
+  .imp p.nota { opacity: .65; font-size: 12px; }
+
+  /* avvio e spegnimento */
+  #nero { position: fixed; inset: 0; z-index: 20000; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; color: #ccc; font: 14px var(--ui); text-align: center; }
+  #nero .logo svg { width: 84px; height: 84px; }
+  #nero .ruota { width: 34px; height: 34px; position: relative; }
+  #nero .ruota i { position: absolute; left: 15px; top: 0; width: 4px; height: 4px; border-radius: 50%; background: #fff; transform-origin: 2px 17px; animation: gira 1.6s cubic-bezier(.5,.1,.5,.9) infinite; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+  #nero .piccolo { font-size: 11px; opacity: .4; letter-spacing: .1em; }
+  #nero button { font: 13px var(--ui); color: #fff; background: none; border: 1px solid rgba(255,255,255,.35); border-radius: 50%; width: 64px; height: 64px; cursor: pointer; }
+  #nero button:hover { border-color: #fff; }
+
+  @media (max-width: 640px) {
+    #icone { flex-direction: row; height: auto; justify-content: flex-start; }
+    #schermo { overflow-y: auto; }
+    .icona { width: 31%; }
+    .finestra { resize: none; }
+    .cartella .icona { width: 31%; }
+    #avvio span { display: none; }
+    .imp nav { width: 110px; }
+  }
 </style>
 </head>
 <body>
-  <div id="schermo"><div id="icone" role="list" aria-label="le cartelle del sito"></div></div>
+  <canvas id="sfondo" aria-hidden="true"></canvas>
+  <div id="schermo"><div id="icone" role="list" aria-label="i file dell'artista"></div></div>
+
   <div id="barra">
-    <button id="avvio" type="button" aria-haspopup="true">EB</button>
+    <button id="avvio" type="button" aria-haspopup="true" title="Start">
+      <svg viewBox="0 0 64 64"><rect x="13" y="5" width="38" height="54" fill="#000" stroke="#ddd" stroke-width="3.5"/><path d="M13 5l17 5v54l-17-5z" fill="var(--accent)"/><ellipse cx="39" cy="30" rx="6" ry="2.8" fill="#e9e2d6"/><circle cx="39" cy="30" r="1.9" fill="#000"/></svg>
+      <span>liminal.exe</span>
+    </button>
     <div id="schede" aria-label="finestre aperte"></div>
-    <span id="ora"></span>
+    <div id="vassoio">
+      <button type="button" id="volume" title="volume">🔊</button>
+      <span id="ora"></span>
+      <button type="button" id="mostra" title="mostra desktop" aria-label="mostra desktop"></button>
+    </div>
   </div>
+
   <div id="menu" hidden>
-    <a href="../index.html" target="_blank" rel="noopener">il sito</a>
-    <a href="../museo.html" target="_blank" rel="noopener">il museo (gioco)</a>
-    <a href="../radio-kaoss.html" target="_blank" rel="noopener">Radio KaOsS 3D</a>
-    <button type="button" id="chiudi-tutto">chiudi le finestre</button>
+    <input id="cerca" type="search" placeholder="Cerca nei file dell'artista" autocomplete="off">
+    <h3>Tutti i file</h3>
+    <div id="programmi"></div>
+    <div class="piede-menu">
+      <div class="utente"><i style="background-image:url(../immagini/io.png)"></i><span>artista</span></div>
+      <button type="button" id="m-imp" title="Impostazioni">⚙ Impostazioni</button>
+      <button type="button" id="m-power" title="Arresta">⏻</button>
+    </div>
+    <div id="spegni-menu" hidden>
+      <button type="button" data-p="spegni">Arresta il sistema</button>
+      <button type="button" data-p="riavvia">Riavvia</button>
+      <button type="button" data-p="sito">Riavvia il sito</button>
+    </div>
   </div>
+
+  <div id="ctx" hidden></div>
+  <div id="nero" hidden></div>
 
   <script>window.MUSEO = window.MUSEO || {};</script>
   <script src="../museo/data.js"></script>
@@ -71,6 +189,347 @@
   <script>
   (function () {
     'use strict';
+    const $ = id => document.getElementById(id);
+    const dentro = window.self !== window.top;
+
+    /* ================= le impostazioni ================= */
+    const CHIAVE = 'liminal/desktop/v1';
+    const BASE = { sfondo: 'collina', accento: '#3a7bd5', tema: 'chiaro', icone: 46, barra: 'basso', inquietudine: 0.5 };
+    let IMP = Object.assign({}, BASE);
+    try { Object.assign(IMP, JSON.parse(localStorage.getItem(CHIAVE) || '{}')); } catch (e) { /* niente */ }
+    function salva() { try { localStorage.setItem(CHIAVE, JSON.stringify(IMP)); } catch (e) { /* niente */ } }
+    function applica() {
+      const r = document.documentElement.style;
+      r.setProperty('--accent', IMP.accento);
+      r.setProperty('--icon', IMP.icone + 'px');
+      document.body.classList.toggle('scuro', IMP.tema === 'scuro');
+      document.body.classList.toggle('barra-su', IMP.barra === 'alto');
+    }
+    applica();
+
+    /* ================= gli sfondi =================
+       Imitano gli sfondi di serie dei computer — la collina, il
+       bagliore, il tramonto, la tinta unita — ma qualcosa non torna.
+       Si possono toccare:
+         · l'occhio si chiude, sparisce e si riapre da un'altra parte
+           (e ogni tanto torna con un fratello)
+         · il cielo cambia colore a ogni tocco, mai lo stesso
+         · le nuvole diventano pioggia, e ogni pioggia è più rossa
+         · la figura sulla collina sparisce e ricompare più vicina
+         · la gente sulla riva, lo stesso; il sole nero si sposta
+         · l'erba e il mare fanno onde e cambiano colore; la collina respira
+       Più si sta fermi, più lo sfondo si accorge di chi guarda. */
+    const SFONDI = {
+      collina: 'Collina',
+      bagliore: 'Bagliore',
+      tramonto: 'Tramonto',
+      tinta: 'Tinta unita'
+    };
+    function rnd(seed) { let x = seed; return () => (x = (x * 16807) % 2147483647) / 2147483647; }
+    const caso = (a, b) => a + Math.random() * (b - a);
+    const hsl = (h, s, l, a) => `hsla(${((h % 360) + 360) % 360},${s}%,${l}%,${a == null ? 1 : a})`;
+
+    /* lo stato dello sfondo: tutto in frazioni dello schermo */
+    function nuovoStato(tipo) {
+      const S = { tipo, hue: 0, terra: 0, cieli: 0, piogge: 0, chiusi: 0, eyes: [], clouds: [], drops: [], ripples: [], scritte: [], respiro: 0, people: [], sole: { x: 0.62, y: 0.5 }, fig: { x: 0.47, passo: 0, via: 0 } };
+      const R = rnd(7);
+      if (tipo === 'collina') {
+        for (let i = 0; i < 7; i++) S.clouds.push({ x: R(), y: 0.08 + R() * 0.3, s: 0.06 + R() * 0.07, v: i === 3 ? -0.016 : 0.006 + R() * 0.004, rain: 0, vita: 1 });
+        S.eyes.push(occhioNuovo(0.3, 0.78, 0.11));
+      } else if (tipo === 'bagliore') {
+        S.eyes.push(occhioNuovo(0.5, 0.45, 0.09));
+      } else if (tipo === 'tramonto') {
+        for (let i = 0; i < 4; i++) S.people.push({ x: 0.08 + rnd(i + 3)() * 0.84, sc: 0.7 + rnd(i + 11)() * 0.6, via: 0 });
+        S.eyes.push(occhioNuovo(0.22, 0.3, 0.07));
+      } else {
+        S.eyes.push(occhioNuovo(0.7, 0.7, 0.08));
+      }
+      return S;
+    }
+    function occhioNuovo(x, y, r) { return { x, y, r, ap: 0, stato: 'aperto', t: 0, blink: caso(3, 9) }; }
+    let S = nuovoStato(IMP.sfondo);
+    const PREVIEW = {};
+    const anteprimaStato = tipo => PREVIEW[tipo] || (PREVIEW[tipo] = Object.assign(nuovoStato(tipo), { eyes: nuovoStato(tipo).eyes.map(e => Object.assign(e, { ap: 0.85 })) }));
+
+    function occhio(c, x, y, rx, ap, mx, my, iride) {
+      // ap: apertura 0..1, l'iride guarda verso (mx,my)
+      if (ap <= 0.02) {
+        c.strokeStyle = 'rgba(30,20,20,.55)'; c.lineWidth = Math.max(1, rx * 0.04);
+        c.beginPath(); c.moveTo(x - rx, y); c.quadraticCurveTo(x, y + rx * 0.18, x + rx, y); c.stroke();
+        return;
+      }
+      const ry = rx * 0.5 * ap;
+      c.save();
+      c.beginPath(); c.moveTo(x - rx, y);
+      c.quadraticCurveTo(x, y - ry * 2, x + rx, y);
+      c.quadraticCurveTo(x, y + ry * 2, x - rx, y); c.closePath();
+      c.fillStyle = '#efe6dc'; c.fill();
+      c.clip();
+      const a = Math.atan2(my - y, mx - x), d = Math.min(1, Math.hypot(mx - x, my - y) / 400);
+      const ix = x + Math.cos(a) * rx * 0.38 * d, iy = y + Math.sin(a) * ry * 0.5 * d;
+      c.fillStyle = iride; c.beginPath(); c.arc(ix, iy, rx * 0.36, 0, 7); c.fill();
+      c.fillStyle = '#050505'; c.beginPath(); c.arc(ix, iy, rx * (0.12 + 0.08 * ap), 0, 7); c.fill();
+      c.fillStyle = 'rgba(255,255,255,.8)'; c.beginPath(); c.arc(ix - rx * 0.08, iy - rx * 0.08, rx * 0.05, 0, 7); c.fill();
+      c.strokeStyle = 'rgba(160,40,40,.4)'; c.lineWidth = 1;
+      for (let i = 0; i < 7; i++) {
+        c.beginPath(); c.moveTo(x - rx + i * 3, y + (i - 3) * 2); c.lineTo(x - rx * 0.55, y + (i - 3) * 4); c.stroke();
+        c.beginPath(); c.moveTo(x + rx - i * 3, y + (i - 3) * 2); c.lineTo(x + rx * 0.6, y + (i - 3) * 3); c.stroke();
+      }
+      c.restore();
+      c.strokeStyle = 'rgba(40,20,20,.75)'; c.lineWidth = Math.max(1, rx * 0.045);
+      c.beginPath(); c.moveTo(x - rx, y); c.quadraticCurveTo(x, y - ry * 2, x + rx, y); c.stroke();
+      // le ciglia
+      for (let i = 1; i < 8; i++) {
+        const u = i / 8, px = x - rx + u * 2 * rx, py = y - ry * 2 * (1 - (2 * u - 1) ** 2) * 0.5;
+        c.beginPath(); c.moveTo(px, py); c.lineTo(px + (u - 0.5) * rx * 0.25, py - rx * 0.16 * ap); c.stroke();
+      }
+    }
+
+    const dim = (W, H) => Math.min(W, H);
+    const orizzonte = (tipo, H) => tipo === 'collina' ? H * 0.6 : tipo === 'tramonto' ? H * 0.6 : H;
+    function collinaY(W, H, x, S) {
+      // altezza della collina in x (dove cade la pioggia)
+      const P = [[0, 0.06], [0.4, -0.075], [0.8, 0.045], [1, -0.04]], u = Math.max(0, Math.min(1, x / W));
+      let i = 0; while (i < P.length - 2 && u > P[i + 1][0]) i++;
+      const k = (u - P[i][0]) / (P[i + 1][0] - P[i][0]);
+      return H * 0.62 + H * (P[i][1] + (P[i + 1][1] - P[i][1]) * k);
+    }
+
+    function disegna(c, W, H, tipo, t, mx, my, sveglio, S) {
+      const R = rnd(7), h = S.hue;
+      c.clearRect(0, 0, W, H);
+      if (tipo === 'collina') {
+        let g = c.createLinearGradient(0, 0, 0, H * 0.7);
+        g.addColorStop(0, hsl(215 + h, 72, 43)); g.addColorStop(0.55, hsl(212 + h, 66, 62)); g.addColorStop(1, hsl(208 + h, 63, 84));
+        c.fillStyle = g; c.fillRect(0, 0, W, H);
+        // nuvole
+        S.clouds.forEach(cl => {
+          if (cl.vita <= 0) return;
+          const cx = cl.x * (W + 300) - 150, cy = cl.y * H, s = W * cl.s * Math.max(0.2, cl.vita);
+          const grigio = Math.round(255 - cl.rain * 150);
+          c.fillStyle = `rgba(${grigio},${grigio},${grigio + cl.rain * 10},${0.85 * Math.min(1, cl.vita * 1.5)})`;
+          for (let k = 0; k < 5; k++) { c.beginPath(); c.ellipse(cx + (k - 2) * s * 0.5, cy + Math.sin(k * 2) * s * 0.12, s * 0.5, s * 0.28, 0, 0, 7); c.fill(); }
+        });
+        // la collina, che respira
+        const hy = H * 0.62 + Math.sin(S.respiro) * H * 0.006;
+        g = c.createLinearGradient(0, hy - H * 0.1, 0, H);
+        const th = S.terra;
+        g.addColorStop(0, hsl(96 + th, 58, 43)); g.addColorStop(0.5, hsl(101 + th, 66, 33)); g.addColorStop(1, hsl(105 + th, 68, 20));
+        c.fillStyle = g; c.beginPath(); c.moveTo(0, hy + H * 0.06);
+        c.bezierCurveTo(W * 0.25, hy - H * 0.12, W * 0.55, hy - H * 0.06, W * 0.7, hy + H * 0.02);
+        c.bezierCurveTo(W * 0.85, hy + H * 0.09, W * 0.95, hy - H * 0.02, W, hy - H * 0.04);
+        c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fill();
+        // le pieghe dell'erba: sembrano costole
+        c.strokeStyle = 'rgba(20,60,10,.2)'; c.lineWidth = Math.max(1, W / 600);
+        for (let i = 0; i < 9; i++) { const yy = hy + H * 0.06 + i * H * 0.035 + Math.sin(S.respiro + i) * 1.5; c.beginPath(); c.moveTo(W * 0.1, yy + i * 2); c.quadraticCurveTo(W * 0.42, yy - H * 0.05, W * 0.78, yy + H * 0.02); c.stroke(); }
+        // la figura: ogni volta che la tocchi torna più vicina
+        if (S.fig.via <= 0) {
+          const p = S.fig.passo, sc = 1 + p * p * 0.9;
+          const fx = W * S.fig.x, fy = p === 0 ? hy - H * 0.072 : hy + H * (0.02 + p * 0.07);
+          const fh = H * 0.03 * sc, fw = Math.max(2, W * 0.004 * sc);
+          c.fillStyle = '#0b0b0b'; c.fillRect(fx - fw / 2, fy - fh, fw, fh);
+          c.beginPath(); c.arc(fx, fy - fh - fw * 0.9, fw * 0.95, 0, 7); c.fill();
+          if (p >= 3) { c.fillStyle = 'rgba(255,255,255,.85)'; c.fillRect(fx - fw * 0.5, fy - fh - fw, fw * 0.25, fw * 0.2); c.fillRect(fx + fw * 0.25, fy - fh - fw, fw * 0.25, fw * 0.2); }
+          S._fig = { x: fx, y: fy - fh / 2, w: Math.max(fw * 2, 22), h: fh + fw * 2 + 10 };
+        } else S._fig = null;
+      } else if (tipo === 'bagliore') {
+        let g = c.createRadialGradient(W * 0.5, H * 0.45, 0, W * 0.5, H * 0.45, Math.max(W, H) * 0.8);
+        g.addColorStop(0, hsl(217 + h, 69, 37)); g.addColorStop(0.5, hsl(221 + h, 74, 17)); g.addColorStop(1, hsl(222 + h, 79, 4));
+        c.fillStyle = g; c.fillRect(0, 0, W, H);
+        const cx = W * 0.5, cy = H * 0.45;
+        c.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < 14; i++) {
+          const a = i / 14 * Math.PI * 2 + t * 0.02, sp = 0.06 + R() * 0.05, L = Math.max(W, H);
+          c.fillStyle = hsl(215 + h + R() * 30, 90, 60 + R() * 15, 0.05 + R() * 0.07);
+          c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(a - sp) * L, cy + Math.sin(a - sp) * L); c.lineTo(cx + Math.cos(a + sp) * L, cy + Math.sin(a + sp) * L); c.fill();
+        }
+        c.globalCompositeOperation = 'source-over';
+        g = c.createRadialGradient(cx, cy, 0, cx, cy, W * 0.12);
+        g.addColorStop(0, 'rgba(230,240,255,.95)'); g.addColorStop(1, 'rgba(120,170,255,0)');
+        c.fillStyle = g; c.fillRect(0, 0, W, H);
+        // il centro della luce è una fessura, e si stringe
+        const pw = W * (0.004 + 0.016 * sveglio), ph = W * 0.05;
+        c.fillStyle = '#02040a'; c.beginPath(); c.ellipse(cx, cy, pw, ph * (0.3 + 0.7 * sveglio), 0, 0, 7); c.fill();
+      } else if (tipo === 'tramonto') {
+        let g = c.createLinearGradient(0, 0, 0, H * 0.6);
+        g.addColorStop(0, hsl(273 + h, 52, 16)); g.addColorStop(0.55, hsl(343 + h, 51, 52)); g.addColorStop(1, hsl(27 + h, 100, 72));
+        c.fillStyle = g; c.fillRect(0, 0, W, H * 0.6);
+        // il sole è nero; toccalo e cambia posto
+        const sx = W * S.sole.x, sy = H * S.sole.y, sr = dim(W, H) * 0.09;
+        g = c.createRadialGradient(sx, sy, sr * 0.9, sx, sy, sr * 2.2);
+        g.addColorStop(0, 'rgba(255,220,180,.7)'); g.addColorStop(1, 'rgba(255,160,120,0)');
+        c.fillStyle = g; c.fillRect(0, 0, W, H * 0.6);
+        c.fillStyle = '#0a0607'; c.beginPath(); c.arc(sx, sy, sr, 0, 7); c.fill();
+        S._sole = { x: sx, y: sy, r: sr };
+        g = c.createLinearGradient(0, H * 0.6, 0, H);
+        g.addColorStop(0, hsl(318 + S.terra, 37, 26)); g.addColorStop(1, hsl(248 + S.terra, 44, 8));
+        c.fillStyle = g; c.fillRect(0, H * 0.6, W, H * 0.4);
+        for (let i = 0; i < 26; i++) {
+          const yy = H * 0.61 + i * i * H * 0.0006, w2 = sr * (1.4 - i * 0.03) + Math.sin(t + i) * 6;
+          c.fillStyle = `rgba(255,180,140,${0.35 - i * 0.012})`; c.fillRect(sx - w2, yy, w2 * 2, 2);
+        }
+        c.fillStyle = '#05030a'; c.fillRect(0, H * 0.92, W, H * 0.08);
+        // in riva: gente in piedi. Più resti, più sono; se la tocchi si avvicina
+        const n = Math.min(S.people.length, Math.floor(1 + sveglio * 11) + S.people.filter(p => p.vicino).length);
+        S._people = [];
+        for (let i = 0; i < n; i++) {
+          const p = S.people[i]; if (p.via > 0) continue;
+          const sc = p.sc * (1 + (p.vicino || 0) * 1.4), ph = H * 0.05 * sc, base = H * (0.92 + (p.vicino || 0) * 0.03);
+          c.fillStyle = '#05030a';
+          c.fillRect(p.x * W - 2 * sc, base - ph, 4 * sc, ph); c.beginPath(); c.arc(p.x * W, base - ph - 3 * sc, 3.2 * sc, 0, 7); c.fill();
+          S._people.push({ p, x: p.x * W, y: base - ph / 2, w: Math.max(18, 10 * sc), h: ph + 8 * sc });
+        }
+      } else {
+        c.fillStyle = h ? hsl(h, 45, 35) : IMP.accento; c.fillRect(0, 0, W, H);
+        c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(0, 0, W, H);
+        c.fillStyle = `rgba(255,255,255,${0.015 + sveglio * 0.05})`;
+        c.font = `${Math.round(Math.max(12, W * 0.018))}px Consolas, monospace`; c.textAlign = 'center';
+        c.fillText('non sei solo in questa cartella', W * 0.5, H * 0.5);
+      }
+
+      // le onde dove hai toccato
+      S.ripples.forEach(r => {
+        const k = r.t / 1.6; if (k >= 1) return;
+        c.strokeStyle = r.col.replace('A', String(0.5 * (1 - k))); c.lineWidth = 2;
+        for (let j = 0; j < 3; j++) { const rr = (k * 1.2 - j * 0.12) * dim(W, H) * 0.2; if (rr > 0) { c.beginPath(); c.ellipse(r.x * W, r.y * H, rr, rr * 0.35, 0, 0, 7); c.stroke(); } }
+      });
+      // la pioggia
+      S.drops.forEach(d => {
+        c.strokeStyle = d.col; c.lineWidth = 2;
+        c.beginPath(); c.moveTo(d.x * W, d.y * H); c.lineTo(d.x * W - 2, d.y * H + 16); c.stroke();
+      });
+      // le scritte (tinta unita)
+      S.scritte.forEach(s => { c.fillStyle = `rgba(255,255,255,${0.5 * Math.max(0, 1 - s.t / 4)})`; c.font = `${Math.round(Math.max(12, W * 0.016))}px Consolas, monospace`; c.textAlign = 'center'; c.fillText(s.txt, s.x * W, s.y * H); });
+      // gli occhi
+      const iride = tipo === 'collina' ? '#4b6b2a' : tipo === 'tramonto' ? '#6a2a3a' : '#2a4b7a';
+      S.eyes.forEach(e => { if (e.stato !== 'via') occhio(c, e.x * W, e.y * H, e.r * dim(W, H), e.ap, mx, my, iride); });
+      // grana del tubo
+      c.fillStyle = 'rgba(0,0,0,.035)';
+      for (let y = 0; y < H; y += 3) c.fillRect(0, y, W, 1);
+    }
+
+    function aggiorna(S, dt, sveglio, W, H) {
+      S.respiro += dt * (0.9 + sveglio * 0.6);
+      S.eyes.forEach(e => {
+        e.t += dt;
+        if (e.stato === 'aperto') {
+          // aperto a metà, del tutto se stai fermo; ogni tanto sbatte
+          e.blink -= dt;
+          const meta = e.blink < 0 && e.blink > -0.16 ? 0 : 0.35 + 0.65 * sveglio;
+          if (e.blink <= -0.16) e.blink = caso(3, 10);
+          e.ap += (meta - e.ap) * Math.min(1, dt * (meta < e.ap ? 18 : 3));
+        } else if (e.stato === 'chiude') {
+          e.ap = Math.max(0, e.ap - dt * 6);
+          if (e.ap <= 0) { e.stato = 'via'; e.t = 0; e.attesa = caso(1, 2.6); }
+        } else if (e.stato === 'via') {
+          if (e.t > e.attesa) {
+            // si riapre da un'altra parte: in cielo, sull'erba, dove capita
+            e.x = caso(0.25, 0.9); e.y = caso(0.12, 0.85); e.r = caso(0.05, 0.13);
+            e.stato = 'aperto'; e.ap = 0; e.blink = caso(3, 9);
+          }
+        }
+      });
+      S.clouds.forEach(cl => {
+        cl.x += cl.v * dt * 0.4; if (cl.x > 1.05) cl.x = -0.05; if (cl.x < -0.05) cl.x = 1.05;
+        if (cl.rain > 0) {
+          cl.rain = Math.min(1, cl.rain + dt * 2);
+          cl.piove -= dt;
+          if (cl.piove > 0) {
+            const cx = (cl.x * (W + 300) - 150) / W, s = cl.s * cl.vita;
+            for (let k = 0; k < 7; k++) S.drops.push({ x: cx + caso(-s, s), y: cl.y + caso(0, 0.04), v: caso(0.9, 1.4), col: cl.col });
+          } else cl.vita -= dt * 0.35;
+          if (cl.vita <= 0 && !cl.rinasce) cl.rinasce = caso(4, 9);
+        }
+        if (cl.rinasce) { cl.rinasce -= dt; if (cl.rinasce <= 0) Object.assign(cl, { rain: 0, vita: 1, rinasce: 0, x: cl.v > 0 ? -0.05 : 1.05 }); }
+      });
+      for (let i = S.drops.length - 1; i >= 0; i--) {
+        const d = S.drops[i]; d.y += d.v * dt;
+        const suolo = S.tipo === 'collina' ? collinaY(W, H, d.x * W, S) / H : 0.92;
+        if (d.y > suolo) S.drops.splice(i, 1);
+      }
+      if (S.drops.length > 1600) S.drops.splice(0, S.drops.length - 1600);
+      S.ripples.forEach(r => { r.t += dt; }); S.ripples = S.ripples.filter(r => r.t < 1.6);
+      S.scritte.forEach(s => { s.t += dt; }); S.scritte = S.scritte.filter(s => s.t < 4);
+      if (S.fig.via > 0) { S.fig.via -= dt; }
+      S.people.forEach(p => { if (p.via > 0) p.via -= dt; });
+    }
+
+    /* un tocco sullo sfondo: cosa c'è sotto il dito? */
+    const FRASI = ['ti vedo', 'sei ancora qui', 'non chiudere', 'chi c\'è dietro di te', 'resta', 'questa non è casa tua', 'apri la cartella', 'ti ricordi di me'];
+    function tocca(x, y) {
+      const W = innerWidth, H = innerHeight, u = x / W, v = y / H, tipo = S.tipo;
+      // 1. un occhio
+      for (const e of S.eyes) {
+        if (e.stato !== 'aperto') continue;
+        const rx = e.r * dim(W, H);
+        if (Math.abs(x - e.x * W) < rx && Math.abs(y - e.y * H) < rx * 0.5 + 10) {
+          e.stato = 'chiude'; S.chiusi++;
+          // ogni tre volte che lo chiudi, torna con un fratello
+          if (S.chiusi % 3 === 0 && S.eyes.length < 6) { const n = occhioNuovo(caso(0.25, 0.9), caso(0.12, 0.85), caso(0.04, 0.08)); n.stato = 'via'; n.attesa = caso(2, 4); S.eyes.push(n); }
+          return;
+        }
+      }
+      // 2. la figura
+      if (tipo === 'collina' && S._fig && Math.abs(x - S._fig.x) < S._fig.w && Math.abs(y - S._fig.y) < S._fig.h) {
+        S.fig.via = 0.9; S.fig.passo = (S.fig.passo + 1) % 5; S.fig.x = S.fig.passo ? caso(0.35, 0.85) : 0.47;
+        return;
+      }
+      // 3. la gente sulla riva
+      if (tipo === 'tramonto') {
+        for (const q of (S._people || [])) if (Math.abs(x - q.x) < q.w && Math.abs(y - q.y) < q.h) { q.p.via = 0.8; q.p.vicino = Math.min(3, (q.p.vicino || 0) + 1); q.p.x = caso(0.1, 0.9); if (S.people.length < 16) S.people.push({ x: caso(0.08, 0.92), sc: caso(0.7, 1.3), via: 0 }); return; }
+        if (S._sole && Math.hypot(x - S._sole.x, y - S._sole.y) < S._sole.r) { S.sole = { x: caso(0.15, 0.85), y: caso(0.18, 0.5) }; return; }
+      }
+      // 4. una nuvola
+      if (tipo === 'collina') {
+        for (const cl of S.clouds) {
+          if (cl.vita <= 0 || cl.rain) continue;
+          const cx = cl.x * (W + 300) - 150, s = W * cl.s;
+          if (Math.abs(x - cx) < s * 1.3 && Math.abs(y - cl.y * H) < s * 0.45) {
+            S.piogge++;
+            const rosso = Math.min(1, S.piogge * 0.14);
+            cl.col = `rgba(${Math.round(170 + 85 * rosso)},${Math.round(200 - 170 * rosso)},${Math.round(235 - 200 * rosso)},.95)`;
+            cl.rain = 0.01; cl.piove = 4;
+            return;
+          }
+        }
+      }
+      // 5. il cielo: un colore nuovo a ogni tocco
+      if (y < orizzonte(tipo, H) || tipo === 'bagliore' || tipo === 'tinta') {
+        if (tipo === 'tinta' && Math.random() < 0.5) { S.scritte.push({ x: u, y: v, t: 0, txt: FRASI[Math.floor(Math.random() * FRASI.length)] }); }
+        S.cieli++;
+        S.hue = (S.hue + caso(50, 310)) % 360;
+        return;
+      }
+      // 6. l'erba o il mare: onde, e il terreno cambia colore
+      if (tipo === 'collina' || tipo === 'tramonto') S.terra = (S.terra + caso(50, 310)) % 360;
+      S.ripples.push({ x: u, y: v, t: 0, col: tipo === 'collina' ? 'rgba(10,40,5,A)' : 'rgba(255,200,170,A)' });
+      S.respiro += 1.2;
+    }
+
+    const tela = $('sfondo'), ct = tela.getContext('2d');
+    let mx = innerWidth / 2, my = innerHeight / 2, fermo = 0, t0 = performance.now(), sveglio = 0;
+    function misura() { const d = Math.min(2, devicePixelRatio || 1); tela.width = innerWidth * d; tela.height = innerHeight * d; ct.setTransform(d, 0, 0, d, 0, 0); }
+    misura(); addEventListener('resize', misura);
+    addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; fermo = 0; });
+    addEventListener('pointerdown', e => { mx = e.clientX; my = e.clientY; fermo = 0; });
+    addEventListener('keydown', () => { fermo = 0; });
+    let ultimo = performance.now();
+    function giro(now) {
+      requestAnimationFrame(giro);
+      if (now - ultimo < 33) return;
+      const dt = Math.min(0.1, (now - ultimo) / 1000); ultimo = now;
+      fermo += dt;
+      if (S.tipo !== IMP.sfondo) S = nuovoStato(IMP.sfondo);
+      // si sveglia se stai fermo, si calma se ti muovi
+      const vel = 0.02 + IMP.inquietudine * 0.12;
+      const meta = fermo > 4 ? 1 : 0.06;
+      sveglio += (meta - sveglio) * (meta > sveglio ? vel * dt * 2 : dt * 3);
+      aggiorna(S, dt, sveglio, innerWidth, innerHeight);
+      disegna(ct, innerWidth, innerHeight, S.tipo, (now - t0) / 1000, mx, my, sveglio, S);
+    }
+    requestAnimationFrame(giro);
+
+    /* ================= i file (dai dati del museo) ================= */
     const R = (window.MUSEO.DATA && window.MUSEO.DATA.rooms) || [];
     const room = id => R.find(r => r.id === id) || { works: [] };
     const it = v => (v && typeof v === 'object') ? (v.it || v.en || '') : (v || '');
@@ -133,55 +592,99 @@
     const clean = n => { if (n && n.kids) n.kids = n.kids.filter(Boolean).map(clean); return n; };
     TREE.forEach(clean);
 
-    /* ---------- le icone ---------- */
+    /* ================= le icone ================= */
     const ICON = {
-      dir: '<svg viewBox="0 0 48 48"><path d="M3 12h16l4 4h22v24H3z" fill="#f2efe8" stroke="#141210" stroke-width="2"/><path d="M3 18h42" stroke="#141210" stroke-width="2"/></svg>',
-      video: '<svg viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="30" fill="#141210"/><rect x="8" y="12" width="32" height="22" fill="#2a2622"/><path d="M21 17l9 6-9 6z" fill="#c4211c"/><path d="M18 42h12" stroke="#141210" stroke-width="2"/></svg>',
-      audio: '<svg viewBox="0 0 48 48"><rect x="6" y="12" width="36" height="24" rx="3" fill="#f2efe8" stroke="#141210" stroke-width="2"/><circle cx="17" cy="24" r="5" fill="none" stroke="#141210" stroke-width="2"/><circle cx="31" cy="24" r="5" fill="none" stroke="#141210" stroke-width="2"/><path d="M12 32h24" stroke="#c4211c" stroke-width="2"/></svg>',
-      txt: '<svg viewBox="0 0 48 48"><path d="M10 4h20l8 8v32H10z" fill="#fff" stroke="#141210" stroke-width="2"/><path d="M15 18h18M15 24h18M15 30h12" stroke="#141210" stroke-width="2"/></svg>',
-      img: '<svg viewBox="0 0 48 48"><rect x="5" y="8" width="38" height="32" fill="#fff" stroke="#141210" stroke-width="2"/><path d="M8 36l10-12 8 8 6-6 8 10z" fill="#141210"/><circle cx="33" cy="17" r="3" fill="#c4211c"/></svg>',
-      book: '<svg viewBox="0 0 48 48"><path d="M8 6h28v36H8z" fill="#c4211c" stroke="#141210" stroke-width="2"/><path d="M12 6v36M16 14h16" stroke="#141210" stroke-width="2"/></svg>',
-      tab: '<svg viewBox="0 0 48 48"><rect x="4" y="6" width="40" height="32" fill="#fff" stroke="#141210" stroke-width="2"/><path d="M20 28l12-12M24 16h8v8" fill="none" stroke="#c4211c" stroke-width="2.5"/></svg>',
-      web: '<svg viewBox="0 0 48 48"><rect x="4" y="6" width="40" height="32" fill="#fff" stroke="#141210" stroke-width="2"/><path d="M4 13h40" stroke="#141210" stroke-width="2"/><circle cx="9" cy="9.5" r="1.5" fill="#c4211c"/><path d="M14 22h20M14 28h14" stroke="#141210" stroke-width="2"/><path d="M20 44l4-6 4 6" fill="none" stroke="#141210" stroke-width="2"/></svg>',
-      out: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" fill="#fff" stroke="#141210" stroke-width="2"/><path d="M6 24h36M24 6c-8 10-8 26 0 36M24 6c8 10 8 26 0 36" fill="none" stroke="#141210" stroke-width="1.5"/></svg>'
+      dir: '<svg viewBox="0 0 48 48"><path d="M3 10h15l4 4h23v26H3z" fill="#e0a92e"/><path d="M3 17h42v23H3z" fill="#f6c94c"/><path d="M3 17h42" stroke="#c98d1a" stroke-width="1.5"/></svg>',
+      video: '<svg viewBox="0 0 48 48"><rect x="4" y="9" width="40" height="30" rx="3" fill="#1e2530"/><path d="M20 17l11 7-11 7z" fill="#ff4b4b"/></svg>',
+      audio: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="#7a3df0"/><path d="M20 31V15l12-3v16" fill="none" stroke="#fff" stroke-width="2.5"/><circle cx="17" cy="31" r="4" fill="#fff"/><circle cx="29" cy="28" r="4" fill="#fff"/></svg>',
+      txt: '<svg viewBox="0 0 48 48"><path d="M10 4h20l9 9v31H10z" fill="#fff" stroke="#9aa3ad" stroke-width="1.5"/><path d="M30 4v9h9" fill="#e4e8ec" stroke="#9aa3ad" stroke-width="1.5"/><path d="M15 20h19M15 26h19M15 32h13" stroke="#5a6470" stroke-width="2"/></svg>',
+      img: '<svg viewBox="0 0 48 48"><rect x="5" y="8" width="38" height="32" rx="3" fill="#2a8fd8"/><path d="M8 36l11-13 8 8 6-6 9 11z" fill="#1d6a2a"/><circle cx="33" cy="17" r="4" fill="#ffd54a"/></svg>',
+      book: '<svg viewBox="0 0 48 48"><path d="M9 6h28v36H9z" fill="#c4211c"/><path d="M13 6v36" stroke="#7a1010" stroke-width="3"/><path d="M18 15h14M18 20h10" stroke="#fff" stroke-width="2"/></svg>',
+      tab: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="#1aa260"/><path d="M18 30l12-12M21 18h9v9" fill="none" stroke="#fff" stroke-width="3"/></svg>',
+      web: '<svg viewBox="0 0 48 48"><rect x="4" y="7" width="40" height="32" rx="3" fill="#fff" stroke="#9aa3ad" stroke-width="1.5"/><path d="M4 14h40" stroke="#9aa3ad" stroke-width="1.5"/><rect x="4" y="7" width="40" height="7" rx="3" fill="var(--accent)"/><path d="M13 22h22M13 28h16" stroke="#5a6470" stroke-width="2"/></svg>',
+      out: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="#2b7de9"/><path d="M5 24h38M24 5c-8 10-8 28 0 38M24 5c8 10 8 28 0 38" fill="none" stroke="#fff" stroke-width="1.6"/></svg>',
+      imp: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="#6b7480"/><circle cx="24" cy="24" r="7" fill="none" stroke="#fff" stroke-width="3"/><path d="M24 9v6M24 33v6M9 24h6M33 24h6M13 13l4 4M31 31l4 4M35 13l-4 4M17 31l-4 4" stroke="#fff" stroke-width="3"/></svg>'
     };
-    const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-    function iconEl(node, path) {
+    const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    const pic = node => node.img ? `<img src="${esc(node.img)}" alt="">` : node.type === 'video' && node.yt ? `<img src="https://i.ytimg.com/vi/${node.yt}/default.jpg" alt="">` : ICON[node.type] || ICON.txt;
+
+    let tocco = false;
+    addEventListener('pointerdown', e => { tocco = e.pointerType === 'touch'; }, true);
+    function iconEl(node, path, onOpen) {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'icona'; b.setAttribute('role', 'listitem');
-      const pic = node.img ? `<img src="${node.img}" alt="">` : node.type === 'video' && node.yt ? `<img src="https://i.ytimg.com/vi/${node.yt}/default.jpg" alt="">` : ICON[node.type] || ICON.txt;
-      b.innerHTML = pic + `<span>${esc(node.name)}</span>`;
+      b.innerHTML = pic(node) + `<span>${esc(node.name)}</span>`;
       b.title = node.name;
-      b.addEventListener('click', () => open(node, path));
+      const apri = () => (onOpen ? onOpen(node) : open(node, path));
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        const box = b.parentElement;
+        box.querySelectorAll('.icona.scelta').forEach(x => x.classList.remove('scelta'));
+        b.classList.add('scelta');
+        if (tocco) apri();
+      });
+      b.addEventListener('dblclick', e => { e.stopPropagation(); if (!tocco) apri(); });
+      b.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); apri(); } });
+      b.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); menuCtx(e.clientX, e.clientY, [['Apri', apri], null, ['Proprietà', () => proprieta(node, path)]]); });
       return b;
     }
-    const desk = document.getElementById('icone');
-    TREE.forEach(n => desk.appendChild(iconEl(n, ['C:', 'Desktop'])));
+    const desk = $('icone');
+    function disponi() {
+      desk.innerHTML = '';
+      TREE.forEach(n => desk.appendChild(iconEl(n, ['C:', 'Utenti', 'artista', 'Desktop'])));
+      desk.appendChild(iconEl({ type: 'imp', name: 'Impostazioni' }, [], () => impostazioni()));
+    }
+    disponi();
+    $('schermo').addEventListener('click', e => {
+      desk.querySelectorAll('.scelta').forEach(x => x.classList.remove('scelta'));
+      if (!e.target.closest('.icona')) tocca(e.clientX, e.clientY);
+    });
 
-    /* ---------- le finestre ---------- */
+    /* ================= le finestre ================= */
     let z = 10, n = 0;
-    const tasks = document.getElementById('schede');
+    const tasks = $('schede');
     const small = () => innerWidth < 700;
-    function win(title, path, build, size) {
+    const altoBarra = () => IMP.barra === 'alto' ? 44 : 0;
+    function attiva(w) {
+      document.querySelectorAll('.finestra').forEach(f => f.classList.toggle('attiva', f === w));
+      [...tasks.children].forEach(t => t.classList.toggle('su', t._w === w && !w.classList.contains('ridotta')));
+    }
+    function win(title, path, build, size, icona) {
       const w = document.createElement('section'); w.className = 'finestra'; w.setAttribute('role', 'dialog'); w.setAttribute('aria-label', title);
       const W = Math.min(size?.[0] || 640, innerWidth - 20), H = Math.min(size?.[1] || 440, innerHeight - 70);
-      Object.assign(w.style, { left: Math.max(4, 60 + (n % 8) * 28) + 'px', top: Math.max(4, 30 + (n % 8) * 24) + 'px', width: W + 'px', height: H + 'px', zIndex: ++z });
+      Object.assign(w.style, { left: Math.max(4, 80 + (n % 8) * 30) + 'px', top: Math.max(4, altoBarra() + 30 + (n % 8) * 26) + 'px', width: W + 'px', height: H + 'px', zIndex: ++z });
       n++;
-      w.innerHTML = `<div class="titolo"><b>${esc(title)}</b><button type="button" class="mx" aria-label="ingrandisci">□</button><button type="button" class="x" aria-label="chiudi">✕</button></div><div class="percorso">${esc(path.join('\\'))}</div><div class="corpo"></div>`;
+      w.innerHTML = `<div class="titolo">${icona || ''}<b>${esc(title)}</b><button type="button" class="mn" aria-label="riduci a icona">&#8211;</button><button type="button" class="mx" aria-label="ingrandisci">&#9633;</button><button type="button" class="x" aria-label="chiudi">&#10005;</button></div>` +
+        (path ? `<div class="percorso"><button type="button" class="indietro" aria-label="indietro" disabled>&#8592;</button><button type="button" class="su" aria-label="su" disabled>&#8593;</button><span>${esc(path.join(' › '))}</span></div>` : '') + `<div class="corpo"></div>`;
       document.body.appendChild(w);
       if (small()) w.classList.add('max');
-      const tab = document.createElement('button'); tab.type = 'button'; tab.textContent = title; tasks.appendChild(tab);
-      const focus = () => { w.style.zIndex = ++z; [...tasks.children].forEach(t => t.classList.toggle('su', t === tab)); };
-      const close = () => { w.remove(); tab.remove(); };
-      w.addEventListener('pointerdown', focus); tab.addEventListener('click', focus);
-      w.querySelector('.x').addEventListener('click', close);
+      const tab = document.createElement('button'); tab.type = 'button'; tab.textContent = title; tab.title = title; tab._w = w; tasks.appendChild(tab);
+      w._tab = tab;
+      const focus = () => { w.classList.remove('ridotta'); w.style.zIndex = ++z; attiva(w); tab.classList.remove('ridotta'); };
+      const riduci = () => { w.classList.add('ridotta'); tab.classList.add('ridotta'); attiva(null); };
+      const close = () => { w.querySelectorAll('iframe,audio,video').forEach(m => { m.src = 'about:blank'; }); w.remove(); tab.remove(); };
+      w._close = close; w._riduci = riduci; w._focus = focus;
+      w.addEventListener('pointerdown', focus);
+      tab.addEventListener('click', () => { if (w.classList.contains('attiva') && !w.classList.contains('ridotta')) riduci(); else focus(); });
+      w.querySelector('.x').addEventListener('click', e => { e.stopPropagation(); close(); });
+      w.querySelector('.mn').addEventListener('click', e => { e.stopPropagation(); riduci(); });
       w.querySelector('.mx').addEventListener('click', () => w.classList.toggle('max'));
-      // trascinare la finestra per la barra del titolo
       const bar = w.querySelector('.titolo');
+      bar.addEventListener('dblclick', e => { if (!e.target.closest('button')) w.classList.toggle('max'); });
       bar.addEventListener('pointerdown', e => {
-        if (e.target.closest('button') || w.classList.contains('max')) return;
-        const sx = e.clientX - w.offsetLeft, sy = e.clientY - w.offsetTop; bar.setPointerCapture(e.pointerId);
-        const mv = ev => { w.style.left = Math.max(-w.offsetWidth + 60, Math.min(innerWidth - 60, ev.clientX - sx)) + 'px'; w.style.top = Math.max(0, Math.min(innerHeight - 80, ev.clientY - sy)) + 'px'; };
-        const upf = () => { bar.removeEventListener('pointermove', mv); bar.removeEventListener('pointerup', upf); };
+        if (e.target.closest('button')) return;
+        let sx = e.clientX - w.offsetLeft, sy = e.clientY - w.offsetTop; bar.setPointerCapture(e.pointerId);
+        const mv = ev => {
+          if (w.classList.contains('max')) { // si stacca dal massimo trascinando, come i computer veri
+            const rel = sx / w.offsetWidth; w.classList.remove('max');
+            sx = w.offsetWidth * rel; sy = 16;
+          }
+          w.style.left = Math.max(-w.offsetWidth + 80, Math.min(innerWidth - 80, ev.clientX - sx)) + 'px';
+          w.style.top = Math.max(altoBarra(), Math.min(innerHeight - 80, ev.clientY - sy)) + 'px';
+        };
+        const upf = ev => {
+          bar.removeEventListener('pointermove', mv); bar.removeEventListener('pointerup', upf);
+          if (ev.clientY <= altoBarra() + 2) w.classList.add('max'); // portata in cima: si ingrandisce
+        };
         bar.addEventListener('pointermove', mv); bar.addEventListener('pointerup', upf);
       });
       build(w.querySelector('.corpo'), w);
@@ -190,33 +693,196 @@
     }
     function foot(w, html) { const f = document.createElement('div'); f.className = 'piede'; f.innerHTML = html; w.appendChild(f); }
 
-    function open(node, path) {
-      const p = [...path, node.name];
-      if (node.type === 'dir') return win(node.name, p, c => { const g = document.createElement('div'); g.className = 'cartella'; node.kids.forEach(k => g.appendChild(iconEl(k, p))); c.appendChild(g); }, [560, 380]);
-      if (node.type === 'video') return win(node.name, p, c => { c.innerHTML = `<iframe src="https://www.youtube.com/embed/${node.yt}?autoplay=1&rel=0&modestbranding=1&playsinline=1" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="${esc(node.name)}"></iframe>`; }, [760, 470]);
-      if (node.type === 'img') return win(node.name, p, c => { c.innerHTML = `<img class="img" src="${node.src}" alt="${esc(node.name)}">`; }, [620, 520]);
-      if (node.type === 'txt') return win(node.name, p, c => { c.innerHTML = `<div class="testo">${esc(node.text)}</div>`; }, [520, 420]);
-      if (node.type === 'audio') return win(node.name, p, c => { c.innerHTML = `<div class="audio"><b>${esc(node.name.replace(/\.mp3$/, ''))}</b><audio controls autoplay src="${node.src}"></audio><span style="opacity:.6">Radio KaOsS · le canzoni</span></div>`; }, [420, 200]);
-      if (node.type === 'out' || node.type === 'tab') { window.open(node.href, '_blank', 'noopener'); return; }
-      if (node.type === 'book') return win(node.name, p, (c, w) => { c.innerHTML = '<div class="testo">apro il libro…</div>'; fetch(node.src).then(r => r.text()).then(t => { c.firstChild.textContent = t; }).catch(() => { c.firstChild.textContent = 'il libro non si apre'; }); foot(w, '<a href="' + node.odt + '" download>scarica .odt</a>'); }, [620, 560]);
-      if (node.type === 'web') {
-        if (node.top) { window.top.location.href = node.href; return; }
-        return win(node.name, p, (c, w) => { c.innerHTML = `<iframe src="${node.href}" allow="autoplay; fullscreen; camera; gyroscope; accelerometer" title="${esc(node.name)}"></iframe>`; foot(w, `<a href="${node.href}" target="_blank" rel="noopener">apri a tutto schermo</a>`); }, [900, 600]);
-      }
+    function esplora(node, path) {
+      return win(node.name, path, (c, w) => {
+        const storia = [];
+        let cur = { node, path };
+        const ind = w.querySelector('.indietro'), su = w.querySelector('.su'), via = w.querySelector('.percorso span');
+        const st = document.createElement('div'); st.className = 'stato'; w.appendChild(st);
+        function mostra(x) {
+          cur = x;
+          c.innerHTML = ''; c.scrollTop = 0;
+          const g = document.createElement('div'); g.className = 'cartella';
+          x.node.kids.forEach(k => g.appendChild(iconEl(k, x.path, k.type === 'dir' ? (d => { storia.push(cur); mostra({ node: d, path: [...x.path, d.name] }); }) : null)));
+          c.appendChild(g);
+          via.textContent = x.path.join(' › ');
+          w.querySelector('.titolo b').textContent = x.node.name; w._tab.textContent = x.node.name;
+          st.textContent = x.node.kids.length + (x.node.kids.length === 1 ? ' elemento' : ' elementi');
+          ind.disabled = !storia.length; su.disabled = !storia.length;
+        }
+        ind.addEventListener('click', () => { if (storia.length) mostra(storia.pop()); });
+        su.addEventListener('click', () => { if (storia.length) { const p = storia[0]; storia.length = 0; mostra(p); } });
+        c.addEventListener('click', () => c.querySelectorAll('.scelta').forEach(x => x.classList.remove('scelta')));
+        mostra(cur);
+      }, [600, 420], ICON.dir);
     }
 
-    /* ---------- la barra ---------- */
-    const menu = document.getElementById('menu');
-    document.getElementById('avvio').addEventListener('click', e => { e.stopPropagation(); menu.hidden = !menu.hidden; });
-    document.addEventListener('click', () => { menu.hidden = true; });
-    document.getElementById('chiudi-tutto').addEventListener('click', () => { document.querySelectorAll('.finestra').forEach(w => w.remove()); tasks.innerHTML = ''; });
-    const ora = document.getElementById('ora');
-    const tick = () => { const d = new Date(); ora.textContent = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); };
-    tick(); setInterval(tick, 20000);
+    function open(node, path) {
+      const p = [...path, node.name];
+      const ic = pic(node);
+      if (node.type === 'dir') return esplora(node, p);
+      if (node.type === 'video') return win(node.name, null, c => { c.innerHTML = `<iframe src="https://www.youtube.com/embed/${node.yt}?autoplay=1&rel=0&modestbranding=1&playsinline=1" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="${esc(node.name)}"></iframe>`; }, [760, 470], ICON.video);
+      if (node.type === 'img') return win(node.name, null, c => { c.innerHTML = `<img class="img" src="${esc(node.src)}" alt="${esc(node.name)}">`; }, [620, 520], ICON.img);
+      if (node.type === 'txt') return win(node.name + ' – Blocco note', null, c => { c.innerHTML = `<div class="testo">${esc(node.text)}</div>`; }, [520, 420], ICON.txt);
+      if (node.type === 'audio') return win(node.name, null, c => { c.innerHTML = `<div class="audio"><b>${esc(node.name.replace(/\.mp3$/, ''))}</b><audio controls autoplay src="${esc(node.src)}"></audio><span style="opacity:.6">Radio KaOsS · le canzoni</span></div>`; if (muto) c.querySelector('audio').muted = true; }, [420, 220], ICON.audio);
+      if (node.type === 'out' || node.type === 'tab') { window.open(node.href, '_blank', 'noopener'); return; }
+      if (node.type === 'book') return win(node.name + ' – Blocco note', null, (c, w) => { c.innerHTML = '<div class="testo">apro il libro…</div>'; fetch(node.src).then(r => r.text()).then(t => { c.firstChild.textContent = t; }).catch(() => { c.firstChild.textContent = 'il libro non si apre'; }); foot(w, '<a href="' + esc(node.odt) + '" download>scarica .odt</a>'); }, [620, 560], ICON.book);
+      if (node.type === 'web') {
+        return win(node.name, null, (c, w) => { c.innerHTML = `<iframe src="${esc(node.href)}" allow="autoplay; fullscreen; camera; gyroscope; accelerometer" title="${esc(node.name)}"></iframe>`; foot(w, `<a href="${esc(node.href)}" target="_blank" rel="noopener">apri a tutto schermo</a>`); }, [900, 600], ICON.web);
+      }
+    }
+    function conta(x) { return x.kids ? x.kids.reduce((a, k) => a + conta(k), 0) : 1; }
+    function proprieta(node, path) {
+      const tipo = { dir: 'Cartella di file', video: 'Video', audio: 'Audio', txt: 'Documento di testo', img: 'Immagine', book: 'Libro', web: 'Applicazione', tab: 'Collegamento', out: 'Collegamento esterno' }[node.type] || 'File';
+      win('Proprietà – ' + node.name, null, c => {
+        c.innerHTML = `<div class="testo" style="font-family:var(--ui)">${pic(node).replace('<svg', '<svg style="width:40px;height:40px"')}\n\n<b>${esc(node.name)}</b>\n\nTipo: ${tipo}\nPercorso: ${esc([...path, node.name].join('\\\\'))}` +
+          (node.kids ? `\nContenuto: ${conta(node)} file` : '') + `\nProprietario: artista\nUltimo accesso: adesso. Anche prima.</div>`;
+      }, [380, 320], ICON.txt);
+    }
 
-    // ?apri=Museo%203D apre subito una cartella
-    const q = new URLSearchParams(location.search).get('apri');
-    if (q) { const t = TREE.find(x => x.name.toLowerCase() === q.toLowerCase()); if (t) open(t, ['C:', 'Desktop']); }
+    /* ================= impostazioni ================= */
+    function anteprima(cv, tipo) { const d = 2; cv.width = cv.clientWidth * d || 216; cv.height = cv.clientHeight * d || 136; const c = cv.getContext('2d'); c.scale(cv.width / 640, cv.height / 400); disegna(c, 640, 400, tipo, 3, 320, 200, 0.85, anteprimaStato(tipo)); }
+    let impAperta = null;
+    function impostazioni(sez) {
+      if (impAperta && document.body.contains(impAperta)) { impAperta._focus(); if (sez) impAperta._vai(sez); return; }
+      impAperta = win('Impostazioni', null, (c, w) => {
+        c.innerHTML = '<div class="imp"><nav><button data-s="pers">Personalizzazione</button><button data-s="barra">Barra</button><button data-s="sis">Sistema</button></nav><section></section></div>';
+        const sec = c.querySelector('section');
+        const vai = s => {
+          c.querySelectorAll('nav button').forEach(b => b.classList.toggle('su', b.dataset.s === s));
+          if (s === 'pers') {
+            sec.innerHTML = `<h2>Personalizzazione</h2><div class="anteprima"><canvas></canvas></div>
+              <h4>Sfondo</h4><div class="scelte" id="s-sf">${Object.keys(SFONDI).map(k => `<button type="button" data-k="${k}" title="${SFONDI[k]}"><canvas></canvas></button>`).join('')}</div>
+              <h4>Colore</h4><div class="scelte" id="s-col">${['#3a7bd5', '#0f9d8a', '#c4211c', '#8a4fd8', '#d98a1a', '#555b66'].map(k => `<button type="button" data-k="${k}" class="col" style="background:${k}" title="${k}"></button>`).join('')}</div>
+              <h4>Finestre</h4><label class="riga">Tema <select id="s-tema"><option value="chiaro">Chiaro</option><option value="scuro">Scuro</option></select></label>
+              <label class="riga">Dimensione icone <input id="s-ic" type="range" min="32" max="72" step="2"></label>
+              <label class="riga">Sensibilità dello sfondo <input id="s-inq" type="range" min="0" max="1" step="0.05"></label>
+              <p class="nota">Lo sfondo reagisce a chi resta fermo davanti allo schermo.</p>`;
+            const grande = sec.querySelector('.anteprima canvas');
+            const agg = () => { anteprima(grande, IMP.sfondo); sec.querySelectorAll('#s-sf button').forEach(b => b.classList.toggle('su', b.dataset.k === IMP.sfondo)); sec.querySelectorAll('#s-col button').forEach(b => b.classList.toggle('su', b.dataset.k === IMP.accento)); };
+            sec.querySelectorAll('#s-sf button').forEach(b => { anteprima(b.firstChild, b.dataset.k); b.addEventListener('click', () => { IMP.sfondo = b.dataset.k; salva(); agg(); }); });
+            sec.querySelectorAll('#s-col button').forEach(b => b.addEventListener('click', () => { IMP.accento = b.dataset.k; salva(); applica(); agg(); sec.querySelectorAll('#s-sf button').forEach(x => anteprima(x.firstChild, x.dataset.k)); }));
+            const tm = sec.querySelector('#s-tema'); tm.value = IMP.tema; tm.addEventListener('change', () => { IMP.tema = tm.value; salva(); applica(); });
+            const ic = sec.querySelector('#s-ic'); ic.value = IMP.icone; ic.addEventListener('input', () => { IMP.icone = +ic.value; salva(); applica(); });
+            const iq = sec.querySelector('#s-inq'); iq.value = IMP.inquietudine; iq.addEventListener('input', () => { IMP.inquietudine = +iq.value; salva(); });
+            agg();
+          } else if (s === 'barra') {
+            sec.innerHTML = `<h2>Barra delle applicazioni</h2><label class="riga">Posizione <select id="s-pos"><option value="basso">In basso</option><option value="alto">In alto</option></select></label>
+              <h4>Ripristino</h4><label class="riga">Torna alle impostazioni di fabbrica <button type="button" id="s-reset">Ripristina</button></label>`;
+            const ps = sec.querySelector('#s-pos'); ps.value = IMP.barra; ps.addEventListener('change', () => { IMP.barra = ps.value; salva(); applica(); });
+            sec.querySelector('#s-reset').addEventListener('click', () => { IMP = Object.assign({}, BASE); salva(); applica(); vai('barra'); });
+          } else {
+            const tot = TREE.reduce((a, k) => a + conta(k), 0);
+            sec.innerHTML = `<h2>Sistema</h2><div class="testo" style="padding:0;font-family:var(--ui)">liminal.exe · motore liminal · edizione Zona Larga\nUtente: artista\nFile dell'artista: ${tot}\nMemoria: piena di cose che non ricorda\nProcessore: lumaca, 1 core\nStato: attivato\n\nQuesto computer contiene i file di Emanuele Baccigalupi: i video, le canzoni, i disegni, i giochi e il museo 3D.</div>`;
+          }
+        };
+        w._vai = vai; vai(sez || 'pers');
+      }, [700, 520], ICON.imp);
+    }
+
+    /* ================= menu avvio ================= */
+    const menu = $('menu'), cerca = $('cerca'), progs = $('programmi'), pm = $('spegni-menu'), avvio = $('avvio');
+    function tutti(nodes, path, out) { nodes.forEach(k => { const p = [...path, k.name]; out.push({ k, path }); if (k.kids) tutti(k.kids, p, out); }); return out; }
+    const INDICE = tutti(TREE, ['C:', 'Utenti', 'artista', 'Desktop'], []);
+    function riempi() {
+      const q = cerca.value.trim().toLowerCase();
+      progs.innerHTML = '';
+      const lista = q ? INDICE.filter(x => x.k.name.toLowerCase().includes(q)).slice(0, 60) : TREE.map(k => ({ k, path: ['C:', 'Utenti', 'artista', 'Desktop'] }));
+      if (!lista.length) { progs.innerHTML = '<div style="padding:10px 12px;color:#9aa3b2">nessun file con questo nome</div>'; return; }
+      lista.forEach(({ k, path }) => {
+        const b = document.createElement('button'); b.type = 'button';
+        b.innerHTML = pic(k) + `<span>${esc(k.name)}</span>`;
+        b.addEventListener('click', () => { chiudiMenu(); open(k, path); });
+        progs.appendChild(b);
+      });
+    }
+    function chiudiMenu() { menu.hidden = true; pm.hidden = true; avvio.classList.remove('su'); }
+    function apriMenu() { cerca.value = ''; riempi(); menu.hidden = false; avvio.classList.add('su'); if (!small()) cerca.focus(); }
+    avvio.addEventListener('click', e => { e.stopPropagation(); menu.hidden ? apriMenu() : chiudiMenu(); });
+    menu.addEventListener('click', e => e.stopPropagation());
+    cerca.addEventListener('input', riempi);
+    cerca.addEventListener('keydown', e => { if (e.key === 'Enter') { const b = progs.querySelector('button'); if (b) b.click(); } });
+    $('m-imp').addEventListener('click', () => { chiudiMenu(); impostazioni(); });
+    $('m-power').addEventListener('click', e => { e.stopPropagation(); pm.hidden = !pm.hidden; });
+    pm.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; chiudiMenu(); energia(b.dataset.p); });
+    document.addEventListener('click', () => { chiudiMenu(); $('ctx').hidden = true; });
+    addEventListener('keydown', e => {
+      if (e.key === 'Escape') { if (!menu.hidden) { chiudiMenu(); e.stopPropagation(); } $('ctx').hidden = true; }
+      if (e.key === 'Meta' || e.key === 'OS') { e.preventDefault(); menu.hidden ? apriMenu() : chiudiMenu(); }
+    });
+
+    /* ================= tasto destro sul desktop ================= */
+    function menuCtx(x, y, voci) {
+      const m = $('ctx'); m.innerHTML = '';
+      voci.forEach(v => {
+        if (!v) { m.appendChild(document.createElement('hr')); return; }
+        const b = document.createElement('button'); b.type = 'button'; b.textContent = v[0];
+        b.addEventListener('click', e => { e.stopPropagation(); m.hidden = true; v[1](); });
+        m.appendChild(b);
+      });
+      m.hidden = false;
+      m.style.left = Math.min(x, innerWidth - m.offsetWidth - 4) + 'px';
+      m.style.top = Math.min(y, innerHeight - m.offsetHeight - 4) + 'px';
+    }
+    $('schermo').addEventListener('contextmenu', e => {
+      if (e.target.closest('.icona')) return;
+      e.preventDefault();
+      menuCtx(e.clientX, e.clientY, [
+        ['Icone grandi', () => { IMP.icone = 62; salva(); applica(); }],
+        ['Icone medie', () => { IMP.icone = 46; salva(); applica(); }],
+        ['Icone piccole', () => { IMP.icone = 34; salva(); applica(); }],
+        null,
+        ['Aggiorna', () => { desk.style.opacity = 0; setTimeout(() => { disponi(); desk.style.opacity = 1; }, 180); }],
+        null,
+        ['Cambia sfondo', () => { const k = Object.keys(SFONDI); IMP.sfondo = k[(k.indexOf(IMP.sfondo) + 1) % k.length]; salva(); }],
+        ['Personalizza', () => impostazioni('pers')]
+      ]);
+    });
+
+    /* ================= vassoio ================= */
+    let muto = false;
+    $('volume').addEventListener('click', e => { e.stopPropagation(); muto = !muto; $('volume').textContent = muto ? '🔇' : '🔊'; document.querySelectorAll('audio').forEach(a => { a.muted = muto; }); });
+    $('mostra').addEventListener('click', e => { e.stopPropagation(); document.querySelectorAll('.finestra').forEach(w => w._riduci && w._riduci()); });
+    const ora = $('ora');
+    const tick = () => { const d = new Date(); ora.innerHTML = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) + '<br>' + d.toLocaleDateString('it-IT'); };
+    tick(); setInterval(tick, 15000);
+
+    /* ================= accensione, spegnimento, riavvio ================= */
+    const nero = $('nero');
+    const LOGO = '<div class="logo">' + avvio.querySelector('svg').outerHTML + '</div>';
+    const RUOTA = '<div class="ruota">' + [0, 1, 2, 3, 4].map(i => `<i style="animation-delay:${i * 0.12}s"></i>`).join('') + '</div>';
+    function chiudiTutto() { document.querySelectorAll('.finestra').forEach(w => w._close ? w._close() : w.remove()); tasks.innerHTML = ''; }
+    function accendi(cb) {
+      nero.innerHTML = LOGO + RUOTA + '<div style="font-size:22px;font-weight:300">liminal.exe</div><div class="piccolo">MOTORE LIMINAL · ZONA LARGA</div>';
+      nero.hidden = false; nero.style.opacity = 1;
+      setTimeout(() => {
+        nero.innerHTML = '<div style="font-size:22px;font-weight:300">Benvenuto, artista</div>' + RUOTA;
+        setTimeout(() => { nero.style.transition = 'opacity .5s'; nero.style.opacity = 0; setTimeout(() => { nero.hidden = true; nero.style.transition = ''; cb && cb(); }, 500); }, 700);
+      }, 1300);
+    }
+    function energia(cosa) {
+      nero.hidden = false; nero.style.opacity = 1;
+      if (cosa === 'sito') {
+        nero.innerHTML = RUOTA + '<div>Riavvio del sito in corso…</div>';
+        setTimeout(() => { try { window.top.location.href = '../index.html?riavvio'; } catch (e) { location.href = '../index.html?riavvio'; } }, 1400);
+        return;
+      }
+      nero.innerHTML = RUOTA + `<div>${cosa === 'riavvia' ? 'Riavvio in corso…' : 'Arresto del sistema in corso…'}</div>`;
+      setTimeout(() => {
+        chiudiTutto();
+        if (cosa === 'riavvia') { nero.innerHTML = ''; setTimeout(() => accendi(), 600); return; }
+        nero.innerHTML = '<div style="color:#e89a2c;font-size:16px">È ora possibile spegnere il computer.</div>' +
+          (dentro ? '<div class="piccolo">torni nella stanza…</div>' : '<button type="button" aria-label="accendi">⏻</button>');
+        if (dentro) { setTimeout(() => { try { window.parent.postMessage('zl-desktop-exit', '*'); } catch (e) { /* niente */ } }, 1500); }
+        else nero.querySelector('button').addEventListener('click', () => accendi());
+      }, 1600);
+    }
+    const giaAcceso = /[?&]acceso\b/.test(location.search);
+    (giaAcceso ? (cb => { nero.hidden = true; cb(); }) : accendi)(() => {
+      // ?apri=Museo%203D apre subito una cartella
+      const q = new URLSearchParams(location.search).get('apri');
+      if (q) { const t = TREE.find(x => x.name.toLowerCase() === q.toLowerCase()); if (t) open(t, ['C:', 'Utenti', 'artista', 'Desktop']); }
+    });
   })();
   </script>
 </body>

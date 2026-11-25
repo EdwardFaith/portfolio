@@ -8,7 +8,7 @@ export const VIEW_H = 360;
 
 const BLOCK = new Set([
   'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
-  'Tab', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight',
+  'Tab', 'KeyQ', 'KeyE', 'KeyF', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight',
 ]);
 
 export class Input {

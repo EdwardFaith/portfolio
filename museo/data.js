@@ -547,8 +547,8 @@
       num: "VIII",
       title: { it: "ZONA LARGA", en: "WIDE ZONE" },
       line: {
-        it: "il computer · tutte le cartelle del sito: i video, le canzoni, i disegni, i giochi, il museo 3D.",
-        en: "the computer · every folder of the site: videos, songs, drawings, games, the 3D museum."
+        it: "accesso ai file dell'artista",
+        en: "access to the artist's files"
       },
       /* ---- la zona larga non è più una rubrica: è un computer ------
          Nel museo è una stanza buia, piena di polvere e di lumache, con

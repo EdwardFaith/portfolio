@@ -909,7 +909,7 @@ function consumeEvents(world) {
       case 'playerDead':
         sfx(world, 'death', 1);
         world.over = true;
-        world.banner = { text: 'SEI MORTO', sub: 'premi R per riprovare', t: 9, color: '#ff2d75' };
+        world.banner = { text: 'SEI MORTO', sub: 'R riprova · E torna alla base', t: 9, color: '#ff2d75' };
         spike(world, 1);
         kickShake(world, 14);
         if (world.audio) world.audio.music('dead');
@@ -934,18 +934,20 @@ function handleInput(world, inp) {
     // sotto-passi di simulazione (prima il blink partiva più volte)
     if (inp.consume(perkKeys[i])) castPerk(world, PERK_ORDER[i]);
   }
-  if (inp.hit('ShiftLeft') || inp.hit('ShiftRight')) {
+  // comandi naturali: SPAZIO (o SHIFT) scatta, E/F fa "la cosa giusta"
+  // qui e ora (esecuzione > raccogli > estrai), Q o tasto destro lancia
+  if (inp.consume('Space') || inp.consume('ShiftLeft') || inp.consume('ShiftRight')) {
     if (tryDash(p)) sfx(world, 'dodge', 0.7);
   }
-  if (inp.hit('Space')) playerFinisher(world);
-  if (inp.mouse.rightPressed) playerThrow(world);
-  if (inp.hit('KeyE')) {
-    if (!playerPickup(world)) tryExtract(world);
+  if (inp.mouse.rightPressed || inp.consume('KeyQ')) playerThrow(world);
+  if (inp.consume('KeyE') || inp.consume('KeyF')) {
+    if (!playerFinisher(world) && !playerPickup(world)) tryExtract(world);
   }
   const s = wspec(p.weapon.id);
   if (s.kind === 'gun') {
     if (inp.mouse.left) playerTryAttack(world);
-  } else if (inp.mouse.leftPressed) {
+  } else if (inp.mouse.left) {
+    // tenendo premuto si continua a colpire
     playerTryAttack(world);
   }
 }
@@ -1103,7 +1105,7 @@ export function updateWorld(world, dt) {
   world.prompt = null;
   if (!world.finisher && !world.over) {
     const ex = canExecute(world);
-    if (ex) world.prompt = { key: 'SPAZIO', text: 'ESECUZIONE' };
+    if (ex) world.prompt = { key: 'E', text: 'ESECUZIONE' };
     else if (pk) world.prompt = { key: 'E', text: weaponLabel(pk) };
     else if (atExtract) {
       world.prompt = world.bossDead

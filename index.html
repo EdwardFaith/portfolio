@@ -435,6 +435,8 @@
 </head>
 
 <body>
+    <!-- liminal.exe: il sito si accende come un computer (login + scelta) -->
+    <script src="liminal/avvio.js?v=2"></script>
     <div class="noise-bg"></div>
     <div id="root"></div>
 
@@ -781,9 +783,6 @@
                                                 }`}
                                         >
                                             {link.label}
-                                            {link.id === 'home' && (
-                                                <span id="navRabbitIcon" className="inline-block cursor-pointer hover:scale-125 transition-transform" title="Segui il coniglio nel Museo">🐇</span>
-                                            )}
                                         </button>
                                     ))}
                                 </div>
@@ -1518,21 +1517,21 @@
                         {/* il computer */}
                         <div className="max-w-5xl mx-auto">
                             <div className="bg-neutral-800 p-3 md:p-5 rounded-md border border-neutral-700 shadow-2xl shadow-black">
-                                <div className="relative w-full bg-[#fbfaf7] overflow-hidden" style={{ aspectRatio: '16 / 10' }}>
+                                <div className="relative w-full bg-gradient-to-b from-[#1f5fbf] via-[#5c9be0] to-[#3e8a1c] overflow-hidden" style={{ aspectRatio: '16 / 10' }}>
                                     {acceso ? (
-                                        <iframe src="desktop/index.html" title="Zona Larga · il computer" className="absolute inset-0 w-full h-full border-0" allow="autoplay; fullscreen; gyroscope; accelerometer" allowFullScreen></iframe>
+                                        <iframe src="desktop/index.html" title="Zona Larga · accesso ai file dell'artista" className="absolute inset-0 w-full h-full border-0" allow="autoplay; fullscreen; gyroscope; accelerometer" allowFullScreen></iframe>
                                     ) : (
                                         <button type="button" onClick={() => { if (window.innerWidth < 768) window.open("desktop/index.html", "_blank", "noopener"); else setAcceso(true); }} aria-label="accendi il computer" className="absolute inset-0 w-full h-full text-left cursor-pointer group" style={{ fontFamily: 'var(--pc)' }}>
                                             <div className="absolute inset-0 p-4 md:p-6 flex flex-col flex-wrap content-start gap-2 md:gap-4">
                                                 {cartelle.map(c => (
-                                                    <div key={c} className="w-20 md:w-24 flex flex-col items-center gap-1 text-neutral-900">
+                                                    <div key={c} className="w-20 md:w-24 flex flex-col items-center gap-1 text-white drop-shadow">
                                                         <svg viewBox="0 0 48 48" className="w-9 h-9 md:w-11 md:h-11"><path d="M3 12h16l4 4h22v24H3z" fill="#f2efe8" stroke="#141210" strokeWidth="2" /><path d="M3 18h42" stroke="#141210" strokeWidth="2" /></svg>
                                                         <span className="text-[10px] md:text-xs text-center leading-tight">{c}</span>
                                                     </div>
                                                 ))}
                                             </div>
                                             <div className="absolute left-0 right-0 bottom-0 h-7 md:h-9 bg-[#141210] flex items-center px-2">
-                                                <span className="bg-red-700 text-white text-xs px-2 py-0.5">EB</span>
+                                                <span className="text-white text-xs px-2 py-0.5">liminal.exe</span>
                                             </div>
                                             <span className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/5 transition">
                                                 <span className="bg-[#141210] text-white text-xs md:text-sm px-3 py-1.5 opacity-80 group-hover:opacity-100">▶ accendi</span>
@@ -2561,8 +2560,6 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
-    <!-- Sagoma del coniglio che corre per la cornice -->
-    <script src="coniglio-cornice.js?v=4"></script>
 </body>
 
 </html>

@@ -11,7 +11,8 @@
    · il concetto, scritto sul muro davanti: lo leggi guardandolo da vicino
    · le canzoni: le cassette sulla mensola e il giradischi
    · la radio a valvole sul bancone: accesa o spenta
-   · il museo-gioco, in fondo alla sala: un cabinato per giocarci
+   · il computer di Zona Larga, in fondo alla sala: un cabinato che
+     apre liminal.exe, il desktop con i file dell'artista
    · tavoli e casse di Latte Materno, lo sponsor; le lumache che strisciano
    · ci si trasporta toccando il pavimento o le cose
    ========================================================= */
@@ -249,7 +250,7 @@ export async function buildSala(scene, ctx) {
   const lc = panel(1.8, 0.36, 260, (c, w, h, ppm) => spray(c, 'le canzoni', w / 2, h * 0.7, 0.2 * ppm, CHALK, 71, { align: 'center', drips: 3 }));
   lc.position.set(5.985, 2.45, 1.5); lc.rotation.y = -Math.PI / 2; g.add(lc);
 
-  /* ---------------- il museo-gioco: il cabinato in fondo ---------------- */
+  /* ---------------- il computer di Zona Larga: il cabinato in fondo ---------------- */
   const arcade = new THREE.Group();
   const am = new THREE.MeshStandardMaterial({ color: 0x1a0b0b, roughness: 0.5 });
   const sideShape = new THREE.Shape(); sideShape.moveTo(0, 0); sideShape.lineTo(0.75, 0); sideShape.lineTo(0.75, 1.0); sideShape.lineTo(0.55, 1.15); sideShape.lineTo(0.62, 1.85); sideShape.lineTo(0.2, 1.9); sideShape.lineTo(0, 1.9); sideShape.lineTo(0, 0);
@@ -263,21 +264,46 @@ export async function buildSala(scene, ctx) {
   const fTex = toTex(fc);
   const fScreen = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.42), new THREE.MeshStandardMaterial({ map: fTex, emissive: 0xffffff, emissiveMap: fTex, emissiveIntensity: 0.35, roughness: 0.4 }));
   fScreen.position.set(0, 1.45, 0.2); fScreen.rotation.x = -0.12; arcade.add(fScreen);
-  const marquee = panel(0.66, 0.16, 400, (c, w, h, ppm) => spray(c, 'il museo', w / 2, h * 0.72, 0.1 * ppm, '#f1ead6', 91, { align: 'center', drips: 2 }));
+  const marquee = panel(0.66, 0.16, 400, (c, w, h, ppm) => spray(c, 'zona larga', w / 2, h * 0.72, 0.1 * ppm, '#f1ead6', 91, { align: 'center', drips: 2 }));
   marquee.position.set(0, 1.83, 0.12); arcade.add(marquee);
   arcade.position.set(4.9, 0, 4.15); arcade.rotation.y = -2.36; shade(arcade); g.add(arcade);
   colliders.push({ x: 4.9, z: 4.15, w: 0.9, d: 0.9 });
   const arcadeGlow = new THREE.PointLight(0xffe0c0, 0.3, 2.2, 2); arcadeGlow.position.set(4.6, 1.5, 3.8); g.add(arcadeGlow);
-  const cabTV = { group: arcade, screen: fScreen, mat: fScreen.material, title: 'il museo', sw: 0.56, sh: 0.42, playing: false };
-  const playFoglio = () => { if (cabTV.playing) { stopScreen(); return; } ctx.audio.claim('video'); openOn(cabTV, 'museo.html?stanza=kaoss', null, { game: true, far: 2.4 }); ctx.say('il museo · tocca lo schermo per entrare, esci allontanandoti'); };
-  [fScreen, aBody, marquee].forEach(m => interact.push({ mesh: m, label: 'il museo · gioca', view: nodes[7].view, action: playFoglio }));
+  const cabTV = { group: arcade, screen: fScreen, mat: fScreen.material, title: 'zona larga', sw: 0.56, sh: 0.42, playing: false };
+  /* lo schermo si allarga fino a diventare tutta la vista: dentro c'è
+     liminal.exe, il desktop di Zona Larga. Esc, «esci» o «arresta il
+     sistema» riportano nella sala. */
+  function playFoglio() {
+    if (document.getElementById('zl-desktop')) return;
+    ctx.audio.claim('video');
+    try { document.exitPointerLock && document.exitPointerLock(); } catch (e) { }
+    const d = document.createElement('div'); d.id = 'zl-desktop';
+    d.style.cssText = 'position:fixed;inset:0;z-index:40;background:#000;opacity:0;transition:opacity .35s';
+    d.innerHTML = '<iframe src="desktop/index.html?acceso" title="zona larga · accesso ai file dell&#39;artista" allow="autoplay; fullscreen" style="width:100%;height:100%;border:0;display:block;transform:scale(.9);transition:transform .45s"></iframe>' +
+      '<button type="button" aria-label="esci dal computer" style="position:fixed;top:max(8px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));z-index:2;font:15px Consolas,monospace;background:#c4211c;color:#fff;border:0;padding:6px 12px;cursor:pointer">esci ✕</button>';
+    document.body.appendChild(d);
+    const fr = d.querySelector('iframe');
+    requestAnimationFrame(() => { d.style.opacity = '1'; fr.style.transform = 'scale(1)'; });
+    const close = () => { removeEventListener('keydown', onKey, true); removeEventListener('message', onMsg); d.style.opacity = '0'; setTimeout(() => d.remove(), 350); };
+    const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+    const onMsg = e => { if (e.data === 'zl-desktop-exit') close(); };
+    addEventListener('keydown', onKey, true); addEventListener('message', onMsg);
+    d.querySelector('button').addEventListener('click', close);
+    ctx.say("zona larga · accesso ai file dell'artista");
+  }
+  [fScreen, aBody, marquee].forEach(m => interact.push({ mesh: m, label: 'zona larga · accendi il computer', view: nodes[7].view, action: playFoglio }));
   function drawFoglio(t) {
-    ff.fillStyle = '#e8e0cc'; ff.fillRect(0, 0, 256, 192);
-    ff.strokeStyle = 'rgba(40,30,20,0.25)'; for (let y = 20; y < 192; y += 14) { ff.beginPath(); ff.moveTo(10, y); ff.lineTo(246, y); ff.stroke(); }
-    ff.fillStyle = '#1b130e'; ff.font = `26px ${FONT}`; ff.textAlign = 'center'; ff.fillText('il museo', 128, 70);
-    ff.font = `16px ${FONT}`; ff.fillStyle = '#8a1010'; if (Math.floor(t * 1.5) % 2) ff.fillText('▶ tocca per giocare', 128, 120);
-    // il coniglio che corre in basso
-    const x = (t * 60) % 300 - 20; ff.fillStyle = '#1b130e'; ff.beginPath(); ff.ellipse(x, 160, 9, 6, 0, 0, Math.PI * 2); ff.fill(); ff.fillRect(x + 4, 146, 2, 10); ff.fillRect(x + 7, 145, 2, 10);
+    // il desktop di liminal.exe in piccolo: la collina, e la collina guarda
+    let gr = ff.createLinearGradient(0, 0, 0, 130); gr.addColorStop(0, '#1f5fbf'); gr.addColorStop(1, '#bcd9f2');
+    ff.fillStyle = gr; ff.fillRect(0, 0, 256, 192);
+    ff.fillStyle = '#3e8a1c'; ff.beginPath(); ff.moveTo(0, 130); ff.bezierCurveTo(70, 95, 150, 100, 256, 120); ff.lineTo(256, 192); ff.lineTo(0, 192); ff.fill();
+    const ap = (Math.sin(t * 0.7) + 1) / 2 * 0.9 + 0.1;
+    ff.fillStyle = '#efe6dc'; ff.beginPath(); ff.ellipse(80, 150, 22, 10 * ap, 0, 0, Math.PI * 2); ff.fill();
+    ff.fillStyle = '#000'; ff.beginPath(); ff.arc(80 + Math.sin(t) * 8, 150, 5 * Math.min(1, ap + 0.3), 0, Math.PI * 2); ff.fill();
+    for (let i = 0; i < 6; i++) { ff.fillStyle = '#f6c94c'; ff.fillRect(10 + (i % 2) * 28, 10 + Math.floor(i / 2) * 26, 20, 14); }
+    ff.fillStyle = '#121620'; ff.fillRect(0, 178, 256, 14);
+    ff.fillStyle = '#e9e2d6'; ff.font = `11px ${FONT}`; ff.textAlign = 'left'; ff.fillText('liminal.exe', 6, 189);
+    if (Math.floor(t * 1.5) % 2) { ff.fillStyle = '#c4211c'; ff.textAlign = 'center'; ff.font = `15px ${FONT}`; ff.fillText('▶ tocca per accendere', 160, 70); }
     fTex.needsUpdate = true;
   }
 

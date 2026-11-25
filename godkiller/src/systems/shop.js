@@ -120,7 +120,7 @@ export const SUIT_ORDER = [
 // ARMERIA: quello che si può comprare (prezzi in crediti)
 // ------------------------------------------------------------
 export const WEAPON_SHOP = [
-  { id: 'fist', price: 0, desc: 'Mani nude. Il pugno stende: poi esegui con SPAZIO.' },
+  { id: 'fist', price: 0, desc: 'Mani nude. Il pugno stende: poi esegui con E.' },
   { id: 'knife', price: 0, desc: 'Silenzioso, letale alle spalle. Di serie nel kit.' },
   { id: 'baton', price: 150, desc: 'Manganello: stordisce a lungo e sfonda i pannelli.' },
   { id: 'mace', price: 260, desc: 'Mazza pesante: apre un varco nei muri spessi in due colpi.' },

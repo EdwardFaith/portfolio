@@ -754,9 +754,9 @@ function drawHUDOverlays(t, world) {
   // ---- comandi iniziali ---------------------------------------
   if (world.time < 16 && !world.alerted && !world.over) {
     g.globalAlpha = Math.min(1, (16 - world.time) / 3) * 0.85;
-    hudShadowText('WASD MUOVI · MOUSE MIRA/SPARA · SHIFT SCATTA',
+    hudShadowText('WASD MUOVI · MOUSE MIRA · CLICK ATTACCA (TIENI PREMUTO)',
       VIEW_W / 2, VIEW_H - 38, 9.5, '#cfe9ff', 'center', 'normal');
-    hudShadowText('E RACCOGLI · SPAZIO ESECUZIONE · DX LANCIA L’ARMA',
+    hudShadowText('SPAZIO SCATTA · E FA TUTTO (RACCOGLI/ESEGUI/ESCI) · Q LANCIA',
       VIEW_W / 2, VIEW_H - 26, 9.5, '#9fb3c8', 'center', 'normal');
     g.globalAlpha = 1;
   }
