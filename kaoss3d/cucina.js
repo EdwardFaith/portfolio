@@ -18,6 +18,7 @@ import { canvas, toTex, rng, torn, ceilingTextures } from '../stanza/tex.js';
 import { panel, scrawl, spray, FONT } from '../stanza/graffiti.js';
 import { portaLive } from './cantina.js';
 import { muroCurato } from './corridoio.js';
+import { piazzaScritte, larghezza } from './scritte.js';
 import { ragno } from './ragno.js';
 import { topo } from './topo.js';
 
@@ -346,20 +347,22 @@ export async function buildCucina(scene, ctx) {
   await tick();
 
   /* ---------------- le scritte: ovunque, a ogni altezza ---------------- */
-  const rw = rng(860);
-  const scrivi = (x, y, z, ry, i) => {
-    const fr = FRASI[i % FRASI.length], size = 0.18 + rw() * 0.55, w = Math.min(12, fr.length * size * 0.62 + 0.4), h = size * 1.9;
-    const rossa = rw() < 0.2, ink = rossa ? '#7a0806' : (rw() < 0.5 ? '#0a0806' : '#2a1a0a');
-    const p = panel(w, h, Math.max(60, Math.min(220, 900 / w)), (c, cw, ch, ppm) => scrawl(c, [fr], cw * 0.03, ch * 0.66, size * ppm, size * ppm, 870 + i, ink, '#8a0a06', ['conigli', 'coniglio', 'ED', 'buio', 'trasparente', 'ali']));
-    p.position.set(x, y, z); p.rotation.y = ry; p.rotation.z = (rw() - 0.5) * 0.12; g.add(p);
+  // ognuna cerca un posto libero: non si accavallano, non finiscono dietro i mobili o sotto i pensili
+  const scritta = (i, k, solo) => {
+    const fr = FRASI[i % FRASI.length], r = rng(870 + i * 13 + k), size = 0.34 + r() * 0.42;
+    const w = larghezza(fr, FONT, size) + 0.35, h = size * 1.75;
+    if (solo) return { w, h };
+    const rossa = r() < 0.2, ink = rossa ? '#7a0806' : (r() < 0.5 ? '#0a0806' : '#2a1a0a');
+    const p = panel(w, h, Math.max(60, Math.min(200, 900 / w)), (c, cw, ch, ppm) => scrawl(c, [fr], 0.17 * ppm, ch * 0.68, size * ppm, size * ppm, 870 + i, ink, '#8a0a06', ['conigli', 'coniglio', 'ED', 'buio', 'trasparente', 'ali']));
+    p.rotation.z = (r() - 0.5) * 0.06;
+    return { w, h, mesh: p };
   };
-  let k = 0;
-  // muro di fondo (sopra i mobili), muro davanti, muri ai lati: dal pavimento al soffitto
-  for (let i = 0; i < 6; i++) scrivi(-10 + rw() * 20, HB + 1 + rw() * (yP - HB - 2), Z0 + 0.02, 0, k++);
-  for (let i = 0; i < 4; i++) scrivi(-10 + rw() * 20, yP + hP + 0.8 + rw() * 2.5, Z0 + 0.02, 0, k++);
-  for (let i = 0; i < 9; i++) scrivi(-10 + rw() * 20, 0.9 + rw() * (H - 2), Z1 - 0.02, Math.PI, k++);
-  for (let i = 0; i < 8; i++) scrivi(X0 + 0.02, 0.9 + rw() * (H - 2), -9 + rw() * 18, Math.PI / 2, k++);
-  for (let i = 0; i < 8; i++) scrivi(X1 - 0.02, 0.9 + rw() * (H - 2), -4 + rw() * 14, -Math.PI / 2, k++);
+  piazzaScritte(g, [
+    { o: [X0, 0, Z0], u: [1, 0, 0], n: [0, 0, 1], L: X1 - X0, y0: HB + 0.6, y1: H - 0.8, yp: HB + 6, quante: 9 },
+    { o: [X1, 0, Z1], u: [-1, 0, 0], n: [0, 0, -1], L: X1 - X0, y0: 1.2, y1: H - 0.8, yp: 7, quante: 9, vietate: [{ u0: X1 - 8.3, u1: X1 + 8.3, y0: 10, y1: 13 }] },
+    { o: [X0, 0, Z1], u: [0, 0, -1], n: [1, 0, 0], L: Z1 - Z0, y0: 1.2, y1: H - 0.8, yp: 7, quante: 8 },
+    { o: [X1, 0, Z0], u: [0, 0, 1], n: [-1, 0, 0], L: Z1 - Z0, y0: 1.2, y1: H - 0.8, yp: 7, quante: 8 }
+  ], scritta, { seed: 860, distanza: 3, margine: 0.3 });
   // il titolo del libro, enorme, sul muro davanti
   const titolo = panel(16, 2.6, 60, (c, cw, ch, ppm) => scrawl(c, ['anche i conigli hanno le ali'], cw * 0.03, ch * 0.7, 1.6 * ppm, 1.6 * ppm, 899, '#050403', '#8a0a06', ['ali']));
   titolo.position.set(0, 11.5, Z1 - 0.03); titolo.rotation.y = Math.PI; g.add(titolo);

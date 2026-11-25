@@ -7,7 +7,7 @@
      · sito classico  → sito.html (il portfolio di prima)
      · sito 2D        → il gioco (museo.html)
      · sito desktop   → Zona Larga (desktop/index.html)
-     · sito 3D        → in lavorazione: errore rosso, poi Radio KaOsS 3D
+     · sito 3D        → il corridoio di Radio KaOsS 3D (radio-kaoss.html)
    Una volta acceso, nella stessa sessione si torna subito alla
    scelta: index.html?riavvio rifà tutta l'accensione.
    L'aria è quella di un computer che non è del tutto tuo: grana,
@@ -184,7 +184,7 @@
       '<button type="button" class="scelta" data-v="classico">' + ic.classico + '<div><b>Sito classico</b><span>l\'interfaccia del sito: le sezioni, i lavori, la radio</span></div></button>' +
       '<button type="button" class="scelta" data-v="gioco">' + ic.gioco + '<div><b>Sito 2D</b><span>il gioco: il museo da attraversare a piedi</span></div></button>' +
       '<button type="button" class="scelta" data-v="desktop">' + ic.desktop + '<div><b>Sito desktop</b><span>Zona Larga: accesso ai file dell\'artista</span></div></button>' +
-      '<button type="button" class="scelta" data-v="tre"><em>in costruzione</em>' + ic.tre + '<div><b>Sito 3D</b><span>il corridoio: ogni porta è una stanza</span></div></button>' +
+      '<button type="button" class="scelta" data-v="tre">' + ic.tre + '<div><b>Sito 3D</b><span>il corridoio: ogni porta è una stanza</span></div></button>' +
       '</div><div class="piccolo">liminal.exe · motore liminal</div>');
     f.addEventListener('click', function (e) {
       var b = e.target.closest('.scelta'); if (!b) return;
@@ -200,17 +200,4 @@
     var primo = f.querySelector('.scelta'); if (primo && matchMedia('(pointer:fine)').matches) primo.focus();
   }
 
-  /* il sito 3D non c'è ancora: errore rosso, e poi si scende in Radio KaOsS 3D */
-  function errore3D() {
-    if (L.querySelector('.errore')) return;
-    var e = document.createElement('div'); e.className = 'errore'; e.setAttribute('role', 'alertdialog');
-    e.innerHTML = '<div class="err"><div class="err-t"><span>liminal.exe — errore critico</span><span>✕</span></div>' +
-      '<div class="err-c"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="#c4211c"/><path d="M15 15l18 18M33 15L15 33" stroke="#fff" stroke-width="4.5"/></svg>' +
-      '<div><b>ERRORE 0x3D · SITO 3D IN LAVORAZIONE</b><p>Il motore liminal non riesce ancora a costruire la terza dimensione.<br>Si apre il corridoio: per ora solo la porta di <span style="color:#ff6a5a">Radio KaOsS</span> è costruita.</p></div></div>' +
-      '<div class="err-barra"><i></i></div></div>';
-    L.appendChild(e);
-    L.classList.add('scatto'); setTimeout(function () { L.classList.remove('scatto'); }, 170);
-    try { if (navigator.vibrate) navigator.vibrate([90, 60, 90]); } catch (er) { /* niente */ }
-    setTimeout(function () { location.href = BASE + 'radio-kaoss.html?stanza=corridoio'; }, 2900);
-  }
 })();

@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Radio KaOsS — la sala, in 3D</title>
 <meta name="description" content="La sala di Radio KaOsS del museo di Emanuele Baccigalupi, in uno spazio 3D da esplorare a 360 gradi.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -97,7 +100,7 @@
     <h1>radio kaoss</h1>
     <p id="istruzioni"></p>
     <button id="entra-btn" type="button">entra</button>
-    <p class="avviso">c'è del suono · sul telefono si apre a schermo intero</p>
+    <p class="avviso">c'è del suono · si apre a schermo intero</p>
   </div>
 
   <script>
@@ -112,6 +115,7 @@
       document.getElementById('loading-step').innerHTML = 'aperta come file la stanza non si apre (il browser blocca il 3D).<br>sul sito online funziona; sul computer apri <b>AVVIA-SITO.bat</b> nella cartella del sito.';
     });
   </script>
+  <script src="schermo-intero.js?v=2" data-sempre></script>
   <script src="museo/radio-fila.js"></script>
   <script type="module" src="kaoss3d/main.js"></script>
 </body>

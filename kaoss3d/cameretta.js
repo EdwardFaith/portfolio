@@ -241,28 +241,99 @@ export async function buildCameretta(scene, ctx) {
   };
   const INSEGNE = [['EDWARD INDUSTRIES', '#ff2a4a'], ['NON C\'È DIO NEL RITMO', '#2affd6'], ['TIX', '#ff2aa8'], ['DOPO TIX · 3013', '#ffb02a'], ['B-E-P-E', '#ff2a4a'], ['BALLA O FIORISCI', '#2affd6']];
   const neonFuori = [];
+  /* le facciate: griglie di finestre accese (calde, rosa, ciano), qualche striscia di neon */
+  const facciata = (seed, tinta) => {
+    const r = rng(seed), c = canvas(256, 512), f = c.getContext('2d');
+    f.fillStyle = '#06050c'; f.fillRect(0, 0, 256, 512);
+    // i piani: una fascia più chiara ogni tanto
+    for (let y = 0; y < 512; y += 40) { f.fillStyle = 'rgba(40,36,60,.35)'; f.fillRect(0, y, 256, 3); }
+    const cw = 16, ch = 20;
+    for (let y = 6; y < 512; y += ch) for (let x = 5; x < 256; x += cw) {
+      const v = r();
+      if (v < 0.42) {
+        f.fillStyle = v < 0.04 ? '#ff3a7a' : v < 0.08 ? '#3affe0' : v < 0.3 ? tinta : '#8a7a6a';
+        f.globalAlpha = 0.3 + r() * 0.7; f.fillRect(x, y, cw - 6, ch - 8);
+        if (r() < 0.25) { f.globalAlpha = 0.6; f.fillStyle = '#06050c'; f.fillRect(x + (cw - 6) * r(), y, 2, ch - 8); }   // una tenda, qualcuno alla finestra
+      }
+    }
+    f.globalAlpha = 1;
+    if (r() < 0.7) { const x = 10 + r() * 230; f.fillStyle = r() < 0.5 ? '#ff2a8a' : '#2affd6'; f.fillRect(x, 0, 3, 512); }
+    const t = toTex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+  };
+  const FACC = [facciata(911, '#ffc87a'), facciata(912, '#ffd8a0'), facciata(913, '#c8b0ff')].map(map => new THREE.MeshBasicMaterial({ map }));
+  const tetto = new THREE.MeshBasicMaterial({ color: 0x050409 });
+  const lampeggi = [], rossoM = new THREE.MeshBasicMaterial({ color: 0xff2020, toneMapped: false });
+  const antennaM = new THREE.MeshBasicMaterial({ color: 0x0a0910 });
   const rc = rng(910);
-  for (let i = 0; i < (hi ? 40 : 26); i++) {
+  for (let i = 0; i < (hi ? 44 : 28); i++) {
     const x = -60 + rc() * 120, z = -12 - rc() * 70, w = 4 + rc() * 9, d = 4 + rc() * 8;
     if (x > 0 && x < 20 && z < -45) continue;   // il varco: da lì si vede l'occhio
     const cima = -6 + (-z - 12) * 0.45 + rc() * 8;   // i palazzi vicini restano sotto la finestra, i lontani salgono
     const h = Math.max(6, cima + 16);
-    const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), nero); b.position.set(x, -16 + h / 2, z); fuori.add(b);
-    for (let j = 0; j < 9; j++) if (rc() < 0.45) { const f = new THREE.Mesh(new THREE.PlaneGeometry(0.5 + rc(), 0.4), finA[rc() * 4 | 0]); f.position.set(x - w / 2 + 0.6 + rc() * (w - 1.2), -14 + rc() * (h - 4), z + d / 2 + 0.03); fuori.add(f); }
+    const geo = new THREE.BoxGeometry(w, h, d);
+    { const uv = geo.attributes.uv; for (let k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) * w / 7, uv.getY(k) * h / 13); }
+    const fm = FACC[i % 3], b = new THREE.Mesh(geo, [fm, fm, tetto, tetto, fm, fm]); b.position.set(x, -16 + h / 2, z); fuori.add(b);
+    // sui tetti: antenne con la luce rossa che lampeggia, cisterne
+    const top = -16 + h;
+    if (rc() < 0.55) { const ah = 2 + rc() * 5; const an = new THREE.Mesh(new THREE.BoxGeometry(0.15, ah, 0.15), antennaM); an.position.set(x + (rc() - 0.5) * w * 0.6, top + ah / 2, z + (rc() - 0.5) * d * 0.6); fuori.add(an); const lu = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), rossoM.clone()); lu.position.set(an.position.x, top + ah + 0.1, an.position.z); fuori.add(lu); lampeggi.push({ m: lu, f: rc() * 6 }); }
+    if (rc() < 0.3) { const ci = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 1.6, 12), antennaM); ci.position.set(x + (rc() - 0.5) * w * 0.4, top + 1.3, z + (rc() - 0.5) * d * 0.4); fuori.add(ci); }
     if (rc() < 0.3 && z < -30) { const [txt, col] = INSEGNE[rc() * INSEGNE.length | 0]; const m = insegna(txt, col); const lw = Math.min(w * 1.1, 10); const s2 = new THREE.Mesh(new THREE.PlaneGeometry(lw, lw / 4), m); s2.position.set(x, -16 + h * (0.5 + rc() * 0.4), z + d / 2 + 0.06); fuori.add(s2); neonFuori.push({ m, f: rc() * 10 }); }
   }
+  // lo skyline lontano: sagome e puntini di luce, dietro tutto
+  { const c = canvas(2048, 256), f = c.getContext('2d'), r = rng(915);
+    f.clearRect(0, 0, 2048, 256);
+    for (let x = 0; x < 2048;) { const w = 18 + r() * 60, h = 40 + r() * 180; f.fillStyle = '#0a0614'; f.fillRect(x, 256 - h, w, h); for (let k = 0; k < w * h / 90; k++) { f.fillStyle = r() < 0.15 ? '#ff4a8a' : r() < 0.3 ? '#4affe0' : '#ffcf8a'; f.globalAlpha = 0.3 + r() * 0.6; f.fillRect(x + 2 + r() * (w - 4), 256 - h + 4 + r() * (h - 8), 2, 2); } f.globalAlpha = 1; if (r() < 0.2) { f.fillStyle = '#0a0614'; f.fillRect(x + w / 2 - 1, 256 - h - 30, 2, 30); } x += w + r() * 6; }
+    const sky = new THREE.Mesh(new THREE.CylinderGeometry(105, 105, 46, 48, 1, true, Math.PI * 0.5, Math.PI), new THREE.MeshBasicMaterial({ map: toTex(c), transparent: true, side: THREE.BackSide, fog: false, depthWrite: false }));
+    sky.position.set(0, 6, 0); fuori.add(sky); }
+  // le auto volanti: corrono tra i palazzi coi fari e la scia
+  const scia = (() => { const c = canvas(128, 8), f = c.getContext('2d'), gr = f.createLinearGradient(0, 0, 128, 0); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(255,255,255,1)'); f.fillStyle = gr; f.fillRect(0, 0, 128, 8); return toTex(c); })();
+  const autoM = new THREE.MeshBasicMaterial({ color: 0x0c0b14 }), faroM = new THREE.MeshBasicMaterial({ color: 0xfff4e0, toneMapped: false }), stopM = new THREE.MeshBasicMaterial({ color: 0xff2030, toneMapped: false });
+  const auto = [];
+  for (let i = 0; i < (hi ? 14 : 8); i++) {
+    const a = new THREE.Group(), dir = rc() < 0.5 ? 1 : -1, col = [0xff2a8a, 0x2affd6, 0xffb02a, 0x8a6aff][i % 4];
+    const corpo = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.45, 0.8), autoM); a.add(corpo);
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.3, 0.7), autoM); cab.position.set(-0.1, 0.3, 0); a.add(cab);
+    [-0.25, 0.25].forEach(z => { const fa = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.08, 0.16), faroM); fa.position.set(0.92, 0, z); a.add(fa); const st2 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.08, 0.2), stopM); st2.position.set(-0.92, 0, z); a.add(st2); });
+    const sotto = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.6), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); sotto.rotation.x = Math.PI / 2; sotto.position.y = -0.26; a.add(sotto);
+    const sc = new THREE.Mesh(new THREE.PlaneGeometry(4, 0.12), new THREE.MeshBasicMaterial({ map: scia, color: col, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); sc.position.set(-2.9, 0, 0); a.add(sc);
+    a.rotation.y = dir > 0 ? 0 : Math.PI;
+    a.position.set(-60 + rc() * 120, -6 + rc() * 22, -14 - rc() * 42); fuori.add(a);
+    auto.push({ a, dir, v: 7 + rc() * 10, f: rc() * 6 });
+  }
+  // la pioggia, fuori dai vetri
+  const NP = hi ? 900 : 450, pioggiaP = new Float32Array(NP * 6);
+  for (let i = 0; i < NP; i++) { const x = -14 + rc() * 28, y = -16 + rc() * 32, z = -1.2 - rc() * 26; pioggiaP.set([x, y, z, x - 0.04, y - 0.55, z], i * 6); }
+  const pioggiaG = new THREE.BufferGeometry(); pioggiaG.setAttribute('position', new THREE.BufferAttribute(pioggiaP, 3));
+  const pioggia = new THREE.LineSegments(pioggiaG, new THREE.LineBasicMaterial({ color: 0x9ab8e8, transparent: true, opacity: 0.35, depthWrite: false })); pioggia.frustumCulled = false; fuori.add(pioggia);
+  // l'ologramma: il coniglio con le ali, enorme, sopra i tetti
+  const olo = (() => {
+    const c = canvas(512, 640), f = c.getContext('2d');
+    f.clearRect(0, 0, 512, 640); f.strokeStyle = '#6affff'; f.fillStyle = 'rgba(80,255,255,.16)'; f.lineWidth = 5; f.shadowColor = '#3affff'; f.shadowBlur = 18;
+    const el = (x, y, rx, ry, a) => { f.beginPath(); f.ellipse(x, y, rx, ry, a || 0, 0, 7); f.fill(); f.stroke(); };
+    // le ali, aperte
+    [-1, 1].forEach(k => { f.beginPath(); f.moveTo(256 + k * 40, 300); f.bezierCurveTo(256 + k * 140, 140, 256 + k * 250, 150, 256 + k * 240, 260); f.bezierCurveTo(256 + k * 210, 270, 256 + k * 200, 300, 256 + k * 170, 300); f.bezierCurveTo(256 + k * 160, 330, 256 + k * 120, 340, 256 + k * 40, 340); f.closePath(); f.fill(); f.stroke();
+      for (let p = 0; p < 4; p++) { f.beginPath(); f.moveTo(256 + k * (60 + p * 40), 320); f.lineTo(256 + k * (110 + p * 35), 200 + p * 18); f.stroke(); } });
+    el(256, 360, 90, 72); el(256, 262, 52, 46); el(226, 170, 16, 62, -0.2); el(286, 170, 16, 62, 0.2); el(330, 380, 16, 14);
+    f.shadowBlur = 0; f.fillStyle = '#c8ffff'; f.beginPath(); f.arc(240, 255, 7, 0, 7); f.fill();
+    f.font = `bold 38px ${FONT}`; f.textAlign = 'center'; f.fillStyle = '#8affff'; f.shadowColor = '#3affff'; f.shadowBlur = 14; f.fillText('ANCHE I CONIGLI', 256, 500); f.fillText('HANNO LE ALI', 256, 548);
+    f.shadowBlur = 0; f.fillStyle = 'rgba(0,0,0,.35)'; for (let y = 0; y < 640; y += 4) f.fillRect(0, y, 512, 2);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(8, 10), new THREE.MeshBasicMaterial({ map: toTex(c), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide }));
+    m.position.set(-13, 7, -30); m.rotation.y = 0.35; fuori.add(m);
+    const raggio = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 3.4, 9, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0x3affff, transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false })); raggio.position.set(-13, -2, -30); fuori.add(raggio);
+    return m;
+  })();
   /* le insegne grandi, proprio davanti alle finestre: si leggono dal letto e dalla scrivania */
   const tralicciM = new THREE.MeshBasicMaterial({ color: 0x050308 });
   [['NON C\'È DIO NEL RITMO', '#2affd6', -7, 2.5, -20, 9, 0.25], ['EDWARD INDUSTRIES', '#ff2a4a', 8, 6, -26, 10, -0.3], ['DIO DEVE MORIRE', '#ff2aa8', 0.6, -1.6, -10.5, 4.6, 0.0], ['BALLA O FIORISCI', '#ffb02a', 15, -1, -22, 7, -0.45]].forEach(([txt, col, x, y, z, w, ry], i) => {
     const m = insegna(txt, col); const sg = new THREE.Mesh(new THREE.PlaneGeometry(w, w / 4), m); sg.position.set(x, y, z); sg.rotation.y = ry; fuori.add(sg);
     const asta = new THREE.Mesh(new THREE.BoxGeometry(0.25, 20, 0.25), tralicciM); asta.position.set(x, y - 10 - w / 8, z - 0.2); fuori.add(asta);
-    const alone = new THREE.PointLight(new THREE.Color(col), 40, 18, 1.4); alone.position.set(x, y, z + 2); fuori.add(alone);
+    if (hi) { const alone = new THREE.PointLight(new THREE.Color(col), 40, 18, 1.4); alone.position.set(x, y, z + 2); fuori.add(alone); }
     neonFuori.push({ m, f: i * 2.3 });
   });
   const vert = insegna('B-E-P-E TIX', '#ff2a4a', true); const sv = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 8.8), vert); sv.position.set(-5.2, 0.5, -13); sv.rotation.y = 0.25; fuori.add(sv); neonFuori.push({ m: vert, f: 7 });
   const strada = new THREE.Mesh(new THREE.PlaneGeometry(220, 120), new THREE.MeshStandardMaterial({ color: 0x0a0810, roughness: 0.15, metalness: 0.6 })); strada.rotation.x = -Math.PI / 2; strada.position.set(0, -16, -40); fuori.add(strada);
   // le luci della città riflesse sull'asfalto bagnato
-  [[-10, -14, -20, 0xff2a4a], [12, -14, -30, 0x2affd6], [0, -14, -12, 0xff2aa8]].forEach(([x, y, z, c]) => { const l = new THREE.PointLight(c, 30, 30, 1.2); l.position.set(x, y, z); fuori.add(l); });
+  if (hi) [[-10, -14, -20, 0xff2a4a], [12, -14, -30, 0x2affd6], [0, -14, -12, 0xff2aa8]].forEach(([x, y, z, c]) => { const l = new THREE.PointLight(c, 30, 30, 1.2); l.position.set(x, y, z); fuori.add(l); });
   // le margherite che vagano per le strade e sui tetti
   const passanti = [];
   for (let i = 0; i < (hi ? 14 : 8); i++) {
@@ -391,7 +462,7 @@ export async function buildCameretta(scene, ctx) {
   const ins = canvas(512, 160), inf = ins.getContext('2d'); inf.font = `bold 96px ${FONT}`; inf.textAlign = 'center'; inf.textBaseline = 'middle'; inf.shadowColor = '#ff1a2a'; inf.shadowBlur = 30; inf.fillStyle = '#ff1a2a'; inf.fillText('B-E-P-E', 256, 84); inf.fillText('B-E-P-E', 256, 84); inf.shadowBlur = 0; inf.fillStyle = 'rgba(255,230,230,.7)'; inf.fillText('B-E-P-E', 256, 84);
   const insM = new THREE.MeshBasicMaterial({ map: toTex(ins), transparent: true, toneMapped: false, depthWrite: false });
   const insMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.34), insM); insMesh.position.set(X0 + 0.02, 1.95, -0.9); insMesh.rotation.y = Math.PI / 2; g.add(insMesh);
-  const fioca = new THREE.HemisphereLight(0x2a2a5a, 0x0a0410, 0.35); g.add(fioca);
+  const fioca = new THREE.HemisphereLight(0x5a4a9a, 0x1a0a24, 1.3); g.add(fioca);
   await tick();
 
   /* ---------------- i manifesti: DIO DEVE MORIRE ---------------- */
@@ -418,6 +489,59 @@ export async function buildCameretta(scene, ctx) {
   const rt = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.05), rm); rt.position.y = 0.175; robot.add(rt);
   const roc = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.012, 0.01), new THREE.MeshBasicMaterial({ color: 0xff2a2a })); roc.position.set(0, 0.18, 0.026); robot.add(roc);
   [-1, 1].forEach(k => { const g2 = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.05, 0.025), rm); g2.position.set(k * 0.025, 0.02, 0); robot.add(g2); });
+
+
+  /* ---------------- i dettagli della cameretta ---------------- */
+  // il comodino sotto la finestra, con la lampada lava
+  const ncx = X0 + 1.3, ncz = Z0 + 0.3;
+  box(0.42, 0.5, 0.36, legno, ncx, 0.25, ncz);
+  box(0.36, 0.02, 0.01, new THREE.MeshStandardMaterial({ color: 0x8a8e99, metalness: 0.8, roughness: 0.3 }), ncx, 0.33, ncz + 0.185);
+  colliders.push({ x: ncx, z: ncz, w: 0.5, d: 0.45 });
+  const lava = new THREE.Group(); lava.position.set(ncx, 0.5, ncz); g.add(lava);
+  const cromoL = new THREE.MeshStandardMaterial({ color: 0xb8bcc8, metalness: 0.85, roughness: 0.25 });
+  const baseL = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.06, 0.1, 18), cromoL); baseL.position.y = 0.05; lava.add(baseL);
+  const capL = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.03, 0.05, 18), cromoL); capL.position.y = 0.335; lava.add(capL);
+  const vetroL = new THREE.Mesh(new THREE.LatheGeometry([[0.035, 0], [0.05, 0.06], [0.042, 0.16], [0.03, 0.21]].map(([a, b]) => new THREE.Vector2(a, b)), 24), new THREE.MeshStandardMaterial({ color: 0xff6a2a, emissive: 0xff3a10, emissiveIntensity: 0.6, transparent: true, opacity: 0.45, roughness: 0.1 }));
+  vetroL.position.y = 0.1; lava.add(vetroL);
+  const bolleL = [], bollaM = new THREE.MeshStandardMaterial({ color: 0xffd040, emissive: 0xff8a10, emissiveIntensity: 2.2 });
+  for (let i = 0; i < 5; i++) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.012 + i * 0.003, 12, 10), bollaM); lava.add(b); bolleL.push({ b, f: i * 1.3, v: 0.25 + i * 0.07 }); }
+  const luceLava = new THREE.PointLight(0xff7a30, 1.6, 2.6, 1.5); luceLava.position.set(ncx, 0.75, ncz + 0.1); g.add(luceLava);
+  // la giostrina dei pianeti, appesa sopra il letto: gira piano
+  const giostra = new THREE.Group(); giostra.position.set(lx, H, lz - 0.2); g.add(giostra);
+  const filoG = new THREE.LineBasicMaterial({ color: 0x8a8a9a });
+  [[0, 0.32], [Math.PI / 2, 0.32]].forEach(([a, l]) => { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, l * 2, 6), cromoL); b.rotation.z = Math.PI / 2; b.rotation.y = a; b.position.y = -0.3; giostra.add(b); });
+  const asse = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -0.3, 0)]), filoG); giostra.add(asse);
+  const PIANETI = [[0xe8b04a, 0.07, 0.25, true], [0x3a7ac4, 0.05, 0.45], [0xc43a2a, 0.04, 0.35], [0x9ae8e0, 0.055, 0.55], [0xe8e0d0, 0.035, 0.3]];
+  PIANETI.forEach(([col, r2, giu, anello], i) => {
+    const a = i / PIANETI.length * Math.PI * 2, px = Math.cos(a) * 0.3, pz = Math.sin(a) * 0.3;
+    giostra.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(px, -0.3, pz), new THREE.Vector3(px, -0.3 - giu, pz)]), filoG));
+    const p = new THREE.Mesh(new THREE.SphereGeometry(r2, 18, 14), new THREE.MeshStandardMaterial({ color: col, roughness: 0.6, emissive: col, emissiveIntensity: 0.12 })); p.position.set(px, -0.3 - giu - r2, pz); p.castShadow = true; giostra.add(p);
+    if (anello) { const an = new THREE.Mesh(new THREE.TorusGeometry(r2 * 1.7, r2 * 0.18, 4, 28), new THREE.MeshStandardMaterial({ color: 0xd8c090, roughness: 0.5 })); an.rotation.x = Math.PI / 2 + 0.4; an.scale.z = 0.2; an.position.copy(p.position); giostra.add(an); }
+  });
+  // la striscia LED sotto il letto: un bagliore ciano sul pavimento
+  const ledM = new THREE.MeshBasicMaterial({ color: 0x3affe0, toneMapped: false });
+  const led = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 1.9), ledM); led.position.set(lx + 0.47, 0.04, lz); g.add(led);
+  const aloneLed = (() => { const c = canvas(64, 256), f = c.getContext('2d'), gr = f.createLinearGradient(0, 0, 64, 0); gr.addColorStop(0, 'rgba(58,255,224,.55)'); gr.addColorStop(1, 'rgba(58,255,224,0)'); f.fillStyle = gr; f.fillRect(0, 0, 64, 256); return toTex(c); })();
+  const pozzaLed = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 1.9), new THREE.MeshBasicMaterial({ map: aloneLed, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); pozzaLed.rotation.x = -Math.PI / 2; pozzaLed.position.set(lx + 0.72, 0.006, lz); g.add(pozzaLed);
+  // il proiettore olografico sulla scrivania: un pianeta di luce che gira
+  const proj = new THREE.Group(); proj.position.set(sx0 + 0.12, 0.77, sz0 - 0.5); g.add(proj);
+  const disco = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.03, 24), new THREE.MeshStandardMaterial({ color: 0x1a1c24, metalness: 0.6, roughness: 0.35 })); disco.position.y = 0.015; proj.add(disco);
+  const lente = new THREE.Mesh(new THREE.CircleGeometry(0.04, 20), new THREE.MeshBasicMaterial({ color: 0x6affff, toneMapped: false })); lente.rotation.x = -Math.PI / 2; lente.position.y = 0.032; proj.add(lente);
+  const cono = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.035, 0.3, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0x3affff, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false })); cono.position.y = 0.18; proj.add(cono);
+  const holoP = new THREE.Mesh(new THREE.IcosahedronGeometry(0.09, 2), new THREE.MeshBasicMaterial({ color: 0x6affff, wireframe: true, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })); holoP.position.y = 0.42; proj.add(holoP);
+  const holoA = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.003, 4, 48), holoP.material); holoA.position.y = 0.42; holoA.rotation.x = 1.2; proj.add(holoA);
+  const luna = new THREE.Mesh(new THREE.SphereGeometry(0.018, 10, 8), holoP.material); proj.add(luna);
+  // i libri: sulla mensola tra i giocattoli, e una mensola più su piena
+  const COLLIBRI = [0x8a1a1a, 0x1a3a6a, 0xe8c04a, 0x2a6a3a, 0x5a2a6a, 0xd8d0c0, 0x1a1a1a, 0xc4561a];
+  const libri = (x0, x1, y, z, seed) => { const r = rng(seed); let x = x0; while (x < x1) { const w = 0.025 + r() * 0.03, h = 0.14 + r() * 0.08, inc = r() < 0.12 ? 0.25 : 0; const b = box(w, h, 0.15, new THREE.MeshStandardMaterial({ color: COLLIBRI[r() * COLLIBRI.length | 0], roughness: 0.8 }), x + w / 2, y + h / 2, z); b.rotation.z = inc; x += w + 0.004; } };
+  libri(-0.62, -0.36, 1.465, Z0 + 0.11, 940);
+  box(1.0, 0.03, 0.22, legno, -0.3, 1.92, Z0 + 0.11);
+  libri(-0.78, 0.15, 1.935, Z0 + 0.11, 941);
+  // i fumetti per terra
+  const fumetto = (seed, titolo, col) => { const c = canvas(128, 180), f = c.getContext('2d'); f.fillStyle = col; f.fillRect(0, 0, 128, 180); f.fillStyle = '#fff'; f.fillRect(6, 6, 116, 34); f.fillStyle = '#111'; f.font = `bold 22px ${FONT}`; f.fillText(titolo, 12, 32); f.fillStyle = 'rgba(0,0,0,.35)'; f.beginPath(); f.arc(64, 110, 40, 0, 7); f.fill(); f.fillStyle = '#ffe04a'; f.beginPath(); f.arc(70, 104, 22, 0, 7); f.fill(); return new THREE.MeshStandardMaterial({ map: toTex(c), roughness: 0.7 }); };
+  [['COSMO', '#c42a2a', -0.6, 0.9, 0.4], ['TIX', '#2a5ac4', -0.35, 1.05, -0.3], ['B-E-P-E', '#1a1a1a', 0.3, 0.55, 1.1]].forEach(([tt, col, x, z, ry], i) => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.006, 0.24), fumetto(942 + i, tt, col)); m.position.set(x, 0.01 + i * 0.002, z); m.rotation.y = ry; m.receiveShadow = true; g.add(m); });
+  // la luce della città che entra dalle finestre: ciano e rosa
+  const luceFin = new THREE.PointLight(0x5a8aff, 3, 5, 1.4); luceFin.position.set(0, 1.7, Z0 + 0.5); g.add(luceFin);
 
   /* ---------------- un uomo margherita, fermo nell'angolo ---------------- */
   const ospite = uomoMargherita(990, 1.0); ospite.g.position.set(X1 - 0.45, 0, Z1 - 0.5); ospite.g.rotation.y = -Math.PI * 0.8; g.add(ospite.g);
@@ -472,6 +596,16 @@ export async function buildCameretta(scene, ctx) {
         p.u.update(t, dt, p.v, null);
       });
       ospite.update(t, dt, 0, camL);
+      // fuori: le auto volanti, la pioggia, l'ologramma, le luci sulle antenne
+      auto.forEach(q => { q.a.position.x += q.dir * q.v * dt; if (q.a.position.x > 70) q.a.position.x = -70; else if (q.a.position.x < -70) q.a.position.x = 70; q.a.position.y += Math.sin(t * 0.7 + q.f) * dt * 0.3; });
+      { const pp = pioggiaG.attributes.position.array; for (let i = 0; i < NP; i++) { const k = i * 6; pp[k + 1] -= dt * 16; pp[k + 4] -= dt * 16; if (pp[k + 1] < -16) { pp[k + 1] += 32; pp[k + 4] += 32; } } pioggiaG.attributes.position.needsUpdate = true; }
+      olo.material.opacity = Math.random() < 0.03 ? 0.25 : 0.78 + Math.sin(t * 9) * 0.08; olo.position.y = 7 + Math.sin(t * 0.8) * 0.3;
+      lampeggi.forEach(l => { l.m.visible = Math.sin(t * 2.2 + l.f) > 0.55; });
+      // dentro: la lampada lava, la giostrina, il pianeta olografico
+      bolleL.forEach(q => { q.b.position.set(Math.sin(t * 0.3 + q.f) * 0.012, 0.13 + (Math.sin(t * q.v + q.f) * 0.5 + 0.5) * 0.16, Math.cos(t * 0.27 + q.f) * 0.012); q.b.scale.y = 1 + Math.sin(t * 1.3 + q.f) * 0.25; });
+      luceLava.intensity = 1.5 + Math.sin(t * 0.9) * 0.25;
+      giostra.rotation.y = t * 0.15;
+      holoP.rotation.y = t * 0.8; holoA.rotation.z = t * 0.5; luna.position.set(Math.cos(t * 1.4) * 0.15, 0.42 + Math.sin(t * 1.4) * 0.05, Math.sin(t * 1.4) * 0.15); cono.material.opacity = 0.08 + Math.random() * 0.03;
       pel.anima(t, dt, camL);
     }
   };

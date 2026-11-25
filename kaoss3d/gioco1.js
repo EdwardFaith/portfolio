@@ -537,6 +537,13 @@ export async function buildGioco1(scene, ctx) {
   const tasto = (txt, size) => { const b = document.createElement('div'); b.textContent = txt; b.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:600 14px Consolas,monospace;color:#f0ead8;background:rgba(255,255,255,.08);border:1.5px solid rgba(235,228,209,.5);touch-action:none;user-select:none;-webkit-user-select:none`; tasti.appendChild(b); return b; };
   const tSpada = tasto('spada', 72), tAcqua = tasto('acqua', 88);
   document.body.appendChild(tasti);
+  // i tasti fondamentali, scritti piccoli: in basso sul computer, in alto sul telefono (sotto ci sono levetta e tasti)
+  const guida = document.createElement('div');
+  guida.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);z-index:13;pointer-events:none;display:none;font:12px Consolas,monospace;color:rgba(240,234,216,.78);background:rgba(0,0,0,.45);padding:5px 12px;border-radius:3px;text-align:center;letter-spacing:.02em;width:max-content;max-width:94vw;line-height:1.5;' + (telefono ? 'top:max(52px,calc(env(safe-area-inset-top) + 44px))' : 'bottom:max(14px,env(safe-area-inset-bottom))');
+  guida.innerHTML = telefono
+    ? 'levetta: cammina · trascina: guarda · <b>acqua</b> spaventa i ragni · <b>spada</b> quando il cerchio è verde<br>la tana in fondo: avanti · torna indietro: dal fanciullo'
+    : 'W A S D cammina · mouse guarda · <b>tieni premuto il clic</b>: acqua · <b>clic destro</b> o <b>spazio</b>: spada, quando il cerchio è verde<br>la tana in fondo: avanti · torna indietro (la tana alle tue spalle): dal fanciullo';
+  document.body.appendChild(guida);
   const attivo = () => inCasa && g.visible;
   tAcqua.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); arm.spruzzo = true; tAcqua.style.background = 'rgba(110,180,255,.35)'; });
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(tp => tAcqua.addEventListener(tp, e => { e.stopPropagation(); arm.spruzzo = false; tAcqua.style.background = 'rgba(255,255,255,.08)'; }));
@@ -574,7 +581,7 @@ export async function buildGioco1(scene, ctx) {
   function libera() { if (!arm.trap) return; arm.trap = null; addosso.style.display = 'none'; if (hud.dataset.prima) hud.textContent = hud.dataset.prima; }
   function pulisciTele() { tele.forEach(w => { g.remove(w.m); w.m.material.dispose(); w.m.geometry.dispose(); }); tele.length = 0; }
   function armi(si) {
-    mano.visible = si; gocce.visible = si; tasti.style.display = si && telefono ? 'flex' : 'none';
+    mano.visible = si; gocce.visible = si; tasti.style.display = si && telefono ? 'flex' : 'none'; guida.style.display = si ? 'block' : 'none';
     if (!si) { arm.spruzzo = false; libera(); pulisciTele(); anello.style.display = bersaglio.style.display = 'none'; gPos.fill(-999); gGeo.attributes.position.needsUpdate = true; }
     arm.acqua = 1; arm.vuota = false;
   }
@@ -587,7 +594,7 @@ export async function buildGioco1(scene, ctx) {
   const MW = [{ n: [0, 0, 1], t: [1, 0, 0], b: [0, 0, -hd], L: hw }, { n: [0, 0, -1], t: [-1, 0, 0], b: [0, 0, hd], L: hw }, { n: [1, 0, 0], t: [0, 0, -1], b: [-hw, 0, 0], L: hd }, { n: [-1, 0, 0], t: [0, 0, 1], b: [hw, 0, 0], L: hd }];
   MW.forEach(w => { w.ry = Math.atan2(w.n[0], w.n[2]); });
 
-  let stanza = null, livello = 0, inCasa = false, ragniC = [], uscitaIt = null, colliderCasa = [];
+  let stanza = null, livello = 0, inCasa = false, ragniC = [], uscitaIt = null, uscitaB = null, colliderCasa = [], passaggio = false;
   const TIPI = ['bagno', 'cucina', 'salotto', 'camera'];
   const NOMI = { bagno: 'il bagno', cucina: 'la cucina', salotto: 'il salotto', camera: 'la camera da letto' };
   const liberoCasa = (x, z, m = 0.35) => x > CX - hw + 0.6 && x < CX + hw - 0.6 && z > -hd + 0.6 && z < hd - 0.6 && !colliderCasa.some(c => Math.abs(x - c.x) < c.w / 2 + m && Math.abs(z - c.z) < c.d / 2 + m);
@@ -618,6 +625,13 @@ export async function buildGioco1(scene, ctx) {
     const bagliore = new THREE.PointLight(0xff3a2a, 3, 4, 1.6); bagliore.position.set(tx, 0.6, -hd + 1); stanza.add(bagliore);
     uscitaIt = { mesh: tana, label: 'la tana · la stanza dopo', view: { pos: [CX + tx, Y + 1.6, -hd + 1.6], look: [CX + tx, Y + 0.6, -hd] }, action: () => avanti() };
     ctx.interact.push(uscitaIt);
+    stanza.userData.tx = tx;
+    // la tana alle tue spalle, nel battiscopa da cui sei entrato: torna dal fanciullo
+    if (uscitaB) { const i = ctx.interact.indexOf(uscitaB); if (i >= 0) ctx.interact.splice(i, 1); }
+    const cornice = new THREE.Mesh(new THREE.ShapeGeometry(tanaSh, 16), new THREE.MeshBasicMaterial({ color: 0x2a3a5a })); cornice.scale.set(1.12, 1.08, 1); cornice.position.set(0, 0.004, hd - 0.13); cornice.rotation.y = Math.PI; stanza.add(cornice);
+    const tanaB = new THREE.Mesh(new THREE.ShapeGeometry(tanaSh, 16), tanaM); tanaB.position.set(0, 0.005, hd - 0.14); tanaB.rotation.y = Math.PI; stanza.add(tanaB);
+    uscitaB = { mesh: tanaB, label: 'la tana · torna dal fanciullo', view: null, action: () => ritorno() };
+    ctx.interact.push(uscitaB);
     // i ragni: più stanze fai, più sono e più corrono
     ragniC.forEach(q => casa.remove(q.s.g)); ragniC = []; pulisciTele(); libera();
     const n = Math.min(hi ? 10 : 6, 2 + Math.floor(livello * 0.8));
@@ -635,10 +649,23 @@ export async function buildGioco1(scene, ctx) {
   function battito(fn) { if (velo) { velo.style.transition = 'opacity .35s'; velo.style.opacity = '1'; } setTimeout(() => { fn(); if (velo) velo.style.opacity = '0'; setTimeout(() => { if (velo) velo.style.transition = ''; }, 400); }, 380); }
   function piazza() { ctx.viaggio.place([CX, Y + 1.6, hd - 2.5], 0, -0.05); }
   function inizia() {
-    battito(() => { livello = 0; inCasa = true; casa.visible = true; landa.visible = false; const s = nuovaStanza(); piazza(); hud.style.display = 'block'; armi(true); say(`${NOMI[s.tipo]}. trova la tana in fondo. ` + (telefono ? 'acqua: tienila premuta, spaventa i ragni. spada: taglia le tele quando il cerchio è verde' : 'acqua: tieni premuto il mouse. spada: tasto destro o spazio, quando il cerchio è verde')); });
+    battito(() => { livello = 0; inCasa = true; casa.visible = true; landa.visible = false; const s = nuovaStanza(); piazza(); hud.style.display = 'block'; armi(true); say(`${NOMI[s.tipo]}. trova la tana in fondo. non farti prendere dai ragni`); });
   }
   function avanti() {
-    battito(() => { const s = nuovaStanza(); piazza(); say(`stanza ${livello} · ${NOMI[s.tipo]}`); });
+    if (passaggio) return; passaggio = true;
+    battito(() => { const s = nuovaStanza(); piazza(); say(`stanza ${livello} · ${NOMI[s.tipo]}`); passaggio = false; });
+  }
+  // tornare indietro: dalla tana alle spalle si torna dal fanciullo (il record resta)
+  function ritorno() {
+    if (!inCasa || passaggio) return; passaggio = true;
+    const arrivo = livello, rec = +(localStorage.getItem(RECORD) || 0);
+    if (arrivo - 1 > rec) try { localStorage.setItem(RECORD, String(arrivo - 1)); } catch (e) { }
+    battito(() => {
+      inCasa = false; casa.visible = false; landa.visible = true; armi(false); hud.style.display = 'none';
+      [uscitaIt, uscitaB].forEach(it => { const i = ctx.interact.indexOf(it); if (i >= 0) ctx.interact.splice(i, 1); }); uscitaIt = uscitaB = null;
+      ctx.viaggio.place(nB.view.pos, 0, -0.1); dopoNo = 5; passaggio = false;
+      say('sei tornato dal fanciullo');
+    });
   }
   // il nero col glitch: quando ti prendono non c'è scritto niente
   const nero = document.createElement('div'); nero.style.cssText = 'position:fixed;inset:0;z-index:40;background:#000;display:none;pointer-events:none;transition:opacity .7s';
@@ -667,7 +694,7 @@ export async function buildGioco1(scene, ctx) {
     hud.style.display = 'none'; armi(false);
     glitch(1700, () => {
       casa.visible = false; landa.visible = true;
-      if (uscitaIt) { const i = ctx.interact.indexOf(uscitaIt); if (i >= 0) ctx.interact.splice(i, 1); uscitaIt = null; }
+      [uscitaIt, uscitaB].forEach(it => { const i = ctx.interact.indexOf(it); if (i >= 0) ctx.interact.splice(i, 1); }); uscitaIt = uscitaB = null;
       ctx.viaggio.place(nB.view.pos, 0, -0.1);
     }, () => setTimeout(() => parla(true), 500));
   }
@@ -729,6 +756,11 @@ export async function buildGioco1(scene, ctx) {
         if (!dialogo && dopoNo <= 0 && Math.hypot(camL.x - BX, camL.z - BZ) < 3.6) parla();
         if (dialogo && Math.hypot(camL.x - BX, camL.z - BZ) > 7) chiudiDialogo();
         return;
+      }
+      // ---- la casa: le tane si attraversano camminandoci dentro ----
+      if (!passaggio && !arm.trap) {
+        if (Math.hypot(camL.x - CX, camL.z - (hd - 0.2)) < 1.1) { ritorno(); return; }
+        if (stanza && Math.hypot(camL.x - (CX + stanza.userData.tx), camL.z - (-hd + 0.2)) < 1.1) { avanti(); return; }
       }
       // ---- la casa: la lampada, i ragni ----
       if (dialogo || dlg.style.display !== 'none') chiudiDialogo();

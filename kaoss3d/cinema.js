@@ -16,6 +16,7 @@
 import * as THREE from 'three';
 import { canvas, toTex, rng, torn, wallTextures, ceilingTextures } from '../stanza/tex.js';
 import { panel, scrawl, FONT } from '../stanza/graffiti.js';
+import { piazzaScritte, larghezza } from './scritte.js';
 import { portaLive } from './cantina.js';
 import { ragno } from './ragno.js';
 import { coniglio } from './coniglio.js';
@@ -430,14 +431,33 @@ export async function buildCinema(scene, ctx) {
   });
   const camC = new THREE.Vector3();
 
-  /* ---------------- le scritte, a pennarello, sui muri ---------------- */
-  const scritta = (lines, x, y, z, ry, w, h, size, ink, seed) => {
-    const p = panel(w, h, 220, (c, cw, ch, ppm) => scrawl(c, lines, cw * 0.04, ch * 0.3, size * ppm, size * ppm * 1.35, seed, ink, '#c9221d', ['occhi', 'tuoi', 'luce']));
-    p.position.set(x, y, z); p.rotation.y = ry; g.add(p);
+  /* ---------------- le scritte, a gesso, sui muri: il libro ---------------- */
+  // ognuna trova un posto libero: lontana dai buchi, dalla porta, dalle altre, e senza niente davanti
+  const FRASI_C = [
+    'gli occhi non sono tuoi', 'la luce entra dai buchi, come un ricordo', 'qui si proiettava il sogno di qualcun altro',
+    'anche i conigli hanno le ali', 'Non diventare trasparente.', 'Il senso che permette di vedere i conigli volare.',
+    'Mentre danzo, vedo i miei piedi trasparenti.', 'Aspetti sotto una pioggia infinita l\'ultima avvertenza.',
+    'Forse non c\'è bisogno di guardarli in faccia.', 'Questi sono frammenti della mia storia.', 'Senza ricordo, non ti perdono.',
+    'Il tuo percorso è sempre stato inquinato dal mio buio.'
+  ];
+  const ROSSE = ['occhi', 'luce', 'conigli', 'ali', 'trasparente', 'trasparenti', 'buio', 'ricordo', 'sogno'];
+  const scrittaC = (i, k, solo) => {
+    const fr = FRASI_C[i % FRASI_C.length], r = rng(590 + i * 11 + k), size = (i % FRASI_C.length === 3 ? 0.5 : 0.3 + r() * 0.12) * (k > 15 ? 0.8 : 1);
+    const w = larghezza(fr, FONT, size) + 0.3, h = size * 1.8;
+    if (solo) return { w, h };
+    const p = panel(w, h, 200, (c, cw, ch, ppm) => scrawl(c, [fr], 0.15 * ppm, ch * 0.68, size * ppm, size * ppm, 590 + i, r() < 0.8 ? '#e2d8c4' : '#cfc4b0', '#d8261f', ROSSE));
+    p.rotation.z = (r() - 0.5) * 0.05;
+    return { w, h, mesh: p };
   };
-  scritta(['gli occhi non sono tuoi'], X1 - 0.02, 3.6, Z1 - 3.4, -Math.PI / 2, 3, 0.6, 0.22, '#d9cfbd', 590);
-  scritta(['la luce entra dai buchi', 'come un ricordo'], X0 + 0.02, 5.2, Z1 - 8.3, Math.PI / 2, 3.4, 1, 0.2, '#d9cfbd', 591);
-  scritta(['qui si proiettava', 'il sogno di qualcun altro'], -3.2, 2.2, Z1 - 0.02, Math.PI, 3.6, 1, 0.18, '#cfc4b0', 592);
+  const vietaBuco = (u, y, ru, ry) => ({ u0: u - ru, u1: u + ru, y0: y - ry, y1: y + ry });
+  piazzaScritte(g, [
+    // muro di sinistra (dalla porta verso lo schermo): due buchi
+    { o: [X0, 0, Z1], u: [0, 0, -1], n: [1, 0, 0], L: Z1 - Z0, y0: 1.2, y1: H - 0.9, yp: 3.6, quante: 5, vietate: [vietaBuco(4.2, 2.6, 1.9, 2.1), vietaBuco(12.6, 3.4, 2.3, 1.9)] },
+    // muro di destra: un buco
+    { o: [X1, 0, Z0], u: [0, 0, 1], n: [-1, 0, 0], L: Z1 - Z0, y0: 1.2, y1: H - 0.9, yp: 3.6, quante: 5, vietate: [vietaBuco(7.5, 2.9, 2.6, 2.3)] },
+    // il muro in fondo, quello della porta
+    { o: [X1, 0, Z1], u: [-1, 0, 0], n: [0, 0, -1], L: X1 - X0, y0: 1.2, y1: H - 0.9, yp: 3.6, quante: 4, vietate: [{ u0: 10.6, u1: 13.4, y0: 0, y1: 3 }] }
+  ], scrittaC, { seed: 590, distanza: 0.9, margine: 0.22, tentativi: 50 });
 
   /* ---------------- i ragni, sui muri: girano intorno ai buchi ---------------- */
   const BUCHI = [{ lato: -1, z: Z1 - 4.2, y: 2.6, rz: 1.8, ry: 2.0 }, { lato: -1, z: Z1 - 12.6, y: 3.4, rz: 2.2, ry: 1.8 }, { lato: 1, z: Z0 + 7.5, y: 2.9, rz: 2.5, ry: 2.2 }];

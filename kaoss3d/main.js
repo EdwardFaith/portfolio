@@ -259,7 +259,7 @@ async function build() {
   /* ---------- entrare ---------- */
   $('loading').hidden = true; $('entra').hidden = false;
   $('istruzioni').innerHTML = mobile
-    ? 'muovi il telefono per guardarti intorno<br>cammina con la levetta · tocca le cose da vicino'
+    ? 'muovi il telefono o trascina il dito per guardarti intorno<br>cammina con la levetta · tocca le cose da vicino'
     : 'clicca per prendere il mouse: muovi il mouse per guardarti intorno · W A S D o le frecce per camminare<br>clic su quello che hai al centro per usarlo · Esc libera il mouse';
   const benvenuto = { live: 'La stanza del live. Sulla parete c\'è lo schermo di Radio KaOsS live.', corridoio: 'Il corridoio. Ogni porta è una stanza del sito.', sala: 'La sala di Radio KaOsS. Al bancone c\'è chi trasmette: vai a sentirlo.' };
   /* le cose che il browser concede solo dopo un gesto (schermo intero, giroscopio
@@ -267,7 +267,7 @@ async function build() {
   let gestoFatto = false;
   async function dopoIlGesto() {
     if (gestoFatto) return; gestoFatto = true;
-    if (mobile) { try { const de = document.documentElement; await (de.requestFullscreen ? de.requestFullscreen({ navigationUI: "hide" }) : de.webkitRequestFullscreen && de.webkitRequestFullscreen()); } catch (e) { } try { screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {}); } catch (e) { } await viaggio.enableGyro(); }
+    { try { const de = document.documentElement; if (!document.fullscreenElement) await (de.requestFullscreen ? de.requestFullscreen({ navigationUI: "hide" }) : de.webkitRequestFullscreen && de.webkitRequestFullscreen()); } catch (e) { } try { screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {}); } catch (e) { } await viaggio.enableGyro(); }
     try { await listener.context.resume(); } catch (e) { }
   }
   $('entra-btn').addEventListener('click', async () => {

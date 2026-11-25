@@ -10,7 +10,7 @@
 import * as THREE from 'three';
 
 export function createViaggio(camera, dom, { onTap, onHover, veil, canStand = () => true }) {
-  const st = { yaw: 0, pitch: 0, gyro: false, off: 0, drag: null, enabled: false, trip: null, keys: {}, joy: { x: 0, y: 0 } };   // joy: la levetta del telefono
+  const st = { yaw: 0, pitch: 0, gyro: false, off: 0, drag: null, enabled: false, trip: null, keys: {}, joy: { x: 0, y: 0 }, offP: 0 };   // joy: la levetta del telefono
   camera.rotation.order = 'YXZ';
 
   /* il sensore del telefono */
@@ -22,7 +22,7 @@ export function createViaggio(camera, dom, { onTap, onHover, veil, canStand = ()
     const e = new THREE.Euler().setFromQuaternion(q, 'YXZ'); return { yaw: e.y, pitch: e.x };
   }
   function onOrient(e) { if (e.alpha == null) return; o = { a: e.alpha, b: e.beta, g: e.gamma }; if (!st.gyro) { st.gyro = true; align(); } }
-  function align() { if (o) st.off = st.yaw - angles().yaw; }   // il telefono «guarda» dove guarda adesso la telecamera
+  function align() { if (o) { st.off = st.yaw - angles().yaw; st.offP = 0; } }   // il telefono «guarda» dove guarda adesso la telecamera
   async function enableGyro() {
     try {
       if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -55,9 +55,11 @@ export function createViaggio(camera, dom, { onTap, onHover, veil, canStand = ()
     const d = st.drag;
     if (d && d.id === e.pointerId) {
       if (Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 7) d.moved = true;
-      if (d.moved && !st.trip && (d.type === 'mouse' || !st.gyro)) {
+      if (d.moved && !st.trip) {
         const k = d.type === 'mouse' ? 0.0034 : 0.0055;
-        st.yaw += (e.clientX - d.x) * k; st.pitch = THREE.MathUtils.clamp(st.pitch + (e.clientY - d.y) * k, -1.35, 1.35);
+        // col giroscopio acceso il dito sposta lo "zero" del telefono: si gira lo stesso
+        if (st.gyro && d.type !== 'mouse') { st.off += (e.clientX - d.x) * k; st.offP = THREE.MathUtils.clamp(st.offP + (e.clientY - d.y) * k, -1.2, 1.2); }
+        else { st.yaw += (e.clientX - d.x) * k; st.pitch = THREE.MathUtils.clamp(st.pitch + (e.clientY - d.y) * k, -1.35, 1.35); }
       }
       d.x = e.clientX; d.y = e.clientY;
     } else if (e.pointerType === 'mouse') { if (locked()) { const r = dom.getBoundingClientRect(); onHover(r.left + r.width / 2, r.top + r.height / 2); } else onHover(e.clientX, e.clientY); }
@@ -86,7 +88,7 @@ export function createViaggio(camera, dom, { onTap, onHover, veil, canStand = ()
       st.yaw = THREE.MathUtils.lerp(tr.yaw0, tr.yaw1, e); st.pitch = THREE.MathUtils.lerp(tr.p0, tr.p1, e);
       if (k >= 1) { st.trip = null; veil(0); align(); if (tr.done) tr.done(); }
     } else if (st.enabled) {
-      if (st.gyro && o) { const a = angles(); st.yaw = a.yaw + st.off; st.pitch = THREE.MathUtils.clamp(a.pitch, -1.45, 1.45); }
+      if (st.gyro && o) { const a = angles(); st.yaw = a.yaw + st.off; st.pitch = THREE.MathUtils.clamp(a.pitch + st.offP, -1.45, 1.45); }
       // dal computer si cammina coi tasti: W A S D o le frecce; Q ed E per girarsi
       const K = st.keys;
       // la levetta del telefono vale come i tasti: avanti/indietro e di lato, più spinta = più veloce
