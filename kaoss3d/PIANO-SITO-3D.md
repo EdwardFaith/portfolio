@@ -104,3 +104,19 @@ Ministero. Ultimi, quando le stanze principali ci sono.
 ## Pezzi condivisi
 - `ragno.js` (ragni articolati), `coniglio.js` (conigli veri: pelo, muso, balzi, vagano evitando le cose),
   `margherita.js` (uomini con la testa a margherita), `lumache.js` (con le zone da evitare).
+
+## Le texture cotte (caricamento veloce)
+Le texture si disegnano col codice, ma disegnarle a ogni visita costa secondi (sul telefono molto di più).
+Allora si **cuociono** una volta in immagini WebP: `kaoss3d/tex/desktop/` e `kaoss3d/tex/telefono/`, con un
+`manifest.json` per cartella. A ogni visita il sito scarica le immagini invece di disegnare (`stanza/tex.js`).
+- Le texture che si animano (schermi, codice, montaggio) restano disegnate dal vivo: la cottura le riconosce da sola.
+- Se una stanza cambia e le misure non tornano più, quella stanza torna a disegnare dal vivo: niente immagini sbagliate.
+- `?senzacache` nell'indirizzo disegna tutto dal vivo (per confrontare).
+
+**Dopo aver cambiato una stanza, ricuocila** (se cambia la base — sala, stanza del live, corridoio — ricuoci tutto, base per prima):
+```
+node tools/cuoci-server.js
+http://localhost:8091/radio-kaoss.html?cuoci=desktop&parte=base     (poi parte=visual, chi, cosmo)
+http://localhost:8091/radio-kaoss.html?cuoci=telefono&parte=base    (poi parte=visual, chi, cosmo)
+```
+Aspetta «cottura finita». Le cartelle `kaoss3d/tex/` vanno pubblicate col sito.

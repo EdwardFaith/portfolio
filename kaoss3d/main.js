@@ -9,7 +9,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { Q } from '../stanza/tex.js';
+import { Q, cacheTexture, ambito, registraCottura, registro } from '../stanza/tex.js';
 import { buildRoom, animateCurtain } from '../stanza/room.js';
 import { buildLights } from '../stanza/luce.js';
 import { fontsReady } from '../stanza/graffiti.js';
@@ -23,7 +23,9 @@ import { createViaggio } from './viaggio.js';
 import { createSentinella } from './sentinella.js';
 
 const $ = id => document.getElementById(id);
-const mobile = matchMedia('(pointer: coarse)').matches || innerWidth < 820;
+// ?cuoci=desktop|telefono: si cuociono le texture (vedi tools/cuoci-server.js)
+const COTTURA = new URLSearchParams(location.search).get('cuoci');
+const mobile = COTTURA ? COTTURA === 'telefono' : (matchMedia('(pointer: coarse)').matches || innerWidth < 820);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const quality = { high: !mobile };
 Q.ppm = quality.high ? 170 : 72; Q.aniso = quality.high ? 8 : 2;
@@ -47,6 +49,18 @@ function say(text) { sub.textContent = text; sub.classList.add('on'); clearTimeo
 const view = (pos, look) => ({ pos, look });
 
 async function build() {
+  /* le texture già cotte per questo dispositivo: se ci sono, niente pennellate */
+  const modoTex = quality.high ? 'desktop' : 'telefono';
+  // in cottura: ?parte=base cuoce sala, stanza del live e corridoio; ?parte=<porta> una stanza sola
+  // (la base è già cotta e arriva dalla cache: così la memoria basta)
+  const PARTE = new URLSearchParams(location.search).get('parte') || 'base';
+  const ZONE_PARTE = { base: ['sala', 'live', 'corridoio'], visual: ['cinema'], chi: ['cucina'], cosmo: ['cameretta'] };
+  if (COTTURA) registraCottura(ZONE_PARTE[PARTE] || []);
+  if ((!COTTURA || PARTE !== 'base') && !/[?&]senzacache\b/.test(location.search)) {
+    status('le immagini…');
+    try { const r = await fetch(`kaoss3d/tex/${modoTex}/manifest.json`, { cache: 'no-cache' }); if (r.ok) cacheTexture(await r.json(), `kaoss3d/tex/${modoTex}/`); } catch (e) { }
+  }
+  ambito('sala');
   status('i muri…'); await tick();
   const room = buildRoom(scene);
   // la botola non c'è: alla stanza del live si va dalla porta tra gli spot e le canzoni
@@ -82,6 +96,7 @@ async function build() {
     luci.slice(max).forEach(l => { l.visible = false; l.castShadow = false; });
   }
   ctx.limitaLuci = limitaLuci;
+  ambito('live');
   const cantina = buildCantina(scene, ctx);
   limitaLuci(cantina.group, 6);
   interact.push(...cantina.interact);
@@ -94,6 +109,7 @@ async function build() {
   ctx.salire = () => viaggio.go(davantiPorta, () => say('di nuovo nella sala'));
   /* il corridoio: l'hub del sito 3D. La porta della sala torna lì. */
   status('il corridoio…'); await tick();
+  ambito('corridoio');
   const corridoio = buildCorridoio(scene, ctx);
   limitaLuci(corridoio.group, 7);
   interact.push(...corridoio.interact);
@@ -120,6 +136,7 @@ async function build() {
     if (STANZE[m.zona]) return STANZE[m.zona].obj;
     if (!caricando[id]) caricando[id] = (async () => {
       const mod = await import(m.file);
+      ambito(m.zona);
       const obj = await mod[m.fn](scene, ctx);
       obj.group.visible = false;
       limitaLuci(obj.group, 7);
@@ -282,6 +299,47 @@ async function build() {
     if (!lowered && fpsT > 4) { if (frames / fpsT < 32) { renderer.setPixelRatio(1); composer.setSize(innerWidth, innerHeight); lowered = true; } frames = 0; fpsT = 0; }
   });
   window.__kaoss = { scene, camera, viaggio, interact, sala };
+
+  if (COTTURA) { cuoci(COTTURA).catch(e => { console.error(e); status('cottura fallita: ' + e.message); }); return; }
+
+  /* LA COTTURA: costruisce tutte le stanze, le visita una per una (così le texture
+     che si animano si fanno riconoscere), poi manda al server le texture ferme come
+     WebP, e il manifest. Le animate restano vive, le intermedie si saltano. */
+  async function cuoci(modo) {
+    const reg = registro(), v0 = new Map();
+    const fotografa = () => { for (const a in reg) reg[a].forEach(v => { if (v && v.tex && !v0.has(v)) v0.set(v, v.tex.version); }); };
+    const aspetta = ms => new Promise(r => setTimeout(r, ms));
+    const PARTE = new URLSearchParams(location.search).get('parte') || 'base';
+    $('loading').hidden = false; fotografa();
+    if (MODULI[PARTE]) { status('cottura: costruisco ' + MODULI[PARTE].nome + '…'); await caricaStanza(PARTE); fotografa(); }
+    viaggio.enable(true);
+    const giri = PARTE === 'base' ? [['sala', sala.nodes[0].view], ['live', cantina.entry], ['corridoio', corridoio.entry]] : [[MODULI[PARTE].zona, STANZE[MODULI[PARTE].zona].obj.entry]];
+    for (const [nome, v] of giri) { status('cottura: guardo ' + nome + '…'); viaggio.place(v.pos, 0, 0); await aspetta(6000); }
+    const man = { modo, creato: new Date().toISOString(), stanze: {} };
+    let n = 0, byte = 0;
+    for (const a in reg) {
+      man.stanze[a] = [];
+      for (let i = 0; i < reg[a].length; i++) {
+        const v = reg[a][i]; if (!v) { man.stanze[a][i] = { w: 0, h: 0, t: 'r' }; continue; }
+        let t = !v.tex ? (v.c.width === 0 ? 'i' : 'r') : (v.tex.version === v0.get(v) ? 's' : 'd');
+        const voce = { w: v.w, h: v.h, t };
+        if (t === 's') {
+          const blob = await new Promise(r => v.c.toBlob(r, 'image/webp', v.colore === false ? 0.8 : 0.86));
+          if (!blob) { voce.t = 'r'; } else {
+            voce.f = `${a}-${i}.webp`;
+            const r = await fetch(`/__cuoci/${modo}/${voce.f}`, { method: 'PUT', body: blob });
+            if (!r.ok) throw new Error('il server non salva ' + voce.f);
+            v.c.width = 0; v.c.height = 0;   // salvata: la memoria torna libera
+            n++; byte += blob.size; if (n % 20 === 0) status(`cottura: ${n} immagini, ${(byte / 1048576).toFixed(1)} MB…`);
+          }
+        }
+        man.stanze[a][i] = voce;
+      }
+    }
+    await fetch(`/__cuoci/${modo}/parte.json`, { method: 'PUT', body: JSON.stringify(man) });   // il server la unisce al manifest
+    status(`cottura finita (${modo}): ${n} immagini, ${(byte / 1048576).toFixed(1)} MB`);
+    window.__cotto = { n, byte, man };
+  }
 
   // per le prove: ?auto entra da solo; &cam=x,y,z,yaw,pitch
   const qp = new URLSearchParams(location.search);

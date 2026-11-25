@@ -5,7 +5,7 @@
    Il carattere è quello del sito: Consolas.
    ========================================================= */
 import * as THREE from 'three';
-import { rng, canvas, Q } from './tex.js';
+import { rng, canvas, toTex, Q } from './tex.js';
 
 export const FONT = 'Consolas, Inconsolata, "Segoe Print", cursive';
 export async function fontsReady() {
@@ -16,7 +16,7 @@ export async function fontsReady() {
 export function panel(wM, hM, pxPerM, draw) {
   const c = canvas(wM * pxPerM, hM * pxPerM), ctx = c.getContext('2d');
   draw(ctx, c.width, c.height, pxPerM);
-  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = Q.aniso;
+  const tex = toTex(c);
   tex.premultiplyAlpha = true;   // niente aloni scuri intorno alle lettere
   const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, premultipliedAlpha: true, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -2, depthWrite: false });
   const m = new THREE.Mesh(new THREE.PlaneGeometry(wM, hM), mat);

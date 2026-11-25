@@ -8,6 +8,51 @@ import * as THREE from 'three';
 
 export const Q = { ppm: 170, aniso: 8 };   // pixel per metro: main.js lo abbassa sul telefono
 
+/* ============================================================
+   LA CACHE DELLE TEXTURE — disegnate una volta, poi scaricate.
+   Le texture si disegnano col codice (pennellate su un canvas):
+   sul telefono costa secondi. Allora le "cuociamo" una volta
+   (tools/cuoci-server.js + radio-kaoss.html?cuoci=desktop|telefono)
+   e le salviamo come WebP in kaoss3d/tex/<modo>/, con un manifest.
+   A ogni visita:
+   · ogni canvas riceve un numero, per stanza (ambito): il 7° canvas
+     della cucina è sempre il 7° canvas della cucina
+   · se il manifest ha quel numero, con la STESSA misura, il canvas è
+     finto: le pennellate non costano niente e la texture prende il
+     file WebP già pronto
+   · se la misura non torna (la stanza è cambiata dopo la cottura), da
+     lì in poi si torna a disegnare dal vivo: niente immagini sbagliate
+   · le texture che si animano (schermi, codice, montaggio) restano vive
+   · se un file non arriva, al suo posto un grigio neutro: niente si blocca
+   ============================================================ */
+const CACHE = { man: null, base: '', amb: 'sala', n: 0, ok: true, reg: null };
+export function cacheTexture(manifest, base) { CACHE.man = manifest; CACHE.base = base; }
+export function ambito(nome) { CACHE.amb = nome; CACHE.n = 0; CACHE.ok = true; }
+export function registraCottura(ambiti) { CACHE.reg = ambiti ? {} : null; CACHE.quali = ambiti; }   // ambiti: quelli da cuocere
+export function registro() { return CACHE.reg; }
+
+// il contesto finto: accetta tutto e non disegna niente
+const statoFinto = {};
+const CTX_FINTO = new Proxy(statoFinto, {
+  get(t, k) {
+    if (k === 'measureText') return s => { const m = /(\d+(?:\.\d+)?)px/.exec(String(t.font || '10px')); const px = m ? +m[1] : 10; return { width: String(s).length * px * 0.55, actualBoundingBoxAscent: px * 0.8, actualBoundingBoxDescent: px * 0.2 }; };
+    if (k === 'getImageData') return () => ({ data: new Uint8ClampedArray(4), width: 1, height: 1 });
+    if (k === 'createLinearGradient' || k === 'createRadialGradient' || k === 'createConicGradient' || k === 'createPattern') return () => ({ addColorStop() { } });
+    if (k in t) return t[k];
+    return () => { };
+  },
+  set(t, k, v) { t[k] = v; return true; }
+});
+function finto(w, h, voce) { return { __finto: true, width: w, height: h, voce, complete: false, getContext() { return CTX_FINTO; } }; }
+// un canvas vero non deve mai provare a disegnare un canvas finto
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.__fintoOk) {
+  const di = CanvasRenderingContext2D.prototype.drawImage;
+  CanvasRenderingContext2D.prototype.drawImage = function (src, ...a) { if (src && src.__finto) return; return di.call(this, src, ...a); };
+  CanvasRenderingContext2D.prototype.__fintoOk = true;
+}
+const grigio = () => { const c = document.createElement('canvas'); c.width = c.height = 2; const f = c.getContext('2d'); f.fillStyle = '#5a5650'; f.fillRect(0, 0, 2, 2); return c; };
+const caricatore = new THREE.ImageLoader();
+
 export function rng(seed) {
   let a = seed >>> 0 || 1;
   return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -15,9 +60,31 @@ export function rng(seed) {
 /* svuota i canvas che non servono più: sugli iPhone la memoria dei canvas ha un
    tetto (~224 MB) e si libera solo così, non quando li raccoglie il garbage collector */
 export function libera(...cs) { cs.forEach(c => { if (c) { c.width = 0; c.height = 0; } }); }
-export function canvas(w, h) { const c = document.createElement('canvas'); c.width = Math.max(2, Math.round(w)); c.height = Math.max(2, Math.round(h)); return c; }
+export function canvas(w, h) {
+  const W = Math.max(2, Math.round(w)), H = Math.max(2, Math.round(h)), idx = CACHE.n++, amb = CACHE.amb;
+  const registra = CACHE.reg && CACHE.quali.includes(amb);
+  if (!registra) {
+    const lista = CACHE.man && CACHE.man.stanze && CACHE.man.stanze[amb];
+    const voce = CACHE.ok && lista ? lista[idx] : null;
+    if (lista && CACHE.ok && (!voce || voce.w !== W || voce.h !== H)) CACHE.ok = false;   // la stanza è cambiata: si disegna dal vivo
+    else if (voce && (voce.t === 's' || voce.t === 'i')) return finto(W, H, voce);
+  }
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  if (registra) { c.__id = { amb, idx }; (CACHE.reg[amb] = CACHE.reg[amb] || [])[idx] = { w: W, h: H, c, tex: null }; }
+  return c;
+}
 export function toTex(c, color = true, repeat) {
+  if (c && c.__finto) {
+    // la texture già cotta: si scarica il WebP
+    const t = new THREE.Texture(); t.image = c;
+    if (color) t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = Q.aniso;
+    if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
+    if (c.voce.f) caricatore.load(CACHE.base + c.voce.f, img => { t.image = img; t.needsUpdate = true; }, undefined, () => { t.image = grigio(); t.needsUpdate = true; });
+    return t;
+  }
   const t = new THREE.CanvasTexture(c);
+  if (CACHE.reg && c.__id) { const v = CACHE.reg[c.__id.amb][c.__id.idx]; v.tex = t; v.colore = color; }
   if (color) t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = Q.aniso;
   if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
