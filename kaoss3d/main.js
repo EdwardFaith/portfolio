@@ -26,7 +26,7 @@ const $ = id => document.getElementById(id);
 const mobile = matchMedia('(pointer: coarse)').matches || innerWidth < 820;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const quality = { high: !mobile };
-Q.ppm = quality.high ? 170 : 95; Q.aniso = quality.high ? 8 : 2;
+Q.ppm = quality.high ? 170 : 72; Q.aniso = quality.high ? 8 : 2;
 const status = t => { $('loading-step').textContent = t; };
 const tick = () => new Promise(r => { requestAnimationFrame(() => r()); setTimeout(r, 60); });
 
@@ -72,7 +72,18 @@ async function build() {
   const sala = await buildSala(scene, ctx);
   interact.push(...sala.interact);
   status('la stanza del live…'); await tick();
+  /* sul telefono: al massimo `max` luci per stanza (le più forti). Oltre un certo
+     numero di luci molti telefoni non riescono a compilare lo shader e il 3D non parte. */
+  function limitaLuci(group, max) {
+    if (quality.high) return;
+    const luci = [];
+    group.traverse(o => { if (o.isPointLight || o.isSpotLight) luci.push(o); });
+    luci.sort((a, b) => (b.intensity * (b.distance || 10)) - (a.intensity * (a.distance || 10)));
+    luci.slice(max).forEach(l => { l.visible = false; l.castShadow = false; });
+  }
+  ctx.limitaLuci = limitaLuci;
   const cantina = buildCantina(scene, ctx);
+  limitaLuci(cantina.group, 6);
   interact.push(...cantina.interact);
   /* la porta della stanza del live: sul muro di destra, tra gli spot e le canzoni */
   const portaL = portaLive('LIVE');
@@ -84,6 +95,7 @@ async function build() {
   /* il corridoio: l'hub del sito 3D. La porta della sala torna lì. */
   status('il corridoio…'); await tick();
   const corridoio = buildCorridoio(scene, ctx);
+  limitaLuci(corridoio.group, 7);
   interact.push(...corridoio.interact);
   if (door) { door.label = 'la porta · torna al corridoio'; door.action = () => viaggio.go(corridoio.porta.kaoss.view, () => say('il corridoio')); }
 
@@ -110,6 +122,7 @@ async function build() {
       const mod = await import(m.file);
       const obj = await mod[m.fn](scene, ctx);
       obj.group.visible = false;
+      limitaLuci(obj.group, 7);
       interact.push(...obj.interact);
       STANZE[m.zona] = { Y: obj.Y, obj };
       return obj;
