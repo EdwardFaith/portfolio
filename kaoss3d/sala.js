@@ -293,17 +293,12 @@ export async function buildSala(scene, ctx) {
   }
   [fScreen, aBody, marquee].forEach(m => interact.push({ mesh: m, label: 'zona larga · accendi il computer', view: nodes[7].view, action: playFoglio }));
   function drawFoglio(t) {
-    // il desktop di liminal.exe in piccolo: la collina, e la collina guarda
-    let gr = ff.createLinearGradient(0, 0, 0, 130); gr.addColorStop(0, '#1f5fbf'); gr.addColorStop(1, '#bcd9f2');
-    ff.fillStyle = gr; ff.fillRect(0, 0, 256, 192);
-    ff.fillStyle = '#3e8a1c'; ff.beginPath(); ff.moveTo(0, 130); ff.bezierCurveTo(70, 95, 150, 100, 256, 120); ff.lineTo(256, 192); ff.lineTo(0, 192); ff.fill();
-    const ap = (Math.sin(t * 0.7) + 1) / 2 * 0.9 + 0.1;
-    ff.fillStyle = '#efe6dc'; ff.beginPath(); ff.ellipse(80, 150, 22, 10 * ap, 0, 0, Math.PI * 2); ff.fill();
-    ff.fillStyle = '#000'; ff.beginPath(); ff.arc(80 + Math.sin(t) * 8, 150, 5 * Math.min(1, ap + 0.3), 0, Math.PI * 2); ff.fill();
-    for (let i = 0; i < 6; i++) { ff.fillStyle = '#f6c94c'; ff.fillRect(10 + (i % 2) * 28, 10 + Math.floor(i / 2) * 26, 20, 14); }
-    ff.fillStyle = '#121620'; ff.fillRect(0, 178, 256, 14);
-    ff.fillStyle = '#e9e2d6'; ff.font = `11px ${FONT}`; ff.textAlign = 'left'; ff.fillText('liminal.exe', 6, 189);
-    if (Math.floor(t * 1.5) % 2) { ff.fillStyle = '#c4211c'; ff.textAlign = 'center'; ff.font = `15px ${FONT}`; ff.fillText('▶ tocca per accendere', 160, 70); }
+    // lo schermo è nero: una parola sola, accedi
+    ff.fillStyle = '#000'; ff.fillRect(0, 0, 256, 192);
+    ff.fillStyle = '#e8e6e0'; ff.font = `22px ${FONT}`; ff.textAlign = 'center'; ff.textBaseline = 'middle';
+    ff.fillText('accedi', 128, 96);
+    if (Math.floor(t * 1.6) % 2) ff.fillRect(170, 84, 3, 24);
+    ff.textBaseline = 'alphabetic';
     fTex.needsUpdate = true;
   }
 

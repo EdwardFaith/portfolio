@@ -3938,24 +3938,16 @@
     ctx.fillStyle = "#e8e6e0"; ctx.font = "16px 'Lucida Console', Consolas, monospace";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText("ZONA LARGA", cx, y + 24);
-    /* lo schermo: il desktop bianco */
+    /* lo schermo: nero, e una parola sola. Si entra e si accede. */
     var sx = x + 20, sy = y + 52, sw = w - 40, sh = 128;
     ctx.fillStyle = "#050505"; ctx.fillRect(sx - 6, sy - 6, sw + 12, sh + 12);
     var fl = 0.94 + Math.sin(t * 13) * 0.02 + (Math.sin(t * 2.3) > 0.97 ? -0.15 : 0);
     ctx.globalAlpha = fl;
-    var wg = ctx.createLinearGradient(sx, sy, sx, sy + sh); wg.addColorStop(0, "#2a0f14"); wg.addColorStop(0.6, "#3c1a2a"); wg.addColorStop(1, "#0d1a26"); ctx.fillStyle = wg; ctx.fillRect(sx, sy, sw, sh);
-    ctx.fillStyle = "rgba(255,190,170,0.35)"; ctx.beginPath(); ctx.ellipse(sx + sw * 0.62, sy + sh * 0.55, 22, 12, 0, 0, 6.283); ctx.fill();
-    ctx.fillStyle = "#0a0a0a"; ctx.beginPath(); ctx.arc(sx + sw * 0.62, sy + sh * 0.55, 6, 0, 6.283); ctx.fill();
-    for (var i = 0; i < 8; i++) {
-      var fx = sx + 10 + (i % 4) * 46, fy = sy + 12 + Math.floor(i / 4) * 46;
-      ctx.fillStyle = "#e8c35a"; ctx.strokeStyle = "#141210"; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.moveTo(fx, fy + 4); ctx.lineTo(fx + 12, fy + 4); ctx.lineTo(fx + 15, fy + 7);
-      ctx.lineTo(fx + 28, fy + 7); ctx.lineTo(fx + 28, fy + 24); ctx.lineTo(fx, fy + 24); ctx.closePath();
-      ctx.fill(); ctx.stroke();
-      ctx.fillStyle = "#e8e6e0"; ctx.fillRect(fx - 2, fy + 29, 32, 2);
-    }
-    ctx.fillStyle = "#1c2a3a"; ctx.fillRect(sx, sy + sh - 12, sw, 12);
-    ctx.fillStyle = "#3f7a3a"; ctx.fillRect(sx + 3, sy + sh - 10, 18, 8);
+    ctx.fillStyle = "#000"; ctx.fillRect(sx, sy, sw, sh);
+    ctx.fillStyle = "#e8e6e0"; ctx.font = "15px 'Segoe UI', 'Lucida Console', Consolas, sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("accedi", sx + sw / 2, sy + sh / 2);
+    if (Math.floor(t * 1.6) % 2) ctx.fillRect(sx + sw / 2 + 28, sy + sh / 2 - 7, 2, 14);
     /* le righe del tubo */
     ctx.fillStyle = "rgba(0,0,0,0.06)";
     for (var ry = sy; ry < sy + sh; ry += 3) ctx.fillRect(sx, ry, sw, 1);

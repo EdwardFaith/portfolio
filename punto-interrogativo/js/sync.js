@@ -16,7 +16,9 @@
     'wss://broker.hivemq.com:8884/mqtt'
   ];
 
-  function create({ role, session, onMessage, onStatus }) {
+  function create({ role, session, onMessage, onStatus, pingData }) {
+    // il battito del tablet porta con sé il suo stato (attivo? quale visita?)
+    const ping = () => send(Object.assign({ t: 'ping' }, pingData ? pingData() : {}));
     const seen = new Set();
     const base = 'qmark-installazione/' + session;
     const inTopic = base + (role === 'display' ? '/to-display' : '/to-controller');
@@ -71,14 +73,14 @@
 
     function wake() {
       clients.forEach(c => { if (!c.connected && !c.reconnecting) { try { c.reconnect(); } catch (e) { } } });
-      if (role === 'controller') send({ t: 'ping' });
+      if (role === 'controller') ping();
     }
 
     startMqtt();
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') wake(); });
     window.addEventListener('online', wake);
     if (role === 'controller') {
-      setInterval(() => send({ t: 'ping' }), PING_MS);
+      setInterval(ping, PING_MS);
       send({ t: 'hello' });
     }
 

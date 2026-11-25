@@ -2,8 +2,16 @@
 =========================================
 
 AVVIO
-  Doppio clic su AVVIA.bat: si apre la Proiezione nel browser.
-  Premi F (schermo intero). Il tablet/telefono scansiona il QR.
+  Doppio clic su AVVIA.bat (in questa cartella): accende il server e
+  apre la Proiezione in Chrome (o Edge) in MODALITA' CHIOSCO: schermo
+  intero forzato, niente barre, resta intero anche premendo F5.
+  Per uscire: Alt+F4. La telecamera viene concessa senza chiedere.
+  Prima di iniziare, su ENTRAMBI gli schermi si legge il concept
+  (la descrizione dell'installazione, italiano + inglese):
+  la proiezione dice "toccalo dal telefono", il tablet "toccalo".
+  Un tocco sullo schermo (o un tasto, in proiezione) lo chiude,
+  apre lo Stato Zero (?) e forza lo schermo intero su quel
+  dispositivo. Poi il tablet/telefono scansiona il QR.
 
 COLLEGAMENTO
   Proiezione e tablet si parlano via internet tramite due ripetitori
@@ -13,10 +21,26 @@ COLLEGAMENTO
   Il tablet si ricollega in automatico (standby, cambio rete...).
   Accanto al link: ● = proiezione collegata a internet, ○ = non ancora.
 
+  RESET INCROCIATO (F5): se premi F5 (refresh) su un dispositivo,
+  l'altro lo sente (messaggio "bye" prima dello scaricamento, poi
+  silenzio del battito per ~6 s) e torna al concept: l'installazione
+  si azzera su entrambi gli schermi, pronta per il visitatore
+  successivo. Stesso reset dopo 2 minuti senza tocchi (il tablet lo
+  comunica alla proiezione).
+
   ATTENZIONE: il telefono deve poter APRIRE la pagina del QR.
   Con AVVIA.bat il QR punta al PC (http://10.x.x.x:8080), quindi il
   telefono deve stare sulla stessa Wi-Fi. Per usarlo da qualsiasi rete
   il sito va pubblicato online (es. www.ebmaker.it/punto-interrogativo/).
+
+SCHERMO INTERO FORZATO
+  Il browser concede lo schermo intero solo dopo un tocco. Se il gioco
+  e' avviato ma lo schermo non e' intero (Esc, un gesto del telefono,
+  F5...), un velo nero col "?" copre tutto: un tocco lo rimette intero.
+
+  RESET CON F5: F5 su uno qualsiasi dei due schermi azzera TUTTO il
+  gioco (testo, disegno, visita) su entrambi; anche se il messaggio
+  "bye" si perde, l'altro schermo se ne accorge dal battito.
 
 SCHERMO INTERO SUL TELEFONO/TABLET
   Si attiva al primo tocco (Android, iPad). Lo schermo resta acceso.
