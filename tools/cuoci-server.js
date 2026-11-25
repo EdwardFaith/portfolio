@@ -42,8 +42,13 @@ http.createServer((req, res) => {
         Object.assign(man.stanze, parte.stanze); man.modo = parte.modo; man.creato = parte.creato;
         fs.writeFileSync(file, JSON.stringify(man));
         console.log('manifest', m[1], '←', Object.keys(parte.stanze).join(', '));
-      } else fs.writeFileSync(path.join(dir, m[2]), corpo);
-      res.writeHead(200); res.end('ok');
+        res.writeHead(200); res.end('ok');
+      } else {
+        // su Windows un file appena letto può restare bloccato un attimo: si riprova, non si muore
+        const dove = path.join(dir, m[2]);
+        const scrivi = (n) => { try { fs.writeFileSync(dove, corpo); res.writeHead(200); res.end('ok'); } catch (e) { if (n < 40) setTimeout(() => scrivi(n + 1), 150); else { console.log('non riesco a scrivere', dove, e.code); res.writeHead(500); res.end('ko'); } } };
+        scrivi(0);
+      }
     });
     return;
   }

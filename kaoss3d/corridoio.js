@@ -277,7 +277,7 @@ export function buildCorridoio(scene, ctx) {
     { id: 'kaoss', num: 'II', nome: 'Radio KaOsS', frase: 'la voce non si spegne mai', col: '#ff2a1a', lato: 1, z: -5.6, colore: 0x5a1a14, aperta: 0.55, viva: true },
     { id: 'visual', num: 'III', nome: 'Visual & AI', frase: 'gli occhi non sono tuoi', col: '#3affd6', lato: -1, z: -8.8, colore: 0x2c3440, aperta: 0.5, viva: true, luce: 0xff6a2a },
     { id: 'cosmo', num: 'IV', nome: 'Memorie del Cosmo', frase: 'ricordi che non hai vissuto', col: '#9ad8ff', lato: 1, z: -12, colore: 0x1e2a3a, aperta: 0.5, viva: true, luce: 0xff1a3a },
-    { id: 'codice', num: 'V', nome: 'Codice', frase: 'sei dentro il programma', col: '#9dff3a', lato: 0, z: Z0, colore: 0x2a3a26 }
+    { id: 'codice', num: 'V', nome: 'Codice', frase: 'sei dentro il programma', col: '#9dff3a', lato: 0, z: Z0, colore: 0x2a3a26, aperta: 0.5, viva: true, luce: 0x9dff3a }
   ];
   const nodoPorta = {};
   PORTE.forEach(p => {
@@ -297,7 +297,7 @@ export function buildCorridoio(scene, ctx) {
     neons.push({ m: ne.material, fase: Math.random() * 10, guasto: p.id === 'chi' });
     if (p.viva) {   // dietro la porta di Radio KaOsS c'è la luce rossa della sala
       const col = p.luce || 0xff2a1a;
-      const rosso = new THREE.PointLight(col, 3, 3.2, 1.6); rosso.position.set(p.lato < 0 ? X0 + 0.4 : X1 - 0.4, 1.3, p.z + 0.3); g.add(rosso);
+      const rosso = new THREE.PointLight(col, 3, 3.2, 1.6); rosso.position.set(p.lato === 0 ? 0 : (p.lato < 0 ? X0 + 0.4 : X1 - 0.4), 1.3, p.lato === 0 ? Z0 + 0.5 : p.z + 0.3); g.add(rosso);
       const fessura = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 2.1), new THREE.MeshBasicMaterial({ color: new THREE.Color(col).multiplyScalar(0.45) }));
       fessura.position.set(0, 1.05, -0.05); d.add(fessura);
       d.userData.rosso = rosso;

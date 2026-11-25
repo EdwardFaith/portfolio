@@ -69,7 +69,22 @@ Una galleria di schermi sospesi nel buio: ogni schermo un reel. Guardato da
 vicino parte muto in bianco e nero (come i televisori della sala), toccato si
 apre grande.
 
-### Blocco 5 — IV · Interattivo (codice)
+### Blocco 5 — V · Codice (FATTO: l'ascensore e il primo gioco)
+`kaoss3d/ascensore.js`: la cabina con 6 bottoni, ognuno un gioco 3D. Il bottone 1 porta a
+`kaoss3d/gioco1.js` — IL FANCIULLO. Esci dall'ascensore (le porte si aprono alle tue spalle) in una
+stanza diroccata: muri sfondati, soffitto bucato, macerie; ai muri i manifesti «anche i conigli hanno le
+ali»; per terra scheletri di coniglio e centinaia di denti (instanced). In mezzo il fanciullo, sagoma nera
+col coniglio, legato a fili che strisciano fino a lampadine: poche accese, a scatti. Dietro di lui il muro
+è crollato: il mare nero, il cielo cieco e all'orizzonte un ragno immenso che passeggia. Dice frasi storte,
+poi «vuoi giocare?». Se dici sì, la casa infinita: bagno, cucina, salotto, camera, gigantesche, una dopo
+l'altra; la tana in fondo porta alla stanza dopo; i ragni ti inseguono se ti vedono. Se ti prendono: nero
+e glitch, nessuna scritta, e sei di nuovo davanti a lui: «le bugie hanno le gambe corte?». Record in
+localStorage. Per le prove: `window.__stanze` (avanza(sec), muori()).
+Sul telefono non ci si teletrasporta: si cammina con la levetta in basso a sinistra e le cose si toccano
+da vicino.
+I bottoni 2–6: in lavorazione. Indirizzi diretti: `?stanza=ascensore`, `?stanza=gioco1`.
+
+### (vecchia idea) Interattivo
 Una sala giochi: cabinati per Lucidus, Sandpay, Simbolo, Eyes in the Sky, «?»,
 la Galleria. Il ragno, e dietro il subconscio.
 

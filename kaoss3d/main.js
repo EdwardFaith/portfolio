@@ -54,7 +54,7 @@ async function build() {
   // in cottura: ?parte=base cuoce sala, stanza del live e corridoio; ?parte=<porta> una stanza sola
   // (la base è già cotta e arriva dalla cache: così la memoria basta)
   const PARTE = new URLSearchParams(location.search).get('parte') || 'base';
-  const ZONE_PARTE = { base: ['sala', 'live', 'corridoio'], visual: ['cinema'], chi: ['cucina'], cosmo: ['cameretta'] };
+  const ZONE_PARTE = { base: ['sala', 'live', 'corridoio'], visual: ['cinema'], chi: ['cucina'], cosmo: ['cameretta'], codice: ['ascensore'], gioco1: ['gioco1'] };
   if (COTTURA) registraCottura(ZONE_PARTE[PARTE] || []);
   if ((!COTTURA || PARTE !== 'base') && !/[?&]senzacache\b/.test(location.search)) {
     status('le immagini…');
@@ -123,7 +123,9 @@ async function build() {
   const MODULI = {
     visual: { zona: 'cinema', file: './cinema.js', fn: 'buildCinema', nome: 'il cinema' },
     chi: { zona: 'cucina', file: './cucina.js', fn: 'buildCucina', nome: 'la cucina' },
-    cosmo: { zona: 'cameretta', file: './cameretta.js', fn: 'buildCameretta', nome: 'la cameretta' }
+    cosmo: { zona: 'cameretta', file: './cameretta.js', fn: 'buildCameretta', nome: 'la cameretta' },
+    codice: { zona: 'ascensore', file: './ascensore.js', fn: 'buildAscensore', nome: 'l\'ascensore' },
+    gioco1: { zona: 'gioco1', file: './gioco1.js', fn: 'buildGioco1', nome: 'il fanciullo' }
   };
   const zona = () => {
     const y = camera.position.y - 1.6; let best = 'sala', bd = 1e9;
@@ -159,6 +161,7 @@ async function build() {
   };
   ctx.alCorridoio = id => viaggio.go(corridoio.porta[id].view, () => say('il corridoio'));
   ctx.openWindow = openWindow; ctx.closeWindow = closeWindow;
+  ctx.interact = interact;   // le stanze che cambiano (il gioco) aggiungono e tolgono le loro cose
 
   /* ---------- puntare e toccare ---------- */
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
@@ -183,10 +186,10 @@ async function build() {
       if (h.object.isPoints || h.object.isSprite || h.object.isLine || (h.object.material && h.object.material.blending === THREE.AdditiveBlending)) continue;
       const it = interact.find(i => i.mesh === h.object);
       if (!it && h.object.isMesh && h.object.material && h.object.material.transparent && h.object.material.opacity < 0.6) continue;   // i vetri non fermano il dito
-      if (it) return h.distance < 12 ? { it } : null;
+      if (it) return h.distance < 12 ? { it, punto: h.point.clone() } : null;
       // il pavimento: ci si trasporta lì
       const fy = STANZE[zona()].Y;
-      if (Math.abs(h.point.y - fy) < 0.06 && h.face && h.face.normal && Math.abs(h.point.x) < 40 && Math.abs(h.point.z) < 40 && freeSpot(h.point.x, h.point.z)) return { floor: h.point.clone() };
+      if (Math.abs(h.point.y - fy) < 0.06 && h.face && h.face.normal && freeSpot(h.point.x, h.point.z)) return { floor: h.point.clone() };
       return null;
     }
     return null;
@@ -197,9 +200,24 @@ async function build() {
     canStand: freeSpot,
     onTap(x, y, type) {
       const p = pick(x, y); if (!p) return;
+      // sul telefono non ci si teletrasporta: si cammina con la levetta, e le cose si toccano da vicino
+      if (mobile && type !== 'mouse') {
+        if (p.floor) return;
+        const it = p.it;
+        if (!it.view || camera.position.distanceTo(p.punto) < 3.6) { say(it.label); if (it.action) it.action(); }
+        else say('avvicinati · ' + it.label);
+        return;
+      }
       if (p.floor) {   // un punto del pavimento: ci vai, guardando nella stessa direzione
         const d = new THREE.Vector3(); camera.getWorldDirection(d); d.y = 0; d.normalize();
         const y = p.floor.y + 1.6;
+        // nel gioco i passi sono corti: non si scavalcano i ragni con un salto solo
+        const qui = STANZE[zona()].obj;
+        if (qui && qui.passoMax) {
+          const dx = p.floor.x - camera.position.x, dz = p.floor.z - camera.position.z, dd = Math.hypot(dx, dz);
+          if (dd > qui.passoMax) { p.floor.x = camera.position.x + dx / dd * qui.passoMax; p.floor.z = camera.position.z + dz / dd * qui.passoMax; }
+          if (!freeSpot(p.floor.x, p.floor.z)) return;
+        }
         viaggio.go({ pos: [p.floor.x, y, p.floor.z], look: [p.floor.x + d.x, y + Math.tan(viaggio.st.pitch) * 0.3, p.floor.z + d.z] });
         return;
       }
@@ -216,6 +234,24 @@ async function build() {
       if (p && p.floor) { marker.style.opacity = '1'; marker.style.transform = `translate(${x - 18}px, ${y - 8}px)`; } else marker.style.opacity = '0';
     }
   });
+  ctx.viaggio = viaggio; ctx.camera = camera;
+  /* LA LEVETTA (solo telefono): in basso a sinistra, si trascina il pomello */
+  if (mobile) {
+    const base = document.createElement('div'), pomo = document.createElement('div');
+    base.id = 'levetta';
+    base.style.cssText = 'position:fixed;left:max(22px,env(safe-area-inset-left));bottom:max(30px,env(safe-area-inset-bottom));width:132px;height:132px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.08),rgba(255,255,255,.02));border:1.5px solid rgba(235,228,209,.35);z-index:14;touch-action:none;display:none';
+    pomo.style.cssText = 'position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(235,228,209,.28);border:1.5px solid rgba(235,228,209,.6);box-shadow:0 0 12px rgba(0,0,0,.5)';
+    base.appendChild(pomo); document.body.appendChild(base);
+    let dito = null;
+    const muovi = e => { const r = base.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width / 2 - 14; let dx = e.clientX - cx, dy = e.clientY - cy; const d = Math.hypot(dx, dy); if (d > R) { dx *= R / d; dy *= R / d; } pomo.style.transform = `translate(${dx}px,${dy}px)`; viaggio.st.joy.x = dx / R; viaggio.st.joy.y = dy / R; };
+    const lascia = () => { dito = null; pomo.style.transform = ''; viaggio.st.joy.x = 0; viaggio.st.joy.y = 0; };
+    base.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); dito = e.pointerId; base.setPointerCapture(dito); muovi(e); });
+    base.addEventListener('pointermove', e => { if (e.pointerId === dito) { e.stopPropagation(); muovi(e); } });
+    base.addEventListener('pointerup', e => { if (e.pointerId === dito) lascia(); });
+    base.addEventListener('pointercancel', lascia);
+    // si vede solo quando si è dentro (non sopra le schermate di caricamento o d'ingresso)
+    setInterval(() => { base.style.display = viaggio.st.enabled && $('entra').hidden && $('loading').hidden ? 'block' : 'none'; }, 300);
+  }
   const start = sala.nodes[0].view;
   viaggio.place(start.pos, 0, -0.05);
 
@@ -242,7 +278,7 @@ async function build() {
   /* ---------- entrare ---------- */
   $('loading').hidden = true; $('entra').hidden = false;
   $('istruzioni').innerHTML = mobile
-    ? 'muovi il telefono per guardarti intorno<br>tocca il pavimento o una cosa per andarci'
+    ? 'muovi il telefono per guardarti intorno<br>cammina con la levetta · tocca le cose da vicino'
     : 'clicca per prendere il mouse: muovi il mouse per guardarti intorno · W A S D o le frecce per camminare<br>clic su quello che hai al centro per usarlo · Esc libera il mouse';
   const benvenuto = { live: 'La stanza del live. Sulla parete c\'è lo schermo di Radio KaOsS live.', corridoio: 'Il corridoio. Ogni porta è una stanza del sito.', sala: 'La sala di Radio KaOsS. Al bancone c\'è chi trasmette: vai a sentirlo.' };
   /* le cose che il browser concede solo dopo un gesto (schermo intero, giroscopio
@@ -257,7 +293,7 @@ async function build() {
     await dopoIlGesto();
     $('entra').classList.add('via'); setTimeout(() => { $('entra').hidden = true; }, 900);
     viaggio.enable(true);
-    setTimeout(() => say(benvenuto[zona()]), 1300);
+    setTimeout(() => { const m = Object.values(MODULI).find(q => q.zona === zona()); say(benvenuto[zona()] || (m ? m.nome : '')); }, 1300);
   });
   /* entrare senza premere niente: finito il caricamento si è già dentro */
   function entraDaSolo() {
@@ -266,7 +302,7 @@ async function build() {
     if (mobile) viaggio.enableGyro();   // su Android il sensore parte subito; sugli iPhone al primo tocco
     const primo = () => { removeEventListener('pointerdown', primo, true); dopoIlGesto(); };
     addEventListener('pointerdown', primo, true);
-    setTimeout(() => say(benvenuto[zona()] + (mobile ? '' : ' Clicca per guardarti intorno col mouse.')), 700);
+    setTimeout(() => { const m = Object.values(MODULI).find(q => q.zona === zona()); say(((benvenuto[zona()] || (m ? m.nome + '.' : '')) + (mobile ? '' : ' Clicca per guardarti intorno col mouse.')).trim()); }, 700);
   }
 
   const clock = new THREE.Clock();
@@ -289,6 +325,9 @@ async function build() {
         else if (prima === 'sala' || prima === null) { o.userData._vis = o.visible; o.visible = false; }
       });
       for (const id in STANZE) if (STANZE[id].obj) STANZE[id].obj.group.visible = id === z;
+      // la stanza che si lascia e quella in cui si entra lo sanno (nebbia, dialoghi, HUD)
+      if (prima && STANZE[prima] && STANZE[prima].obj && STANZE[prima].obj.attiva) STANZE[prima].obj.attiva(false);
+      if (STANZE[z].obj && STANZE[z].obj.attiva) STANZE[z].obj.attiva(true);
     }
     const qui = STANZE[z].obj;
     if (qui) qui.update(t, dt, camera, renderer); else sala.update(t, dt, camera, renderer);
@@ -346,6 +385,9 @@ async function build() {
   // ?stanza=live: si entra direttamente nella stanza del live
   const entrata = { live: cantina.entry, corridoio: corridoio.entry }[qp.get('stanza')];
   if (entrata) { const e = entrata; viaggio.place(e.pos, Math.atan2(-(e.look[0] - e.pos[0]), -(e.look[2] - e.pos[2])), -0.05); }
+  // ?stanza=<zona> di una stanza che si carica al momento (cinema, cucina, cameretta, ascensore, gioco1)
+  const modDiretto = Object.keys(MODULI).find(k => MODULI[k].zona === qp.get('stanza'));
+  if (modDiretto) { const o = await caricaStanza(modDiretto); const e = o.entry; viaggio.place(e.pos, Math.atan2(-(e.look[0] - e.pos[0]), -(e.look[2] - e.pos[2])), -0.05); if (!qp.has('auto')) entraDaSolo(); }
   if (entrata && !qp.has('auto')) entraDaSolo();
   if (qp.has('auto')) {
     $('entra').hidden = true; viaggio.enable(true);

@@ -10,7 +10,7 @@
 import * as THREE from 'three';
 
 export function createViaggio(camera, dom, { onTap, onHover, veil, canStand = () => true }) {
-  const st = { yaw: 0, pitch: 0, gyro: false, off: 0, drag: null, enabled: false, trip: null, keys: {} };
+  const st = { yaw: 0, pitch: 0, gyro: false, off: 0, drag: null, enabled: false, trip: null, keys: {}, joy: { x: 0, y: 0 } };   // joy: la levetta del telefono
   camera.rotation.order = 'YXZ';
 
   /* il sensore del telefono */
@@ -89,11 +89,13 @@ export function createViaggio(camera, dom, { onTap, onHover, veil, canStand = ()
       if (st.gyro && o) { const a = angles(); st.yaw = a.yaw + st.off; st.pitch = THREE.MathUtils.clamp(a.pitch, -1.45, 1.45); }
       // dal computer si cammina coi tasti: W A S D o le frecce; Q ed E per girarsi
       const K = st.keys;
-      const f = (K.KeyW || K.ArrowUp ? 1 : 0) - (K.KeyS || K.ArrowDown ? 1 : 0);
-      const s = (K.KeyD || K.ArrowRight ? 1 : 0) - (K.KeyA || K.ArrowLeft ? 1 : 0);
+      // la levetta del telefono vale come i tasti: avanti/indietro e di lato, più spinta = più veloce
+      const jm = Math.hypot(st.joy.x, st.joy.y), J = jm > 0.12;
+      const f = (K.KeyW || K.ArrowUp ? 1 : 0) - (K.KeyS || K.ArrowDown ? 1 : 0) + (J ? -st.joy.y : 0);
+      const s = (K.KeyD || K.ArrowRight ? 1 : 0) - (K.KeyA || K.ArrowLeft ? 1 : 0) + (J ? st.joy.x : 0);
       if (K.KeyQ) st.yaw += dt * 1.6; if (K.KeyE) st.yaw -= dt * 1.6;
       if (f || s) {
-        const sp = (K.ShiftLeft || K.ShiftRight ? 2.6 : 1.5) * dt;
+        const sp = (K.ShiftLeft || K.ShiftRight ? 2.6 : J ? 0.6 + 1.6 * Math.min(1, jm) : 1.5) * dt;
         const nx = camera.position.x + (-Math.sin(st.yaw) * f + Math.cos(st.yaw) * s) * sp;
         const nz = camera.position.z + (-Math.cos(st.yaw) * f - Math.sin(st.yaw) * s) * sp;
         if (canStand(nx, nz)) { camera.position.x = nx; camera.position.z = nz; }

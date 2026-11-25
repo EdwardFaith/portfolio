@@ -9,13 +9,17 @@
    lavandino, dai pensili, dai muri — e per terra ci sono ossa e
    brandelli. Si esce da una porticina a misura tua, alla base del
    muro, come la tana di un topo.
+   Lo sportello aperto sotto il lavello è un ingresso: dentro il mobile
+   c'è la tana del topo, a misura tua, e lì c'è "chi sono": il nome,
+   la foto, la biografia, i biglietti coi link. Il topo ne è il custode.
    ========================================================= */
 import * as THREE from 'three';
 import { canvas, toTex, rng, torn, ceilingTextures } from '../stanza/tex.js';
-import { panel, scrawl, FONT } from '../stanza/graffiti.js';
+import { panel, scrawl, spray, FONT } from '../stanza/graffiti.js';
 import { portaLive } from './cantina.js';
 import { muroCurato } from './corridoio.js';
 import { ragno } from './ragno.js';
+import { topo } from './topo.js';
 
 export const Y = -160;
 const S = 6;                                   // la scala: tutto è sei volte più grande
@@ -112,10 +116,13 @@ export async function buildCucina(scene, ctx) {
   const scuro = new THREE.MeshStandardMaterial({ color: 0x0b0a08, roughness: 0.9 });
   const D = 0.6 * S, HB = 0.88 * S;   // profondità e altezza dei mobili bassi
   const xa = X0, xb = 4.5;           // i mobili bassi corrono da xa a xb lungo il muro di fondo
-  box(xb - xa, HB - 0.6, D - 0.3, lacca2, (xa + xb) / 2, (HB - 0.6) / 2 + 0.6, Z0 + (D - 0.3) / 2);   // il corpo
-  box(xb - xa, 0.6, D - 0.9, scuro, (xa + xb) / 2, 0.3, Z0 + (D - 0.9) / 2);                       // lo zoccolo rientrato
+  const TX0 = -4.45, TX1 = -1.45;    // lo scomparto sotto il lavello, quello con lo sportello aperto: è vuoto, ci si entra
+  [[xa, TX0], [TX1, xb]].forEach(([a, b]) => {
+    box(b - a, HB - 0.6, D - 0.3, lacca2, (a + b) / 2, (HB - 0.6) / 2 + 0.6, Z0 + (D - 0.3) / 2);   // il corpo
+    box(b - a, 0.6, D - 0.9, scuro, (a + b) / 2, 0.3, Z0 + (D - 0.9) / 2);                           // lo zoccolo rientrato
+    colliders.push({ x: (a + b) / 2, z: Z0 + D / 2, w: b - a, d: D + 0.4 });
+  });
   box(xb - xa + 0.3, 0.25, D + 0.2, piano, (xa + xb) / 2, HB + 0.125, Z0 + (D + 0.2) / 2);          // il piano di lavoro
-  colliders.push({ x: (xa + xb) / 2, z: Z0 + D / 2, w: xb - xa, d: D + 0.4 });
   // le ante, con le maniglie; una pende aperta
   const ante = [];
   for (let x = xa + 0.1; x < xb - 2; x += 3.0) {
@@ -123,7 +130,7 @@ export async function buildCucina(scene, ctx) {
     const cer = new THREE.Group(); cer.position.set(x, 0.75, Z0 + D - 0.28); g.add(cer);
     const a = new THREE.Mesh(new THREE.BoxGeometry(2.85, HB - 1.0, 0.12), lacca); a.position.set(1.425, (HB - 1.0) / 2, 0); a.castShadow = a.receiveShadow = true; cer.add(a);
     const man = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.1, 10), metallo); man.position.set(2.5, HB - 2.2, 0.15); cer.add(man);
-    if (aperta) { cer.rotation.y = -1.15; cer.rotation.z = 0.04; const buio = box(2.85, HB - 1.0, 0.05, scuro, x + 1.425, 0.75 + (HB - 1.0) / 2, Z0 + D - 0.35); }
+    if (aperta) { cer.rotation.y = -1.15; cer.rotation.z = 0.04; }
     ante.push(cer);
   }
   // il lavello: la vasca nera e il rubinetto, da cui cola l'inchiostro
@@ -140,6 +147,115 @@ export async function buildCucina(scene, ctx) {
   const yP = 1.45 * S, hP = 0.7 * S, dP = 0.35 * S;
   box(xb - xa, hP, dP, lacca2, (xa + xb) / 2, yP + hP / 2, Z0 + dP / 2);
   for (let x = xa + 0.1; x < xb - 2; x += 3.0) { const a = box(2.85, hP - 0.3, 0.12, lacca, x + 1.425, yP + hP / 2, Z0 + dP + 0.06); a.rotation.z = (Math.random() - 0.5) * 0.02; }
+  const inkM = new THREE.MeshStandardMaterial({ color: 0x040405, roughness: 0.03, metalness: 0.4 });
+  const pozzaM = new THREE.MeshStandardMaterial({ color: 0x030304, roughness: 0.03, metalness: 0.4, transparent: true, opacity: 0.96, depthWrite: false });
+  const ri = rng(840);
+  const pozza = (x, z, rx, rz) => { const sh = new THREE.Shape(); const n = 30; for (let i = 0; i <= n; i++) { const a = i / n * Math.PI * 2, k = 0.7 + ri() * 0.4; i ? sh.lineTo(Math.cos(a) * rx * k, Math.sin(a) * rz * k) : sh.moveTo(Math.cos(a) * rx * k, Math.sin(a) * rz * k); } const m = new THREE.Mesh(new THREE.ShapeGeometry(sh), pozzaM); m.rotation.x = -Math.PI / 2; m.position.set(x, 0.01 + ri() * 0.004, z); g.add(m); return m; };
+
+  /* ================= LA TANA DEL TOPO: "chi sono", dentro il mobile =================
+     Lo scomparto sotto il lavello, a misura tua: il truciolato, i tubi di scarico che
+     perdono inchiostro, le ragnatele, una candela. Il topo l'ha arredato: il nome sul
+     fondo, la foto su una scatola di fiammiferi, la biografia appesa, i biglietti coi
+     link. */
+  const IX0 = TX0 + 0.05, IX1 = TX1 - 0.05, IZ0 = Z0 + 0.05, IZ1 = Z0 + D - 0.3, IH = HB;
+  const truc = (() => { const r = rng(1201), c = canvas(512, 512), f = c.getContext('2d'); f.fillStyle = '#9a8662'; f.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 2600; i++) { const tn = 70 + r() * 110; f.fillStyle = `rgba(${tn | 0},${tn * 0.78 | 0},${tn * 0.52 | 0},${0.35 + r() * 0.45})`; f.save(); f.translate(r() * 512, r() * 512); f.rotate(r() * 6.28); f.fillRect(-4 - r() * 8, -1.5, 8 + r() * 16, 3 + r() * 3); f.restore(); }
+    for (let i = 0; i < 14; i++) { f.fillStyle = `rgba(30,20,10,${0.15 + r() * 0.25})`; torn(f, r, r() * 512, r() * 512, 20 + r() * 80, 15 + r() * 60, 0.6, 24); f.fill(); }
+    const t = toTex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; })();
+  const trucM = new THREE.MeshStandardMaterial({ map: truc, roughness: 0.9 });
+  const pann = (w, h, x, y, z, ry) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), trucM); m.position.set(x, y, z); m.rotation.y = ry; m.receiveShadow = true; g.add(m); return m; };
+  pann(IX1 - IX0, IH, (IX0 + IX1) / 2, IH / 2, IZ0, 0);                       // il fondo
+  pann(IZ1 - IZ0, IH, IX0, IH / 2, (IZ0 + IZ1) / 2, Math.PI / 2);            // il fianco sinistro
+  pann(IZ1 - IZ0, IH, IX1, IH / 2, (IZ0 + IZ1) / 2, -Math.PI / 2);           // il fianco destro
+  const cielo = pann(IX1 - IX0, IZ1 - IZ0, (IX0 + IX1) / 2, IH - 0.02, (IZ0 + IZ1) / 2, 0); cielo.rotation.x = Math.PI / 2;
+  const fondoT = pann(IX1 - IX0, IZ1 - IZ0, (IX0 + IX1) / 2, 0.012, (IZ0 + IZ1) / 2, 0); fondoT.rotation.x = -Math.PI / 2;
+  // i tubi di scarico del lavello, col sifone, e l'inchiostro che ne esce
+  const tuboTM = new THREE.MeshStandardMaterial({ color: 0xb8b4ac, metalness: 0.7, roughness: 0.35 });
+  const tuboT = (a, b, r = 0.12) => { const v = new THREE.Vector3().subVectors(b, a), m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, v.length(), 16), tuboTM); m.position.copy(a).addScaledVector(v, 0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), v.normalize()); m.castShadow = true; g.add(m); return m; };
+  const px = -3.5, pz = IZ0 + 1.0;
+  tuboT(new THREE.Vector3(px, IH, pz), new THREE.Vector3(px, 3.45, pz), 0.14);
+  const sifone = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.13, 12, 24, Math.PI), tuboTM); sifone.position.set(px + 0.28, 3.45, pz); sifone.rotation.z = Math.PI; g.add(sifone);
+  tuboT(new THREE.Vector3(px + 0.56, 3.45, pz), new THREE.Vector3(px + 0.56, 3.75, pz));
+  tuboT(new THREE.Vector3(px + 0.56, 3.75, pz), new THREE.Vector3(px + 0.56, 3.75, IZ0), 0.12);
+  [[px, 3.9], [px + 0.56, 3.6]].forEach(([x, y]) => { const gh = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.08, 16), tuboTM); gh.position.set(x, y, pz); g.add(gh); });
+  const goccia = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), inkM); goccia.scale.y = 1.6; g.add(goccia);
+  const pozzaT = pozza(px + 0.28, pz, 0.7, 0.5);
+  // le ragnatele negli angoli
+  const ragnatela = (() => { const c = canvas(256, 256), f = c.getContext('2d'), r = rng(1210); f.strokeStyle = 'rgba(230,230,225,.55)'; f.lineWidth = 1;
+    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI / 2; f.beginPath(); f.moveTo(0, 0); f.lineTo(Math.cos(a) * 256, Math.sin(a) * 256); f.stroke(); }
+    for (let k = 1; k < 9; k++) { f.beginPath(); for (let i = 0; i <= 12; i++) { const a = i / 12 * Math.PI / 2, rr = k * 28 + (r() - 0.5) * 8; i ? f.quadraticCurveTo(Math.cos(a - 0.06) * rr * 0.93, Math.sin(a - 0.06) * rr * 0.93, Math.cos(a) * rr, Math.sin(a) * rr) : f.moveTo(Math.cos(a) * rr, Math.sin(a) * rr); } f.stroke(); }
+    return new THREE.MeshBasicMaterial({ map: toTex(c), transparent: true, depthWrite: false, side: THREE.DoubleSide }); })();
+  [[IX0 + 0.02, IH - 0.02, IZ0 + 0.02, 0], [IX1 - 0.02, IH - 0.02, IZ0 + 0.02, Math.PI / 2]].forEach(([x, y, z, rz]) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.3), ragnatela); m.position.set(x + (rz ? -0.65 : 0.65), y - 0.65, z + 0.02); m.rotation.z = Math.PI + rz; g.add(m); });
+
+  // la scatola di fiammiferi, la foto, la candela
+  const scat = canvas(256, 128), sf = scat.getContext('2d'); sf.fillStyle = '#c42a1a'; sf.fillRect(0, 0, 256, 128); sf.fillStyle = '#f0e0b0'; sf.fillRect(16, 16, 224, 96); sf.fillStyle = '#c42a1a'; sf.font = `bold 34px ${FONT}`; sf.textAlign = 'center'; sf.fillText('FIAMMIFERI', 128, 64); sf.font = `18px ${FONT}`; sf.fillText('lunga durata · carrara', 128, 94);
+  const scatM = new THREE.MeshStandardMaterial({ map: toTex(scat), roughness: 0.7 }), latoM = new THREE.MeshStandardMaterial({ color: 0x6a4a30, roughness: 1 });
+  const scatola = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.34, 0.6), [latoM, latoM, scatM, scatM, latoM, latoM]); scatola.position.set(-2.95, 0.17, IZ0 + 0.55); scatola.castShadow = scatola.receiveShadow = true; g.add(scatola);
+  colliders.push({ x: -2.95, z: IZ0 + 0.55, w: 1.1, d: 0.7 });
+  const fotoT = new THREE.TextureLoader().load('immagini/io.png'); fotoT.colorSpace = THREE.SRGBColorSpace;
+  const cornice = new THREE.Group(); cornice.position.set(-2.95, 0.34, IZ0 + 0.5); cornice.rotation.x = -0.12; g.add(cornice);
+  const legnoC = new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: 0.5 });
+  const cornLegno = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.72, 0.04), legnoC); cornLegno.position.y = 0.36; cornice.add(cornLegno);
+  const foto = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.6), new THREE.MeshStandardMaterial({ map: fotoT, roughness: 0.55 })); foto.position.set(0, 0.36, 0.022); cornice.add(foto);
+  cornice.traverse(m => { if (m.isMesh) m.castShadow = true; });
+  const cera = new THREE.MeshStandardMaterial({ color: 0xe8dcc0, roughness: 0.6, emissive: 0x3a2008, emissiveIntensity: 0.3 });
+  const fiammaM = new THREE.MeshBasicMaterial({ color: 0xffb04a, toneMapped: false });
+  const fiamme = [];
+  [[-3.75, 0, IZ0 + 1.4, 0.35], [-2.35, 0.34, IZ0 + 0.45, 0.16]].forEach(([x, y, z, h]) => { const cd = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.055, h, 12), cera); cd.position.set(x, y + h / 2, z); cd.castShadow = true; g.add(cd); const fi = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), fiammaM); fi.scale.y = 2.4; fi.position.set(x, y + h + 0.05, z); g.add(fi); fiamme.push(fi); });
+  const luceTana = new THREE.PointLight(0xffa850, 7, 7, 1.5); luceTana.position.set(-3.2, 0.9, IZ0 + 1.6); g.add(luceTana);
+
+  // il nome, grande, sul fondo; e "chi sono" sopra, in rosso
+  const nome = panel(2.7, 0.9, 260, (c, w, h, ppm) => {
+    c.textAlign = 'center'; c.fillStyle = '#e8e0cc'; c.font = `bold ${0.26 * ppm}px ${FONT}`; c.fillText('EMANUELE', w / 2, h * 0.36); c.fillText('BACCIGALUPI', w / 2, h * 0.72);
+    c.fillStyle = 'rgba(232,224,204,.7)'; c.font = `${0.1 * ppm}px ${FONT}`; c.fillText('carrara, 2001', w / 2, h * 0.94);
+  });
+  nome.position.set(-2.95, 2.15, IZ0 + 0.015); g.add(nome);
+  const chi = panel(1.6, 0.45, 260, (c, w, h, ppm) => spray(c, 'chi sono', w / 2, h * 0.72, 0.26 * ppm, '#c9221d', 1220, { align: 'center', drips: 3 }));
+  chi.position.set(-2.95, 2.95, IZ0 + 0.015); g.add(chi);
+  // la biografia: un foglio appeso al fianco sinistro con una puntina
+  const BIO = ['Nato a Carrara nel 2001.', 'Teatro, musica, arti visive.', 'Attore teatrale e paroliere,', 'poi le arti multimediali alla', 'Scuola di Nuove Tecnologie per l\'Arte', 'dell\'Accademia di Belle Arti di Carrara.', '', 'Il lavoro esplora la memoria, il cosmo', 'e la percezione umana: suono e immagine', 'in esperienze immersive.'];
+  const foglio = panel(1.7, 1.25, 240, (c, w, h, ppm) => { c.fillStyle = '#e9e1cc'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(120,100,70,.25)'; c.fillRect(0, 0, w, 6); scrawl(c, BIO, w * 0.06, h * 0.13, 0.075 * ppm, 0.105 * ppm, 1230, '#1a1410', '#8a1a14', ['Carrara', 'memoria', 'cosmo']); });
+  foglio.position.set(IX0 + 0.015, 1.75, IZ0 + 1.55); foglio.rotation.y = Math.PI / 2; foglio.rotation.z = 0.03; g.add(foglio);
+  const puntina = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), new THREE.MeshStandardMaterial({ color: 0xc41a1a, metalness: 0.3, roughness: 0.4 })); puntina.position.set(IX0 + 0.04, 2.33, IZ0 + 1.55); g.add(puntina);
+
+  // i biglietti coi link, sul fianco destro: si toccano
+  const LINK = [
+    ['instagram', '@emanuele_baccigalupi', 'https://www.instagram.com/emanuele_baccigalupi/', '#c4306a'],
+    ['youtube', 'i video', 'https://www.youtube.com/@Emanuele_baccigalupi', '#c41a1a'],
+    ['scrivimi', 'emanuelebaccigalupi@gmail.com', 'mailto:emanuelebaccigalupi@gmail.com', '#3a3430'],
+    ['il sito classico', 'si scorre, non si cammina', 'sito.html', '#6a5a2a']
+  ];
+  const nTana = { id: 'tana', label: 'la tana del topo', view: view(at(-2.95, 1.6, IZ1 + 0.1), at(-2.95, 1.3, IZ0)) }; nodes.push(nTana);
+  const nLink = { id: 'biglietti', label: 'i biglietti', view: view(at(-3.4, 1.6, IZ0 + 1.6), at(IX1, 1.6, IZ0 + 1.6)) }; nodes.push(nLink);
+  LINK.forEach(([tit, sub, url, col], i) => {
+    const c = canvas(512, 128), f = c.getContext('2d');
+    f.fillStyle = '#efe7d4'; f.fillRect(0, 0, 512, 128); f.fillStyle = col; f.fillRect(0, 0, 18, 128);
+    f.fillStyle = '#1a1410'; f.font = `bold 44px ${FONT}`; f.fillText(tit, 40, 56); f.fillStyle = '#5a5048'; f.font = `24px ${FONT}`; f.fillText(sub, 40, 98);
+    f.fillStyle = col; f.font = `bold 40px ${FONT}`; f.fillText('↗', 460, 74);
+    const b = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 0.31), new THREE.MeshStandardMaterial({ map: toTex(c), roughness: 0.7, side: THREE.DoubleSide }));
+    b.position.set(IX1 - 0.015, 2.55 - i * 0.4, IZ0 + 1.6 + (i % 2 ? 0.05 : -0.05)); b.rotation.y = -Math.PI / 2; b.rotation.z = (i % 2 ? 1 : -1) * 0.03; b.castShadow = true; g.add(b);
+    interact.push({ mesh: b, label: tit + ' · ' + sub, view: nLink.view, action: () => { if (url.startsWith('mailto:') || url === 'sito.html') location.href = url; else window.open(url, '_blank', 'noopener'); } });
+  });
+  [foto, cornLegno].forEach(m => interact.push({ mesh: m, label: 'Emanuele Baccigalupi · carrara, 2001', view: nTana.view, action: () => say('Emanuele Baccigalupi. carrara, 2001. teatro, musica, arti visive') }));
+  interact.push({ mesh: foglio, label: 'chi sono', view: nTana.view, action: () => say('nato a carrara nel 2001 · teatro, musica, arti visive') });
+
+  // il topo, custode della tana
+  const casaTopo = { x: -2.35, z: IZ1 - 0.9 };
+  const T = topo(1250, 1.35); T.g.position.set(casaTopo.x, 0, casaTopo.z); T.g.rotation.y = 0; g.add(T.g);
+  const liberoTana = (x, z) => x > IX0 + 0.3 && x < IX1 - 0.3 && z > IZ0 + 0.9 && z < IZ1 - 0.2;
+  T.g.traverse(m => { if (m.isMesh) interact.push({ mesh: m, label: 'il topo', view: nTana.view, action: () => say('ti fissa. non si muove') }); });
+  // lo sportello aperto: da lì si entra
+  ante.forEach(a => { if (a.rotation.y < -1) a.traverse(m => { if (m.isMesh) interact.push({ mesh: m, label: 'lo sportello · entra nella tana', view: nTana.view, action: () => say('la tana del topo. chi sono') }); }); });
+  let tGoccia = 0;
+  const aggiornaTana = (t, dt, camL) => {
+    T.update(t, dt, camL, casaTopo, liberoTana, true);   // sta fermo e ti fissa
+    fiamme.forEach((fi, i) => { fi.scale.y = 2.4 * (0.85 + Math.sin(t * 11 + i * 3) * 0.1 + Math.sin(t * 23 + i) * 0.05); });
+    luceTana.intensity = 7 * (0.85 + Math.sin(t * 9) * 0.07 + Math.sin(t * 17.3) * 0.05);
+    tGoccia = (tGoccia + dt) % 1.8; const k = tGoccia / 1.8;
+    if (k < 0.5) { goccia.position.set(px + 0.28, 3.32 - k * 0.12, pz); goccia.scale.set(0.6 + k, 1 + k * 1.2, 0.6 + k); }
+    else { const c = (k - 0.5) / 0.5; goccia.position.set(px + 0.28, Math.max(0.03, 3.26 - c * c * 3.6), pz); goccia.scale.set(1, 1.8, 1); }
+  };
+
   // il frigo, una torre
   const fr = box(0.72 * S, 1.8 * S, 0.66 * S, new THREE.MeshStandardMaterial({ color: 0xd9d2b8, roughness: 0.4, metalness: 0.1 }), 9.5, 0.9 * S, Z0 + 0.33 * S + 0.1);
   box(0.12, 1.6, 0.25, metallo, 9.5 - 0.36 * S + 0.6, 0.9 * S + 1.5, Z0 + 0.66 * S + 0.2);
@@ -195,10 +311,6 @@ export async function buildCucina(scene, ctx) {
   const filo2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 3, 6), scuro); filo2.position.set(lb.position.x, H - 1.5, lb.position.z); g.add(filo2);
 
   /* ---------------- l'inchiostro che perde la cucina ---------------- */
-  const inkM = new THREE.MeshStandardMaterial({ color: 0x040405, roughness: 0.03, metalness: 0.4 });
-  const pozzaM = new THREE.MeshStandardMaterial({ color: 0x030304, roughness: 0.03, metalness: 0.4, transparent: true, opacity: 0.96, depthWrite: false });
-  const ri = rng(840);
-  const pozza = (x, z, rx, rz) => { const sh = new THREE.Shape(); const n = 30; for (let i = 0; i <= n; i++) { const a = i / n * Math.PI * 2, k = 0.7 + ri() * 0.4; i ? sh.lineTo(Math.cos(a) * rx * k, Math.sin(a) * rz * k) : sh.moveTo(Math.cos(a) * rx * k, Math.sin(a) * rz * k); } const m = new THREE.Mesh(new THREE.ShapeGeometry(sh), pozzaM); m.rotation.x = -Math.PI / 2; m.position.set(x, 0.01 + ri() * 0.004, z); g.add(m); return m; };
   pozza(lx, Z0 + D + 2.2, 3.4, 2.4); pozza(lx + 3.5, Z0 + D + 1.2, 1.6, 1.1); pozza(9.5, Z0 + 0.66 * S + 1.4, 2.0, 1.2); pozza(tx + 1, tz + TD / 2 + 1.5, 1.5, 0.9); pozza(-10, 6, 2.6, 1.7); pozza(6, 8.5, 1.2, 0.8);
   // colature sulle ante sotto il lavello e sul frigo
   const colM = (seed) => new THREE.MeshStandardMaterial({ map: colatura(seed), transparent: true, roughness: 0.04, metalness: 0.35, depthWrite: false });
@@ -270,12 +382,15 @@ export async function buildCucina(scene, ctx) {
   const nTavolo = { id: 'tavolo', label: 'sotto il tavolo', view: view(at(tx, 1.6, tz + 3.5), at(tx, 2.5, tz - 4)) }; nodes.push(nTavolo);
 
   const entry = view(at(-8, 1.6, Z1 - 2.2), at(0, 6, Z0));
+  const camK = new THREE.Vector3();
   return {
     Y, group: g, interact, colliders, nodes, entry,
     benvenuto: 'la cucina. sei piccolissimo, e la casa è gialla',
-    bounds: { x0: X0 + 0.5, x1: X1 - 0.5, z0: Z0 + D + 0.4, z1: Z1 - 0.5 },
-    update(t, dt) {
+    bounds: { x0: X0 + 0.5, x1: X1 - 0.5, z0: Z0 + 0.4, z1: Z1 - 0.5 },
+    update(t, dt, cam) {
       if (!g.visible) return;
+      if (cam) { camK.copy(cam.position); g.worldToLocal(camK); }
+      aggiornaTana(t, dt, camK);
       // il neon: ronza, sfarfalla, oscilla sul filo
       ne.rotation.z = Math.sin(t * 0.5) * 0.04; ne.rotation.x = Math.sin(t * 0.37) * 0.03;
       const on = !(Math.sin(t * 13) > 0.6 && Math.sin(t * 0.7) > 0) && Math.random() > 0.02;
