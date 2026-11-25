@@ -627,7 +627,7 @@
         { kind: "portal", icon: "✉", href: "mailto:emanuelebaccigalupi@gmail.com", title: "emanuelebaccigalupi@gmail.com", sub: { it: "scrivimi", en: "write to me" }, external: true },
         { kind: "portal", icon: "◐", href: "https://www.instagram.com/emanuele_baccigalupi/", title: "@emanuele_baccigalupi", sub: { it: "instagram", en: "instagram" }, external: true },
         { kind: "portal", icon: "▶", href: "https://www.youtube.com/@Emanuele_baccigalupi", title: "Canale YouTube", sub: { it: "video", en: "video" }, external: true },
-        { kind: "portal", icon: "≡", href: "index.html", title: { it: "Versione classica", en: "Classic version" }, sub: { it: "il sito come era: si scorre, non si cammina", en: "the site as it was: you scroll, you don't walk" } }
+        { kind: "portal", icon: "≡", href: "sito.html", title: { it: "Versione classica", en: "Classic version" }, sub: { it: "il sito come era: si scorre, non si cammina", en: "the site as it was: you scroll, you don't walk" } }
       ]
     },
     {

@@ -1358,7 +1358,7 @@
       room.doorL = null;
       room.doorR = null;
       room.exitSign = { x: room.maxX - 250, y: 302, w: 120, h: 50 };
-      room.exitHref = "index.html";
+      room.exitHref = "sito.html";
     }
     if (arch === "hub") {
       /* ---- quello che c'è in un giro di corridoio --------------
@@ -1894,7 +1894,7 @@
     room.exitSign2 = {
       x: hubMirror(HUB_EXIT_X, 120), y: 302, w: 120, h: 50
     };
-    room.exitHref = "index.html";
+    room.exitHref = "sito.html";
     /* l'ospite con la margherita: aspetta il treno sulla banchina,
        e cammina avanti e indietro nel tratto che gli spetta */
     room.npc = { x: 7600, tx: 7600, dir: -1, pause: 3.6, casa: [7300, 7900] };

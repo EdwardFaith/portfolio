@@ -587,7 +587,7 @@
         { type: 'txt', name: 'leggimi.txt', text: 'Qui, piano piano, nasce il museo in 3D.\nUna stanza alla volta.\n\nLa prima è Radio KaOsS.' }
       ] },
       { type: 'web', name: 'il museo.exe', href: '../museo.html' },
-      { type: 'tab', name: 'il sito.lnk', href: '../index.html' }
+      { type: 'tab', name: 'il sito.lnk', href: '../sito.html' }
     ];
     const clean = n => { if (n && n.kids) n.kids = n.kids.filter(Boolean).map(clean); return n; };
     TREE.forEach(clean);

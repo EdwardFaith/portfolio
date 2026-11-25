@@ -723,7 +723,7 @@ function checkout(method) {
 
     if (state.purchaseCount === 3) {
         setTimeout(() => {
-            window.open('../index.html', '_blank');
+            window.open('../sito.html', '_blank');
         }, 3000);
     }
 }

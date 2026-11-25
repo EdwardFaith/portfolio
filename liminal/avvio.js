@@ -1,14 +1,15 @@
 /* ============================================================
    liminal.exe — l'accensione del sito.
-   Va caricato subito dopo <body>: copre la pagina prima che si
-   veda, accende il "computer" (motore liminal), chiede l'accesso
-   (basta un click) e poi fa scegliere come entrare:
-     · sito classico  → la pagina sotto (index.html)
+   È la prima pagina (index.html) e pesa pochissimo: niente React,
+   niente Tailwind, niente radio. Accende il "computer" (motore
+   liminal), chiede l'accesso (basta un click) e poi fa scegliere
+   come entrare; ogni scelta carica UNA pagina sola:
+     · sito classico  → sito.html (il portfolio di prima)
      · sito 2D        → il gioco (museo.html)
      · sito desktop   → Zona Larga (desktop/index.html)
      · sito 3D        → in lavorazione: errore rosso, poi Radio KaOsS 3D
-   Una volta acceso, nella stessa sessione non si riaccende:
-   index.html?riavvio lo forza di nuovo.
+   Una volta acceso, nella stessa sessione si torna subito alla
+   scelta: index.html?riavvio rifà tutta l'accensione.
    L'aria è quella di un computer che non è del tutto tuo: grana,
    righe del tubo, scatti di colore, cose che guardano.
    ============================================================ */
@@ -17,8 +18,8 @@
   var q = location.search;
   var CHIAVE = 'liminal/acceso';
   var forza = /[?&](riavvio|liminal)\b/.test(q);
-  try { if (!forza && sessionStorage.getItem(CHIAVE)) return; } catch (e) { /* niente */ }
-  if (/[?&]classico\b/.test(q)) return;
+  var giaAcceso = false;
+  try { giaAcceso = !forza && !!sessionStorage.getItem(CHIAVE); } catch (e) { /* niente */ }
 
   var BASE = (document.currentScript && document.currentScript.src || '').replace(/liminal\/avvio\.js.*$/, '');
 
@@ -97,10 +98,10 @@
     '@media (prefers-reduced-motion:reduce){#liminal .grana,#liminal .sfondo{animation:none}}';
 
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
+  // tornando indietro col browser la pagina si riprende dalla cache: niente schermo nero
+  addEventListener('pageshow', function (e) { if (e.persisted && L) L.style.opacity = '1'; });
   var L = document.createElement('div'); L.id = 'liminal'; L.setAttribute('role', 'dialog'); L.setAttribute('aria-label', 'liminal.exe');
   document.body.insertBefore(L, document.body.firstChild);
-  var htmlOv = document.documentElement.style.overflow;
-  document.documentElement.style.overflow = 'hidden';
 
   var RUOTA = '<div class="ruota">' + [0, 1, 2, 3, 4].map(function (i) { return '<i style="animation-delay:' + (i * 0.12) + 's"></i>'; }).join('') + '</div>';
   var GRANA = '<div class="grana" aria-hidden="true"></div>';
@@ -112,7 +113,8 @@
     if (Math.random() < 0.45) { L.classList.add('scatto'); setTimeout(function () { L.classList.remove('scatto'); }, 170); }
   }, 2300);
 
-  /* 1 · l'accensione */
+  /* 1 · l'accensione (chi l'ha già vista in questa visita va dritto alla scelta) */
+  if (giaAcceso) { scegli(); return; }
   var righe = [
     'liminal bios 0.9 · memoria ok',
     'monto /artista ...',
@@ -135,7 +137,7 @@
     var ora = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
     L.innerHTML = GRANA + '<div class="sfondo"></div>';
     var g = document.createElement('div'); g.className = 'fase login';
-    g.innerHTML = '<div class="avatar" style="background-image:url(' + BASE + 'immagini/io.png)"></div><div class="utente">artista</div>' +
+    g.innerHTML = '<div class="avatar" style="background-image:url(' + BASE + 'liminal/artista.jpg)"></div><div class="utente">artista</div>' +
       '<button type="button" class="accedi">Accedi</button>' +
       '<div class="ora"><b>' + ora + '</b>' + d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }) + '</div>';
     L.appendChild(g);
@@ -191,10 +193,9 @@
       if (v === 'gioco') { location.href = BASE + 'museo.html'; return; }
       if (v === 'desktop') { location.href = BASE + 'desktop/index.html?acceso'; return; }
       if (v === 'tre') { errore3D(); return; }
-      // il sito classico: lo schermo si spegne e sotto c'è la pagina
-      if (/[?&](riavvio|liminal)\b/.test(location.search)) history.replaceState(null, '', location.pathname + location.hash);
+      // il sito classico: lo schermo si spegne e si apre l'altra pagina
       L.style.opacity = '0';
-      setTimeout(function () { L.remove(); st.remove(); document.documentElement.style.overflow = htmlOv; }, 620);
+      setTimeout(function () { location.href = BASE + 'sito.html'; }, 380);
     });
     var primo = f.querySelector('.scelta'); if (primo && matchMedia('(pointer:fine)').matches) primo.focus();
   }

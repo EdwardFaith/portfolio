@@ -593,7 +593,7 @@ function buildMenu() {
     // Bottone TORNA AL SITO (interno al menu, in alto)
     const backBtn = document.createElement('a');
     backBtn.id = 'rk-back-home';
-    backBtn.href = '../index.html';
+    backBtn.href = '../sito.html';
     backBtn.textContent = 'TORNA AL SITO';
     backBtn.className = 'rk-item';
     backBtn.style.cssText = 'text-decoration:none; display:block; text-align:center; font-family:Syncopate,sans-serif; font-size:10px; letter-spacing:3px; padding:15px; border-bottom:1px solid #222; background:rgba(40,0,0,0.2); color:#fff;';

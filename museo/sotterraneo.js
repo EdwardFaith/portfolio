@@ -374,7 +374,7 @@
       T.leave();
       if (M.BAR && M.BAR.afterHatch) M.BAR.afterHatch();
       else if (M.GAME && M.GAME.exit) M.GAME.exit();
-      else root.location.href = "index.html";
+      else root.location.href = "sito.html";
     }, 1150);
   }
   T.capture = capture;

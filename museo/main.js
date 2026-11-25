@@ -1330,7 +1330,7 @@
         else illustrazione(w, rn);
       } else if (w.kind === "portal") {
         /* i link personali restano nella sala contatti: qui ci sono i giochi */
-        if (w.href && !w.external && w.href !== "index.html") gioco(w);
+        if (w.href && !w.external && w.href !== "sito.html") gioco(w);
       } else if (w.kind === "quiz") {
         if (once("quiz")) GI.push({
           kind: "quiz", k: "?", t: om("il questionario", "the questionnaire"),
@@ -2242,7 +2242,7 @@
     var dove = SITE_DOOR[room && room.id] || "home";
     toast(say("hud.out.going") || "si esce dal museo");
     setTimeout(function () {
-      root.location.href = "index.html#" + dove;
+      root.location.href = "sito.html#" + dove;
     }, 150);
   }
   G.exit = leaveToSite;
@@ -2271,7 +2271,7 @@
       if (mode !== "walk") closeFocus();
       go(pick.id);
     }, {
-      site: "index.html",
+      site: "sito.html",
       onSite: function () { leaveToSite(); }
     });
   }

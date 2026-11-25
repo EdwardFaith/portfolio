@@ -6,11 +6,17 @@ Un progetto artistico multimediale interattivo che fonde teatro, narrativa noir/
 
 ## 🏛️ Struttura dell'Esperienza
 
-1. **Portfolio Principale (`index.html`)**
-   - Il sito-portfolio dell'artista.
-   - **Easter Egg Dinamico**: un coniglio bianco (`🐇`) appare vicino alla home, insegue il cursore dell'utente per 10 secondi e fugge quando braccato da un ragno gigante che lo insegue fuori dallo schermo. Cliccandolo si accede al Museo!
+0. **liminal.exe (`index.html` + `liminal/avvio.js`)**
+   - La prima pagina è il computer: accensione, login (un click) e la scelta
+     fra sito classico (`sito.html`), sito 2D (`museo.html`), sito desktop
+     (`desktop/index.html`) e sito 3D (in lavorazione → `radio-kaoss.html`).
+   - Pesa ~30 KB: le pagine pesanti si caricano solo quando si sceglie, una alla volta.
+     `index.html?riavvio` rifà l'accensione; nella stessa visita si va dritti alla scelta.
+
+1. **Portfolio Principale (`sito.html`)**
+   - Il sito-portfolio dell'artista (il "sito classico").
    - **Canzoni & Audio**: le venti canzoni di Radio Kaoss sono una fila sola
-     (`radioRow`, dentro `index.html`). Play e pausa fermano il pezzo dov'è — `src`
+     (`radioRow`, dentro `sito.html`). Play e pausa fermano il pezzo dov'è — `src`
      non si riassegna e `currentTime` resta quello — e quando una finisce parte la
      successiva; dopo l'ultima si ricomincia dalla prima, senza fermarsi.
    - **Gli spot nella fila**: ogni quattro canzoni passa una pubblicità (`adFiles`,
