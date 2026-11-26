@@ -442,7 +442,7 @@ export async function buildCameretta(scene, ctx) {
   tv(X0 + 0.48, 1.4, Z1 - 0.45, Math.PI * 0.8, 0.26, 0.2, '#ff3a5a', 923);
   colliders.push({ x: X0 + 0.45, z: Z1 - 0.5, w: 0.8, d: 0.7 });
   tv(X1 - 0.03, 1.75, sz0, -Math.PI / 2, 0.9, 0.5, '#3aff6a', 924);
-  tv(-0.6, 2.35, Z1 - 0.03, Math.PI, 0.7, 0.3, '#ff3a5a', 925);
+  tv(0.35, 2.35, Z1 - 0.03, Math.PI, 0.7, 0.3, '#ff3a5a', 925);
   // i cavi che pendono
   const cavoM = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.6 });
   [[X1 - 0.05, sz0 - 0.3], [X1 - 0.05, sz0 + 0.3], [X0 + 0.4, Z1 - 0.3]].forEach(([x, z], i) => { const curva = new THREE.CatmullRomCurve3([new THREE.Vector3(x, H, z), new THREE.Vector3(x - 0.15, H - 0.6 - i * 0.2, z + 0.1), new THREE.Vector3(x - 0.05, 1.3, z - 0.05)]); const m = new THREE.Mesh(new THREE.TubeGeometry(curva, 20, 0.012, 6), cavoM); g.add(m); });
@@ -551,12 +551,13 @@ export async function buildCameretta(scene, ctx) {
 
   /* ---------------- la porta per tornare nel corridoio ---------------- */
   const porta = portaLive('CORRIDOIO');
-  porta.position.set(-1.7, 0, Z1 - 0.02); porta.rotation.y = Math.PI; g.add(porta);
-  const nPorta = { id: 'porta', label: 'la porta', view: view(at(-1.7, 1.6, Z1 - 1.4), at(-1.7, 1.3, Z1)) }; nodes.push(nPorta);
+  // lontana dalla pila di televisori: l'anta socchiusa non ci sbatte
+  porta.position.set(-1.0, 0, Z1 - 0.02); porta.rotation.y = Math.PI; g.add(porta);
+  const nPorta = { id: 'porta', label: 'la porta', view: view(at(-1.0, 1.6, Z1 - 1.4), at(-1.0, 1.3, Z1)) }; nodes.push(nPorta);
   porta.traverse(m => { if (m.isMesh) interact.push({ mesh: m, label: 'la porta · torna nel corridoio', view: nPorta.view, action: () => ctx.alCorridoio && ctx.alCorridoio('cosmo') }); });
   const nFinestra = { id: 'finestra', label: 'la finestra', view: view(at(1.2, 1.6, Z0 + 0.9), at(1.5, 2.0, Z0 - 5)) }; nodes.push(nFinestra);
 
-  const entry = view(at(-1.7, 1.6, Z1 - 1.1), at(0.6, 1.5, Z0));
+  const entry = view(at(-1.0, 1.6, Z1 - 1.1), at(0.6, 1.5, Z0));
   const camL = new THREE.Vector3(), occhioW = new THREE.Vector3(), dirO = new THREE.Vector3();
   let fr = 0, battito = 0;
   return {
