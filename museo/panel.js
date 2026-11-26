@@ -1663,47 +1663,77 @@ P.book = function (work, key, onClose) {
       "tutte le sezioni del museo, in una riga. si sceglie, e si va.") + "</p>");
     h.push("</div>");
 
-    /* LA RETE — le sezioni sono neuroni, le porte sono sinapsi.
-       I nodi stanno su una spirale larga (deterministica: la mappa e'
-       sempre la stessa), ognuno e' legato al seguente e a uno piu' in
-       la'; lungo i fili corrono impulsi. Il nodo dove sei pulsa. */
-    var n = rooms.length, pos = [], VW = 1000, VH = 640;
-    for (i = 0; i < n; i++) {
-      var t = n > 1 ? i / (n - 1) : 0.5;
-      var ang = -Math.PI / 2 + t * Math.PI * 3.1;
-      var rad = 0.12 + 0.88 * t;
-      var jx = Math.sin(i * 12.9898) * 0.05, jy = Math.cos(i * 78.233) * 0.05;
-      pos.push({
-        x: Math.max(0.08, Math.min(0.92, 0.5 + Math.cos(ang) * rad * 0.44 + jx)),
-        y: Math.max(0.09, Math.min(0.90, 0.5 + Math.sin(ang) * rad * 0.42 + jy))
-      });
+    /* LA TELA — le sezioni sono cartelle del computer, appese a una
+       ragnatela. Il corridoio sta al centro, dove sta il ragno; le
+       altre cartelle stanno ognuna sul suo raggio, a due altezze
+       alternate, cosi' i nomi non si pestano. La tela si disegna con i
+       raggi e i giri che si incurvano verso il centro, come il filo
+       vero che si tende fra un raggio e l'altro. */
+    var n = rooms.length, pos = [], VW = 1000, VH = 640, CX = 500, CY = 320, RX = 470, RY = 300;
+    var S = Math.max(6, n - 1), giro0 = -Math.PI / 2 + Math.PI / S;
+    var raggio = function (k) { return giro0 + k * 2 * Math.PI / S; };
+    /* le cartelle principali hanno un raggio ciascuna; le sottocartelle
+       (parent) pendono sul raggio della madre, piu' in fuori */
+    var idx = {}, figli = {}, princ = [];
+    for (i = 0; i < n; i++) idx[rooms[i].id] = i;
+    for (i = 1; i < n; i++) {
+      if (rooms[i].parent && idx[rooms[i].parent] != null) (figli[rooms[i].parent] = figli[rooms[i].parent] || []).push(i);
+      else princ.push(i);
     }
-    var link = [];
-    for (i = 0; i < n - 1; i++) link.push([i, i + 1]);
-    for (i = 0; i < n - 3; i += 2) link.push([i, i + 3]);
-    for (i = 2; i < n; i++) link.push([0, i]);
-    var svg = ['<svg class="neuro-fili" viewBox="0 0 ' + VW + ' ' + VH + '" preserveAspectRatio="none" aria-hidden="true">'];
-    for (i = 0; i < link.length; i++) {
-      var A = pos[link[i][0]], B = pos[link[i][1]];
-      var ax = A.x * VW, ay = A.y * VH, bx = B.x * VW, by = B.y * VH;
-      var mx = (ax + bx) / 2 + (ay - by) * 0.18, my = (ay + by) / 2 + (bx - ax) * 0.18;
-      var d = "M" + ax.toFixed(1) + " " + ay.toFixed(1) + " Q" + mx.toFixed(1) + " " + my.toFixed(1) + " " + bx.toFixed(1) + " " + by.toFixed(1);
-      var vivo = (link[i][0] === cur || link[i][1] === cur);
-      var nucleo = link[i][0] === 0 && link[i][1] > 1;
-      svg.push('<path class="filo' + (vivo ? " vivo" : "") + (nucleo ? " nucleo" : "") + '" d="' + d + '"/>');
-      if (!nucleo || vivo) {
-        var dur = (2.2 + (i % 5) * 0.7).toFixed(1);
-        svg.push('<circle class="impulso' + (vivo ? " vivo" : "") + '" r="' + (vivo ? 4 : 2.6) + '"><animateMotion dur="' + dur + 's" begin="-' + (i * 0.37 % 3).toFixed(2) + 's" repeatCount="indefinite" path="' + d + '"/></circle>');
+    S = Math.max(6, princ.length);
+    giro0 = -Math.PI / 2 + Math.PI / S;
+    var ang = [], rr = [];
+    pos[0] = { x: 0.5, y: 0.5 };
+    for (var q = 0; q < princ.length; q++) {
+      var j = princ[q], a = raggio(q), haFigli = !!figli[rooms[j].id];
+      var r = haFigli ? 0.46 : ((q % 2) ? 0.80 : 0.54);
+      ang[j] = a; rr[j] = r;
+      pos[j] = { x: (CX + Math.cos(a) * RX * r) / VW, y: (CY + Math.sin(a) * RY * r) / VH };
+      var fs = figli[rooms[j].id] || [];
+      for (var f = 0; f < fs.length; f++) {
+        var af = a + (f - (fs.length - 1) / 2) * 0.28, rf = 0.86;
+        ang[fs[f]] = af; rr[fs[f]] = rf;
+        pos[fs[f]] = { x: (CX + Math.cos(af) * RX * rf) / VW, y: (CY + Math.sin(af) * RY * rf) / VH };
       }
     }
+    var svg = ['<svg class="tela-fili" viewBox="0 0 ' + VW + ' ' + VH + '" preserveAspectRatio="none" aria-hidden="true">'];
+    var k, g;
+    for (k = 0; k < S; k++) {
+      var aa = raggio(k);
+      svg.push('<line class="raggio" x1="' + CX + '" y1="' + CY + '" x2="' + (CX + Math.cos(aa) * RX * 1.15).toFixed(1) + '" y2="' + (CY + Math.sin(aa) * RY * 1.15).toFixed(1) + '"/>');
+    }
+    var GIRI = [0.14, 0.26, 0.38, 0.52, 0.66, 0.80, 0.94, 1.08];
+    for (g = 0; g < GIRI.length; g++) {
+      var d = "";
+      for (k = 0; k <= S; k++) {
+        var r1 = GIRI[g] * (1 + 0.025 * Math.sin(k * 2.3 + g)), a1 = raggio(k);
+        var x1 = CX + Math.cos(a1) * RX * r1, y1 = CY + Math.sin(a1) * RY * r1;
+        if (!k) { d = "M" + x1.toFixed(1) + " " + y1.toFixed(1); continue; }
+        var a0 = raggio(k - 1), am = (a0 + a1) / 2, rm = r1 * 0.86;
+        d += " Q" + (CX + Math.cos(am) * RX * rm).toFixed(1) + " " + (CY + Math.sin(am) * RY * rm).toFixed(1) + " " + x1.toFixed(1) + " " + y1.toFixed(1);
+      }
+      svg.push('<path class="giro" d="' + d + '"/>');
+    }
+    /* il filo che appende ogni sottocartella alla sua cartella */
+    for (i = 1; i < n; i++) {
+      if (!rooms[i].parent || idx[rooms[i].parent] == null) continue;
+      var m = pos[idx[rooms[i].parent]];
+      svg.push('<line class="filo-sotto" x1="' + (m.x * VW).toFixed(1) + '" y1="' + (m.y * VH).toFixed(1) + '" x2="' + (pos[i].x * VW).toFixed(1) + '" y2="' + (pos[i].y * VH).toFixed(1) + '"/>');
+    }
+    /* il filo che lega la cartella dove sei al centro: si vede di piu' */
+    if (cur > 0 && pos[cur]) svg.push('<line class="filo-qui" x1="' + CX + '" y1="' + CY + '" x2="' + (pos[cur].x * VW).toFixed(1) + '" y2="' + (pos[cur].y * VH).toFixed(1) + '"/>');
     svg.push("</svg>");
 
-    h.push('<div class="p-body"><div class="dest map neuro">');
+    var cartella = '<svg class="cartella-ico" viewBox="0 0 48 38" aria-hidden="true">' +
+      '<path class="c-dietro" d="M2 6a3 3 0 0 1 3-3h13l4 5h21a3 3 0 0 1 3 3v22a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z"/>' +
+      '<path class="c-davanti" d="M2 13a3 3 0 0 1 3-3h38a3 3 0 0 1 3 3v19a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z"/></svg>';
+
+    h.push('<div class="p-body"><div class="dest map tela">');
     h.push(svg.join(""));
     for (i = 0; i < n; i++) {
-      h.push('<button type="button" class="nodo' + (i === cur ? " here" : "") +
+      h.push('<button type="button" class="cartella' + (i === cur ? " here" : "") + (i === 0 ? " centro" : "") + (rooms[i].parent ? " sotto" : "") +
         '" data-room="' + i + '" style="left:' + (pos[i].x * 100).toFixed(2) + '%;top:' + (pos[i].y * 100).toFixed(2) + '%">' +
-        '<span class="nodo-c"><span class="go-n">' + esc(rooms[i].num) + "</span></span>" +
+        '<span class="cartella-c">' + cartella + '<span class="go-n">' + esc(rooms[i].num) + "</span></span>" +
         '<span class="go-t">' + esc(lang.x(rooms[i].title, "room." + rooms[i].id + ".title")) + "</span>" +
         (i === cur ? '<span class="go-here">' + esc(lang.t("car.here") || "sei qui") + "</span>" : "") +
         "</button>");

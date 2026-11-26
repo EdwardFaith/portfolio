@@ -1776,66 +1776,61 @@ body.desktop-device #touch { display: none; }
 
 
 /* ============================================================
-   LA MAPPA COME RETE NEURALE — le sezioni sono neuroni
+   LA MAPPA — cartelle del computer appese a una ragnatela
    ============================================================ */
 .card-map { width: min(980px, 94vw) !important; max-width: none !important; }
 .card-map .p-body { max-height: none; }
-.dest.map.neuro {
+.dest.map.tela {
   position: relative; display: block; width: 100%;
   aspect-ratio: 1000 / 640; max-height: calc(100dvh - 210px); min-height: 300px;
-  background:
-    radial-gradient(ellipse at 50% 50%, rgba(196,33,28,.16), transparent 62%),
-    radial-gradient(circle at 20% 80%, rgba(80,120,255,.07), transparent 40%),
-    #050405;
-  border: 1px solid rgba(196,33,28,.35);
-  border-radius: 14px; overflow: hidden;
-  box-shadow: inset 0 0 60px rgba(0,0,0,.9), 0 0 40px rgba(196,33,28,.12);
+  background: radial-gradient(ellipse at 50% 50%, #17191c 0%, #0b0c0e 55%, #050506 100%);
+  border: 1px solid rgba(235,228,209,.16); border-radius: 10px; overflow: hidden;
+  box-shadow: inset 0 0 70px rgba(0,0,0,.85);
 }
-.neuro-fili { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.neuro-fili .filo { fill: none; stroke: rgba(230,90,80,.30); stroke-width: 1.3; vector-effect: non-scaling-stroke; }
-.neuro-fili .filo.nucleo { stroke: rgba(230,90,80,.10); stroke-dasharray: 2 6; }
-.neuro-fili .filo.vivo { stroke: rgba(255,120,100,.8); stroke-width: 2; filter: drop-shadow(0 0 4px rgba(255,60,40,.8)); }
-.neuro-fili .impulso { fill: #ff8a70; opacity: .85; filter: drop-shadow(0 0 5px #ff3b2a); }
-.neuro-fili .impulso.vivo { fill: #fff1e8; }
-.dest.map.neuro .nodo {
+.tela-fili { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.tela-fili .raggio, .tela-fili .giro { fill: none; stroke: rgba(225,222,212,.24); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.tela-fili .giro { stroke: rgba(225,222,212,.16); }
+.tela-fili .filo-qui { stroke: rgba(255,120,100,.85); stroke-width: 1.6; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 3px rgba(255,60,40,.7)); }
+.dest.map.tela .cartella {
   position: absolute; transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  background: none; border: 0; padding: 4px; cursor: pointer; color: #e9e2da;
-  font: inherit; z-index: 1; max-width: 24%;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: none; border: 0; padding: 4px 6px; border-radius: 6px; cursor: pointer;
+  color: #e9e2da; font: inherit; z-index: 1; max-width: 22%;
 }
-.dest.map.neuro .nodo-c {
-  width: 34px; height: 34px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: radial-gradient(circle at 35% 30%, #ff9a85, #c4211c 55%, #3a0606 100%);
-  box-shadow: 0 0 0 1px rgba(255,160,140,.5), 0 0 14px rgba(255,50,30,.55);
-  transition: transform .18s ease, box-shadow .18s ease;
+.dest.map.tela .cartella-c { position: relative; width: 48px; height: 38px; transition: transform .16s ease; }
+.cartella-ico { width: 100%; height: 100%; display: block; filter: drop-shadow(0 3px 4px rgba(0,0,0,.7)); }
+.cartella-ico .c-dietro { fill: #b98c2e; }
+.cartella-ico .c-davanti { fill: #e2b54a; }
+.dest.map.tela .go-n {
+  position: absolute; left: 0; right: 0; bottom: 6px; text-align: center;
+  font-size: 10px; font-weight: 700; color: #3b2a07; letter-spacing: .02em;
 }
-.dest.map.neuro .go-n { font-size: 11px; font-weight: 700; color: #fff; letter-spacing: .02em; }
-.dest.map.neuro .go-t {
-  font-size: 11px; line-height: 1.15; text-align: center; text-transform: uppercase; letter-spacing: .06em;
-  background: rgba(5,4,5,.8); padding: 2px 6px; border-radius: 4px; white-space: nowrap;
-  overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+.dest.map.tela .go-t {
+  font-size: 11px; line-height: 1.15; text-align: center; letter-spacing: .03em;
+  padding: 1px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+  background: rgba(5,5,6,.7); text-shadow: 0 1px 2px #000;
 }
-.dest.map.neuro .go-here { font-size: 9px; color: #ff8a70; letter-spacing: .14em; text-transform: uppercase; }
-.dest.map.neuro .nodo:hover .nodo-c, .dest.map.neuro .nodo:focus-visible .nodo-c {
-  transform: scale(1.22); box-shadow: 0 0 0 2px #fff, 0 0 26px rgba(255,80,50,.95);
-}
-.dest.map.neuro .nodo:focus-visible { outline: none; }
-.dest.map.neuro .nodo.here .nodo-c {
-  width: 44px; height: 44px; background: radial-gradient(circle at 35% 30%, #fff, #ff6a50 45%, #7a0b08 100%);
-  animation: neuro-batte 1.6s ease-in-out infinite;
-}
-@keyframes neuro-batte {
-  0%, 100% { box-shadow: 0 0 0 1px #fff, 0 0 16px rgba(255,80,50,.7), 0 0 0 0 rgba(255,80,50,.5); }
-  50% { box-shadow: 0 0 0 1px #fff, 0 0 30px rgba(255,80,50,1), 0 0 0 12px rgba(255,80,50,0); }
-}
+.dest.map.tela .go-here { font-size: 9px; color: #ff8a70; letter-spacing: .14em; text-transform: uppercase; }
+.dest.map.tela .cartella:hover, .dest.map.tela .cartella:focus-visible { background: rgba(110,150,230,.18); outline: 1px dotted rgba(170,200,255,.7); }
+.dest.map.tela .cartella:hover .cartella-c { transform: translateY(-2px) scale(1.06); }
+.dest.map.tela .cartella:hover .go-t, .dest.map.tela .cartella:focus-visible .go-t { background: #2a5bd7; color: #fff; }
+.dest.map.tela .cartella.here .c-dietro { fill: #8f1612; }
+.dest.map.tela .cartella.here .c-davanti { fill: #c4211c; }
+.dest.map.tela .cartella.here .go-n { color: #fff; }
+.dest.map.tela .cartella.centro .cartella-c { width: 58px; height: 46px; }
 @media (max-width: 700px), (max-height: 500px) {
-  .dest.map.neuro { aspect-ratio: auto; height: calc(100dvh - 190px); }
-  .dest.map.neuro .nodo-c { width: 26px; height: 26px; }
-  .dest.map.neuro .nodo.here .nodo-c { width: 34px; height: 34px; }
-  .dest.map.neuro .go-t { font-size: 9px; }
+  .dest.map.tela { aspect-ratio: auto; height: calc(100dvh - 190px); }
+  .dest.map.tela .cartella-c { width: 36px; height: 29px; }
+  .dest.map.tela .cartella.centro .cartella-c { width: 44px; height: 35px; }
+  .dest.map.tela .go-t { font-size: 9px; }
+  .dest.map.tela .go-n { font-size: 8px; bottom: 4px; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .neuro-fili .impulso { display: none; }
-  .dest.map.neuro .nodo.here .nodo-c { animation: none; }
+
+/* le sottocartelle: piu' piccole, appese alla madre con un filo */
+.tela-fili .filo-sotto { stroke: rgba(226,181,74,.7); stroke-width: 1.4; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.dest.map.tela .cartella.sotto .cartella-c { width: 36px; height: 29px; }
+.dest.map.tela .cartella.sotto .go-t { font-size: 10px; color: #d9cfa8; }
+.dest.map.tela .cartella.sotto .go-n { font-size: 8px; bottom: 4px; }
+@media (max-width: 700px), (max-height: 500px) {
+  .dest.map.tela .cartella.sotto .cartella-c { width: 28px; height: 22px; }
 }
