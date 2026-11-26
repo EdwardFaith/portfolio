@@ -297,7 +297,7 @@ async function build() {
   let gestoFatto = false;
   async function dopoIlGesto() {
     if (gestoFatto) return; gestoFatto = true;
-    { try { const de = document.documentElement; if (!document.fullscreenElement) await (de.requestFullscreen ? de.requestFullscreen({ navigationUI: "hide" }) : de.webkitRequestFullscreen && de.webkitRequestFullscreen()); } catch (e) { } try { screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {}); } catch (e) { } await viaggio.enableGyro(); }
+    { try { const de = document.documentElement; if (!document.fullscreenElement) await (de.requestFullscreen ? de.requestFullscreen({ navigationUI: "hide" }) : de.webkitRequestFullscreen && de.webkitRequestFullscreen()); } catch (e) { } await viaggio.enableGyro(); }
     try { await listener.context.resume(); } catch (e) { }
   }
   $('entra-btn').addEventListener('click', async () => {
