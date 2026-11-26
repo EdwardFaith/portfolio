@@ -28,7 +28,7 @@ const $ = id => document.getElementById(id);
 const COTTURA = new URLSearchParams(location.search).get('cuoci');
 const mobile = COTTURA ? COTTURA === 'telefono' : (matchMedia('(pointer: coarse)').matches || innerWidth < 820);
 // i tasti a schermo (levetta, sparo, ricarica): solo dove si gioca col dito. Su un computer, anche con la finestra stretta, mai
-const touch = matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
+const touch = COTTURA ? COTTURA === 'telefono' : (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || matchMedia('(hover: none)').matches || (navigator.maxTouchPoints > 1 && matchMedia('(pointer: coarse)').matches));   // telefoni e tablet: anche quelli che dicono di avere un puntatore fine
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const quality = { high: !mobile };
 Q.ppm = quality.high ? 170 : 72; Q.aniso = quality.high ? 8 : 2;
