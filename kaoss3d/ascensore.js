@@ -113,8 +113,8 @@ export async function buildAscensore(scene, ctx) {
     viaggio = { t: 0, gi, m };
   }
   // le porte aperte riportano nel corridoio
-  ante.forEach(({ a }) => interact.push({ mesh: a, label: 'le porte · torna nel corridoio', view: null, action: () => { if (!viaggio && apertura > 0.8) ctx.alCorridoio && ctx.alCorridoio('codice'); } }));
-  interact.push({ mesh: fuori, label: 'il corridoio', view: null, action: () => { if (!viaggio && apertura > 0.8) ctx.alCorridoio && ctx.alCorridoio('codice'); } });
+  ante.forEach(({ a }) => interact.push({ mesh: a, label: 'le porte · torna nella hall', view: null, action: () => { if (!viaggio && apertura > 0.8) (ctx.allaHall ? ctx.allaHall() : ctx.entra && ctx.entra('codice')); } }));
+  interact.push({ mesh: fuori, label: 'la hall', view: null, action: () => { if (!viaggio && apertura > 0.8) (ctx.allaHall ? ctx.allaHall() : ctx.entra && ctx.entra('codice')); } });
 
   const entry = view(at(0.35, 1.6, Z1 - 0.55), at(X0, 1.3, -0.6));
   const PIANI = ['V', 'IV', 'III', '-1', '-2', '-7', '-13', '-40', '-99', '∞'];

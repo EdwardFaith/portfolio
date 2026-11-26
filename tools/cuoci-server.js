@@ -11,6 +11,8 @@
        http://localhost:8091/radio-kaoss.html?cuoci=desktop&parte=visual (il cinema)
        http://localhost:8091/radio-kaoss.html?cuoci=desktop&parte=chi    (la cucina)
        http://localhost:8091/radio-kaoss.html?cuoci=desktop&parte=cosmo  (la cameretta)
+       http://localhost:8091/radio-kaoss.html?cuoci=desktop&parte=codice (la hall dell'hotel)
+       http://localhost:8091/radio-kaoss.html?cuoci=desktop&parte=lift   (l'ascensore)
    Basta ricuocere la parte della stanza cambiata (se cambia la base, tutte).
    Aspetta la scritta «cottura finita». Le immagini e il manifest
    finiscono in kaoss3d/tex/: vanno pubblicate insieme al sito.

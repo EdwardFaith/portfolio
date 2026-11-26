@@ -432,7 +432,7 @@ export async function buildGioco1(scene, ctx) {
   const cabinaLuce = new THREE.Mesh(new THREE.PlaneGeometry(1.36, 2.25), new THREE.MeshBasicMaterial({ color: 0xd8e0f0, toneMapped: false })); cabinaLuce.position.set(0, 1.125, RZ + 0.28); cabinaLuce.rotation.y = Math.PI; landa.add(cabinaLuce);
   const luceAsc = new THREE.PointLight(0xc8d4f0, 4, 5, 1.6); luceAsc.position.set(0, 1.8, RZ - 0.3); landa.add(luceAsc);
   const nAsc = { id: 'ascensore', label: 'l\'ascensore', view: view(at(0, 1.6, RZ - 1.4), at(0, 1.2, RZ)) }; nodes.push(nAsc);
-  const torna = () => { chiudiDialogo(); ctx.entra && ctx.entra('codice'); };
+  const torna = () => { chiudiDialogo(); ctx.entra && ctx.entra('lift'); };
   [...anteA.map(q => q.a), cabinaLuce].forEach(m => interact.push({ mesh: m, label: 'l\'ascensore · torna su', view: nAsc.view, action: torna }));
   const fioca = new THREE.HemisphereLight(0x4a5878, 0x0a0806, 2.6); landa.add(fioca);
   await tick();

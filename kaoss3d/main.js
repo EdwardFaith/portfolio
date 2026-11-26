@@ -55,7 +55,7 @@ async function build() {
   // in cottura: ?parte=base cuoce sala, stanza del live e corridoio; ?parte=<porta> una stanza sola
   // (la base è già cotta e arriva dalla cache: così la memoria basta)
   const PARTE = new URLSearchParams(location.search).get('parte') || 'base';
-  const ZONE_PARTE = { base: ['sala', 'live', 'corridoio'], visual: ['cinema'], chi: ['cucina'], cosmo: ['cameretta'], codice: ['ascensore'], gioco1: ['gioco1'] };
+  const ZONE_PARTE = { base: ['sala', 'live', 'corridoio'], visual: ['cinema'], chi: ['cucina'], cosmo: ['cameretta'], codice: ['hotel'], lift: ['ascensore'], gioco1: ['gioco1'], bunker: ['bunker'], piazza: ['piazza'] };
   if (COTTURA) registraCottura(ZONE_PARTE[PARTE] || []);
   if ((!COTTURA || PARTE !== 'base') && !/[?&]senzacache\b/.test(location.search)) {
     status('le immagini…');
@@ -126,8 +126,11 @@ async function build() {
     visual: { zona: 'cinema', file: './cinema.js', fn: 'buildCinema', nome: 'il cinema' },
     chi: { zona: 'cucina', file: './cucina.js', fn: 'buildCucina', nome: 'la cucina' },
     cosmo: { zona: 'cameretta', file: './cameretta.js', fn: 'buildCameretta', nome: 'la cameretta' },
-    codice: { zona: 'ascensore', file: './ascensore.js', fn: 'buildAscensore', nome: 'l\'ascensore' },
-    gioco1: { zona: 'gioco1', file: './gioco1.js', fn: 'buildGioco1', nome: 'il fanciullo' }
+    codice: { zona: 'hotel', file: './hotel.js', fn: 'buildHotel', nome: 'la hall dell\'hotel' },   // la porta V: prima la hall, poi l'ascensore
+    lift: { zona: 'ascensore', file: './ascensore.js', fn: 'buildAscensore', nome: 'l\'ascensore' },
+    gioco1: { zona: 'gioco1', file: './gioco1.js', fn: 'buildGioco1', nome: 'il fanciullo' },
+    bunker: { zona: 'bunker', file: './bunker.js', fn: 'buildBunker', nome: 'il bunker' },   // dietro il vault della hall
+    piazza: { zona: 'piazza', file: './piazza.js', fn: 'buildPiazza', nome: 'la piazza' }   // fuori dal bunker: un'altra zona, si carica solo quando ci arrivi
   };
   const zona = () => {
     const y = camera.position.y - 1.6; let best = 'sala', bd = 1e9;
@@ -171,6 +174,7 @@ async function build() {
   const blockers = [...sala.colliders, { x: -3.5, z: 5.3, w: 1.2, d: 0.6 }];
   function freeSpot(x, z) {
     const st = STANZE[zona()].obj;
+    if (st && st.libero) return st.libero(x, z);   // le stanze con una forma loro (il bunker: corridoio + piazza)
     if (st) {   // nella stanza del live o nel corridoio: i suoi muri e le sue cose
       const b = st.bounds;
       if (x < b.x0 || x > b.x1 || z < b.z0 || z > b.z1) return false;
@@ -184,7 +188,9 @@ async function build() {
     const r = renderer.domElement.getBoundingClientRect();
     ndc.set((x - r.left) / r.width * 2 - 1, -(y - r.top) / r.height * 2 + 1);
     ray.setFromCamera(ndc, camera);
+    const visibile = o => { for (; o; o = o.parent) if (!o.visible) return false; return true; };
     for (const h of ray.intersectObjects(scene.children, true)) {
+      if (!visibile(h.object)) continue;   // le cose nascoste non fermano il dito
       if (h.object.isPoints || h.object.isSprite || h.object.isLine || (h.object.material && h.object.material.blending === THREE.AdditiveBlending)) continue;
       const it = interact.find(i => i.mesh === h.object);
       if (!it && h.object.isMesh && h.object.material && h.object.material.transparent && h.object.material.opacity < 0.6) continue;   // i vetri non fermano il dito

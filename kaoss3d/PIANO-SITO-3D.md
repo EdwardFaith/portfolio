@@ -139,7 +139,7 @@ Allora si **cuociono** una volta in immagini WebP: `kaoss3d/tex/desktop/` e `kao
 **Dopo aver cambiato una stanza, ricuocila** (se cambia la base — sala, stanza del live, corridoio — ricuoci tutto, base per prima):
 ```
 node tools/cuoci-server.js
-http://localhost:8091/radio-kaoss.html?cuoci=desktop&parte=base     (poi parte=visual, chi, cosmo)
-http://localhost:8091/radio-kaoss.html?cuoci=telefono&parte=base    (poi parte=visual, chi, cosmo)
+http://localhost:8091/radio-kaoss.html?cuoci=desktop&parte=base     (poi parte=visual, chi, cosmo, codice = la hall dell'hotel, lift = l'ascensore)
+http://localhost:8091/radio-kaoss.html?cuoci=telefono&parte=base    (poi parte=visual, chi, cosmo, codice = la hall dell'hotel, lift = l'ascensore)
 ```
 Aspetta «cottura finita». Le cartelle `kaoss3d/tex/` vanno pubblicate col sito.
