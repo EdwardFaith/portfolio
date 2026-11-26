@@ -2258,18 +2258,16 @@
     for (i = 0; i < src.length; i++) {
       var rm = src[i];
       if (rm.id === "hub" || rm.id === "lucidus") continue;
-      /* il ministero non è una tappa del museo: si entra dal razzo */
-      if (rm.hidden) continue;
+      /* il ministero della carne e' nascosto dalle porte (ci si entra
+         dal razzo), ma nella mappa c'e': e' la stanza di Memorie del
+         Cosmo, una sua sottocartella */
+      if (rm.hidden && rm.id !== "ministero") continue;
       var voce = { id: rm.id, num: rm.num, title: rm.title };
       /* le sottocartelle, come nel desktop: la soffitta sta dentro il
          codice (e' sopra la sala interattiva) */
       if (rm.id === "soffitta") voce.parent = "interattivo";
+      if (rm.id === "ministero") voce.parent = "cosmo";
       list.push(voce);
-      /* e dentro Memorie del Cosmo c'e' la sua stanza: la spedizione */
-      if (rm.id === "cosmo") list.push({
-        id: "cosmo-spedizione", num: "»", parent: "cosmo", href: "cosmo/index.html",
-        title: { it: "LA SPEDIZIONE", en: "THE EXPEDITION" }
-      });
     }
     for (i = 0; i < list.length; i++) if (room && list[i].id === room.id) cur = i;
     M.PANEL.map(list, cur, function (k) {
