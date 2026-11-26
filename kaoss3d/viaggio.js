@@ -40,8 +40,15 @@ export function createViaggio(camera, dom, { onTap, onHover, veil, canStand = ()
     if (!locked() || !st.enabled || st.trip) return;
     st.yaw -= e.movementX * 0.0024; st.pitch = THREE.MathUtils.clamp(st.pitch - e.movementY * 0.0024, -1.35, 1.35);
   });
+  /* sul telefono il dito genera anche un «mousedown» finto: prima
+     chiedeva il blocco del cursore, e Android rispondeva «per usare il
+     cursore cambia app». Il blocco si chiede solo a un mouse vero. */
+  let ultimoTipo = 'mouse';
+  const touchOnly = matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
+  dom.addEventListener('pointerdown', e => { ultimoTipo = e.pointerType; }, true);
   dom.addEventListener('mousedown', e => {
     if (!st.enabled || e.button !== 0) return;
+    if (touchOnly || ultimoTipo !== 'mouse' || (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents)) return;
     if (!locked()) { try { dom.requestPointerLock(); } catch (er) { } return; }
     const r = dom.getBoundingClientRect(); onTap(r.left + r.width / 2, r.top + r.height / 2, 'mouse');
     // se si è aperta una finestra (video, gioco) il mouse torna libero
@@ -56,7 +63,7 @@ export function createViaggio(camera, dom, { onTap, onHover, veil, canStand = ()
     if (d && d.id === e.pointerId) {
       if (Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 7) d.moved = true;
       if (d.moved && !st.trip) {
-        const k = d.type === 'mouse' ? 0.0034 : 0.0055;
+        const k = d.type === 'mouse' ? 0.0034 : 0.0062;
         // col giroscopio acceso il dito sposta lo "zero" del telefono: si gira lo stesso
         if (st.gyro && d.type !== 'mouse') { st.off += (e.clientX - d.x) * k; st.offP = THREE.MathUtils.clamp(st.offP + (e.clientY - d.y) * k, -1.2, 1.2); }
         else { st.yaw += (e.clientX - d.x) * k; st.pitch = THREE.MathUtils.clamp(st.pitch + (e.clientY - d.y) * k, -1.35, 1.35); }
@@ -64,7 +71,8 @@ export function createViaggio(camera, dom, { onTap, onHover, veil, canStand = ()
       d.x = e.clientX; d.y = e.clientY;
     } else if (e.pointerType === 'mouse') { if (locked()) { const r = dom.getBoundingClientRect(); onHover(r.left + r.width / 2, r.top + r.height / 2); } else onHover(e.clientX, e.clientY); }
   });
-  dom.addEventListener('pointerup', e => { if (!st.enabled) return; if (st.drag && st.drag.id === e.pointerId && !st.drag.moved) onTap(e.clientX, e.clientY, e.pointerType); st.drag = null; });
+  dom.addEventListener('pointerup', e => { if (!st.enabled) return; if (st.drag && st.drag.id === e.pointerId && !st.drag.moved) onTap(e.clientX, e.clientY, e.pointerType); if (st.drag && st.drag.id === e.pointerId) st.drag = null; });
+  dom.addEventListener('pointercancel', e => { if (st.drag && st.drag.id === e.pointerId) st.drag = null; });
   addEventListener('keydown', e => { st.keys[e.code] = true; }); addEventListener('keyup', e => { st.keys[e.code] = false; });
 
   /* il teletrasporto: un battito di ciglia (il velo si chiude, si è altrove, si riapre) */

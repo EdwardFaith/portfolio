@@ -226,12 +226,26 @@ async function build() {
     let dito = null;
     const muovi = e => { const r = base.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, R = r.width / 2 - 14; let dx = e.clientX - cx, dy = e.clientY - cy; const d = Math.hypot(dx, dy); if (d > R) { dx *= R / d; dy *= R / d; } pomo.style.transform = `translate(${dx}px,${dy}px)`; viaggio.st.joy.x = dx / R; viaggio.st.joy.y = dy / R; };
     const lascia = () => { dito = null; pomo.style.transform = ''; viaggio.st.joy.x = 0; viaggio.st.joy.y = 0; };
-    base.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); dito = e.pointerId; base.setPointerCapture(dito); muovi(e); });
-    base.addEventListener('pointermove', e => { if (e.pointerId === dito) { e.stopPropagation(); muovi(e); } });
-    base.addEventListener('pointerup', e => { if (e.pointerId === dito) lascia(); });
-    base.addEventListener('pointercancel', lascia);
+    /* il centro si misura quando il dito si appoggia, non a ogni passo:
+       così la levetta va in tutte le direzioni anche se il layout si
+       sposta (barra degli indirizzi, schermo intero) */
+    let cx0 = 0, cy0 = 0;
+    const muovi2 = e => { const R = base.offsetWidth / 2 - 14; let dx = e.clientX - cx0, dy = e.clientY - cy0; const d = Math.hypot(dx, dy); if (d > R) { dx *= R / d; dy *= R / d; } pomo.style.transform = `translate(${dx}px,${dy}px)`; viaggio.st.joy.x = dx / R; viaggio.st.joy.y = dy / R; };
+    base.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); dito = e.pointerId; try { base.setPointerCapture(dito); } catch (er) { } const r = base.getBoundingClientRect(); cx0 = r.left + r.width / 2; cy0 = r.top + r.height / 2; muovi2(e); });
+    base.addEventListener('pointermove', e => { if (e.pointerId === dito) { e.stopPropagation(); e.preventDefault(); muovi2(e); } });
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => base.addEventListener(t, e => { if (e.pointerId === dito) lascia(); }));
+    addEventListener('touchend', e => { if (dito !== null && e.touches.length === 0) lascia(); }, true);
+    addEventListener('blur', lascia);
+    /* i comandi spariscono se non si tocca lo schermo: tornano al primo tocco */
+    let ultimoTocco = performance.now();
+    addEventListener('pointerdown', () => { ultimoTocco = performance.now(); }, true);
+    addEventListener('pointermove', () => { if (dito !== null) ultimoTocco = performance.now(); }, true);
+    base.style.transition = 'opacity .5s';
     // si vede solo quando si è dentro (non sopra le schermate di caricamento o d'ingresso)
-    setInterval(() => { base.style.display = viaggio.st.enabled && $('entra').hidden && $('loading').hidden ? 'block' : 'none'; }, 300);
+    setInterval(() => {
+      base.style.display = viaggio.st.enabled && $('entra').hidden && $('loading').hidden ? 'block' : 'none';
+      base.style.opacity = (dito !== null || performance.now() - ultimoTocco < 3500) ? '1' : '0';
+    }, 200);
   }
   const start = sala.nodes[0].view;
   viaggio.place(start.pos, 0, -0.05);

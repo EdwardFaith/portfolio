@@ -325,6 +325,24 @@
     tocco.addEventListener("pointerup", su);
     tocco.addEventListener("pointercancel", su);
     tocco.addEventListener("pointerleave", su);
+
+    /* i tasti del dito spariscono quando non si tocca lo schermo, e
+       tornano al primo tocco (il tocco che li sveglia vale già) */
+    var ultimoTocco = Date.now(), toccando = 0;
+    root.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse") return;
+      ultimoTocco = Date.now(); toccando++;
+      tocco.classList.remove("dormi");
+    }, true);
+    var alzato = function (e) {
+      if (e.pointerType === "mouse") return;
+      toccando = Math.max(0, toccando - 1); ultimoTocco = Date.now();
+    };
+    root.addEventListener("pointerup", alzato, true);
+    root.addEventListener("pointercancel", alzato, true);
+    root.setInterval(function () {
+      if (!toccando && Date.now() - ultimoTocco > 3500) tocco.classList.add("dormi");
+    }, 400);
   }
 
 
@@ -509,7 +527,11 @@
     bestia.hop = G.aria ? Math.min(1, Math.abs(G.vy) / 880 + 0.35) : 0;
     /* il tempo da fermo: dopo sei secondi si siede, come nel corridoio */
     bestia.idle = G.fermo;
-    bestia.speed = G.vel * 1000 / (H || 1000);
+    /* le velocità del mondo sono in pixel fissi (390 / 720), non in
+       altezze di schermo: dividere per H faceva sembrare "corsa" ogni
+       passo sui telefoni (H piccolo) e le zampe giravano impazzite.
+       Si misura contro l'altezza di riferimento del mondo, 720. */
+    bestia.speed = G.vel * 1000 / 720;
 
     if (M.RABBIT.anima) { try { M.RABBIT.anima(dt); } catch (e) { } return; }
     /* se il foglio del coniglio è vecchio (senza anima) si fa a mano,

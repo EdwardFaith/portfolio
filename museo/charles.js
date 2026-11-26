@@ -1224,6 +1224,9 @@
       : "se hai bisogno sono qui.");
     nuvoletta.type = "button";
     nuvoletta.hidden = true;
+    /* sul telefono la nuvoletta è solo da leggere: un tocco del gioco
+       che ci cadeva sopra apriva Charles e fermava tutto */
+    if (dito()) nuvoletta.style.pointerEvents = "none";
     /* la freccia della nuvoletta guarda il «?»: il lato lo scrive
        posizionaNuvoletta(), questo è solo il ripiego del primo frame */
     nuvoletta.setAttribute("data-lato", "sotto");
@@ -1399,6 +1402,24 @@
     }
   }
 
+  var SITI = [
+    { re: /\bliminal\b/i, p: "index.html", n: { it: "liminal.exe, l'inizio", en: "liminal.exe, the start" } },
+    { re: /sito\s*(classico|normale)|classic\s*site/i, p: "sito.html", n: { it: "il sito classico", en: "the classic site" } },
+    { re: /sito\s*(2\s*d|due\s*d)|2d\s*site/i, p: "museo.html", n: { it: "il sito 2D", en: "the 2D site" } },
+    { re: /sito\s*(desktop|dekstop|deskop)|desktop\s*site|zona\s*larga/i, p: "desktop/index.html", n: { it: "il sito desktop", en: "the desktop site" } },
+    { re: /sito\s*(3\s*d|tre\s*d)|3d\s*site/i, p: "radio-kaoss.html", n: { it: "il sito 3D", en: "the 3D site" } }
+  ];
+  function sitoChiesto(q) {
+    for (var i = 0; i < SITI.length; i++) if (SITI[i].re.test(q)) return SITI[i];
+    return null;
+  }
+  /* la cartella principale del sito, da qualunque sotto-pagina */
+  function radice() {
+    if (BASE) return BASE;
+    var p = pagina();
+    return p.charAt(p.length - 1) === "/" ? "../" : "";
+  }
+
   function chiedi(testo) {
     var q = String(testo || "").replace(/\s+/g, " ").replace(/^ | $/g, "");
     if (!q) {
@@ -1407,6 +1428,13 @@
     }
     /* la porta: nessuna battuta, nessun saluto, nessun ritorno */
     if (PORTA.test(q) && proiezione()) return;
+    /* I QUATTRO SITI (e liminal.exe): chi li nomina ci viene portato */
+    var meta = sitoChiesto(q);
+    if (meta) {
+      battuta(lingua() === "en" ? "Off you go: " + meta.n.en + "." : "Ti ci porto: " + meta.n.it + ".", false, q);
+      root.setTimeout(function () { root.location.href = radice() + meta.p; }, 900);
+      return;
+    }
     var r = rispondi(q);
     battuta(r.testo, !!(r.voce && r.voce.tasti), q);
     aggiornaDomande();
@@ -1644,7 +1672,14 @@
     try { root.sessionStorage.setItem("charles-detti", JSON.stringify(detti)); } catch (e) { }
     var c = comandiInBreve(id);
     if (!c) return;
-    mostraNuvoletta(c + " — " + T(OFFERTA), ATTESA_ARRIVO);
+    /* i tasti si dicono SOLO quando cambiano: se la zona nuova si gioca
+       con gli stessi comandi di quella prima, Charles sta zitto. Prima
+       parlava a ogni zona e interrompeva il gioco di continuo. */
+    var ultimi = "";
+    try { ultimi = root.sessionStorage.getItem("charles-ultimi-tasti") || ""; } catch (e) { }
+    if (c === ultimi) return;
+    try { root.sessionStorage.setItem("charles-ultimi-tasti", c); } catch (e) { }
+    mostraNuvoletta(c, ATTESA_ARRIVO);
   }
 
   /* ============================================================

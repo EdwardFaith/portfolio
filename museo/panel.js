@@ -1663,27 +1663,57 @@ P.book = function (work, key, onClose) {
       "tutte le sezioni del museo, in una riga. si sceglie, e si va.") + "</p>");
     h.push("</div>");
 
-    h.push('<div class="p-body"><div class="dest map">');
-    for (i = 0; i < rooms.length; i++) {
-      h.push('<button type="button" class="go' + (i === cur ? " here" : "") +
-        '" data-room="' + i + '">' +
-        '<span class="go-n">' + esc(rooms[i].num) + "</span>" +
+    /* LA RETE — le sezioni sono neuroni, le porte sono sinapsi.
+       I nodi stanno su una spirale larga (deterministica: la mappa e'
+       sempre la stessa), ognuno e' legato al seguente e a uno piu' in
+       la'; lungo i fili corrono impulsi. Il nodo dove sei pulsa. */
+    var n = rooms.length, pos = [], VW = 1000, VH = 640;
+    for (i = 0; i < n; i++) {
+      var t = n > 1 ? i / (n - 1) : 0.5;
+      var ang = -Math.PI / 2 + t * Math.PI * 3.1;
+      var rad = 0.12 + 0.88 * t;
+      var jx = Math.sin(i * 12.9898) * 0.05, jy = Math.cos(i * 78.233) * 0.05;
+      pos.push({
+        x: Math.max(0.08, Math.min(0.92, 0.5 + Math.cos(ang) * rad * 0.44 + jx)),
+        y: Math.max(0.09, Math.min(0.90, 0.5 + Math.sin(ang) * rad * 0.42 + jy))
+      });
+    }
+    var link = [];
+    for (i = 0; i < n - 1; i++) link.push([i, i + 1]);
+    for (i = 0; i < n - 3; i += 2) link.push([i, i + 3]);
+    for (i = 2; i < n; i++) link.push([0, i]);
+    var svg = ['<svg class="neuro-fili" viewBox="0 0 ' + VW + ' ' + VH + '" preserveAspectRatio="none" aria-hidden="true">'];
+    for (i = 0; i < link.length; i++) {
+      var A = pos[link[i][0]], B = pos[link[i][1]];
+      var ax = A.x * VW, ay = A.y * VH, bx = B.x * VW, by = B.y * VH;
+      var mx = (ax + bx) / 2 + (ay - by) * 0.18, my = (ay + by) / 2 + (bx - ax) * 0.18;
+      var d = "M" + ax.toFixed(1) + " " + ay.toFixed(1) + " Q" + mx.toFixed(1) + " " + my.toFixed(1) + " " + bx.toFixed(1) + " " + by.toFixed(1);
+      var vivo = (link[i][0] === cur || link[i][1] === cur);
+      var nucleo = link[i][0] === 0 && link[i][1] > 1;
+      svg.push('<path class="filo' + (vivo ? " vivo" : "") + (nucleo ? " nucleo" : "") + '" d="' + d + '"/>');
+      if (!nucleo || vivo) {
+        var dur = (2.2 + (i % 5) * 0.7).toFixed(1);
+        svg.push('<circle class="impulso' + (vivo ? " vivo" : "") + '" r="' + (vivo ? 4 : 2.6) + '"><animateMotion dur="' + dur + 's" begin="-' + (i * 0.37 % 3).toFixed(2) + 's" repeatCount="indefinite" path="' + d + '"/></circle>');
+      }
+    }
+    svg.push("</svg>");
+
+    h.push('<div class="p-body"><div class="dest map neuro">');
+    h.push(svg.join(""));
+    for (i = 0; i < n; i++) {
+      h.push('<button type="button" class="nodo' + (i === cur ? " here" : "") +
+        '" data-room="' + i + '" style="left:' + (pos[i].x * 100).toFixed(2) + '%;top:' + (pos[i].y * 100).toFixed(2) + '%">' +
+        '<span class="nodo-c"><span class="go-n">' + esc(rooms[i].num) + "</span></span>" +
         '<span class="go-t">' + esc(lang.x(rooms[i].title, "room." + rooms[i].id + ".title")) + "</span>" +
         (i === cur ? '<span class="go-here">' + esc(lang.t("car.here") || "sei qui") + "</span>" : "") +
         "</button>");
     }
     h.push("</div>");
-    if (opt.site) {
-      h.push('<div class="map-foot">');
-      h.push('<button type="button" class="p-site" data-site>' +
-        esc(lang.t("map.site") || "il sito, quello che si scorre") + "</button>");
-      h.push('<button type="button" class="p-stay" data-close>' +
-        esc(lang.t("car.close") || "resta qui") + "</button>");
-      h.push("</div>");
-    } else {
-      h.push('<button type="button" class="p-stay" data-close>' +
-        esc(lang.t("car.close") || "resta qui") + "</button>");
-    }
+    /* in fondo una porta sola: si torna all'inizio, al computer */
+    h.push('<div class="map-foot">');
+    h.push('<button type="button" class="p-site" data-site>' +
+      esc(lang.l === "en" ? "back to liminal.exe" : "torna a liminal.exe") + "</button>");
+    h.push("</div>");
     h.push("</div>");
 
     P._show(h.join(""), "card-c card-map");

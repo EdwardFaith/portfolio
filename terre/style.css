@@ -397,3 +397,9 @@ body.in-3d #vhs { opacity: 0.12; }
   #ritorno { font-size: 8px; }
   #arma .v { font-size: 11px; }
 }
+
+
+/* i tasti del dito dormono quando non si tocca: restano lì (il tocco li
+   trova lo stesso) ma non si vedono */
+#tocco .t { transition: opacity .45s ease; }
+#tocco.dormi .t { opacity: 0; }

@@ -2271,8 +2271,8 @@
       if (mode !== "walk") closeFocus();
       go(pick.id);
     }, {
-      site: "sito.html",
-      onSite: function () { leaveToSite(); }
+      site: "index.html",
+      onSite: function () { root.location.href = "index.html"; }
     });
   }
   G.map = openMap;
