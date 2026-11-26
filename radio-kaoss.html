@@ -75,6 +75,11 @@
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   @media (prefers-reduced-motion: reduce) { #entra, #sottotitolo { transition: none; } }
   body.mirino::after { content: ""; position: fixed; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border: 2px solid rgba(255,255,255,.8); border-radius: 50%; pointer-events: none; z-index: 50; }
+  /* il telefono si tiene sempre in orizzontale: in verticale il gioco si copre e chiede di girarlo */
+  #ruota { position: fixed; inset: 0; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 18px; background: #070606; color: #f3eee2; text-align: center; font-size: 20px; padding: 24px; }
+  #ruota .tel { width: 54px; height: 92px; border: 3px solid #f3eee2; border-radius: 10px; animation: gira 1.8s ease-in-out infinite; }
+  @keyframes gira { 0%, 20% { transform: rotate(0deg); } 60%, 100% { transform: rotate(-90deg); } }
+  @media (orientation: portrait) and (pointer: coarse) and (hover: none) { #ruota { display: flex; } }
 </style>
 <script type="importmap">
 { "imports": {
@@ -84,6 +89,7 @@
 </script>
 </head>
 <body>
+<div id="ruota"><div class="tel"></div><div>gira il telefono in orizzontale</div></div>
   <div id="scena"></div>
   <div id="velo"></div>
   <div id="punto" aria-hidden="true"></div>

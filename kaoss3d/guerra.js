@@ -417,7 +417,7 @@ export function armeria(ctx) {
   };
 
   /* ---- l'interfaccia ---- */
-  const telefono = !hi || matchMedia('(pointer: coarse)').matches;
+  const telefono = ctx.touch != null ? ctx.touch : (matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches);   // i tasti solo col dito, mai sul computer
   const hud = document.createElement('div'); hud.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:13;display:none;font:14px Consolas,monospace;color:#e8e0cc';
   hud.innerHTML = `
     <div data-k="mirino" style="position:absolute;left:50%;top:50%;width:0;height:0">${[0, 90, 180, 270].map(a => `<i style="position:absolute;left:-1px;top:-1px;width:2px;height:9px;background:rgba(240,235,220,.85);transform:rotate(${a}deg) translateY(-16px);transform-origin:1px 1px;box-shadow:0 0 2px #000"></i>`).join('')}<i style="position:absolute;left:-1.5px;top:-1.5px;width:3px;height:3px;background:#fff;border-radius:50%"></i></div>

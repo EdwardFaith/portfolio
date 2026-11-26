@@ -27,6 +27,8 @@ const $ = id => document.getElementById(id);
 // ?cuoci=desktop|telefono: si cuociono le texture (vedi tools/cuoci-server.js)
 const COTTURA = new URLSearchParams(location.search).get('cuoci');
 const mobile = COTTURA ? COTTURA === 'telefono' : (matchMedia('(pointer: coarse)').matches || innerWidth < 820);
+// i tasti a schermo (levetta, sparo, ricarica): solo dove si gioca col dito. Su un computer, anche con la finestra stretta, mai
+const touch = matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const quality = { high: !mobile };
 Q.ppm = quality.high ? 170 : 72; Q.aniso = quality.high ? 8 : 2;
@@ -221,9 +223,9 @@ async function build() {
       marker.style.opacity = '0';   // niente più punto sul pavimento: non ci si teletrasporta
     }
   });
-  ctx.viaggio = viaggio; ctx.camera = camera; ctx.renderer = renderer;
+  ctx.viaggio = viaggio; ctx.camera = camera; ctx.renderer = renderer; ctx.touch = touch;
   /* LA LEVETTA (solo telefono): in basso a sinistra, si trascina il pomello */
-  if (mobile) {
+  if (touch) {
     const base = document.createElement('div'), pomo = document.createElement('div');
     base.id = 'levetta';
     base.style.cssText = 'position:fixed;left:max(22px,env(safe-area-inset-left));bottom:max(30px,env(safe-area-inset-bottom));width:132px;height:132px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.08),rgba(255,255,255,.02));border:1.5px solid rgba(235,228,209,.35);z-index:14;touch-action:none;display:none';
@@ -286,7 +288,7 @@ async function build() {
 
   /* ---------- entrare ---------- */
   $('loading').hidden = true; $('entra').hidden = false;
-  $('istruzioni').innerHTML = mobile
+  $('istruzioni').innerHTML = touch
     ? 'muovi il telefono o trascina il dito per guardarti intorno<br>cammina con la levetta · tocca le cose da vicino'
     : 'clicca per prendere il mouse: muovi il mouse per guardarti intorno · W A S D o le frecce per camminare<br>clic su quello che hai al centro per usarlo · Esc libera il mouse';
   const benvenuto = { live: 'La stanza del live. Sulla parete c\'è lo schermo di Radio KaOsS live.', corridoio: 'Il corridoio. Ogni porta è una stanza del sito.', sala: 'La sala di Radio KaOsS. Al bancone c\'è chi trasmette: vai a sentirlo.' };
@@ -308,10 +310,10 @@ async function build() {
   function entraDaSolo() {
     $('entra').hidden = true;
     viaggio.enable(true);
-    if (mobile) viaggio.enableGyro();   // su Android il sensore parte subito; sugli iPhone al primo tocco
+    if (touch) viaggio.enableGyro();   // su Android il sensore parte subito; sugli iPhone al primo tocco
     const primo = () => { removeEventListener('pointerdown', primo, true); dopoIlGesto(); };
     addEventListener('pointerdown', primo, true);
-    setTimeout(() => { const m = Object.values(MODULI).find(q => q.zona === zona()); say(((benvenuto[zona()] || (m ? m.nome + '.' : '')) + (mobile ? '' : ' Clicca per guardarti intorno col mouse.')).trim()); }, 700);
+    setTimeout(() => { const m = Object.values(MODULI).find(q => q.zona === zona()); say(((benvenuto[zona()] || (m ? m.nome + '.' : '')) + (touch ? '' : ' Clicca per guardarti intorno col mouse.')).trim()); }, 700);
   }
 
   const clock = new THREE.Clock();
