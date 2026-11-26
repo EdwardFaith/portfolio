@@ -737,6 +737,8 @@ export function orda(g, E, A, opt) {
       n.sparisci -= dt; pos.y = terraY - (n.sparisci < 3 ? (3 - n.sparisci) * 0.15 : 0);
       return;
     }
+    // LA DISCOTECA: quando l'occhio diventa la palla, tutte ballano e nessuna attacca
+    if (balla && !(n.stato in STATI_A_TERRA) && n.stato !== 'rialza') { danza(n, t, dt, terraY); return; }
     const dx = cam.x - pos.x, dz = cam.z - pos.z, dist = Math.hypot(dx, dz);
     const dirV = Math.atan2(dx, dz); let dA = dirV - n.g.rotation.y; while (dA > Math.PI) dA -= 6.283; while (dA < -Math.PI) dA += 6.283;
     const gv = gambeVia(n), bv = bracciaVia(n);
@@ -747,8 +749,9 @@ export function orda(g, E, A, opt) {
     }
     // a terra: aspettano. Quando arrivi vicino si alzano
     if (n.stato in STATI_A_TERRA) {
+      const dist = Math.hypot(cam.x - pos.x, cam.z - pos.z);
       if (n.stato === 'feto') { n.busto.rotation.x = n.posaTerra.tx + Math.sin(t * 1.3 + n.fase) * 0.03; n.braccia[0].gomito.rotation.x = n.posaTerra.gx[0] + Math.sin(t * 7) * (Math.random() < 0.02 ? 0.3 : 0.01); }   // respira, trema
-      if (vicino && dist < (n.stato === 'feto' ? 7 : 13)) { n.stato = 'rialza'; n.alza = 0; n.posaInizio = leggiPosa(n); A.suono('urlo', 0.4); }
+      if (balla || (vicino && dist < (n.stato === 'feto' ? 7 : 13))) { n.stato = 'rialza'; n.alza = 0; n.posaInizio = leggiPosa(n); A.suono('urlo', 0.4); }
       pos.y = terraY; return;
     }
     if (n.stato === 'rialza') {
@@ -762,7 +765,7 @@ export function orda(g, E, A, opt) {
       if (gv > 0) { p.py = Math.min(p.py, -0.05); }
       mettiPosa(n, p); n.fiore.rotation.z = Math.sin(t * 50) * 0.08 * (1 - k);
       n.g.rotation.y += dA * Math.min(1, dt * 2) * k;
-      if (k >= 1) { n.stato = gv === 2 ? 'striscia' : gv === 1 ? 'saltella' : 'scatto'; n.scatto = 0.4; if (gv === 2) { mettiPosa(n, POSE.prono); } }
+      if (k >= 1) { n.stato = gv === 2 ? 'striscia' : gv === 1 ? 'saltella' : balla ? 'vaga' : 'scatto'; n.scatto = 0.4; if (gv === 2) { mettiPosa(n, POSE.prono); } }
       pos.y = terraY; return;
     }
     // vedere: davanti a se', non troppo lontano; da vicino si sente anche dietro
@@ -778,7 +781,7 @@ export function orda(g, E, A, opt) {
       n.braccia.forEach(b => { b.spalla.rotation.x += (-0.5 - b.spalla.rotation.x) * dt * 6; b.gomito.rotation.x = -0.9; });
       if (n.scatto <= 0) n.stato = 'insegue';
     } else if (n.stato === 'vaga' || n.stato === 'passeggino') {
-      if (!n.meta || Math.hypot(n.meta.x - pos.x, n.meta.z - pos.z) < 1) { n.meta = opt.posto(); n.pausa = n.stato === 'passeggino' ? 0.5 : Math.random() * 3; }
+      if (!n.meta || Math.hypot(n.meta.x - pos.x, n.meta.z - pos.z) < 1) { n.meta = (n.posto || opt.posto)(); n.pausa = n.stato === 'passeggino' ? 0.5 : Math.random() * 3; }
       if (n.pausa > 0) n.pausa -= dt;
       else { const a = Math.atan2(n.meta.x - pos.x, n.meta.z - pos.z); let d = a - n.g.rotation.y; while (d > Math.PI) d -= 6.283; while (d < -Math.PI) d += 6.283; n.g.rotation.y += Math.max(-dt * 1.2, Math.min(dt * 1.2, d)); vel = n.stato === 'passeggino' ? 0.55 : 0.8; }
       n.collo.rotation.x += (0.2 - n.collo.rotation.x) * dt * 2; n.fiore.rotation.z = Math.sin(t * 0.6 + n.fase) * 0.2;
@@ -840,15 +843,64 @@ export function orda(g, E, A, opt) {
     }
   }
   const bersagli = () => { const b = []; nemici.forEach(n => n.parti.forEach(m => { if (!m.userData.via) b.push(m); })); return b; };
-  function update(t, dt, cam, vicino) {
-    nemici.forEach(n => anima(n, t, dt, cam, vicino));
-    for (let i = 0; i < nemici.length; i++) for (let j = i + 1; j < nemici.length; j++) {
-      const a = nemici[i], b = nemici[j]; if (a.morto || b.morto || a.stato in STATI_A_TERRA || b.stato in STATI_A_TERRA) continue;
-      const pa = a.g.position, pb = b.g.position, dx = pb.x - pa.x, dz = pb.z - pa.z, d = Math.hypot(dx, dz);
-      if (d < 0.6 && d > 0.001) { const p = (0.6 - d) / 2; pa.x -= dx / d * p; pa.z -= dz / d * p; pb.x += dx / d * p; pb.z += dz / d * p; }
+  /* i corpi: cerchi sul pavimento. In piedi uno; chi striscia o giace e' lungo, allora due
+     (bacino e testa) lungo la direzione in cui e' caduto. Cosi' non si compenetrano piu'. */
+  function corpi(n) {
+    const p = n.g.position, ry = n.g.rotation.y, fx = Math.sin(ry), fz = Math.cos(ry);
+    const giace = n.stato === 'striscia' || n.stato in STATI_A_TERRA || n.morto || (n.cade && n.cade.finito);
+    if (!giace) return [[p.x, p.z, 0.3]];
+    const v = n.cade ? n.cade.verso : 1;
+    return [[p.x + fx * v * 0.4, p.z + fz * v * 0.4, 0.32], [p.x + fx * v * 1.15, p.z + fz * v * 1.15, 0.3]];
+  }
+  const fermo = n => !!n.morto || n.stato in STATI_A_TERRA || n.stato === 'immobile';
+  function spingi(n, x, z) { const p = n.g.position; if (libero(p.x + x, p.z + z)) { p.x += x; p.z += z; } else if (libero(p.x + x, p.z)) p.x += x; else if (libero(p.x, p.z + z)) p.z += z; }
+  /* il ballo: ognuna a modo suo (tre stili), sul tempo della canzone */
+  let balla = false;
+  function danza(n, t, dt, terraY) {
+    const pos = n.g.position, gv = gambeVia(n), b = t * Math.PI * 2 * 2.05 + n.fase * 0.3, stile = Math.floor(n.fase * 7) % 3;
+    const su = Math.max(0, Math.sin(b)), giu = Math.abs(Math.sin(b));
+    if (n.stato === 'striscia') {
+      n.braccia.forEach((br, i) => { br.spalla.rotation.x = -2.9 + Math.sin(b + i * Math.PI) * 0.5; br.spalla.rotation.z = br.k * (0.6 + 0.4 * Math.sin(b)); br.gomito.rotation.x = -0.6; });
+      n.collo.rotation.x = -1.1 + Math.sin(b) * 0.25; n.fiore.rotation.z = Math.sin(b * 0.5) * 0.6; pos.y = terraY; return;
     }
+    n.perno.rotation.x *= 0.9; n.perno.position.y *= 0.9;
+    n.g.rotation.y += dt * (stile === 1 ? 1.6 : 0.4) * (n.fase % 2 > 1 ? 1 : -1);   // girano su se stesse
+    n.bacino.position.y = 0.95 - giu * 0.09 + (stile === 2 && gv === 0 ? su * su * 0.18 : 0);   // il molleggio, e chi salta
+    n.bacino.rotation.z = Math.sin(b * 0.5) * (stile === 0 ? 0.22 : 0.1);
+    n.busto.rotation.x = 0.05 + Math.sin(b) * 0.08; n.busto.rotation.y = Math.sin(b * 0.5) * (stile === 1 ? 0.5 : 0.25);
+    n.collo.rotation.x = -0.15 + giu * 0.3;   // la testa va a tempo
+    n.fiore.rotation.z += dt * (stile === 2 ? 5 : 1.5);   // il fiore gira come una palla
+    n.braccia.forEach((br, i) => {
+      if (stile === 0) { br.spalla.rotation.x = -2.8 + Math.sin(b + i * Math.PI) * 0.35; br.spalla.rotation.z = br.k * 0.35; br.gomito.rotation.x = -0.3 - su * 0.4; }   // le braccia al cielo
+      else if (stile === 1) { br.spalla.rotation.x = -1.2 + Math.sin(b * 0.5 + i * Math.PI) * 0.9; br.spalla.rotation.z = br.k * (0.9 + Math.sin(b) * 0.3); br.gomito.rotation.x = -1.4; }   // le ali
+      else { br.spalla.rotation.x = Math.sin(b + i * Math.PI) * 1.1; br.spalla.rotation.z = br.k * 0.2; br.gomito.rotation.x = -0.9 - su * 0.5; }   // a pugni chiusi, avanti e indietro
+    });
+    if (gv === 0) n.gambe.forEach((g2, i) => { const s2 = Math.sin(b + i * Math.PI); g2.anca.rotation.x = -0.2 - Math.max(0, s2) * 0.5; g2.ginocchio.rotation.x = 0.15 + giu * 0.4 + Math.max(0, s2) * 0.6; });
+    pos.y = terraY;
+  }
+  function danzaTutte(si) {
+    balla = si;
+    if (!si) nemici.forEach(n => { if (n.morto) return; n.bacino.position.y = 0.95; n.bacino.rotation.z = 0; n.busto.rotation.y = 0; if (n.stato === 'vaga' || n.stato === 'insegue' || n.stato === 'scatto' || n.stato === 'immobile' || n.stato === 'passeggino') { n.stato = 'vaga'; n.meta = null; } });
+  }
+  function update(t, dt, cam, vicino) {
+    // le lontane non si animano (e non si vedono): cosi' il mondo grande regge
+    nemici.forEach(n => { const d = Math.hypot(cam.x - n.g.position.x, cam.z - n.g.position.z); n.lontana = d > (opt.lontano || 90); n.g.visible = d < (opt.lontano || 90) + 40; if (!n.lontana || (n.morto && n.sparisci > 0)) anima(n, t, dt, cam, vicino); });
+    const C = nemici.map(corpi);
+    for (let i = 0; i < nemici.length; i++) for (let j = i + 1; j < nemici.length; j++) {
+      const a = nemici[i], b = nemici[j], fa = fermo(a), fb = fermo(b); if ((fa && fb) || a.lontana || b.lontana) continue;
+      if (Math.abs(a.g.position.x - b.g.position.x) > 4 || Math.abs(a.g.position.z - b.g.position.z) > 4) continue;
+      for (const ca of C[i]) for (const cb of C[j]) {
+        const dx = cb[0] - ca[0], dz = cb[1] - ca[1], d = Math.hypot(dx, dz) || 0.001, min = ca[2] + cb[2];
+        if (d >= min) continue;
+        const pen = min - d, ux = dx / d, uz = dz / d;
+        if (fa) spingi(b, ux * pen, uz * pen); else if (fb) spingi(a, -ux * pen, -uz * pen);
+        else { spingi(a, -ux * pen / 2, -uz * pen / 2); spingi(b, ux * pen / 2, uz * pen / 2); }
+      }
+    }
+    // e non ti entrano dentro: restano fuori dal tuo corpo
+    if (cam) nemici.forEach((n, i) => { if (fermo(n)) return; for (const c of C[i]) { const dx = c[0] - cam.x, dz = c[1] - cam.z, d = Math.hypot(dx, dz) || 0.001, min = c[2] + 0.38; if (d < min) spingi(n, dx / d * (min - d), dz / d * (min - d)); } });
   }
   // lo sparo: le immobili alzano la testa tutte insieme e si girano verso di te
   function allarme() { nemici.forEach((n, i) => { if (n.stato === 'immobile' && n.svegliata == null) n.svegliata = 0.6 + i * 0.03; }); }
-  return { nemici, nuova, update, bersagli, colpisci, allarme };
+  return { nemici, nuova, update, bersagli: () => bersagli().filter(m => !m.userData.nem.lontana), colpisci, allarme, danza: danzaTutte, get balla() { return balla; } };
 }

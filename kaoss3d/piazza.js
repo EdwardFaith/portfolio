@@ -26,6 +26,9 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { canvas, toTex, rng, torn } from '../stanza/tex.js';
 import { armeria, effetti, orda, cadavere, passeggino, COLORI } from './guerra.js';
+import { macchine } from './citta.js';
+import { buildMondo, HUB, RAGGIO } from './mondo.js';
+let MONDO = null, PIEDI = 0;   // il mondo fuori, e a che altezza hai i piedi (per i piani alti: tetti, passerelle, viadotto)
 
 export const Y = -420;
 const L = 34;                // la piazza va da -L a L
@@ -92,6 +95,26 @@ function ruggine(seed, base) {
   for (let i = 0; i < 60; i++) { f.fillStyle = `rgba(${100 + r() * 50 | 0},${40 + r() * 25 | 0},${12 + r() * 10 | 0},${0.2 + r() * 0.5})`; torn(f, r, r() * 256, r() * 256, 6 + r() * 30, 6 + r() * 30, 0.7, 18); f.fill(); }
   for (let i = 0; i < 3000; i++) { f.fillStyle = r() > 0.5 ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.15)'; f.fillRect(r() * 256, r() * 256, 2, 2); }
   return toTex(c);
+}
+function assi(seed) {   // le assi della trincea: legno marcio, i chiodi, il fango che sale
+  const r = rng(seed), c = cv(256, 256), f = c.getContext('2d');
+  for (let i = 0; i < 8; i++) { const v = 50 + r() * 30 | 0; f.fillStyle = `rgb(${v + 12},${v},${v - 12})`; f.fillRect(0, i * 32, 256, 31); for (let k = 0; k < 30; k++) { f.strokeStyle = `rgba(20,14,8,${0.2 + r() * 0.3})`; f.lineWidth = 0.6; f.beginPath(); const y = i * 32 + r() * 31; f.moveTo(0, y); f.bezierCurveTo(80, y + (r() - 0.5) * 4, 170, y + (r() - 0.5) * 4, 256, y + (r() - 0.5) * 3); f.stroke(); } f.fillStyle = 'rgba(10,8,6,.85)'; f.fillRect(0, i * 32 + 30, 256, 2); f.fillStyle = '#2a2420'; [20, 236].forEach(x => { f.beginPath(); f.arc(x, i * 32 + 15, 2, 0, 7); f.fill(); }); }
+  const gr = f.createLinearGradient(0, 160, 0, 256); gr.addColorStop(0, 'rgba(30,24,18,0)'); gr.addColorStop(1, 'rgba(30,24,18,.9)'); f.fillStyle = gr; f.fillRect(0, 0, 256, 256);
+  return toTex(c, true, [1, 1]);
+}
+function ondulata(seed, base) {   // la lamiera ondulata dei container, con la ruggine e le scritte
+  const r = rng(seed), c = cv(256, 256), f = c.getContext('2d');
+  f.fillStyle = base; f.fillRect(0, 0, 256, 256);
+  for (let x = 0; x < 256; x += 16) { const g2 = f.createLinearGradient(x, 0, x + 16, 0); g2.addColorStop(0, 'rgba(0,0,0,.35)'); g2.addColorStop(0.5, 'rgba(255,255,255,.12)'); g2.addColorStop(1, 'rgba(0,0,0,.35)'); f.fillStyle = g2; f.fillRect(x, 0, 16, 256); }
+  for (let i = 0; i < 50; i++) { f.fillStyle = `rgba(${100 + r() * 50 | 0},${40 + r() * 25 | 0},${12 + r() * 10 | 0},${0.2 + r() * 0.5})`; torn(f, r, r() * 256, r() * 256, 5 + r() * 30, 5 + r() * 30, 0.7, 18); f.fill(); }
+  for (let i = 0; i < 14; i++) { const x = r() * 256, g2 = f.createLinearGradient(0, 0, 0, 256); g2.addColorStop(0, 'rgba(90,40,12,.5)'); g2.addColorStop(1, 'rgba(90,40,12,0)'); f.fillStyle = g2; f.fillRect(x, r() * 100, 3, 80 + r() * 120); }
+  return toTex(c, true, [1, 1]);
+}
+function rete() {   // la rete metallica: maglie a rombo, trasparente
+  const c = cv(128, 128), f = c.getContext('2d');
+  f.strokeStyle = 'rgba(150,150,145,.9)'; f.lineWidth = 2.2;
+  for (let i = -128; i < 256; i += 16) { f.beginPath(); f.moveTo(i, 0); f.lineTo(i + 128, 128); f.stroke(); f.beginPath(); f.moveTo(i + 128, 0); f.lineTo(i, 128); f.stroke(); }
+  return toTex(c, true, [1, 1]);
 }
 /* le coordinate di texture dal mondo: per i pezzi fusi insieme */
 function uvMondo(geo, s = 0.5) {
@@ -195,11 +218,11 @@ function occhioCelesta() {
   sclera.rotation.x = Math.PI / 2; g.add(sclera);
   // l'iride: fibre radiali, un anello scuro al bordo, i colori del cosmo
   const ic = cv(1024, 1024), f = ic.getContext('2d'), C = 512;
-  const ig = f.createRadialGradient(C, C, 80, C, C, 500); ig.addColorStop(0, '#d8a040'); ig.addColorStop(0.3, '#3aa0a8'); ig.addColorStop(0.62, '#2a6a9a'); ig.addColorStop(0.85, '#6a3a8a'); ig.addColorStop(1, '#140a20'); f.fillStyle = ig; f.beginPath(); f.arc(C, C, 500, 0, 7); f.fill();
+  const ig = f.createRadialGradient(C, C, 80, C, C, 500); ig.addColorStop(0, '#9a7a3a'); ig.addColorStop(0.3, '#7a8a76'); ig.addColorStop(0.62, '#5e7270'); ig.addColorStop(0.85, '#3a4646'); ig.addColorStop(1, '#141818'); f.fillStyle = ig; f.beginPath(); f.arc(C, C, 500, 0, 7); f.fill();
   for (let i = 0; i < 2600; i++) { const a = r() * 6.28, r0 = 110 + r() * 60, r1 = 280 + r() * 220; f.strokeStyle = `hsla(${r() < 0.5 ? 180 + r() * 40 : 30 + r() * 30},${50 + r() * 40}%,${40 + r() * 40}%,${0.12 + r() * 0.3})`; f.lineWidth = 1 + r() * 2.5; f.beginPath(); f.moveTo(C + Math.cos(a) * r0, C + Math.sin(a) * r0); f.quadraticCurveTo(C + Math.cos(a + 0.08) * (r0 + r1) / 2, C + Math.sin(a + 0.08) * (r0 + r1) / 2, C + Math.cos(a) * r1, C + Math.sin(a) * r1); f.stroke(); }
   for (let i = 0; i < 40; i++) { const a = r() * 6.28, d = 160 + r() * 240; f.fillStyle = `rgba(10,20,30,${0.2 + r() * 0.3})`; f.beginPath(); f.ellipse(C + Math.cos(a) * d, C + Math.sin(a) * d, 10 + r() * 30, 5 + r() * 12, a, 0, 7); f.fill(); }   // le cripte
   const cg = f.createRadialGradient(C, C, 100, C, C, 210); cg.addColorStop(0, 'rgba(255,200,90,.7)'); cg.addColorStop(1, 'rgba(255,200,90,0)'); f.fillStyle = cg; f.beginPath(); f.arc(C, C, 210, 0, 7); f.fill();   // il collaretto dorato intorno alla pupilla
-  for (let i = 0; i < 600; i++) { f.fillStyle = `rgba(255,255,255,${r() * 0.8})`; const a = r() * 6.28, d = r() * 480; f.fillRect(C + Math.cos(a) * d, C + Math.sin(a) * d, 1.5, 1.5); }   // le stelle dentro
+  for (let i = 0; i < 600; i++) { f.fillStyle = `rgba(255,255,255,${r() * 0.08})`; const a = r() * 6.28, d = r() * 480; f.fillRect(C + Math.cos(a) * d, C + Math.sin(a) * d, 1.5, 1.5); }   // le stelle dentro
   const lg = f.createRadialGradient(C, C, 420, C, C, 512); lg.addColorStop(0, 'rgba(0,0,0,0)'); lg.addColorStop(0.6, 'rgba(5,5,15,.85)'); lg.addColorStop(1, 'rgba(5,5,15,0)'); f.fillStyle = lg; f.beginPath(); f.arc(C, C, 512, 0, 7); f.fill();   // l'anello limbare
   const iride = new THREE.Mesh(new THREE.CircleGeometry(R * 0.5, 96), new THREE.MeshBasicMaterial({ map: toTex(ic), fog: false, toneMapped: false, transparent: true }));
   iride.position.z = R * Math.cos(AP) - 0.05; g.add(iride);
@@ -210,7 +233,7 @@ function occhioCelesta() {
   const riflC = cv(128, 128), rf = riflC.getContext('2d'); const rg2 = rf.createRadialGradient(64, 64, 2, 64, 64, 64); rg2.addColorStop(0, 'rgba(255,255,255,.95)'); rg2.addColorStop(0.3, 'rgba(255,255,255,.4)'); rg2.addColorStop(1, 'rgba(255,255,255,0)'); rf.fillStyle = rg2; rf.fillRect(0, 0, 128, 128);
   const rifl = new THREE.Mesh(new THREE.PlaneGeometry(R * 0.22, R * 0.14), new THREE.MeshBasicMaterial({ map: toTex(riflC), transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending })); rifl.position.set(-R * 0.18, R * 0.16, R * 0.9); rifl.rotation.z = 0.5; g.add(rifl);
   // le palpebre: due gusci scuri che si chiudono
-  const palpM = new THREE.MeshStandardMaterial({ color: 0x2a2228, roughness: 0.8, fog: false, side: THREE.DoubleSide });
+  const palpM = new THREE.MeshStandardMaterial({ color: 0x9a8e84, transparent: true, opacity: 0.0, depthWrite: false, roughness: 0.8, fog: false, side: THREE.DoubleSide });
   const palpS = new THREE.Mesh(new THREE.SphereGeometry(R * 1.04, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2), palpM), palpI = palpS.clone();
   const pivS = new THREE.Group(), pivI = new THREE.Group(); pivS.add(palpS); pivI.add(palpI); palpI.rotation.x = Math.PI; g.add(pivS, pivI);
   // il cosmo intorno: nebulose e stelle, attaccate all'occhio
@@ -239,10 +262,32 @@ function matriceQuad(w, h, q) {
    al centro, tre vie che entrano (ovest, est, nord-ovest) chiuse dalle
    barricate, il bunker da cui esci a sud. */
 const AX = 28, AZ = 24;
-const VIE = [{ a: Math.PI, w: 7, L: 13 }, { a: 0.32, w: 7, L: 12 }, { a: -2.3, w: 6, L: 12 }];
+const VIE = [{ a: Math.PI, w: 7, L: 13 }, { a: 0.32, w: 7, L: 20, aperta: true }, { a: -2.3, w: 6, L: 20, aperta: true }];
 const CRATERI = [[-10, -7, 4.2, 0.9], [11, 9, 3.6, 0.7], [-15, 9, 3, 0.6]];
 const CHIESA = { x0: -9, x1: 9, zFront: -19.6, zMuro: -23.8 };
-export function terra(x, z) {
+const DEP = { x0: -64, x1: -39.4, z0: -13, z1: 11 };   // il deposito dietro la via ovest
+/* ---------------- il cunicolo ----------------
+   Una trincea coperta: parte dal fondo del cratere grande, scende, passa
+   sotto la piazza e sotto la barricata della via ovest, e risale nel
+   deposito dietro. Coperta di lastre, assi, lamiere: da sopra le
+   telecamere non ti vedono. */
+const TR = [[-10, -7], [-15, -5], [-22, -2.2], [-40, -2.2], [-47.5, -2.2]], TW = 1.3, TD = 2.5;
+const TRs = [0]; for (let i = 1; i < TR.length; i++) TRs.push(TRs[i - 1] + Math.hypot(TR[i][0] - TR[i - 1][0], TR[i][1] - TR[i - 1][1]));
+export function trincea(x, z) {
+  let best = 1e9, bs = 0;
+  for (let i = 0; i < TR.length - 1; i++) {
+    const [ax, az] = TR[i], [bx, bz] = TR[i + 1], dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz;
+    const u = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2)), d = Math.hypot(x - ax - dx * u, z - az - dz * u);
+    if (d < best) { best = d; bs = TRs[i] + u * Math.sqrt(L2); }
+  }
+  return { d: best, s: bs };
+}
+function fondoTrincea(s) {   // la quota del fondo lungo il cunicolo
+  if (s < TRs[1]) return -0.9 - (TD - 0.9) * (s / TRs[1]);
+  if (s < TRs[3]) return -TD;
+  return -TD * (1 - Math.min(1, (s - TRs[3]) / (TRs[4] - TRs[3])));
+}
+function terraSopra(x, z) {
   let h = 0;
   for (const [cx, cz, R, D] of CRATERI) {
     const d = Math.hypot(x - cx, z - cz);
@@ -254,6 +299,15 @@ export function terra(x, z) {
   const e = (x / AX) * (x / AX) + (z / AZ) * (z / AZ);
   if (e > 0.82 && e < 1.3 && !(z < CHIESA.zFront && Math.abs(x) < CHIESA.x1)) h += 0.15;   // il marciapiede lungo i palazzi
   return h;
+}
+export function terra(x, z, piedi) {
+  if (Math.abs(x) >= HUB.x || Math.abs(z) >= HUB.z) return MONDO ? MONDO.terra(x, z, piedi) : 0;
+  const h = terraSopra(x, z);
+  if (x > -6 || x < -50 || z > 2 || z < -10) return h;
+  const { d, s } = trincea(x, z);
+  if (d > TW + 0.6 || s <= 0.01 && d > TW) return h;
+  const ht = fondoTrincea(s); if (ht >= h) return h;
+  return d < TW ? ht : ht + (h - ht) * ((d - TW) / 0.6);
 }
 function inVia(x, z) {
   for (const v of VIE) {
@@ -458,7 +512,7 @@ export async function buildPiazza(scene, ctx) {
     ferro: new THREE.MeshStandardMaterial({ color: 0x2a2826, roughness: 0.6, metalness: 0.7 }),
     pietra: new THREE.MeshStandardMaterial({ map: travertino(3701), roughness: 0.85, color: 0x9a9488 }),
     marmo: new THREE.MeshStandardMaterial({ color: 0xc8c4bc, roughness: 0.5 }),
-    trav: new THREE.MeshStandardMaterial({ map: travertino(3702), roughness: 0.85 }),
+    trav: (() => { const t2 = travertino(3702); return new THREE.MeshStandardMaterial({ map: t2, bumpMap: t2, bumpScale: 2.5, roughness: 0.85 }); })(),
     tvM: null
   };
   // i televisori dei negozi: il disturbo vivo, e dentro, a tratti, l'occhio
@@ -473,7 +527,7 @@ export async function buildPiazza(scene, ctx) {
   let tvT0 = 0;
 
   /* ---- il selciato bagnato, coi crateri ---- */
-  const SEG = hi ? 200 : 110, tg = new THREE.PlaneGeometry(AX * 2 + 40, AZ * 2 + 40, SEG, SEG); tg.rotateX(-Math.PI / 2);
+  const SEG = hi ? 220 : 120, tg = new THREE.PlaneGeometry(HUB.x * 2, HUB.z * 2, SEG * 2, SEG); tg.rotateX(-Math.PI / 2);
   const tp = tg.attributes.position, col = new Float32Array(tp.count * 3);
   for (let i = 0; i < tp.count; i++) {
     const x = tp.getX(i), z = tp.getZ(i); tp.setY(i, terra(x, z));
@@ -482,14 +536,14 @@ export async function buildPiazza(scene, ctx) {
   }
   tg.setAttribute('color', new THREE.BufferAttribute(col, 3)); tg.computeVertexNormals();
   const sel = selciato(3703);
-  const suolo = new THREE.Mesh(tg, new THREE.MeshStandardMaterial({ map: sel.map, roughnessMap: sel.rough, roughness: 1, metalness: 0.18, vertexColors: true })); suolo.receiveShadow = true; g.add(suolo); ostacoli.push(suolo);
+  const suolo = new THREE.Mesh(tg, new THREE.MeshStandardMaterial({ map: sel.map, bumpMap: sel.map, bumpScale: 2.2, roughnessMap: sel.rough, roughness: 1, metalness: 0.18, vertexColors: true })); suolo.receiveShadow = true; g.add(suolo); ostacoli.push(suolo);
   await tick();
 
   /* ---- i palazzi lungo l'ellisse, rivolti verso la piazza; il porticato a est ---- */
-  const matPal = ['#6a5e50', '#5e564c', '#726452', '#565250'].map((c, i) => new THREE.MeshStandardMaterial({ map: intonaco(3710 + i, c), roughness: 0.95 }));
+  const matPal = ['#6a5e50', '#5e564c', '#726452', '#565250'].map((c, i) => { const t2 = intonaco(3710 + i, c); return new THREE.MeshStandardMaterial({ map: t2, bumpMap: t2, bumpScale: 3, roughness: 0.95 }); });
   const matBalc = new THREE.MeshStandardMaterial({ color: 0x3a3632, roughness: 0.6, metalness: 0.5 });
   const fuochiFin = [], negozi = [];
-  const INSEGNE = [['TV · RADIO', '#ff3a2a'], ['ELETTRODOMESTICI', '#4ad8ff'], ['BAR CENTRALE', '#ffb040'], ['TELEVISORI', '#ff3a8a'], ['FOTO OTTICA', '#9aff4a']];
+  const INSEGNE = [['TV · RADIO', '#ff3a2a'], ['ELETTRODOMESTICI', '#4ad8ff'], ['BAR CENTRALE', '#ffb040'], ['TELEVISORI', '#ff3a4a'], ['FOTO OTTICA', '#9aff4a']];
   const libera = a => !VIE.some(v => { let d = Math.abs(a - v.a); d = Math.min(d, Math.PI * 2 - d); return d < 0.2; }) && !(a > -Math.PI / 2 - 0.42 && a < -Math.PI / 2 + 0.42) && !(a > Math.PI / 2 - 0.2 && a < Math.PI / 2 + 0.2);
   let a = -Math.PI, ni = 0;
   while (a < Math.PI) {
@@ -530,7 +584,10 @@ export async function buildPiazza(scene, ctx) {
       const cx = ex + ux * (3 + s2 * W) + px * k * (v.w / 2 + 0.2), cz = ez + uz * (3 + s2 * W) + pz * k * (v.w / 2 + 0.2);
       p.position.set(cx, 0.15, cz); p.rotation.y = Math.atan2(-px * k, -pz * k); g.add(p); p.traverse(o => { if (o.isMesh) ostacoli.push(o); });
     }
-    const b = barricata(R, v.w + 0.5); b.position.set(ex + ux * (v.L - 1), 0, ez + uz * (v.L - 1)); b.rotation.y = Math.atan2(px, pz); g.add(b);
+    if (v.aperta) return;   // questa via porta fuori: niente barricata
+    const b = barricata(R, v.w + 0.5); b.position.set(ex + ux * (v.L - 1), 0, ez + uz * (v.L - 1)); b.rotation.y = Math.atan2(px, pz); g.add(b); b.traverse(o => { if (o.isMesh || o.isInstancedMesh) { ostacoli.push(o); vista.push(o); } });
+    for (let k = -3; k <= 3; k++) colliders.push({ x: ex + ux * (v.L - 1) + px * k * (v.w + 0.5) / 7, z: ez + uz * (v.L - 1) + pz * k * (v.w + 0.5) / 7, w: 1.4, d: 1.4, barricata: true });
+    if (vi === 0) return;
     const fondo = new THREE.Mesh(new THREE.PlaneGeometry(v.w + 4, 14), new THREE.MeshBasicMaterial({ color: 0x050506, fog: true })); fondo.position.set(ex + ux * (v.L + 1.5), 6, ez + uz * (v.L + 1.5)); fondo.lookAt(ex, 6, ez); g.add(fondo);
   });
   await tick();
@@ -601,41 +658,170 @@ export async function buildPiazza(scene, ctx) {
   for (let i = 0; i < 8; i++) { const tb = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, SB + SH, 5), R.ferro); tb.position.set(-SW / 2 + i * SW / 7, (SB + SH) / 2, -0.5); scr.add(tb); }
   colliders.push({ x: sx, z: sz, w: 3, d: 3 });
   const luceSchermo = new THREE.PointLight(0x8aa0ff, 30, 42, 1.1); luceSchermo.position.set(0, SB + SH / 2, 7); scr.add(luceSchermo);
-  // i video: uno grande (col suono, piu' forte quando ti avvicini) e due nei televisori del negozio piu' vicino
-  const yt = (muto) => `https://www.youtube-nocookie.com/embed/${VIDEO[0]}?autoplay=1&mute=1&controls=0&loop=1&playlist=${VIDEO.join(',')}&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
-  const strato = (w, h, z) => { const d = document.createElement('div'); d.style.cssText = `position:fixed;left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;pointer-events:none;z-index:${z};display:none`; document.body.appendChild(d); return d; };
-  const grande = strato(1280, 720, 2); grande.style.filter = 'contrast(1.08) saturate(.92)';
-  const piccoli = [strato(480, 360, 2), strato(480, 360, 2)]; piccoli.forEach(p => { p.style.filter = 'contrast(1.25) saturate(.7) sepia(.15)'; p.style.borderRadius = '10%/14%'; p.style.overflow = 'hidden'; });
-  let acceso = false, tvAccese = null;
-  const comanda = (div, func, args = []) => { const f = div.querySelector('iframe'); if (f && f.contentWindow) f.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), '*'); };
+  /* ---- il video: uno solo, che passa su tutti gli schermi della citta' ----
+     Il video vero sta DIETRO la scena: gli schermi sono dipinti di un colore-chiave e il film
+     (main.js) li buca. Cosi' quello che passa davanti a uno schermo lo copre davvero.
+     Lo schermo grande comanda e ha il suono; gli altri lo seguono allo stesso secondo. */
+  const CHIAVE = new THREE.MeshBasicMaterial({ color: 0xff00ff, toneMapped: false, fog: false });
+  schermo.material = CHIAVE;
+  const ytSrc = () => `https://www.youtube-nocookie.com/embed/${VIDEO[0]}?autoplay=1&mute=1&controls=0&loop=1&playlist=${VIDEO.join(',')}&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
+  const strato = (w, h) => { const d = document.createElement('div'); d.style.cssText = `position:fixed;left:0;top:0;width:${w}px;height:${h}px;transform-origin:0 0;pointer-events:none;z-index:-1;display:none;background:#000`; document.body.appendChild(d); return d; };
+  // gli slot: ognuno un lettore vivo che si sposta da uno schermo all'altro senza ricaricare
+  const slot = (w, h, filtro) => { const div = strato(w, h); div.style.filter = filtro; return { div, w, h, ifr: null, info: null, schermo: null }; };
+  const capo = slot(1280, 720, 'contrast(1.08) saturate(.92)');
+  const grandi = [slot(1280, 720, 'contrast(1.1) saturate(.85)')];
+  const piccoli = Array.from({ length: hi ? 6 : 2 }, () => slot(480, 360, 'contrast(1.25) saturate(.7) sepia(.15)'));
+  const tuttiSlot = [capo, ...grandi, ...piccoli];
+  let acceso = false;
+  const comanda = (S, func, args = []) => { if (S.ifr && S.ifr.contentWindow) S.ifr.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), '*'); };
   const accendi = si => {
-    if (si && !acceso) { acceso = true; grande.innerHTML = `<iframe src="${yt()}" allow="autoplay; encrypted-media" style="width:1280px;height:720px;border:0" tabindex="-1" title="Memorie del Cosmo"></iframe><div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 2px,transparent 2px 4px)"></div>`; }
-    if (!si && acceso) { acceso = false; grande.innerHTML = ''; grande.style.display = 'none'; piccoli.forEach(p => { p.innerHTML = ''; p.style.display = 'none'; }); tvAccese = null; }
+    if (si && !acceso) {
+      acceso = true;
+      tuttiSlot.forEach((S, i) => {
+        S.div.innerHTML = `<iframe src="${ytSrc()}" allow="autoplay; encrypted-media" style="width:${S.w}px;height:${S.h}px;border:0" tabindex="-1" title="Memorie del Cosmo"></iframe><div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 2px,transparent 2px 4px)"></div>`;
+        S.ifr = S.div.querySelector('iframe'); S.info = null;
+        S.ifr.addEventListener('load', () => { const ascolta = () => S.ifr && S.ifr.contentWindow && S.ifr.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 'k' + i, channel: 'widget' }), '*'); ascolta(); setTimeout(ascolta, 800); setTimeout(ascolta, 2500); });
+      });
+      ctx.chiave && ctx.chiave(true); ctx.distopia && ctx.distopia(true);
+    }
+    if (!si && acceso) {
+      acceso = false;
+      tuttiSlot.forEach(S => { S.div.innerHTML = ''; S.div.style.display = 'none'; S.ifr = null; S.info = null; if (S.schermo && S !== capo) { S.schermo.mesh.material = S.schermo.mat; S.schermo = null; } });
+      ctx.chiave && ctx.chiave(false); ctx.distopia && ctx.distopia(false);
+    }
+  };
+  // i lettori raccontano a che punto sono: cosi' gli altri si allineano al capo
+  addEventListener('message', e => {
+    if (!acceso || typeof e.data !== 'string' || e.data[0] !== '{') return;
+    const S = tuttiSlot.find(q => q.ifr && q.ifr.contentWindow === e.source); if (!S) return;
+    try {
+      const m = JSON.parse(e.data), inf = m.info; if (!inf) return;
+      if (inf.currentTime != null) S.info = { tempo: inf.currentTime, indice: inf.playlistIndex != null ? inf.playlistIndex : (S.info ? S.info.indice : 0), quando: performance.now() / 1000 };
+      else if (inf.playlistIndex != null && S.info) S.info.indice = inf.playlistIndex;
+    } catch (er) { }
+  });
+  const ora = S => S.info ? S.info.tempo + (performance.now() / 1000 - S.info.quando) : null;
+  let syncT = 0;
+  const allinea = () => {
+    const tc = ora(capo); if (tc == null) return;
+    [...grandi, ...piccoli].forEach(S => {
+      if (!S.info) return;
+      if (S.info.indice !== capo.info.indice) { comanda(S, 'playVideoAt', [capo.info.indice]); S.info.indice = capo.info.indice; return; }
+      if (Math.abs(ora(S) - tc) > 0.9) { comanda(S, 'seekTo', [tc + 0.35, true]); S.info.tempo = tc + 0.35; S.info.quando = performance.now() / 1000; }
+    });
   };
   // il suono parte al primo gesto dentro la piazza
   let gesto = false; const gestoFatto = () => { gesto = true; }; addEventListener('pointerdown', gestoFatto, true); addEventListener('keydown', gestoFatto, true);
-  const angoliS = [[-SW / 2, SB + SH], [SW / 2, SB + SH], [SW / 2, SB], [-SW / 2, SB]].map(([x, y]) => new THREE.Vector3(x, y, 0.46));
-  const va = new THREE.Vector3(), rayV = new THREE.Raycaster();
-  const posa = (div, w, h, oggetto, ang, camera, renderer) => {
-    const rect = renderer.domElement.getBoundingClientRect(), q2 = [];
-    for (const p of ang) { va.copy(p); oggetto.localToWorld(va); va.project(camera); if (va.z > 1 || va.z < -1) { div.style.display = 'none'; return false; } q2.push(rect.left + (va.x + 1) / 2 * rect.width, rect.top + (1 - va.y) / 2 * rect.height); }
-    const m = matriceQuad(w, h, q2); if (!m) { div.style.display = 'none'; return false; }
-    div.style.transform = m; return true;
+  const va = new THREE.Vector3();
+  const angoli = (w, h) => [[-w / 2, h / 2], [w / 2, h / 2], [w / 2, -h / 2], [-w / 2, -h / 2]].map(([x, y]) => new THREE.Vector3(x, y, 0.002));
+  const posa = (S, camera, renderer) => {
+    const sc = S.schermo, rect = renderer.domElement.getBoundingClientRect(), q2 = [];
+    for (const p of sc.ang) { va.copy(p); sc.mesh.localToWorld(va); va.project(camera); if (va.z > 1 || va.z < -1) return false; q2.push(rect.left + (va.x + 1) / 2 * rect.width, rect.top + (1 - va.y) / 2 * rect.height); }
+    const m = matriceQuad(S.w, S.h, q2); if (!m) return false;
+    S.div.style.transform = m; return true;
   };
-  let vistaT = 0, schermoVisto = true;
+  // tutti gli schermi della citta': il grande, quelli dei negozi, quelli del deposito
+  const schermiCitta = [];
+  const nuovoSchermo = (mesh, w, h, grande) => { const sc = { mesh, mat: mesh.material, ang: angoli(w, h), grande, centro: new THREE.Vector3(), d: 99 }; schermiCitta.push(sc); return sc; };
+  const scGrande = nuovoSchermo(schermo, SW, SH, true); capo.schermo = scGrande;
+  negozi.forEach(n => n.tv.forEach(q => nuovoSchermo(q.sch, q.w, q.h, false)));
+  const assegna = (S, sc) => { if (S.schermo === sc) return; if (S.schermo && S.schermo !== scGrande) S.schermo.mesh.material = S.schermo.mat; S.schermo = sc; if (sc) sc.mesh.material = CHIAVE; else S.div.style.display = 'none'; };
+  let sceltaT = 0;
 
   /* ---- il cielo e l'occhio, nel buio ---- */
-  const volta = new THREE.Mesh(new THREE.SphereGeometry(300, 48, 24), new THREE.MeshBasicMaterial({ map: cieloNotte(3770), side: THREE.BackSide, fog: false })); volta.position.y = -20; g.add(volta);
-  const occhio = occhioCelesta(); occhio.g.position.set(-6, 165, -240); occhio.g.scale.setScalar(1.7); g.add(occhio.g);
-  occhio.nebbia.visible = false;
+  const OCCHIO_DIR = new THREE.Vector3(-0.04, 0.34, -1).normalize();   // dove sta: a nord, basso, che sorge dal banco di nuvole all'orizzonte
+  const cieloU = { t: { value: 0 }, disco: { value: 0 }, eyeDir: { value: OCCHIO_DIR }, palpebra: { value: 0 }, pupilla: { value: 1 }, guarda: { value: new THREE.Vector2() } };
+  const volta = new THREE.Mesh(new THREE.SphereGeometry(700, 64, 32), new THREE.ShaderMaterial({
+    uniforms: cieloU, side: THREE.BackSide, depthWrite: false, fog: false,
+    vertexShader: `varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `
+      uniform float t, disco, palpebra, pupilla; uniform vec3 eyeDir; uniform vec2 guarda; varying vec3 vP;
+      float h1(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h1(i), h1(i + vec2(1, 0)), f.x), mix(h1(i + vec2(0, 1)), h1(i + vec2(1, 1)), f.x), f.y); }
+      float fbm(vec2 p){ float v = 0.0, a = 0.5; mat2 m = mat2(1.6, 1.2, -1.2, 1.6); for (int i = 0; i < 6; i++) { v += a * n2(p); p = m * p; a *= 0.5; } return v; }
+      void main(){
+        vec3 d = normalize(vP); float h = d.y;
+        // il fondo: piombo verdastro allo zenit, ocra sporco e polvere all'orizzonte, sotto il nero del fumo
+        vec3 zen = vec3(0.11, 0.12, 0.11), mid = vec3(0.30, 0.30, 0.27), hor = vec3(0.56, 0.50, 0.38);
+        vec3 col = mix(hor, mix(mid, zen, smoothstep(0.25, 0.9, h)), smoothstep(0.0, 0.3, h));
+        if (h < 0.0) col = mix(hor, vec3(0.22, 0.2, 0.17), smoothstep(0.0, -0.15, h));
+        // le nuvole: proiettate su una volta bassa, deformate dal vento (domain warping), con l'ombra sotto
+        vec2 uv = d.xz / (max(h, 0.0) + 0.14) * 0.9;
+        vec2 w = vec2(fbm(uv * 0.5 + vec2(t * 0.012, 0.0)), fbm(uv * 0.5 + vec2(5.2, 1.3) - t * 0.009));
+        float c = fbm(uv * 0.8 + w * 2.0 + vec2(t * 0.018, t * 0.006));
+        float c2 = fbm(uv * 0.8 + w * 2.0 + vec2(t * 0.018, t * 0.006) + vec2(0.06, 0.09));   // un passo verso la luce: l'ombra interna
+        float cov = smoothstep(0.32, 0.7, c) * smoothstep(-0.03, 0.12, h);
+        vec3 chiara = vec3(0.6, 0.57, 0.5), scura = vec3(0.08, 0.08, 0.075);
+        vec3 nuv = mix(scura, chiara, clamp(0.45 + (c - c2) * 9.0, 0.0, 1.0));
+        nuv = mix(nuv, hor * 0.9, smoothstep(0.25, 0.0, h) * 0.6);   // le nuvole lontane si perdono nella polvere
+        // i bagliori sporchi dentro le nuvole, come incendi lontani riflessi
+        nuv += vec3(0.35, 0.16, 0.05) * pow(fbm(uv * 1.7 - t * 0.02), 4.0) * smoothstep(0.3, 0.0, h) * 2.0;
+        col = mix(col, nuv, cov);
+        // L'OCCHIO: non un oggetto lassu', ma il cielo stesso che si apre
+        float de = dot(d, eyeDir);
+        if (de > 0.5) {
+          vec3 rg = normalize(cross(vec3(0.0, 1.0, 0.0), eyeDir)), up = cross(eyeDir, rg);
+          vec2 q = vec2(dot(d, rg), dot(d, up)) / de;   // le coordinate sul piano dell'occhio
+          float S = 0.3; vec2 e = q / S;
+          float ap = (1.0 - palpebra) * 0.55 * pow(max(0.0, 1.0 - e.x * e.x), 0.75);   // la mandorla, che si chiude quando sbatte
+          float bordo = abs(e.y) - ap, dentro = smoothstep(0.03, -0.03, bordo);
+          // le palpebre: carne fatta di nuvola, a pieghe parallele, che sfuma nel cielo
+          float lid = smoothstep(0.22, 0.0, bordo) * smoothstep(1.15, 0.9, abs(e.x)) * (1.0 - dentro);
+          vec3 carne = mix(vec3(0.3, 0.22, 0.19), vec3(0.56, 0.45, 0.39), fbm(vec2(e.x * 4.0, bordo * 25.0)));
+          carne *= 0.72 + 0.28 * sin(bordo * 55.0 + fbm(e * 5.0) * 7.0);
+          carne *= 0.6 + 0.4 * smoothstep(0.0, 0.12, bordo);   // l'ombra umida dove la palpebra tocca l'occhio
+          col = mix(col, carne * (0.6 + 0.6 * nuv), lid * 0.85 * (1.0 - disco));
+          vec2 ic = e - guarda * 0.18; float ri = length(ic);
+          // la sclera: giallognola, venata di rosso verso gli angoli
+          float vene = pow(fbm(e * 9.0 + 3.0), 3.0) * smoothstep(0.2, 1.0, abs(e.x));
+          vec3 occ = mix(vec3(0.5, 0.45, 0.4), vec3(0.62, 0.16, 0.12), vene * 2.2 + smoothstep(0.7, 1.0, abs(e.x)) * 0.5);
+          // l'iride: fibre, il collaretto, il bordo scuro
+          float ang = atan(ic.y, ic.x), fib = fbm(vec2(ang * 9.0, ri * 6.0));
+          vec3 iri = mix(vec3(0.42, 0.48, 0.42), vec3(0.62, 0.5, 0.3), smoothstep(0.17, 0.08, ri)) * (0.6 + fib * 0.8);
+          iri *= smoothstep(0.36, 0.28, ri) * 0.8 + 0.2;
+          occ = mix(occ, iri, smoothstep(0.37, 0.35, ri));
+          occ = mix(occ, vec3(0.01), smoothstep(0.11 * pupilla + 0.005, 0.11 * pupilla - 0.005, ri));   // la pupilla
+          occ += vec3(0.9) * smoothstep(0.06, 0.0, length(ic - vec2(-0.1, 0.12)));   // il riflesso bagnato
+          occ *= 0.55 + 0.45 * smoothstep(0.0, 0.5, ap - abs(e.y) + 0.2);   // l'ombra della palpebra
+          // LA PALLA: quando suona tg0 l'occhio diventa una palla da discoteca
+          if (disco > 0.5) {
+            float rb = length(e); vec2 tl = floor(vec2(atan(e.y, e.x) * 6.0 + t * 1.5, rb * 14.0));
+            vec3 spec = vec3(0.4) + 0.6 * vec3(h1(tl), h1(tl + 3.1), h1(tl + 7.7)) * step(0.7, h1(tl + floor(t * 6.0)));
+            occ = mix(vec3(0.15), spec, step(rb, 0.62)) * step(rb, 0.62); dentro = step(rb, 0.62);
+          }
+          col = mix(col, occ, dentro);
+          // le nuvole gli passano davanti: a volte lo coprono a meta'
+          col = mix(col, nuv, cov * smoothstep(0.55, 0.85, c) * 0.85 * clamp(lid + dentro, 0.0, 1.0));
+        }
+        // la foschia sull'orizzonte, il pulviscolo
+        col = mix(col, hor * 1.05, smoothstep(0.08, 0.0, abs(h)) * 0.5);
+        gl_FragColor = vec4(col * 0.82, 1.0);
+      }`
+  })); volta.position.y = -40; volta.renderOrder = -1; volta.frustumCulled = false; g.add(volta);
+  const occhio = occhioCelesta(); occhio.g.position.set(-6, 190, -330); occhio.g.scale.setScalar(2.6); g.add(occhio.g);
+  occhio.nebbia.visible = false; occhio.g.visible = false;
   // l'oscurita' intorno: un velo nero che si apre solo sull'occhio
-  const veloC = cv(512, 512), vf = veloC.getContext('2d'); { const gv = vf.createRadialGradient(256, 256, 60, 256, 256, 256); gv.addColorStop(0, 'rgba(0,0,0,0)'); gv.addColorStop(0.35, 'rgba(0,0,0,.75)'); gv.addColorStop(1, 'rgba(0,0,0,0)'); vf.fillStyle = gv; vf.fillRect(0, 0, 512, 512); }
-  const veloO = new THREE.Mesh(new THREE.PlaneGeometry(occhio.R * 5.5, occhio.R * 5.5), new THREE.MeshBasicMaterial({ map: toTex(veloC), transparent: true, depthWrite: false, fog: false })); veloO.position.z = -occhio.R * 0.5; occhio.g.add(veloO);
+  const veloC = cv(512, 512), vf = veloC.getContext('2d'); { const gv = vf.createRadialGradient(256, 256, 60, 256, 256, 256); gv.addColorStop(0, 'rgba(150,120,108,.95)'); gv.addColorStop(0.32, 'rgba(140,112,100,.85)'); gv.addColorStop(0.6, 'rgba(120,105,96,.45)'); gv.addColorStop(1, 'rgba(110,104,96,0)'); vf.fillStyle = gv; vf.fillRect(0, 0, 512, 512); const rp = rng(3799); for (let i = 0; i < 260; i++) { const a = rp() * 6.28, d = 70 + rp() * 150; vf.strokeStyle = `rgba(60,40,36,${0.1 + rp() * 0.25})`; vf.lineWidth = 1 + rp() * 2; vf.beginPath(); vf.arc(256, 256, d, a, a + 0.2 + rp() * 0.6); vf.stroke(); } }   // la pelle rugosa intorno all'occhio, che sfuma nelle nuvole
+  const veloO = new THREE.Mesh(new THREE.PlaneGeometry(occhio.R * 5.5, occhio.R * 5.5), new THREE.MeshBasicMaterial({ map: toTex(veloC), transparent: true, depthWrite: false, fog: false })); veloO.position.z = -occhio.R * 0.3; occhio.g.add(veloO);
   occhio.g.traverse(o => { if (o.material && o.material.emissive) o.material.emissiveIntensity = 0.15; });
   let ammicca = 6 + r() * 6, palpebra = 0, pupilla = 1;
+  const palla = new THREE.Group(); palla.visible = false; g.add(palla);
+  const pallaC = cv(512, 256), pff = pallaC.getContext('2d'); { const rp = rng(3798); for (let y = 0; y < 256; y += 8) for (let x = 0; x < 512; x += 8) { const v = 60 + rp() * 195 | 0; pff.fillStyle = `rgb(${v},${v},${v + 10})`; pff.fillRect(x, y, 7, 7); } }
+  const pallaT = toTex(pallaC);
+  const pallaM = new THREE.MeshStandardMaterial({ map: pallaT, emissiveMap: pallaT, emissive: 0xffffff, emissiveIntensity: 0.9, metalness: 1, roughness: 0.2, fog: false, flatShading: true });
+  
+  const raggiD = [];
+  for (let i = 0; i < (hi ? 16 : 8); i++) { const m = new THREE.Mesh(new THREE.ConeGeometry(occhio.R * 0.35, 420, 12, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color().setHSL(i / 16, 1, 0.55), transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, side: THREE.DoubleSide })); m.geometry.translate(0, -210, 0); const piv = new THREE.Group(); piv.rotation.set(0.4 + Math.random() * 0.9, i / 16 * Math.PI * 2, 0); piv.add(m); palla.add(piv); raggiD.push(piv); }
+  const luciD = [0, 1, 2].map(() => { const l = new THREE.PointLight(0xffffff, 0, 30, 1.2); g.add(l); return l; });
+  const canzone = new Audio('RadioKaoSs/tg%20del%20cosmo/tg0.mpeg'); canzone.preload = 'none';
+  try { ctx.listener.context.createMediaElementSource(canzone).connect(ctx.listener.getInput()); } catch (e) { }
+  let disco = false, discoT = 75, discoDur = 0;   // la prima volta dopo poco, poi ogni 5 minuti
+  const avviaDisco = () => { disco = true; discoDur = 0; try { canzone.currentTime = 0; canzone.play().catch(() => { }); } catch (e) { } O.danza(true); palla.visible = true; cieloU.disco.value = 1; say && say('♪ tg0 · l\'occhio è diventato una palla da discoteca. le margherite ballano'); };
+  const fermaDisco = () => { disco = false; discoT = 300; try { canzone.pause(); } catch (e) { } O.danza(false); palla.visible = false; cieloU.disco.value = 0; luciD.forEach(l => { l.intensity = 0; }); };
+
   // la notte: la luna dietro le nuvole, fredda e poca
-  const emi = new THREE.HemisphereLight(0x2a3040, 0x0a0806, hi ? 0.35 : 0.5); g.add(emi);
-  const luna = new THREE.DirectionalLight(0x8aa0c8, 0.45); luna.position.set(-30, 60, 30); luna.target.position.set(0, 0, 0); g.add(luna, luna.target);
+  const emi = new THREE.HemisphereLight(0xb8b8b0, 0x4a443a, hi ? 1.7 : 2.0); g.add(emi);
+  const luna = new THREE.DirectionalLight(0xd8d0bc, 2.0); luna.position.set(-30, 60, 30); luna.target.position.set(0, 0, 0); g.add(luna, luna.target);
   if (hi) { luna.castShadow = true; luna.shadow.mapSize.set(2048, 2048); const c2 = luna.shadow.camera; c2.left = -40; c2.right = 40; c2.top = 40; c2.bottom = -40; c2.near = 10; c2.far = 150; luna.shadow.bias = -0.0005; luna.shadow.normalBias = 0.03; }
 
   /* ---- i lampioni: gialli, alcuni rossi, alcuni che sfarfallano, alcuni morti ---- */
@@ -649,6 +835,7 @@ export async function buildPiazza(scene, ctx) {
   [[-6, 6], [6, -6], [7, 6], [-7, -5]].forEach(p => PL.push(p));
   PL.forEach(([x, z], i) => {
     if (z < CHIESA.zFront + 1.5 && Math.abs(x) < CHIESA.x1 + 1) return;
+    if (trincea(x, z).d < TW + 1.2) return;
     const L = lampione(R); L.g.position.set(x, terra(x, z), z); L.g.rotation.y = Math.atan2(-x, -z) + Math.PI / 2; g.add(L.g);
     const rosso = i % 4 === 1, morto = i % 7 === 5, umore = morto ? 'morto' : (i % 3 === 0 ? 'sfarfalla' : 'fermo');
     const colore = new THREE.Color(rosso ? 0xff2416 : 0xffa848);
@@ -683,6 +870,129 @@ export async function buildPiazza(scene, ctx) {
     mosche.push({ sciame, cx, cz, y: terra(cx, cz) + 0.9, f: Array.from({ length: NM }, () => [Math.random() * 6, 0.4 + Math.random() * 1.2, Math.random() * 6, 1 + Math.random() * 2]) });
   });
 
+  /* ---- il cunicolo: la trincea coperta ---- */
+  const assiT = assi(3830), assiM = new THREE.MeshStandardMaterial({ map: assiT, bumpMap: assiT, bumpScale: 2, roughness: 0.95, side: THREE.DoubleSide });
+  const cemM = new THREE.MeshStandardMaterial({ map: travertino(3831), color: 0x6a6660, roughness: 0.95 });
+  const lamOnd = new THREE.MeshStandardMaterial({ map: ondulata(3832, '#4a4a44'), metalness: 0.5, roughness: 0.6, side: THREE.DoubleSide });
+  {
+    // le pareti: assi inchiodate, seguono il fondo che scende e risale
+    const muri = [];
+    for (let i = 0; i < TR.length - 1; i++) {
+      const [ax, az] = TR[i], [bx, bz] = TR[i + 1], L = Math.hypot(bx - ax, bz - az), ux = (bx - ax) / L, uz = (bz - az) / L, nx = -uz, nz = ux, N = Math.max(2, Math.ceil(L / 1.2));
+      for (const k of [-1, 1]) {
+        const pos = [], uv = [], idx = [];
+        for (let j = 0; j <= N; j++) {
+          const u = j / N, cx = ax + (bx - ax) * u, cz = az + (bz - az) * u, sAt = TRs[i] + L * u, fondo = fondoTrincea(sAt);
+          const x = cx + nx * k * TW, z = cz + nz * k * TW, top = terraSopra(cx + nx * k * (TW + 0.8), cz + nz * k * (TW + 0.8)) + 0.12;
+          pos.push(x, fondo - 0.05, z, x, Math.max(top, fondo + 0.1), z); uv.push(sAt / 2, (fondo - 0.05) / 2, sAt / 2, top / 2);
+          if (j < N) { const q = j * 2; if (k > 0) idx.push(q, q + 2, q + 1, q + 1, q + 2, q + 3); else idx.push(q, q + 1, q + 2, q + 1, q + 3, q + 2); }
+        }
+        const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
+        const m = new THREE.Mesh(geo, assiM); m.receiveShadow = true; g.add(m); ostacoli.push(m); vista.push(m); muri.push(m);
+      }
+      // i pali che tengono le assi
+      for (let j = 0; j <= N; j += 1) for (const k of [-1, 1]) { const cx = ax + ux * L * j / N + nx * k * (TW - 0.06), cz = az + uz * L * j / N + nz * k * (TW - 0.06), fondo = fondoTrincea(TRs[i] + L * j / N); const top = terraSopra(cx, cz); if (top - fondo < 0.4) continue; const pl = new THREE.Mesh(new THREE.BoxGeometry(0.12, top - fondo + 0.2, 0.12), assiM); pl.position.set(cx, (top + fondo) / 2, cz); g.add(pl); }
+    }
+    // il tetto: lastre di cemento, lamiere, porte, assi; con gli spiragli in mezzo
+    const lastre = [];
+    for (let s0 = 6.5; s0 < TRs[3] + 1.5; s0 += 1.25) {
+      if (r() < 0.12) continue;   // uno spiraglio: la luce entra da sopra
+      let i = 0; while (i < TR.length - 2 && TRs[i + 1] < s0) i++;
+      const [ax, az] = TR[i], [bx, bz] = TR[i + 1], L = TRs[i + 1] - TRs[i], u = (s0 - TRs[i]) / L, cx = ax + (bx - ax) * u, cz = az + (bz - az) * u, ang = Math.atan2(bx - ax, bz - az);
+      const y = Math.max(terraSopra(cx + (az - bz) / L * (TW + 0.6), cz + (bx - ax) / L * (TW + 0.6)), terraSopra(cx - (az - bz) / L * (TW + 0.6), cz - (bx - ax) / L * (TW + 0.6))) + 0.08;
+      const tipo = r(), w2 = TW * 2 + 0.9 + r() * 0.4, lung = 1.15 + r() * 0.2;
+      const m = new THREE.Mesh(tipo < 0.45 ? new THREE.BoxGeometry(w2, 0.16, lung) : tipo < 0.8 ? new THREE.BoxGeometry(w2, 0.03, lung) : new THREE.BoxGeometry(w2, 0.08, lung * 0.9), tipo < 0.45 ? cemM : tipo < 0.8 ? lamOnd : assiM);
+      m.position.set(cx, y + (r() - 0.5) * 0.06, cz); m.rotation.set((r() - 0.5) * 0.06, ang + Math.PI / 2 + Math.PI / 2 + (r() - 0.5) * 0.15, (r() - 0.5) * 0.08); m.castShadow = true; m.receiveShadow = true; g.add(m); ostacoli.push(m); vista.push(m); lastre.push(m);
+      if (r() < 0.3) { const sacco = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 0.4, 4, 8), new THREE.MeshStandardMaterial({ color: 0x5a5040, roughness: 1 })); sacco.rotation.z = Math.PI / 2; sacco.rotation.y = r() * 3; sacco.position.set(cx + (r() - 0.5) * 1.6, y + 0.22, cz + (r() - 0.5) * 0.6); g.add(sacco); }
+    }
+    // dentro: il fango con le pozze, le lampadine appese ai fili, le casse, una barella, i bossoli
+    const lampC = []; [9, 21, 33, 45].forEach((s0, k) => {
+      let i = 0; while (i < TR.length - 2 && TRs[i + 1] < s0) i++;
+      const [ax, az] = TR[i], [bx, bz] = TR[i + 1], u = (s0 - TRs[i]) / (TRs[i + 1] - TRs[i]), cx = ax + (bx - ax) * u, cz = az + (bz - az) * u, fondo = fondoTrincea(s0);
+      const bm = new THREE.MeshStandardMaterial({ color: 0xfff0c8, emissive: 0xffb050, emissiveIntensity: 2, toneMapped: false });
+      const b = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), bm); b.position.set(cx, fondo + 2.05, cz); g.add(b);
+      const filo = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.5, 4), new THREE.MeshBasicMaterial({ color: 0x050505 })); filo.position.set(cx, fondo + 2.32, cz); g.add(filo);
+      lampC.push({ bm, x: cx, y: fondo + 2.0, z: cz, t: r() * 3, on: 1 });
+    });
+    const luceC = [0, 1].map(() => { const l = new THREE.PointLight(0xffb060, 0, 9, 1.5); g.add(l); return l; });
+    window.__cunicolo = { lampC, luceC };
+    const cassaM = new THREE.MeshStandardMaterial({ map: assi(3833), roughness: 0.9 });
+    [[14, 0.6], [24, -0.5]].forEach(([s0, off], k) => {
+      let i = 0; while (i < TR.length - 2 && TRs[i + 1] < s0) i++;
+      const [ax, az] = TR[i], [bx, bz] = TR[i + 1], L = TRs[i + 1] - TRs[i], u = (s0 - TRs[i]) / L, nx = -(bz - az) / L, nz = (bx - ax) / L, cx = ax + (bx - ax) * u + nx * off * TW, cz = az + (bz - az) * u + nz * off * TW;
+      const c2 = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.5, 0.5), cassaM); c2.position.set(cx, fondoTrincea(s0) + 0.25, cz); c2.rotation.y = r() * 3; g.add(c2); ostacoli.push(c2);
+      colliders.push({ x: cx, z: cz, w: 0.6, d: 0.6 });
+    });
+  }
+
+  /* ---- il deposito: dietro la barricata ovest, ci si arriva solo dal cunicolo ---- */
+  const depo = new THREE.Group(); g.add(depo);
+  {
+    // i palazzi tutto intorno, rivolti verso il cortile
+    const lati = [
+      { x0: DEP.x0, x1: DEP.x1 + 1, z: DEP.z0, ry: 0 },             // a nord, guardano verso +z
+      { x0: DEP.x0, x1: DEP.x1 + 1, z: DEP.z1, ry: Math.PI }        // a sud, guardano verso -z
+    ];
+    lati.forEach((L, li) => { let x = L.x0; while (x < L.x1 - 3) { const W = Math.min(L.x1 - x, 7 + r() * 4); const p = palazzo(3900 + li * 20 + (x | 0), W, 3 + (r() * 4 | 0), matPal[(li + (x | 0)) % 4], { ombre: false, matBalc }); p.position.set(x + W / 2, 0.05, L.z); p.rotation.y = L.ry; depo.add(p); p.traverse(o => { if (o.isMesh) { ostacoli.push(o); vista.push(o); } }); x += W; } });
+    // a ovest il magazzino grande, con lo schermo
+    const mag = palazzo(3950, DEP.z1 - DEP.z0, 5, matPal[1], { ombre: false, matBalc }); mag.position.set(DEP.x0, 0.05, (DEP.z0 + DEP.z1) / 2); mag.rotation.y = Math.PI / 2; depo.add(mag); mag.traverse(o => { if (o.isMesh) { ostacoli.push(o); vista.push(o); } });
+    // a est: il retro dei palazzi della via e il retro della barricata
+    [[-1, DEP.z0, -3.9], [1, 3.9, DEP.z1]].forEach(([k, za, zb]) => { const m = new THREE.Mesh(uvMondo(new THREE.BoxGeometry(1, 16, Math.abs(zb - za)).toNonIndexed()), matPal[3]); m.position.set(DEP.x1 + 0.4, 8, (za + zb) / 2); depo.add(m); ostacoli.push(m); vista.push(m); });
+    // lo schermo del deposito: lo stesso video
+    const SW2 = 12, SH2 = SW2 * 9 / 16;
+    const sc2 = new THREE.Mesh(new THREE.PlaneGeometry(SW2, SH2), new THREE.MeshBasicMaterial({ color: 0x06060c, toneMapped: false })); sc2.position.set(DEP.x0 + 0.6, 6 + SH2 / 2, 0.5); sc2.rotation.y = Math.PI / 2; depo.add(sc2);
+    const cor2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, SH2 + 0.7, SW2 + 0.7), R.ferro); cor2.position.set(DEP.x0 + 0.3, 6 + SH2 / 2, 0.5); depo.add(cor2);
+    nuovoSchermo(sc2, SW2, SH2, true);
+    const lS2 = new THREE.PointLight(0x8aa0ff, 22, 30, 1.2); lS2.position.set(DEP.x0 + 6, 6 + SH2 / 2, 0.5); depo.add(lS2);
+    window.__luceS2 = lS2;
+    // i container, uno sull'altro
+    const colC = ['#6a2a1a', '#2a4a5a', '#5a5a2a', '#3a3a3a', '#7a4a1a'];
+    [[-46, -8.5, 0, 0], [-46, -8.5, 1, 0.05], [-52.5, -9, 0, 0.1], [-58, 6.5, 0, Math.PI / 2], [-58, 6.5, 1, Math.PI / 2 - 0.08], [-49, 7.5, 0, 0.2]].forEach(([x, z, piano, ry], i) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(6, 2.6, 2.4), new THREE.MeshStandardMaterial({ map: ondulata(3960 + i, colC[i % colC.length]), metalness: 0.45, roughness: 0.6 })); m.position.set(x, 1.3 + piano * 2.6, z); m.rotation.y = ry; m.castShadow = true; m.receiveShadow = true; depo.add(m); ostacoli.push(m); vista.push(m);
+      if (!piano) { const along = Math.abs(Math.sin(ry)) > 0.7; colliders.push({ x, z, w: along ? 2.6 : 6.2, d: along ? 6.2 : 2.6 }); }
+    });
+    // la rete metallica che taglia il cortile, con un varco
+    const reteM = new THREE.MeshStandardMaterial({ map: rete(), transparent: true, alphaTest: 0.3, side: THREE.DoubleSide, metalness: 0.7, roughness: 0.5 });
+    [[-55, -12.5, -55, -4.5], [-55, -1.5, -55, 3]].forEach(([x0, z0, x1, z1]) => { const L = Math.hypot(x1 - x0, z1 - z0); const m = new THREE.Mesh(new THREE.PlaneGeometry(L, 2.6), reteM); m.material.map.repeat.set(L / 1.2, 2.2); m.position.set((x0 + x1) / 2, 1.3, (z0 + z1) / 2); m.rotation.y = Math.atan2(x1 - x0, z1 - z0) - Math.PI / 2; depo.add(m); for (let k = 0; k <= Math.ceil(L / 3); k++) { const pz = z0 + (z1 - z0) * k / Math.ceil(L / 3); const pl = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.8, 6), R.ferro); pl.position.set(x0, 1.4, pz); depo.add(pl); } colliders.push({ x: (x0 + x1) / 2, z: (z0 + z1) / 2, w: 0.3, d: L }); const filo = []; for (let i = 0; i <= 120; i++) { const t2 = i / 120, a2 = t2 * 50; filo.push(new THREE.Vector3(x0 + Math.sin(a2) * 0.2, 2.8 + Math.cos(a2) * 0.2, z0 + (z1 - z0) * t2)); } depo.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(filo), 240, 0.007, 4), R.ferro)); });
+    // la torretta di guardia, col faro che gira
+    const torre = new THREE.Group(); torre.position.set(-60, 0, -8); depo.add(torre);
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a2, b2]) => { const gb = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 6, 6), R.ferro); gb.position.set(a2 * 1.1, 3, b2 * 1.1); gb.rotation.set(b2 * 0.05, 0, -a2 * 0.05); torre.add(gb); });
+    for (let y = 1; y < 6; y += 1.5) [0, 1].forEach(k => { const tr2 = new THREE.Mesh(new THREE.BoxGeometry(k ? 0.05 : 2.4, 0.05, k ? 2.4 : 0.05), R.ferro); tr2.position.set(k ? 1.1 : 0, y, k ? 0 : 1.1); torre.add(tr2); });
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.6, 2.8), new THREE.MeshStandardMaterial({ map: ondulata(3970, '#3a3c34'), metalness: 0.4, roughness: 0.7 })); cab.position.y = 6.8; torre.add(cab);
+    const tetT = new THREE.Mesh(new THREE.ConeGeometry(2.4, 0.8, 4), R.ferro); tetT.position.y = 8; tetT.rotation.y = Math.PI / 4; torre.add(tetT);
+    const fin = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.6), new THREE.MeshBasicMaterial({ color: 0x080808 })); fin.position.set(0, 7, 1.41); torre.add(fin);
+    const faroT = new THREE.SpotLight(0xd8e8ff, 60, 40, 0.22, 0.5, 1.2); faroT.position.set(0, 7.6, 1.5); torre.add(faroT); const ftT = new THREE.Object3D(); ftT.position.set(0, 0, 10); torre.add(ftT); faroT.target = ftT;
+    const faroM = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.18, 0.4, 14), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xd8e8ff, emissiveIntensity: 3, toneMapped: false })); faroM.rotation.x = Math.PI / 2; faroM.position.set(0, 7.6, 1.6); torre.add(faroM);
+    colliders.push({ x: -60, z: -8, w: 3, d: 3 }); torre.traverse(o => { if (o.isMesh) ostacoli.push(o); });
+    window.__torre = { torre, faroT, ftT };
+    // le torri faro: luce bianca, dura
+    [[-44, 9.5], [-62, 3]].forEach(([x, z]) => { const pl = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.16, 9, 8), R.ghisa); pl.position.set(x, 4.5, z); depo.add(pl); const ban = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 0.3), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xe0f0ff, emissiveIntensity: 2.5, toneMapped: false })); ban.position.set(x, 9, z); ban.lookAt(-52, 0, 0); depo.add(ban); const sl = new THREE.SpotLight(0xe0ecff, 16, 30, 0.6, 0.7, 1.5); sl.position.set(x, 8.8, z); sl.target.position.set(-52, 0, -1); depo.add(sl, sl.target); colliders.push({ x, z, w: 0.6, d: 0.6 }); });
+    // i bidoni, uno brucia; le casse; i pallet; un furgone sventrato
+    const bidM = new THREE.MeshStandardMaterial({ map: ruggine(3980, '#3a4a2a'), metalness: 0.5, roughness: 0.6 });
+    [[-43, -6, 1], [-43.8, -6.6, 0], [-51, 2.5, 0], [-51.6, 3.1, 0], [-50.9, 3.3, 0], [-61, -2, 0]].forEach(([x, z, brucia], i) => { const b2 = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.9, 16), bidM); b2.position.set(x, 0.45, z); if (i === 5) { b2.rotation.z = Math.PI / 2; b2.position.y = 0.3; } depo.add(b2); ostacoli.push(b2); colliders.push({ x, z, w: 0.7, d: 0.7 }); if (brucia) { fuochi.push(new THREE.Vector3(x, 1.0, z)); for (let k = 0; k < 4; k++) { const s2 = new THREE.Sprite(fuocoM); s2.raycast = () => { }; s2.position.set(x + (r() - 0.5) * 0.3, 1.1 + r() * 0.2, z + (r() - 0.5) * 0.3); s2.scale.set(0.5, 0.9, 1); g.add(s2); fiamme.push({ s: s2, f: r() * 6, y0: s2.position.y }); } } });
+    const fu = auto(3990, 'bruciata'); fu.scale.set(1.15, 1.25, 1.35); fu.position.set(-48, 0, 1); fu.rotation.y = 1.2; depo.add(fu); colliders.push({ x: -48, z: 1, w: 3.4, d: 3.4 }); fu.traverse(o => { if (o.isMesh) { ostacoli.push(o); vista.push(o); } });
+    // i manifesti sui muri del deposito
+    [[-57, -12.4, 0, 2], [-45, 10.4, Math.PI, 8], [-63.4, -7, Math.PI / 2, 5]].forEach(([x, z, ry, k], i) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 1.8), new THREE.MeshStandardMaterial({ map: manifesto(MANIFESTI[k], 3995 + i, i % 2 === 0), transparent: true, alphaTest: 0.05, roughness: 0.9 })); m.position.set(x, 2.4, z); m.rotation.y = ry; depo.add(m); });
+  }
+  const luceDep = new THREE.HemisphereLight(0x3a4050, 0x0a0806, 0.25); depo.add(luceDep);
+
+  /* ---- le macchine: telecamere, droni, robot ---- */
+  const M = macchine(g, ctx, A, E, { hi, terra, vista, libero: (x, z) => libero(x, z) });
+  // le telecamere sulle facciate della piazza, rivolte al centro
+  [-0.45].forEach(a2 => { const port = a2 > -1.05 && a2 < 0.05, x = Math.cos(a2) * (AX * 1.02 - (port ? 3.7 : 0)), z = Math.sin(a2) * (AZ * 1.02 - (port ? 3.7 : 0)); M.telecamera(x, port ? 5.25 : 5.4, z, Math.atan2(-x, -z)); });   // sul porticato: sul bordo del cornicione, davanti agli archi
+   // su un lampione in mezzo: guarda verso il cratere e il cunicolo
+  // nel deposito: sulla torretta e sul magazzino
+  M.telecamera(-60, 7.4, -6.5, 0.9, { ampiezza: 1.0, giu: 0.4 });
+  M.telecamera(DEP.x0 + 0.8, 5, -9, Math.PI / 2, { ampiezza: 0.7 });
+  M.telecamera(-41, 4.5, 9.6, Math.PI + 0.6, { ampiezza: 0.8 });
+  // i robot: la ronda intorno alla fontana, quella davanti alla chiesa, quelle del deposito
+  const giro = []; for (let i = 0; i < 8; i++) { const a2 = i / 8 * Math.PI * 2 + 0.2; giro.push([Math.cos(a2) * 10.5, Math.sin(a2) * 9]); }
+  M.sentinella(5200, giro);
+  M.sentinella(5202, [[-45, -2.5], [-52, -5.5], [-58, -3], [-52, 4.5], [-45, 5]]);
+  M.sentinella(5203, [[-62, 8], [-58, -1], [-62, -11], [-52, -11.5]]);
+  // l'indicatore: quando ti vedono
+  const occhioHud = document.createElement('div'); occhioHud.style.cssText = 'position:fixed;left:50%;top:14%;transform:translateX(-50%);z-index:12;pointer-events:none;font:bold 15px Consolas,monospace;letter-spacing:.2em;color:#ff3a24;text-shadow:0 0 8px #000;opacity:0;transition:opacity .2s;display:none'; occhioHud.textContent = '◉ TI VEDONO'; document.body.appendChild(occhioHud);
+
   /* ---- il bunker da cui si esce ---- */
   const bunker = new THREE.Group(); bunker.position.set(0, 0, AZ * 0.86); g.add(bunker);
   const blocco = new THREE.Mesh(uvMondo(new THREE.BoxGeometry(6, 3.2, 3.6).toNonIndexed()), new THREE.MeshStandardMaterial({ map: intonaco(3730, '#4a4844'), roughness: 0.95 })); blocco.position.set(0, 1.4, 1.2); blocco.castShadow = true; bunker.add(blocco); ostacoli.push(blocco);
@@ -692,16 +1002,35 @@ export async function buildPiazza(scene, ctx) {
   interact.push({ mesh: portaB, label: 'la porta del bunker · rientra', view: null, action: () => { ctx.allaUscita ? ctx.allaUscita() : ctx.entra && ctx.entra('bunker'); } });
 
   /* ---- le margherite ---- */
-  const libero = (x, z) => {
+  const libero = (x, z, piedi) => {
+    // il cunicolo: dentro si cammina; i bordi sono muri, tranne dove il fondo e' quasi in superficie (le rampe)
+    if (x < -6 && x > -50 && z < 2 && z > -10) {
+      const tc = trincea(x, z);
+      if (tc.d < TW + 0.45) {
+        const ht = fondoTrincea(tc.s), hs = terraSopra(x, z), profondo = hs - ht > 0.7;
+        if (tc.d < TW - 0.35) return !colliders.some(c => !c.barricata && Math.abs(x - c.x) < c.w / 2 + 0.25 && Math.abs(z - c.z) < c.d / 2 + 0.25);
+        if (profondo) return false;
+      }
+    }
+    // il deposito, dietro la barricata ovest
+    if (x < -39.4 && x > DEP.x0 - 12 && z > DEP.z0 - 12 && z < DEP.z1 + 12) {
+      if (x < DEP.x0 + 0.6 || z < DEP.z0 + 0.6 || z > DEP.z1 - 0.6) return false;
+      return !colliders.some(c => Math.abs(x - c.x) < c.w / 2 + 0.25 && Math.abs(z - c.z) < c.d / 2 + 0.25);
+    }
     const e = (x / AX) * (x / AX) + (z / AZ) * (z / AZ);
-    if (e > 0.93 && !inVia(x, z)) return false;
+    if (e > 0.93) {
+      if (inVia(x, z)) return !colliders.some(c => Math.abs(x - c.x) < c.w / 2 + 0.25 && Math.abs(z - c.z) < c.d / 2 + 0.25);
+      // l'anello dei palazzi intorno alla piazza: si esce solo dalle vie
+      const rx = x / (AX * 1.04 + 10.5), rz = z / (AZ * 1.04 + 10.5); if (rx * rx + rz * rz < 1) return false;
+      return MONDO ? MONDO.libero(x, z, piedi) : false;
+    }
     if (Math.hypot(x, z) < 4.7) return false;   // la fontana
     if (z < CHIESA.zMuro + 0.6) return false;
     return !colliders.some(c => Math.abs(x - c.x) < c.w / 2 + 0.25 && Math.abs(z - c.z) < c.d / 2 + 0.25);
   };
   const posto = (lontanoDa, d0 = 0) => { for (let k = 0; k < 80; k++) { const x = (Math.random() - 0.5) * AX * 1.8, z = (Math.random() - 0.5) * AZ * 1.8; if (libero(x, z) && (!lontanoDa || Math.hypot(x - lontanoDa.x, z - lontanoDa.z) > d0)) return { x, z }; } return { x: 0, z: -10 }; };
   const O = orda(g, E, A, { hi, libero, terra, posto: () => posto(), ombre: false });
-  const N = hi ? { vaga: 5, aterra: 6, passeggino: 2, immobile: 6 } : { vaga: 2, aterra: 3, passeggino: 1, immobile: 3 };
+  const N = hi ? { vaga: 2, aterra: 2, passeggino: 1, immobile: 2 } : { vaga: 1, aterra: 1, passeggino: 1, immobile: 1 };   // la piazza e' l'hub: si respira; il pericolo cresce andando fuori
   const ingresso = { x: 0, z: AZ * 0.86 - 3 };
   let semi = 4000;
   for (let i = 0; i < N.aterra; i++) O.nuova(semi++, posto(ingresso, 9), 'aterra');
@@ -710,16 +1039,19 @@ export async function buildPiazza(scene, ctx) {
   // le immobili: in piedi sotto i lampioni, la testa china
   lampioni.filter(L => Math.hypot(L.pos.x - ingresso.x, L.pos.z - ingresso.z) > 10).slice(0, N.immobile).forEach(L => { const x = L.pos.x + (Math.random() - 0.5) * 0.8, z = L.pos.z + (Math.random() - 0.5) * 0.8; if (libero(x, z)) O.nuova(semi++, { x, z, ry: Math.random() * 6 }, 'immobile'); });
   await tick();
+  MONDO = await buildMondo(g, ctx, { hi, ostacoli, vista, O, M, E, fumoM, manifesto: (righe, seed, rosso) => manifesto(righe, seed, rosso), say: t2 => say && say(t2) });
+  window.__mondo = MONDO;
+  if (new URLSearchParams(location.search).get('cuoci')) await MONDO.tutto();
 
   const stanza = {
     g, effetti: E, ostacoli,
-    bersagli: () => O.bersagli(),
-    colpisci: (m, p, d, f, t2) => O.colpisci(m, p, d, f, t2),
+    bersagli: () => O.bersagli().concat(M.bersagli()),
+    colpisci: (m, p, d, f, t2) => { if (m.userData.macchina) M.colpisci(m, p, d, f, t2); else O.colpisci(m, p, d, f, t2); },
     impatto: (p, h) => E.emetti(p, new THREE.Vector3(0, 0.8, 0), 6, 1.6, h.object === suolo ? COLORI.POLVERE : COLORI.SCINTILLA, 1.2),
     sparo: () => { O.allarme(); pupilla = 0.55; },
     rinasci: () => { ctx.viaggio.place(at(0, 1.6 + terra(0, ingresso.z), ingresso.z), 0, 0); }
   };
-  const nebbia = new THREE.Fog(0x07070a, 16, 95);
+  const nebbia = new THREE.Fog(0x77746a, 18, hi ? 230 : 160);
   let nebbiaPrima = null, vento = null;
   const AC = ctx.listener.context;
   const ventoSuono = si => {
@@ -728,49 +1060,72 @@ export async function buildPiazza(scene, ctx) {
       if (!si && vento) { vento.n.stop(); vento = null; }
     } catch (e) { }
   };
-  window.__piazza = { O, A, negozi, lampioni };
+  window.__piazza = { O, A, negozi, lampioni, M };
   const entry = view(at(0, 1.6 + terra(0, ingresso.z), ingresso.z), at(0, 3, -10));
   const P0 = new THREE.Vector3(), T0 = new THREE.Vector3(), Wc = new THREE.Vector3();
   let rinforzi = 0, audioT = 0;
 
   return {
-    Y, group: g, interact, nodes, colliders, entry, libero,
+    Y, group: g, interact, nodes, colliders, entry, libero: (x, z) => libero(x, z, PIEDI),
     benvenuto: 'fuori. e\' notte. l\'occhio ti guarda',
-    bounds: { x0: -AX - 14, x1: AX + 14, z0: -AZ - 14, z1: AZ + 14 },
+    bounds: { x0: -RAGGIO, x1: RAGGIO, z0: -RAGGIO, z1: RAGGIO },
     attiva(v) {
-      if (v) { nebbiaPrima = scene.fog; scene.fog = nebbia; A.stanza = stanza; A.mostra(true); ventoSuono(true); accendi(true); }
-      else { scene.fog = nebbiaPrima; if (A.stanza === stanza) A.stanza = null; A.mostra(false); ventoSuono(false); accendi(false); }
+      if (v) { nebbiaPrima = scene.fog; scene.fog = nebbia; A.stanza = stanza; A.mostra(true); ventoSuono(true); accendi(true); occhioHud.style.display = 'block'; }
+      else { if (disco) fermaDisco(); scene.fog = nebbiaPrima; if (A.stanza === stanza) A.stanza = null; A.mostra(false); ventoSuono(false); accendi(false); M.attiva(false); occhioHud.style.display = 'none'; }
     },
     update(t, dt, camera, renderer) {
       if (!g.visible) return;
       const cam = P0.copy(camera.position); g.worldToLocal(cam);
-      const hT = terra(cam.x, cam.z), voluta = Y + 1.6 + hT; camera.position.y += (voluta - camera.position.y) * Math.min(1, dt * 10);
+      PIEDI = camera.position.y - Y - 1.6; const hT = terra(cam.x, cam.z, PIEDI), voluta = Y + 1.6 + hT; camera.position.y += (voluta - camera.position.y) * Math.min(1, dt * 10);
       A.update(t, dt); E.update(dt);
       O.update(t, dt, cam, true);
-      // lo schermo grande: segue la prospettiva, si nasconde se c'e' qualcosa davanti; il volume con la distanza
+      { const occ = cam.clone(); occ.y = camera.position.y - Y; M.update(t, dt, occ); const lv = M.livello(); occhioHud.style.opacity = lv > 0.05 ? Math.min(1, 0.3 + lv) : 0; occhioHud.style.color = lv >= 1 ? '#ff1a0a' : '#ff8a3a'; }
+      // il cunicolo: le lampadine sfarfallano; le due luci vere vanno alle piu' vicine
+      { const C = window.__cunicolo; C.lampC.forEach(l => { l.t -= dt; if (l.t <= 0) { l.on = l.on ? 0 : 1; l.t = l.on ? 1 + Math.random() * 4 : 0.05 + Math.random() * 0.4; } l.bm.emissiveIntensity = l.on ? 2 : 0.05; }); const vic = C.lampC.slice().sort((a2, b2) => Math.hypot(a2.x - cam.x, a2.z - cam.z) - Math.hypot(b2.x - cam.x, b2.z - cam.z)); C.luceC.forEach((l, i) => { const q = vic[i]; l.position.set(q.x, q.y - 0.1, q.z); l.intensity = q.on ? 7 : 0; }); }
+      { const T2 = window.__torre; T2.torre.rotation.y = Math.sin(t * 0.25) * 1.2 + 0.6; window.__luceS2.intensity = 18 + Math.sin(t * 2.7) * 4; }
+      // il video: ogni lettore si posa sul suo schermo; quello che sta davanti lo copre da se'
       if (renderer && acceso) {
-        vistaT -= dt;
-        if (vistaT <= 0) { vistaT = 0.3; schermo.getWorldPosition(Wc); const d = Wc.clone().sub(camera.position); const dist = d.length(); rayV.set(camera.position, d.normalize()); rayV.far = dist - 1; const h = rayV.intersectObjects(vista, false)[0]; schermoVisto = !h; }
-        const ok = schermoVisto && posa(grande, 1280, 720, scr, angoliS, camera, renderer); grande.style.display = ok ? 'block' : 'none';
+        sceltaT -= dt;
+        if (sceltaT <= 0) {
+          sceltaT = 0.5;
+          schermiCitta.forEach(sc => { sc.mesh.getWorldPosition(sc.centro); g.worldToLocal(sc.centro); sc.d = Math.hypot(cam.x - sc.centro.x, cam.z - sc.centro.z); });
+          const tv = schermiCitta.filter(sc => !sc.grande && sc.d < 16).sort((a2, b2) => a2.d - b2.d).slice(0, piccoli.length);
+          piccoli.forEach(S => { if (S.schermo && !tv.includes(S.schermo)) assegna(S, null); });
+          tv.forEach(sc => { if (piccoli.some(S => S.schermo === sc)) return; const S = piccoli.find(q => !q.schermo); if (S) assegna(S, sc); });
+          const gr = schermiCitta.filter(sc => sc.grande && sc !== scGrande).sort((a2, b2) => a2.d - b2.d).slice(0, grandi.length);
+          grandi.forEach((S, i) => assegna(S, gr[i] || null));
+        }
+        tuttiSlot.forEach(S => { if (!S.schermo) { S.div.style.display = 'none'; return; } S.div.style.display = posa(S, camera, renderer) ? 'block' : 'none'; });
+        syncT -= dt; if (syncT <= 0) { syncT = 1.2; allinea(); }
         audioT -= dt;
-        if (audioT <= 0 && gesto) { audioT = 0.5; const dist = Math.hypot(cam.x - sx, cam.z - sz); comanda(grande, 'unMute'); comanda(grande, 'setVolume', [Math.round(Math.max(6, Math.min(100, 110 - dist * 2.2)))]); }
-        // i televisori del negozio piu' vicino: il video vero; gli altri restano sul disturbo
-        let vic = null, dv = 11; negozi.forEach(n => { const d = Math.hypot(cam.x - n.centro.x, cam.z - n.centro.z); if (d < dv) { dv = d; vic = n; } });
-        if (vic !== tvAccese) { tvAccese = vic; piccoli.forEach((p, i) => { p.innerHTML = vic && vic.tv[i] ? `<iframe src="${yt()}" allow="autoplay; encrypted-media" style="width:480px;height:360px;border:0" tabindex="-1" title="tv"></iframe>` : ''; p.style.display = 'none'; }); }
-        if (vic) piccoli.forEach((p, i) => { const tvi = vic.tv[i]; if (!tvi) return; const w = tvi.w / 2, h = tvi.h / 2; const ok2 = posa(p, 480, 360, tvi.sch, [new THREE.Vector3(-w, h, 0.01), new THREE.Vector3(w, h, 0.01), new THREE.Vector3(w, -h, 0.01), new THREE.Vector3(-w, -h, 0.01)], camera, renderer); p.style.display = ok2 ? 'block' : 'none'; });
+        if (audioT <= 0 && gesto) { audioT = 0.5; if (disco) { comanda(capo, 'mute'); } else { const dist = Math.min(...schermiCitta.filter(sc => sc.grande).map(sc => sc.d)); comanda(capo, 'unMute'); comanda(capo, 'setVolume', [Math.round(Math.max(4, Math.min(100, 110 - dist * 2.2)))]); } }
       }
       luceSchermo.intensity = 26 + Math.sin(t * 3.1) * 4 + (Math.random() < 0.05 ? -12 : 0);
       // i televisori nei negozi: il disturbo che pulsa coi colori del video
       tvT0 -= dt; if (tvT0 <= 0) { tvT0 = 0.07; disturbo(t); }
       // l'occhio
+      MONDO.update(t, dt, cam);
+      // il cielo e l'occhio ti seguono: sempre la' davanti a nord, la bussola del mondo
+      volta.position.set(cam.x, -40, cam.z); occhio.g.position.set(cam.x - 6, 190, cam.z - 330);
+      luna.position.set(cam.x - 30, 60, cam.z + 30); luna.target.position.set(cam.x, 0, cam.z); luna.target.updateMatrixWorld();
+      // la discoteca
+      if (!disco) { discoT -= dt; if (discoT <= 0 && gesto) avviaDisco(); }
+      else {
+        discoDur += dt; palla.position.set(cam.x + OCCHIO_DIR.x * 600, -40 + OCCHIO_DIR.y * 600, cam.z + OCCHIO_DIR.z * 600); palla.rotation.y += dt * 0.5;
+        raggiD.forEach((p2, i) => { p2.rotation.y += dt * (0.3 + (i % 3) * 0.15); p2.children[0].material.opacity = 0.06 + 0.06 * Math.max(0, Math.sin(t * 8.2 + i)); });
+        luciD.forEach((l, i) => { const a2 = t * 1.3 + i * 2.1; l.position.set(cam.x + Math.cos(a2) * 7, 4, cam.z + Math.sin(a2) * 7); l.color.setHSL(((t * 0.2 + i / 3) % 1) * 0.72, 1, 0.55); /* niente magenta: buca gli schermi */ l.intensity = 18 * (0.5 + 0.5 * Math.abs(Math.sin(t * 6.4 + i))); });
+        pallaM.emissiveIntensity = 0.6 + 0.5 * Math.abs(Math.sin(t * 6.4));
+        if (canzone.ended || discoDur > 300 || (canzone.error && discoDur > 60)) fermaDisco();
+      }
       T0.copy(camera.position); g.worldToLocal(T0);
       const dir = T0.sub(occhio.g.position).normalize(), want = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir);
       occhio.g.quaternion.slerp(want, Math.min(1, dt * 0.8));
       ammicca -= dt; if (ammicca <= 0) { palpebra = 0.35; ammicca = 5 + Math.random() * 9; }
       if (palpebra > 0) palpebra -= dt;
       const chiusa = palpebra > 0 ? Math.sin((0.35 - palpebra) / 0.35 * Math.PI) : 0;
-      occhio.pivS.rotation.x = -Math.PI / 2 + 0.25 + chiusa * (Math.PI / 2 - 0.25); occhio.pivI.rotation.x = Math.PI / 2 - 0.25 - chiusa * (Math.PI / 2 - 0.25);
+      occhio.pivS.rotation.x = -Math.PI / 2 + 0.25 + chiusa * (Math.PI / 2 - 0.25); occhio.pivI.rotation.x = Math.PI / 2 - 0.25 - chiusa * (Math.PI / 2 - 0.25); occhio.pivS.children[0].material.opacity = chiusa > 0.02 ? 1 : 0;   // le palpebre si vedono solo quando sbatte
       pupilla += (1 + Math.sin(t * 0.3) * 0.12 - pupilla) * dt * 0.8; occhio.pupilla.scale.setScalar(pupilla);
+      cieloU.t.value = t; cieloU.pupilla.value = pupilla; cieloU.palpebra.value = chiusa; cieloU.guarda.value.set(Math.sin(t * 0.21) * 0.6 + Math.sin(t * 1.7) * 0.08, Math.sin(t * 0.13) * 0.3);
       occhio.iride.rotation.z = t * 0.01;
       // i lampioni: ognuno col suo umore; le luci vere vanno ai piu' vicini
       lampioni.forEach(L => {
@@ -779,7 +1134,7 @@ export async function buildPiazza(scene, ctx) {
         else if (L.umore === 'sfarfalla') { if (L.t <= 0) { L.t = Math.random() < 0.3 ? 0.05 + Math.random() * 0.3 : 0.5 + Math.random() * 3; L.giu = !L.giu; } L.lv = L.giu ? (Math.random() < 0.4 ? 0.7 : 0.05) : 1; }
         else L.lv = 0.95 + Math.sin(t * 50 + L.pos.x) * 0.05;
         if (L.rosso) L.lv *= 0.75 + 0.25 * Math.sin(t * 2 + L.pos.z);
-        L.vetroM.emissiveIntensity = 2.4 * L.lv; L.pozza.material.opacity = 0.6 * L.lv; L.alone.material.opacity = L.lv;
+        L.vetroM.emissiveIntensity = 2.4 * L.lv; L.pozza.material.opacity = 0.18 * L.lv; L.alone.material.opacity = L.lv;
       });
       assegnaT -= dt;
       if (assegnaT <= 0) { assegnaT = 0.5; assegnate = lampioni.filter(L => L.umore !== 'morto').sort((a2, b2) => Math.hypot(a2.pos.x - cam.x, a2.pos.z - cam.z) - Math.hypot(b2.pos.x - cam.x, b2.pos.z - cam.z)).slice(0, NLUCI); assegnate.forEach((L, i) => { luciL[i].position.copy(L.pos).y -= 0.3; luciL[i].color.copy(L.colore); }); }
@@ -796,7 +1151,7 @@ export async function buildPiazza(scene, ctx) {
       cenere.geometry.attributes.position.needsUpdate = true;
       mosche.forEach(m => { const a2 = m.sciame.geometry.attributes.position.array; m.f.forEach((f, i) => { const tt = t * f[3] + f[0]; a2[i * 3] = m.cx + Math.cos(tt) * f[1]; a2[i * 3 + 1] = m.y + Math.sin(tt * 1.7 + f[2]) * 0.4; a2[i * 3 + 2] = m.cz + Math.sin(tt * 1.3) * f[1]; }); m.sciame.geometry.attributes.position.needsUpdate = true; });
       for (let i = O.nemici.length - 1; i >= 0; i--) { const n = O.nemici[i]; if (n.morto && n.sparisci <= 0) { g.remove(n.g); if (n.passeggino && n.passeggino.parent) n.passeggino.parent.remove(n.passeggino); O.nemici.splice(i, 1); rinforzi++; } }
-      if (rinforzi > 0 && Math.random() < dt * 0.2) { rinforzi--; O.nuova(semi++, posto({ x: cam.x, z: cam.z }, 20), Math.random() < 0.6 ? 'aterra' : 'vaga'); }
+      if (rinforzi > 0 && O.nemici.filter(n2 => !n2.morto && !n2.lontana).length < 4 && Math.random() < dt * 0.04) { rinforzi--; O.nuova(semi++, posto({ x: cam.x, z: cam.z }, 20), Math.random() < 0.6 ? 'aterra' : 'vaga'); }
     }
   };
 }

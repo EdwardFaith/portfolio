@@ -676,7 +676,7 @@ export async function buildHotel(scene, ctx) {
   const seggiola = legnoScuro(3270);
   const conigli = [];
   const MANTI = ['bianco', 'grigio', 'agouti', 'nero', 'bianco', 'agouti'];
-  [[-3.6, 0.6], [-0.4, 1.0], [2.4, 2.4]].forEach(([x, z], ti) => {
+  [[-3.6, 0.6], [-0.4, 1.0], [1.9, 2.4]].forEach(([x, z], ti) => {
     const t = new THREE.Group(); t.position.set(x, 0, z); g.add(t);
     const top = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.04, 32), tavM); top.position.y = 0.74; t.add(top);
     const gamba = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.72, 10), ottone); gamba.position.y = 0.37; t.add(gamba);
@@ -775,7 +775,7 @@ export async function buildHotel(scene, ctx) {
   const targhetta = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.32, 0.012), [discoM, discoM, discoM, discoM, new THREE.MeshStandardMaterial({ map: toTex(tgC), metalness: 0.5, roughness: 0.5 }), discoM]);
   targhetta.position.set(-2.12, 1.45, 0.008); bk.add(targhetta);
   shade(bk);
-  const nBunker = { id: 'bunker', label: 'il vault', view: view(at(3.4, 1.6, 2.6), at(3.4, 1.7, Z1)) }; nodes.push(nBunker);
+  const nBunker = { id: 'bunker', label: 'il vault', view: view(at(3.9, 1.6, 3.5), at(3.4, 1.7, Z1)) }; nodes.push(nBunker);
   let tremaB = 0, aprendo = 0, entrato = false;
   const bussa = () => {
     if (aprendo) return;

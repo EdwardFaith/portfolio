@@ -33,7 +33,7 @@ Q.ppm = quality.high ? 170 : 72; Q.aniso = quality.high ? 8 : 2;
 const status = t => { $('loading-step').textContent = t; };
 const tick = () => new Promise(r => { requestAnimationFrame(() => r()); setTimeout(r, 60); });
 
-const renderer = new THREE.WebGLRenderer({ antialias: quality.high, powerPreference: 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ antialias: quality.high, powerPreference: 'high-performance', alpha: true });   // alpha: gli schermi della citta' bucano la scena e dietro c'e' il video vero
 renderer.setPixelRatio(Math.min(devicePixelRatio, quality.high ? 1.75 : 1.25));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -221,7 +221,7 @@ async function build() {
       marker.style.opacity = '0';   // niente più punto sul pavimento: non ci si teletrasporta
     }
   });
-  ctx.viaggio = viaggio; ctx.camera = camera;
+  ctx.viaggio = viaggio; ctx.camera = camera; ctx.renderer = renderer;
   /* LA LEVETTA (solo telefono): in basso a sinistra, si trascina il pomello */
   if (mobile) {
     const base = document.createElement('div'), pomo = document.createElement('div');
@@ -263,14 +263,22 @@ async function build() {
   composer.addPass(new RenderPass(scene, camera));
   composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), 0.28, 0.45, 0.82));
   const film = new ShaderPass({
-    uniforms: { tDiffuse: { value: null }, t: { value: 0 }, res: { value: new THREE.Vector2(innerWidth, innerHeight) }, amount: { value: reduced ? 0.01 : 0.018 } },
+    uniforms: { tDiffuse: { value: null }, t: { value: 0 }, res: { value: new THREE.Vector2(innerWidth, innerHeight) }, amount: { value: reduced ? 0.01 : 0.018 }, chiave: { value: 0 }, distopia: { value: 0 } },
     vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-    fragmentShader: `uniform sampler2D tDiffuse; uniform float t; uniform vec2 res; uniform float amount; varying vec2 vUv;
+    fragmentShader: `uniform sampler2D tDiffuse; uniform float t; uniform vec2 res; uniform float amount; uniform float chiave; uniform float distopia; varying vec2 vUv;
       float rand(vec2 c){ return fract(sin(dot(c, vec2(12.9898,78.233))) * 43758.5453); }
       void main(){ vec2 d = vUv - 0.5; float r2 = dot(d,d); vec3 c = texture2D(tDiffuse, vUv).rgb;
+        // il colore-chiave (magenta) degli schermi: li' la scena si buca e si vede il video che sta dietro
+        if (chiave > 0.5) { float kr = c.r - c.g, kb = c.b - c.g, k = min(kr, kb); if (k > 0.12 && abs(kr - kb) < 0.25 * max(kr, kb)) { k = min(1.0, k); gl_FragColor = vec4(max(c - k * vec3(1.0, 0.0, 1.0), 0.0), 1.0 - k); return; } }   // schermo = k*magenta + quello che ci sta davanti (fumo, nebbia): si toglie il magenta e resta il velo sopra il video
+        // il mondo fuori: l'aria distopica. Le aberrazioni ai bordi, i colori spenti verso l'ocra, il contrasto duro, la vignetta pesante, il respiro
+        if (distopia > 0.5) { vec2 ab = d * (0.0015 + r2 * 0.012); c.r = texture2D(tDiffuse, vUv + ab).r; c.b = texture2D(tDiffuse, vUv - ab).b;
+          float l = dot(c, vec3(0.299, 0.587, 0.114)); c = mix(vec3(l), c, 0.58); c *= vec3(1.04, 1.0, 0.86); c = mix(c, c * c * (3.0 - 2.0 * c), 0.3);
+          c *= 1.0 - smoothstep(0.12, 0.6, r2) * (0.35 + 0.05 * sin(t * 0.7)); c += (rand(floor(vUv * res / 3.0) + floor(t * 12.0)) - 0.5) * 0.025; }
         c *= 1.0 - smoothstep(0.2, 0.8, r2) * 0.5; c += (rand(vUv*res + t*61.0) - 0.5) * amount; gl_FragColor = vec4(c, 1.0); }`
   });
   composer.addPass(film); composer.addPass(new OutputPass());
+  ctx.chiave = si => { film.uniforms.chiave.value = si ? 1 : 0; };
+  ctx.distopia = si => { film.uniforms.distopia.value = si ? 1 : 0; };
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); film.uniforms.res.value.set(innerWidth, innerHeight); });
 
   let muted = false;

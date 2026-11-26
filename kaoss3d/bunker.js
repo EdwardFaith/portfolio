@@ -223,7 +223,10 @@ export async function buildBunker(scene, ctx) {
     const a = r() * Math.PI * 2, z = 2 - r() * 40; percS.getPointAt(Math.min(1, Math.max(0, (3 - z) / 42)), C);
     b.position.set(C.x + Math.cos(a) * 5.8, C.y + Math.sin(a) * 5.8, z); b.scale.set(1, 0.6 + r() * 0.8, 1.4 + r()); const rb = b.geometry.parameters.radius * Math.max(b.scale.x, b.scale.y); if (b.position.x - rb < CW + 0.4) continue; g.add(b);
   }
-  [percS.getPointAt(0), percS.getPointAt(1)].forEach(c0 => { const f = new THREE.Mesh(new THREE.SphereGeometry(7.6, 40, 24), carneM); f.position.copy(c0); f.scale.set(1, 1, 0.24); g.add(f); });
+  // i fondi dello stomaco: tagliati al muro del corridoio, cosi' non chiudono il passaggio (niente membrana rossa davanti alla sala)
+  const fondoM = carneM.clone(); fondoM.clippingPlanes = [new THREE.Plane(new THREE.Vector3(1, 0, 0), -(CW + 0.05))];
+  if (ctx.renderer) ctx.renderer.localClippingEnabled = true;
+  [percS.getPointAt(0), percS.getPointAt(1)].forEach(c0 => { const f = new THREE.Mesh(new THREE.SphereGeometry(7.6, 40, 24), ctx.renderer ? fondoM : carneM); f.position.copy(c0); f.scale.set(1, 1, 0.24); if (!ctx.renderer && c0.z < -30) return; g.add(f); });
   const lampadine = [], filoM = new THREE.MeshBasicMaterial({ color: 0x0a0806 });
   for (let i = 0; i < 9; i++) {
     const z = -2 - i * 4.4 - r() * 1.5, x = 3.2 + r() * 5, top = 6.5, L = 2 + r() * 3.4;
@@ -308,6 +311,7 @@ export async function buildBunker(scene, ctx) {
     const col = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.4, 8), griM); col.position.y = 0.26; sed.add(col);
     for (let k = 0; k < 5; k++) { const z2 = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.28), griM); z2.rotation.y = k / 5 * Math.PI * 2; z2.position.set(Math.sin(k / 5 * Math.PI * 2) * 0.14, 0.05, Math.cos(k / 5 * Math.PI * 2) * 0.14); sed.add(z2); }
     if (bi % 2) { sed.rotation.set(Math.PI / 2, r() * 3, 0); sed.position.y = 0.25; }
+    colliders.push({ x: sed.position.x, z: sed.position.z, w: bi % 2 ? 1.0 : 0.7, d: bi % 2 ? 1.0 : 0.7 });   // la sedia: non ci si passa dentro
   });
   // i monitor sopra le due porte, e il lettino con le cinghie
   for (let i = 0; i < 3; i++) monitor(-1.2 + i * 1.2, 3.6, UZ0 - 0.35, Math.PI, 0.6, i);

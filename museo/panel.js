@@ -153,7 +153,7 @@
       if (work.live) h.push('<p class="p-note">' + esc(lang.t("panel.live") || "in onda adesso") + "</p>");
     }
 
-    if (desc) h.push('<p class="p-desc">' + esc(desc).replace(/\n/g, "<br>") + "</p>");
+    if (desc) h.push('<p class="p-desc" data-nosnippet>' + esc(desc).replace(/\n/g, "<br>") + "</p>");
     if (txt) h.push('<p class="p-desc">' + esc(txt).replace(/\n/g, "<br>") + "</p>");
 
     if (work.links && work.links.length) {

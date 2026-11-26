@@ -103,7 +103,7 @@
       body = '<div class="pn-desc">' + esc(w.text || "").replace(/\n/g, "<br>") + '</div>';
     }
 
-    var desc = (w.desc ? '<div class="pn-desc">' + esc(w.desc) + '</div>' : "");
+    var desc = (w.desc ? '<div class="pn-desc" data-nosnippet>' + esc(w.desc) + '</div>' : "");
     var links = "";
     if (w.links && w.links.length) {
       links = '<div class="pn-alt">' + w.links.map(function (u, i) {
