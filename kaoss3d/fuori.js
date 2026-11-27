@@ -204,6 +204,12 @@ function skyline(seed) {   // le citta' lontane, controluce, tutte intorno: cosi
   const g = f.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0)'); f.fillStyle = g;
   return toTex(c);
 }
+function finestreAccese(seed) {
+  const r = rng(seed), c = cv(256, 256), f = c.getContext('2d');
+  f.clearRect(0, 0, 256, 256);
+  for (let y = 0; y < 8; y++) for (let x = 0; x < 16; x++) { const v = r(); if (v > 0.16) continue; f.fillStyle = v < 0.05 ? 'rgba(255,170,80,.95)' : v < 0.1 ? 'rgba(255,214,150,.7)' : 'rgba(180,200,220,.45)'; f.fillRect(x * 16 + 3, y * 32 + 8, 10, 16); }
+  return toTex(c, true, [1, 1]);
+}
 function sfumato(stops) { const c = cv(64, 256), f = c.getContext('2d'), g = f.createLinearGradient(0, 0, 0, 256); stops.forEach(([o, a]) => g.addColorStop(o, `rgba(255,255,255,${a})`)); f.fillStyle = g; f.fillRect(0, 0, 64, 256); return toTex(c); }
 function alone() { const c = cv(128, 128), f = c.getContext('2d'), g = f.createRadialGradient(64, 64, 2, 64, 64, 64); g.addColorStop(0, 'rgba(255,255,255,.9)'); g.addColorStop(0.25, 'rgba(255,255,255,.35)'); g.addColorStop(1, 'rgba(255,255,255,0)'); f.fillStyle = g; f.fillRect(0, 0, 128, 128); return toTex(c); }
 function fumo() { const c = cv(256, 256), f = c.getContext('2d'), r = rng(7190); for (let i = 0; i < 30; i++) { const x = 128 + (r() - 0.5) * 120, y = 128 + (r() - 0.5) * 120, rr = 30 + r() * 70, g = f.createRadialGradient(x, y, 2, x, y, rr); g.addColorStop(0, 'rgba(40,36,32,.38)'); g.addColorStop(1, 'rgba(40,36,32,0)'); f.fillStyle = g; f.fillRect(0, 0, 256, 256); } return toTex(c); }
@@ -265,7 +271,7 @@ export async function buildFuori(scene, ctx) {
     man: [['LA PARANOIA', 'DI DIO', 'DEVE ESSERE', 'PUNITA'], ['IL CIELO', 'CI', 'OSSERVA'], ['NIENTE', 'PERDONO', 'PER IL', 'CREATORE'], ['NON', 'GUARDARE', 'IN ALTO']].map((m, i) => manifestoV(m, 7120 + i)),
     cart: [cartellone(['LA PARANOIA', 'DI DIO DEVE MORIRE'], 7130), cartellone(['L\'OCCHIO', 'NEL CIELO'], 7131)],
     cono: sfumato([[0, 0.85], [0.3, 0.3], [1, 0]]), alone: alone(), fumo: fumo(), fiamma: fiamma(),
-    met: metallo(7140, '#3a3c38'), metR: metallo(7141, '#5a2a1c'), sporco: cemento(7142, '#1c1a18'), sky: skyline(7143)
+    met: metallo(7140, '#3a3c38'), metR: metallo(7141, '#5a2a1c'), sporco: cemento(7142, '#1c1a18'), luci: finestreAccese(7144)
   };
   const mat = (t, o = {}) => new THREE.MeshStandardMaterial({ map: t, bumpMap: hi ? t : null, bumpScale: 2.2, roughness: 0.95, ...o });
   const MAT = {
@@ -432,18 +438,37 @@ export async function buildFuori(scene, ctx) {
   { let n = 0; for (let k = 0; k < 400 && n < (hi ? 90 : 46); k++) { const a = r() * Math.PI * 2, d = 40 + r() * 130, x = Math.cos(a) * d, z = 10 + Math.sin(a) * d; const w = 10 + r() * 14; if (!libereSfondo(x, z, w)) continue; edificio(x, z, w, 9 + r() * 6, 14 + r() * (d > 90 ? 50 : 28), r() * 3, r() < 0.5 ? MAT.blocco : MAT.vicolo, { lontano: true }); n++; } }
   // le fabbriche Edward, a ovest, nel sole che tramonta
   const fumiS = [];
-  [[-150, -40, 50, 34, 30], [-170, 30, 40, 40, 44], [-210, -10, 60, 30, 56], [-160, 85, 30, 26, 26], [-230, 70, 50, 40, 38]].forEach(([x, z, w, d, h], i) => { add(scatola(d, h + 6, w, x, (h + 6) / 2 - 14, z, 0, 0, 0, 1 / 12), MAT.fabbrica, true); for (let y = -8; y < h - 8; y += 6) add(scatola(d + 0.6, 0.5, w + 0.6, x, y, z), MAT.cem, true); add(scatola(d + 1, 1, w + 1, x, h - 8 + 0.5, z), MAT.cem, true); if (i < 3) add(pulisci(sposta(new THREE.PlaneGeometry(Math.min(w * 0.7, 34), Math.min(w * 0.7, 34) / 2), x + d / 2 + 0.3, h * 0.62 - 8, z, 0, Math.PI / 2)), MAT.edward, true); });
-  [[-140, -70, 70], [-185, 0, 85], [-150, 55, 64], [-225, 25, 90], [-200, -60, 76]].forEach(([x, z, h], i) => { add(cilindro(2.4, 3.2, h + 6, x, (h + 6) / 2 - 14, z, 16), MAT.cem, true); for (let y = 6; y < h; y += 10) add(pulisci(sposta(new THREE.TorusGeometry(2.9 - y / h * 0.6, 0.2, 6, 18), x, y - 8, z, Math.PI / 2)), MAT.rug, true); fumiS.push(new THREE.Vector3(x, h - 6, z)); });
+  const YF = -14, luciF = new THREE.MeshBasicMaterial({ map: T.luci, transparent: true, depthWrite: false, toneMapped: false });
+  const FABBRICHE = [[-200, -50, 70, 40, 48], [-215, 40, 60, 50, 62], [-265, -5, 80, 40, 74], [-205, 120, 40, 30, 36], [-280, 90, 60, 46, 52], [-250, -110, 50, 40, 44]];
+  FABBRICHE.forEach(([x, z, w, d, h], i) => {
+    add(scatola(d, h, w, x, YF + h / 2, z, 0, 0, 0, 1 / 12), MAT.fabbrica, true);
+    for (let y = 6; y < h; y += 7) add(scatola(d + 0.8, 0.7, w + 0.8, x, YF + y, z), MAT.cem, true);
+    for (let k = -w / 2 + 5; k < w / 2 - 3; k += 9) add(scatola(d * 0.8, 4, 7, x, YF + h + 2, z + k, 0, 0, 0.4), MAT.cem2, true);   // il tetto a shed
+    if (i % 2 === 0) add(scatola(d * 0.35, h * 0.45, w * 0.3, x - d * 0.2, YF + h * 1.2, z - w * 0.3, 0, 0, 0, 1 / 12), MAT.fabbrica, true);   // la torre
+    const fin = pulisci(sposta(new THREE.PlaneGeometry(w * 0.92, h * 0.8), x + d / 2 + 0.35, YF + h * 0.45, z, 0, Math.PI / 2)); const uv = fin.attributes.uv; for (let q = 0; q < uv.count; q++) uv.setXY(q, uv.getX(q) * w / 16, uv.getY(q) * h / 8); add(fin, luciF, true);
+    if (i < 3) { const sw = Math.min(w * 0.7, 40); add(pulisci(sposta(new THREE.PlaneGeometry(sw, sw / 2), x + d / 2 + 0.5, YF + h * 0.82, z, 0, Math.PI / 2)), MAT.edward, true); }
+  });
+  // i ponti di tubi fra i capannoni
+  [[0, 1], [1, 2], [0, 5], [2, 4], [1, 3]].forEach(([a2, b2]) => { const A2 = FABBRICHE[a2], B2 = FABBRICHE[b2], y = YF + Math.min(A2[4], B2[4]) * 0.55; add(tubo([new THREE.Vector3(A2[0], y, A2[1]), new THREE.Vector3((A2[0] + B2[0]) / 2, y + 3, (A2[1] + B2[1]) / 2), new THREE.Vector3(B2[0], y, B2[1])], 1.1, 12, 8), MAT.ferroR, true); });
+  // le torri di raffreddamento: la sagoma che si riconosce da lontano
+  [[-310, -45, 24, 66], [-330, 55, 21, 58]].forEach(([x, z, R, H]) => { const pr = []; for (let q = 0; q <= 12; q++) { const t = q / 12; pr.push(new THREE.Vector2(R * (0.62 + 0.38 * Math.pow(Math.abs(t - 0.62) / 0.62, 1.6)), t * H)); } add(pulisci(sposta(new THREE.LatheGeometry(pr, 32), x, YF, z)), MAT.cem, true); fumiS.push(new THREE.Vector3(x, YF + H + 2, z)); });
+  // le ciminiere, altissime, coi fari rossi d'ostacolo
+  const fari = [];
+  [[-190, -95, 110], [-240, 10, 130], [-205, 70, 105], [-290, 40, 140], [-262, -72, 120], [-232, 150, 95]].forEach(([x, z, h]) => {
+    add(cilindro(2.6, 3.8, h, x, YF + h / 2, z, 16), MAT.cem, true);
+    for (let y = 8; y < h; y += 12) add(pulisci(sposta(new THREE.TorusGeometry(3.5 - y / h * 0.9, 0.25, 6, 18), x, YF + y, z, Math.PI / 2)), MAT.rug, true);
+    fumiS.push(new THREE.Vector3(x, YF + h + 1, z)); fari.push(new THREE.Vector3(x, YF + h + 0.6, z));
+  });
   { // la valle: la citta' bassa, i binari, i tralicci con i cavi, i capannoni, i serbatoi
     const YV = -14;
-    for (let k = 0, n = 0; k < 200 && n < (hi ? 55 : 30); k++) { const x = -82 - r() * 60, z = (r() - 0.5) * 260; if (Math.abs(x + 104) < 5) continue; const w = 6 + r() * 12, d = 6 + r() * 10, h = 3 + r() * 6 + Math.max(0, (-x - 100) * 0.25); /* vicino al belvedere bassi: da lassu' si vede oltre */ add(scatola(w, h, d, x, YV + h / 2, z, r() * 0.4, 0, 0, 1 / 12), r() < 0.5 ? MAT.blocco : MAT.vicolo, true); if (r() < 0.5) add(scatola(w + 0.4, 0.4, d + 0.4, x, YV + h, z, 0), MAT.cem, true); n++; }
+    for (let k = 0, n = 0; k < 300 && n < (hi ? 80 : 40); k++) { const x = -96 - r() * 85, z = (r() - 0.5) * 280; if (Math.abs(x + 104) < 5) continue; const w = 6 + r() * 12, d = 6 + r() * 10, h = 2.5 + r() * 4 + Math.max(0, (-x - 115) * 0.22); /* vicino al belvedere bassi e scuri: da lassu' si guarda oltre */ add(scatola(w, h, d, x, YV + h / 2, z, r() * 0.4, 0, 0, 1 / 12), r() < 0.5 ? MAT.vicolo : MAT.cem2, true); add(scatola(w + 0.3, 0.3, d + 0.3, x, YV + h, z, 0), MAT.buio, true); n++; }
     for (const o of [-0.75, 0.75]) add(scatola(0.12, 0.14, 300, -104 + o, YV + 0.25, 0), MAT.ferroR, true);
     for (let z = -150; z < 150; z += 1.6) add(scatola(2.4, 0.12, 0.3, -104, YV + 0.12, z), MAT.legno, true);
     const tral = []; for (let z = -120; z <= 120; z += 60) { const x = -92, H = 26; for (const [a, b2] of [[-1.4, -1.4], [1.4, -1.4], [-1.4, 1.4], [1.4, 1.4]]) add(scatola(0.25, H, 0.25, x + a * 0.6, YV + H / 2, z + b2 * 0.6, 0, -a * 0.05, b2 * 0.05), MAT.ferro, true); for (let y = 4; y < H; y += 4) add(scatola(2.2 - y * 0.05, 0.12, 0.12, x, YV + y, z, 0), MAT.ferro, true); add(scatola(7, 0.25, 0.25, x, YV + H - 1, z), MAT.ferro, true); tral.push(new THREE.Vector3(x, YV + H - 1.2, z)); }
     for (let i = 0; i < tral.length - 1; i++) for (const o of [-3, 3]) { const a2 = tral[i].clone(), b3 = tral[i + 1].clone(); a2.x += o; b3.x += o; const m = a2.clone().lerp(b3, 0.5); m.y -= 5; add(tubo([a2, m, b3], 0.06, 16, 4), MAT.buio, true); }
     for (let k = 0; k < 4; k++) { const x = -118 + k * 6, z = 60 + (r() - 0.5) * 20; add(cilindro(4, 4, 9, x, YV + 4.5, z, 18), MAT.ferroR, true); }
   }
-  gabbia(-175, -45, 0.5, 70, 38, 44, 0.35, true); teschio(-130, 110, 2.0, 11, 0.4, true);
+  gabbia(-228, -150, 0.5, 80, 44, 50, 0.35, true); teschio(-150, 115, 2.0, 12, 0.4, true);
   gabbia(40, -150, -0.3, 80, 44, 50, 0.4, true); teschio(-60, -140, 0.6, 13, 0.45, true);
   await tick();
 
@@ -527,7 +552,7 @@ export async function buildFuori(scene, ctx) {
   const emi = new THREE.HemisphereLight(0x8a8a98, 0x3a2e26, 0.8); g.add(emi);
   const sole = new THREE.DirectionalLight(0xffa060, 2); g.add(sole, sole.target);
   if (hi) { sole.castShadow = true; sole.shadow.mapSize.set(2048, 2048); const c2 = sole.shadow.camera; c2.left = -34; c2.right = 34; c2.top = 34; c2.bottom = -34; c2.near = 5; c2.far = 220; sole.shadow.bias = -0.0004; sole.shadow.normalBias = 0.04; }
-  const nebbia = new THREE.Fog(0x6a5a4e, 26, hi ? 190 : 130);
+  const nebbia = new THREE.FogExp2(0x6a5a4e, hi ? 0.0052 : 0.0068);   // l'aria: le cose lontane si sciolgono nella foschia, come nella realta'
   // l'occhio ti illumina: un cono di luce pallida che ti segue
   const sguardo = new THREE.SpotLight(0xffe4cc, 3, 0, 0.07, 0.85, 0); g.add(sguardo, sguardo.target);
   // i lampioni: gialli, qualcuno rosso, qualcuno sfarfalla, qualcuno morto; le luci vere vanno ai piu' vicini
@@ -559,9 +584,9 @@ export async function buildFuori(scene, ctx) {
   // i fuochi nella valle: lontani, arancioni, col bagliore
   const bagliore = new THREE.SpriteMaterial({ map: T.alone, color: 0xff7a30, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.55 });
   for (let k = 0; k < (hi ? 9 : 5); k++) { const x = -85 - r() * 55, z = (r() - 0.5) * 200; for (let i = 0; i < 3; i++) { const s2 = new THREE.Sprite(fiammaM); s2.raycast = () => { }; s2.position.set(x + (r() - 0.5) * 2, -12.6 + r(), z + (r() - 0.5) * 2); s2.scale.set(2, 3.6, 1); g.add(s2); fiamme.push({ s: s2, f: r() * 6, y0: s2.position.y, grande: true }); } const gl = new THREE.Sprite(bagliore); gl.raycast = () => { }; gl.position.set(x, -11, z); gl.scale.set(16, 10, 1); g.add(gl); fumiS.push(new THREE.Vector3(x, -9, z)); }
-  // lo skyline: le citta' lontane tutto intorno, controluce nella foschia
-  const anelloCitta = new THREE.Mesh(new THREE.CylinderGeometry(520, 520, 140, 72, 1, true), new THREE.MeshBasicMaterial({ map: T.sky, color: 0x8a7a6e, transparent: true, side: THREE.BackSide, depthWrite: false, fog: false }));
-  T.sky.wrapS = THREE.RepeatWrapping; T.sky.repeat.set(5, 1); anelloCitta.position.y = 30; anelloCitta.renderOrder = 0; anelloCitta.raycast = () => { }; g.add(anelloCitta);
+  // i fari rossi sulle ciminiere: lampeggiano piano, si vedono anche nella foschia
+  const faroRossoM = new THREE.SpriteMaterial({ map: T.alone, color: 0xff2a14, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+  const fariS = fari.map((p, i) => { const s2 = new THREE.Sprite(faroRossoM.clone()); s2.position.copy(p); s2.scale.set(5, 5, 1); s2.raycast = () => { }; s2.userData.f = i * 0.7; g.add(s2); return s2; });
   // il pulviscolo nell'aria: si vede contro il sole
   const NP = hi ? 900 : 320, pp = new Float32Array(NP * 3); for (let i = 0; i < NP; i++) { pp[i * 3] = (r() - 0.5) * 50; pp[i * 3 + 1] = r() * 16; pp[i * 3 + 2] = (r() - 0.5) * 50; }
   const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
@@ -767,13 +792,14 @@ export async function buildFuori(scene, ctx) {
       SOLE.set(-0.93 * Math.cos(el), Math.sin(el), 0.35 * Math.cos(el)).normalize(); cieloU.sunDir.value.copy(SOLE);
       sole.position.set(cam.x + SOLE.x * 90, SOLE.y * 90, cam.z + SOLE.z * 90); sole.target.position.set(cam.x, 0, cam.z); sole.target.updateMatrixWorld();
       sole.color.copy(col1.setHex(0xff6a2a).lerp(col2.setHex(0xffc890), k)); sole.intensity = (1.3 + 1.5 * k) * (disco ? 0.5 : 1);
-      emi.intensity = (0.55 + 0.4 * k) + lampo * 2.5; nebbia.color.setHex(0x5a4a40).lerp(col2.setHex(0x7a6858), k);
+      emi.intensity = (0.55 + 0.4 * k) + lampo * 2.5; nebbia.color.setRGB(0.30, 0.27, 0.30).lerp(col2.setRGB(0.95, 0.52, 0.22), 0.26 + 0.1 * (1 - k)).multiplyScalar(0.92);   // il colore dell'orizzonte del cielo: cosi' le sagome lontane non sembrano ritagliate
       // i lampi: due o tre colpi di luce nelle nuvole, poi il tuono
       lampoT -= dt; if (lampoT <= 0) { lampoT = 25 + Math.random() * 40; lampoSeq = 2 + (Math.random() * 2 | 0); tuono(0.35, 1 + Math.random() * 2); }
       if (lampoSeq > 0 && Math.random() < dt * 9) { lampo = 1; lampoSeq--; }
       lampo = Math.max(0, lampo - dt * 7); cieloU.lampo.value = lampo;
       /* il cielo e l'occhio ti seguono: l'occhio e' sempre la', a nord */
-      volta.position.set(cam.x, -40, cam.z); anelloCitta.position.set(cam.x, 30, cam.z);
+      volta.position.set(cam.x, -40, cam.z);
+      fariS.forEach(s2 => { s2.material.opacity = Math.sin(t * 1.6 + s2.userData.f) > 0.2 ? 0.9 : 0.08; });
       cieloU.t.value = t;
       ammicca -= dt; if (ammicca <= 0) { palpebra = 0.35; ammicca = 5 + Math.random() * 9; } if (palpebra > 0) palpebra -= dt;
       cieloU.palpebra.value = palpebra > 0 ? Math.sin((0.35 - palpebra) / 0.35 * Math.PI) : 0;

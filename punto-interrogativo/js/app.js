@@ -29,7 +29,7 @@
     const req = de.requestFullscreen || de.webkitRequestFullscreen;
     if (!req) return;
     try { const p = req.call(de, { navigationUI: 'hide' }); if (p && p.catch) p.catch(() => { }); } catch (e) { }
-    if (screen.orientation && screen.orientation.lock) screen.orientation.lock(screen.orientation.type).catch(() => { });
+    /* l orientamento resta libero: verticale o orizzontale lo sceglie chi tiene il telefono */
   }
 
   function closeConcept() {

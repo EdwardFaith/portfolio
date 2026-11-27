@@ -196,6 +196,12 @@ export async function buildBunker(scene, ctx) {
   const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.BufferAttribute(rp, 3));
   const pioggia = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xb8c8c4, transparent: true, opacity: 0.38 })); pioggia.raycast = () => { }; corr.add(pioggia);
   const cerchi = []; for (let i = 0; i < (hi ? 24 : 10); i++) { const c = new THREE.Mesh(new THREE.RingGeometry(0.03, 0.04, 16), new THREE.MeshBasicMaterial({ color: 0xc8d8d4, transparent: true, opacity: 0.4, depthWrite: false })); c.rotation.x = -Math.PI / 2; c.position.y = 0.006; c.userData.t = r(); c.raycast = () => { }; corr.add(c); cerchi.push(c); }
+  pioggia.visible = false; cerchi.forEach(c => { c.visible = false; });   // niente piu' pioggia dentro: solo qualche goccia rossa
+  // LE GOCCE ROSSE: ogni tanto, una goccia scura cade dal soffitto davanti a te, lascia una macchia e un piccolo suono
+  const goccM = new THREE.MeshStandardMaterial({ color: 0x5a0408, roughness: 0.15, metalness: 0.2, emissive: 0x1a0000 });
+  const gocceR = Array.from({ length: 4 }, () => { const m = new THREE.Mesh(new THREE.SphereGeometry(0.016, 8, 6), goccM); m.scale.y = 2; m.visible = false; m.raycast = () => { }; corr.add(m); return { m, v: 0 }; });
+  const anelloR = Array.from({ length: 4 }, () => { const c = new THREE.Mesh(new THREE.RingGeometry(0.02, 0.03, 16), new THREE.MeshBasicMaterial({ color: 0x6a0a0a, transparent: true, opacity: 0, depthWrite: false })); c.rotation.x = -Math.PI / 2; c.position.y = 0.008; c.userData.t = 1; c.raycast = () => { }; corr.add(c); return c; });
+  let gocciaT = 2, gocciaN = 0;
   const nebC = cv(256, 256), nf = nebC.getContext('2d'); const ng = nf.createRadialGradient(128, 128, 10, 128, 128, 128); ng.addColorStop(0, 'rgba(200,210,205,.5)'); ng.addColorStop(1, 'rgba(200,210,205,0)'); nf.fillStyle = ng; nf.fillRect(0, 0, 256, 256);
   const nebM = new THREE.SpriteMaterial({ map: toTex(nebC), transparent: true, opacity: 0.18, depthWrite: false });
   const nebbie = []; for (let i = 0; i < 7; i++) { const s2 = new THREE.Sprite(nebM); s2.raycast = () => { }; s2.scale.set(4, 2.5, 1); s2.position.set((r() - 0.5) * 1.5, 0.6 + r() * 1.6, -3 - i * 5.5); corr.add(s2); nebbie.push(s2); }
@@ -371,7 +377,7 @@ export async function buildBunker(scene, ctx) {
   const tgU = canvas(512, 256), tf = tgU.getContext('2d'); tf.fillStyle = '#c8b89a'; tf.fillRect(0, 0, 512, 256); tf.strokeStyle = '#2a2622'; tf.lineWidth = 8; tf.strokeRect(8, 8, 496, 240); tf.fillStyle = '#1a1814'; tf.font = `bold 46px ${FONT}`; tf.fillText('USCITA EX-02', 36, 80); tf.font = `30px ${FONT}`; tf.fillText('MONDO ESTERNO', 36, 136); tf.fillStyle = '#8a0a06'; tf.font = `bold 34px ${FONT}`; tf.fillText('NON GUARDARE IN ALTO', 36, 206);
   const targaU = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.45), new THREE.MeshStandardMaterial({ map: toTex(tgU), roughness: 0.8 })); targaU.position.set(1.65, 3.25, 0.6); bk.add(targaU);
   let statoU = 0, t0U = 0, aperturaU = 0, uscendo = false;
-  const giraVolante = () => { if (statoU) return; statoU = 1; t0U = performance.now() / 1000; say('il volante gira. dall\'altra parte, aria che non respiri da anni'); ctx.suoni && ctx.suoni.evento && ctx.suoni.evento('porta'); try { navigator.vibrate && navigator.vibrate([60, 80, 60]); } catch (e) { } };
+  const giraVolante = () => { if (statoU) return; statoU = 1; t0U = performance.now() / 1000; say('il volante gira…'); ctx.suoni && ctx.suoni.evento && ctx.suoni.evento('porta'); try { navigator.vibrate && navigator.vibrate([60, 80, 60]); } catch (e) { } };
   bk.traverse(m => { if (m.isMesh) interact.push({ mesh: m, label: 'il portellone · gira il volante', view: null, action: giraVolante }); });
   ctx.allaUscita = () => ctx.viaggio && ctx.viaggio.go(view(at(0, 1.6, UZ1 + 2.8), at(0, 1.4, UZ0)), () => say('di nuovo nel bunker. il portellone si richiude da solo'));
   function libero(x, z) {
@@ -407,10 +413,10 @@ export async function buildBunker(scene, ctx) {
 
   return {
     Y, group: g, interact, nodes, colliders, entry, libero,
-    benvenuto: 'il bunker. ci piove dentro. guarda fuori dai finestroni',
+    benvenuto: 'il bunker. qualcosa gocciola dal soffitto. guarda fuori dai finestroni',
     bounds: { x0: -UW, x1: UW, z0: UZ1, z1: 0 },
     attiva(v) {
-      if (v) { nebbiaPrima = scene.fog; scene.fog = nebbiaDentro; A.stanza = stanza; A.mostra(true); pioggiaSuono(true); aggiornaParete(); }
+      if (v) { nebbiaPrima = scene.fog; scene.fog = nebbiaDentro; A.stanza = stanza; A.mostra(true); aggiornaParete(); }   // niente rumore d'acqua: solo le gocce
       else { scene.fog = nebbiaPrima; if (A.stanza === stanza) A.stanza = null; A.mostra(false); pioggiaSuono(false); }
     },
     update(t, dt, camera) {
@@ -425,14 +431,11 @@ export async function buildBunker(scene, ctx) {
         const e = performance.now() / 1000 - t0U;
         volU.rotation.z = -Math.min(e, 1.6) * 3.2;
         chiav.forEach(c2 => { const k = Math.min(1, e / 1.6); c2.ch.position.set(Math.cos(c2.a) * (DR - 0.2 - k * 0.3), Math.sin(c2.a) * (DR - 0.2 - k * 0.3), 0.27); });
-        const k = Math.max(0, Math.min(1, (e - 1.7) / 2.2)); aperturaU = k * k * (3 - 2 * k);
-        cardine.rotation.y = -aperturaU * 1.85;
-        if (e > 1.7 && e < 1.75) A.suono('tonfo', 0.5);
-        if (e > 40 && cam.z > UZ1 + 3) statoU = 0;   // si richiude se non esci
+        // la porta non si apre: gira solo il volante, i chiavistelli rientrano, e si e' fuori
+        if (e > 1.7 && !uscendo) { uscendo = true; A.suono('tonfo', 0.5); ctx.entra && ctx.entra('fuori'); setTimeout(() => { uscendo = false; statoU = 0; }, 3000); }
       } else { aperturaU = Math.max(0, aperturaU - dt * 0.5); cardine.rotation.y = -aperturaU * 1.85; volU.rotation.z = 0; }
       spiaUM.emissive.set(aperturaU > 0.5 ? 0x2aff3a : 0xff2a1a);
       luceFuori.intensity = aperturaU * 10;
-      if (aperturaU > 0.85 && cam.z < UZ1 - 0.4 && !uscendo) { uscendo = true; ctx.entra && ctx.entra('fuori'); setTimeout(() => { uscendo = false; statoU = 0; }, 3000); }
       prossimoBuio -= dt;
       if (prossimoBuio <= 0 && buio <= 0) { buio = 0.4 + Math.random() * 1.6; prossimoBuio = 7 + Math.random() * 12; }
       if (buio > 0) { buio -= dt; if (buio <= 0) neonC.forEach(n => { n.stato = 'torna'; n.t = Math.random() * 0.6; }); }
@@ -456,9 +459,10 @@ export async function buildBunker(scene, ctx) {
       luceG.intensity = buio > 0 ? 0 : 3 * (Math.random() < 0.04 ? 0.1 : 1);
       if (cam.z > -CL - 2) schermi.forEach((s2, i) => { if (((t * 20) | 0) % 2 === i % 2) { crt(s2.f, t + s2.fase, buio > 0 ? ['', ''] : s2.righe); s2.tx.needsUpdate = true; } });
       if (cam.z > -CL - 1) {
-        const pa = pioggia.geometry.attributes.position.array;
-        for (let i = 0; i < pa.length; i += 6) { pa[i + 1] -= dt * 7; pa[i + 4] -= dt * 7; if (pa[i + 4] < 0) { const y = CH - Math.random() * 0.3; pa[i + 1] = y; pa[i + 4] = y - 0.22; } }
-        pioggia.geometry.attributes.position.needsUpdate = true;
+        gocciaT -= dt;
+        if (gocciaT <= 0) { gocciaT = 1.6 + Math.random() * 3.5; const gg = gocceR[gocciaN++ % gocceR.length]; gg.m.visible = true; gg.v = 0; gg.m.position.set((Math.random() - 0.5) * CW * 1.4, CH - 0.05, Math.max(-CL + 0.6, Math.min(-0.8, cam.z - 1.5 - Math.random() * 5))); }
+        gocceR.forEach(gg => { if (!gg.m.visible) return; gg.v += 9.8 * dt; gg.m.position.y -= gg.v * dt; if (gg.m.position.y <= 0.02) { gg.m.visible = false; const an = anelloR[gocciaN % anelloR.length]; an.position.x = gg.m.position.x; an.position.z = gg.m.position.z; an.userData.t = 0; E.chiazza(gg.m.position.x, gg.m.position.z, 0.06 + Math.random() * 0.06); try { const AC2 = ctx.listener.context, t0 = AC2.currentTime, o = AC2.createOscillator(); o.frequency.setValueAtTime(900 + Math.random() * 500, t0); o.frequency.exponentialRampToValueAtTime(320, t0 + 0.09); const gn = AC2.createGain(); gn.gain.setValueAtTime(0.06, t0); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14); o.connect(gn).connect(AC2.destination); o.start(); o.stop(t0 + 0.15); } catch (e) { } } });
+        anelloR.forEach(an => { if (an.userData.t >= 1) return; an.userData.t += dt * 1.8; const s3 = 1 + an.userData.t * 5; an.scale.set(s3, s3, 1); an.material.opacity = 0.55 * (1 - an.userData.t); });
         cerchi.forEach(c => { c.userData.t += dt * 1.6; if (c.userData.t > 1) { c.userData.t = 0; c.position.x = (Math.random() - 0.5) * CW * 1.8; c.position.z = Math.max(-CL + 0.5, cam.z - Math.random() * 10 + 2); } const s2 = 1 + c.userData.t * 6; c.scale.set(s2, s2, 1); c.material.opacity = 0.45 * (1 - c.userData.t); });
         nebbie.forEach((s2, i) => { s2.position.x = Math.sin(t * 0.1 + i) * 0.6; });
       }

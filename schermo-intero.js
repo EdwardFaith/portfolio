@@ -35,8 +35,9 @@
     var req = de.requestFullscreen || de.webkitRequestFullscreen;
     if (!req) return;
     try {
+      // solo lo schermo intero: l'orientamento lo sceglie chi tiene il telefono (verticale o orizzontale, come sempre)
       var p = req.call(de, { navigationUI: "hide" });
-      if (p && p.then) p.then(function () { try { if (telefono && screen.orientation && screen.orientation.lock) screen.orientation.lock(screen.orientation.type).catch(function () { }); } catch (er) { } }, function () { });
+      if (p && p.then) p.then(function () { try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (er) { } }, function () { });
     } catch (err) { }
   }
   /* pointerup e touchend sono i gesti che il telefono accetta davvero
