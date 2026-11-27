@@ -57,7 +57,7 @@ async function build() {
   // in cottura: ?parte=base cuoce sala, stanza del live e corridoio; ?parte=<porta> una stanza sola
   // (la base è già cotta e arriva dalla cache: così la memoria basta)
   const PARTE = new URLSearchParams(location.search).get('parte') || 'base';
-  const ZONE_PARTE = { base: ['sala', 'live', 'corridoio'], visual: ['cinema'], chi: ['cucina'], cosmo: ['cameretta'], codice: ['hotel'], lift: ['ascensore'], gioco1: ['gioco1'], bunker: ['bunker'], piazza: ['piazza'] };
+  const ZONE_PARTE = { base: ['sala', 'live', 'corridoio'], visual: ['cinema'], chi: ['cucina'], cosmo: ['cameretta'], codice: ['hotel'], lift: ['ascensore'], gioco1: ['gioco1'], bunker: ['bunker'], fuori: ['fuori'], illustrazioni: ['mostra'] };
   if (COTTURA) registraCottura(ZONE_PARTE[PARTE] || []);
   if ((!COTTURA || PARTE !== 'base') && !/[?&]senzacache\b/.test(location.search)) {
     status('le immagini…');
@@ -111,6 +111,7 @@ async function build() {
   const scendi = () => viaggio.go(cantina.entry, () => say('la stanza del live. sulla parete c\'è lo schermo di Radio KaOsS live'));
   portaL.traverse(m => { if (m.isMesh) interact.push({ mesh: m, label: 'la porta · la stanza del live', view: davantiPorta, action: scendi }); });
   ctx.salire = () => viaggio.go(davantiPorta, () => say('di nuovo nella sala'));
+  ctx.alLive = scendi;   // la mappa della metropolitana del corridoio porta anche qui
   /* il corridoio: l'hub del sito 3D. La porta della sala torna lì. */
   status('il corridoio…'); await tick();
   ambito('corridoio');
@@ -132,7 +133,8 @@ async function build() {
     lift: { zona: 'ascensore', file: './ascensore.js', fn: 'buildAscensore', nome: 'l\'ascensore' },
     gioco1: { zona: 'gioco1', file: './gioco1.js', fn: 'buildGioco1', nome: 'il fanciullo' },
     bunker: { zona: 'bunker', file: './bunker.js', fn: 'buildBunker', nome: 'il bunker' },   // dietro il vault della hall
-    piazza: { zona: 'piazza', file: './piazza.js', fn: 'buildPiazza', nome: 'la piazza' }   // fuori dal bunker: un'altra zona, si carica solo quando ci arrivi
+    illustrazioni: { zona: 'mostra', file: './mostra.js', fn: 'buildMostra', nome: 'la mostra devastata' },   // la porta VI: le illustrazioni, in un museo dopo il disastro
+    fuori: { zona: 'fuori', file: './fuori.js', fn: 'buildFuori', nome: 'fuori' }   // dal portellone del bunker: il mondo esterno, si carica solo quando ci arrivi
   };
   const zona = () => {
     const y = camera.position.y - 1.6; let best = 'sala', bd = 1e9;
@@ -176,7 +178,7 @@ async function build() {
   const blockers = [...sala.colliders, { x: -3.5, z: 5.3, w: 1.2, d: 0.6 }];
   function freeSpot(x, z) {
     const st = STANZE[zona()].obj;
-    if (st && st.libero) return st.libero(x, z);   // le stanze con una forma loro (il bunker: corridoio + piazza)
+    if (st && st.libero) return st.libero(x, z);   // le stanze con una forma loro (il bunker, il mondo fuori)
     if (st) {   // nella stanza del live o nel corridoio: i suoi muri e le sue cose
       const b = st.bounds;
       if (x < b.x0 || x > b.x1 || z < b.z0 || z > b.z1) return false;

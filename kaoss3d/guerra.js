@@ -18,6 +18,7 @@
      per terra, rimbalzano un poco.
    ========================================================= */
 import * as THREE from 'three';
+import { crash } from './glitch.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { canvas, toTex, rng, torn } from '../stanza/tex.js';
@@ -530,7 +531,7 @@ export function armeria(ctx) {
     A.vita -= d; A.ultimoDanno = performance.now() / 1000; A.suono('colpito');
     $('rosso').style.opacity = Math.min(1, 0.5 + d / 30);
     ctx.viaggio.st.yaw += (Math.random() - 0.5) * 0.14; ctx.viaggio.st.pitch += (Math.random() - 0.5) * 0.1;
-    if (A.vita <= 0) { A.morto = 0.001; $('morto').style.opacity = 1; ctx.viaggio.enable(false); }
+    if (A.vita <= 0) { A.morto = 0.001; ctx.viaggio.enable(false); crash(ctx, 3.2); }   // non «game over»: si rompe il computer
     A.hud();
   };
   let yaw0 = 0, pit0 = 0, lagX = 0, lagY = 0;
@@ -604,7 +605,7 @@ export function armeria(ctx) {
     }
     if (!A.morto && A.vita < 100 && performance.now() / 1000 - A.ultimoDanno > 5) { A.vita = Math.min(100, A.vita + dt * 12); A.hud(); }
     const ro = $('rosso'); ro.style.opacity = Math.max(+ro.style.opacity - dt * 1.2, (100 - A.vita) / 220);
-    if (A.morto) { A.morto += dt; if (A.morto > 2.6) { A.morto = 0; A.vita = 100; $('morto').style.opacity = 0; ctx.viaggio.enable(true); if (A.stanza && A.stanza.rinasci) A.stanza.rinasci(); A.hud(); } }
+    if (A.morto) { A.morto += dt; if (A.morto > 3.1) { A.morto = 0; A.vita = 100; ctx.viaggio.enable(true); A.hud(); if (ctx.entra) ctx.entra('codice'); else if (A.stanza && A.stanza.rinasci) A.stanza.rinasci(); } }   // si riavvia: si ricompare nella hall dell'hotel
   };
   function espelli(pist) {
     const S = A.stanza; if (!S) return;
@@ -771,7 +772,7 @@ export function orda(g, E, A, opt) {
     // vedere: davanti a se', non troppo lontano; da vicino si sente anche dietro
     if (n.stato === 'immobile') {
       if (n.svegliata != null) { n.svegliata -= dt; n.collo.rotation.x += (-0.3 - n.collo.rotation.x) * dt * 8; n.g.rotation.y += dA * Math.min(1, dt * 7); n.fiore.rotation.z = Math.sin(t * 70) * 0.1; if (n.svegliata <= 0) { n.stato = 'scatto'; n.scatto = 0.3; } }
-      else { n.collo.rotation.x = 0.75 + Math.sin(t * 0.4 + n.fase) * 0.04; n.busto.rotation.x = 0.25; n.braccia.forEach(b => { b.spalla.rotation.x = 0.05; b.gomito.rotation.x = -0.05; }); if (vicino && dist < 3.2) n.svegliata = 0.4; }
+      else { n.collo.rotation.x = (n.guardaSu ? -0.45 : 0.75) + Math.sin(t * 0.4 + n.fase) * 0.04; n.busto.rotation.x = n.guardaSu ? -0.05 : 0.25;   /* guardaSu: le margherite che fissano lo schermo */ n.braccia.forEach(b => { b.spalla.rotation.x = 0.05; b.gomito.rotation.x = -0.05; }); if (vicino && dist < 3.2) n.svegliata = 0.4; }
       pos.y = terraY; return;
     }
     if ((n.stato === 'vaga' || n.stato === 'passeggino') && vicino && ((dist < 22 && Math.abs(dA) < 1.15) || dist < 6.5)) { n.stato = 'scatto'; n.scatto = 0.55; lasciaPasseggino(n); A.suono('urlo', Math.max(0.15, 1 - dist / 30)); }
@@ -848,7 +849,7 @@ export function orda(g, E, A, opt) {
   function corpi(n) {
     const p = n.g.position, ry = n.g.rotation.y, fx = Math.sin(ry), fz = Math.cos(ry);
     const giace = n.stato === 'striscia' || n.stato in STATI_A_TERRA || n.morto || (n.cade && n.cade.finito);
-    if (!giace) return [[p.x, p.z, 0.3]];
+    if (!giace) return [[p.x, p.z, 0.36]];
     const v = n.cade ? n.cade.verso : 1;
     return [[p.x + fx * v * 0.4, p.z + fz * v * 0.4, 0.32], [p.x + fx * v * 1.15, p.z + fz * v * 1.15, 0.3]];
   }
@@ -887,7 +888,7 @@ export function orda(g, E, A, opt) {
     nemici.forEach(n => { const d = Math.hypot(cam.x - n.g.position.x, cam.z - n.g.position.z); n.lontana = d > (opt.lontano || 90); n.g.visible = d < (opt.lontano || 90) + 40; if (!n.lontana || (n.morto && n.sparisci > 0)) anima(n, t, dt, cam, vicino); });
     const C = nemici.map(corpi);
     for (let i = 0; i < nemici.length; i++) for (let j = i + 1; j < nemici.length; j++) {
-      const a = nemici[i], b = nemici[j], fa = fermo(a), fb = fermo(b); if ((fa && fb) || a.lontana || b.lontana) continue;
+      const a = nemici[i], b = nemici[j], fa = fermo(a), fb = fermo(b); if ((fa && fb && a.stato !== 'immobile' && b.stato !== 'immobile') || a.lontana || b.lontana) continue;   // anche due ferme in piedi non stanno una dentro l'altra
       if (Math.abs(a.g.position.x - b.g.position.x) > 4 || Math.abs(a.g.position.z - b.g.position.z) > 4) continue;
       for (const ca of C[i]) for (const cb of C[j]) {
         const dx = cb[0] - ca[0], dz = cb[1] - ca[1], d = Math.hypot(dx, dz) || 0.001, min = ca[2] + cb[2];
@@ -897,6 +898,8 @@ export function orda(g, E, A, opt) {
         else { spingi(a, -ux * pen / 2, -uz * pen / 2); spingi(b, ux * pen / 2, uz * pen / 2); }
       }
     }
+    // gli altri corpi che si muovono (i robot): le margherite si scansano
+    if (opt.altri) opt.altri().forEach(([ox, oz, orr]) => nemici.forEach((n, i) => { if (n.morto || n.lontana) return; for (const c of C[i]) { const dx = c[0] - ox, dz = c[1] - oz, d = Math.hypot(dx, dz) || 0.001, min = c[2] + orr; if (d < min) spingi(n, dx / d * (min - d), dz / d * (min - d)); } }));
     // e non ti entrano dentro: restano fuori dal tuo corpo
     if (cam) nemici.forEach((n, i) => { if (fermo(n)) return; for (const c of C[i]) { const dx = c[0] - cam.x, dz = c[1] - cam.z, d = Math.hypot(dx, dz) || 0.001, min = c[2] + 0.38; if (d < min) spingi(n, dx / d * (min - d), dz / d * (min - d)); } });
   }

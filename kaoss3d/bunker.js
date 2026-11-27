@@ -15,10 +15,10 @@
    sporche, le docce dal soffitto, la grata dello scarico, la luce
    rossa che gira. Per terra, in mezzo, una margherita rannicchiata in
    posizione fetale. Respira. Quando arrivi si alza, e ti viene addosso.
-   In fondo la porta per il mondo esterno (piazza.js): quando si apre
+   In fondo il portellone per il mondo esterno (fuori.js): quando si apre
    si vede gia' il grigio di fuori.
 
-   La piazza e' un'altra zona: si carica solo quando ci arrivi.
+   Il mondo fuori e' un'altra zona: si carica solo quando ci arrivi.
    ========================================================= */
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -257,7 +257,7 @@ export async function buildBunker(scene, ctx) {
   piano(CW * 2, UH - CH, lamU, 0, (UH + CH) / 2, UZ0, 0, Math.PI, uscita);
   const PW = 1.5, PH = 2.7;
   [-1, 1].forEach(k => piano(UW - PW, UH, lamU, k * (PW + UW) / 2, UH / 2, UZ1, 0, 0, uscita));
-  piano(PW * 2, UH - PH, lamU, 0, (UH + PH) / 2, UZ1, 0, 0, uscita);
+  piano(PW * 2, UH - 3.1, lamU, 0, (UH + 3.1) / 2, UZ1, 0, 0, uscita);
   // i tubi e i cavi che pendono
   [[-5, UH - 0.3, 0.12], [-3.5, UH - 0.2, 0.08], [4.5, UH - 0.25, 0.1], [6, UH - 0.5, 0.15]].forEach(([x, y, rr]) => { const t = new THREE.Mesh(new THREE.CylinderGeometry(rr, rr, LU, 12), tuboM); t.rotation.x = Math.PI / 2; t.position.set(x, y, ZC); uscita.add(t); });
   const cavoM = new THREE.MeshStandardMaterial({ color: 0x0c0c0c, roughness: 0.6 });
@@ -330,25 +330,53 @@ export async function buildBunker(scene, ctx) {
   [-2.5, 2.5].forEach(x => { const m = new THREE.MeshStandardMaterial({ color: 0xe8fff0, emissive: 0xd0fff0, emissiveIntensity: 1.6, toneMapped: false }); const tb = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.4, 8), m); tb.rotation.x = Math.PI / 2; tb.position.set(x, UH - 0.12, ZC); uscita.add(tb); const l = new THREE.PointLight(0xd0ffe8, 7, 12, 1.4); l.position.set(x, UH - 0.5, ZC); uscita.add(l); neonU.push({ m, l, stato: 'on', t: 1 + r() * 4, lv: 1 }); });
   const riv = [[-UW + 1.4, 2.4, UZ0 - 4.6, 0x7ad8ff], [0, 1.6, ZC, 0x9affc8]].map(([x, y, z, c]) => { const l = new THREE.PointLight(c, 5, 9, 1.5); l.position.set(x, y, z); uscita.add(l); return l; });
 
-  // la porta per fuori, e dietro la strada vera: selciato, due facciate, un lampione che sfarfalla, il buio
-  const anteU = [-1, 1].map(k => { const a = new THREE.Mesh(new THREE.BoxGeometry(PW, PH, 0.18), new THREE.MeshStandardMaterial({ map: toTex(lamiera(3622)), metalness: 0.8, roughness: 0.45, color: 0x6a6c68 })); a.position.set(k * PW / 2, PH / 2, UZ1 + 0.06); uscita.add(a); ostacoli.push(a); return { a, k }; });
-  let aperturaU = 0, uscendo = false;
-  const strada = new THREE.Group(); strada.position.z = UZ1; g.add(strada);
-  const selc = new THREE.Mesh(new THREE.PlaneGeometry(16, 22), new THREE.MeshStandardMaterial({ color: 0x3a3836, roughness: 0.6, metalness: 0.15 })); selc.rotation.x = -Math.PI / 2; selc.position.set(0, -0.02, -11); strada.add(selc);
-  const facc = new THREE.MeshStandardMaterial({ color: 0x4a4640, roughness: 0.95 });
-  [[-7, -8, 10, 14, 0.4], [7, -10, 10, 18, -0.3], [0, -22, 20, 16, 0]].forEach(([x, z, w, h, ry]) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, 2), facc); b.position.set(x, h / 2, z); b.rotation.y = ry + (x ? Math.sign(x) * Math.PI / 2 * 0.9 : 0); strada.add(b); for (let i = 0; i < 18; i++) { const fi = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.4), new THREE.MeshBasicMaterial({ color: r() < 0.1 ? 0xffa040 : 0x050505 })); fi.position.set((r() - 0.5) * w * 0.8, 2 + r() * (h - 3), 1.02); b.add(fi); } });
-  const lampione = new THREE.Group(); lampione.position.set(2.2, 0, -6); strada.add(lampione);
-  const palo = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 4.2, 8), griM); palo.position.y = 2.1; lampione.add(palo);
-  const lantM = new THREE.MeshStandardMaterial({ color: 0xffd0a0, emissive: 0xffa050, emissiveIntensity: 2, toneMapped: false });
-  const lant = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.1, 0.35, 6), lantM); lant.position.y = 4.3; lampione.add(lant);
-  const luceStr = new THREE.PointLight(0xffa050, 0, 14, 1.4); luceStr.position.set(2.2, 4, -6); strada.add(luceStr);
-  const cieloS = new THREE.Mesh(new THREE.SphereGeometry(40, 16, 10), new THREE.MeshBasicMaterial({ color: 0x07070a, side: THREE.BackSide, fog: false })); cieloS.position.set(0, 0, -14); strada.add(cieloS);
-  const sagoma = cadavere(4300, 'prono'); mettiPosa(sagoma, POSA_IN_PIEDI); sagoma.g.position.set(1.6, 0, -9); sagoma.collo.rotation.x = 0.8; strada.add(sagoma.g);   // una, ferma sotto il lampione
-  strada.visible = false;
-  ctx.allaUscita = () => ctx.viaggio && ctx.viaggio.go(view(at(0, 1.6, UZ1 + 1.4), at(0, 1.4, UZ0)), () => say('di nuovo nel bunker'));
+  /* LA PORTA DEL MONDO ESTERNO: un portellone da bunker, tondo, d'acciaio, coi bulloni e il volante.
+     Si gira il volante, i chiavistelli rientrano, la porta si apre sui cardini verso la sala; dall'altra
+     parte un tunnel corto, e in fondo la luce sporca del tramonto. Si cammina dentro e si e' fuori. */
+  const metU = new THREE.MeshStandardMaterial({ map: toTex(lamiera(3622)), metalness: 0.85, roughness: 0.42, color: 0x7a7c76 });
+  const cemPU = new THREE.MeshStandardMaterial({ map: cbU.map, color: 0x6a665e, roughness: 0.95 });
+  const bk = new THREE.Group(); bk.position.set(0, 0, UZ1 + 0.02); uscita.add(bk);
+  const DY = 1.62, DR = 1.3;
+  { const sh = new THREE.Shape(); sh.moveTo(-2.1, 0); sh.lineTo(2.1, 0); sh.lineTo(2.1, 3.7); sh.lineTo(-2.1, 3.7); sh.lineTo(-2.1, 0); const h0 = new THREE.Path(); h0.absarc(0, DY, DR, 0, Math.PI * 2, true); sh.holes.push(h0);
+    const cor = new THREE.Mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.55, bevelEnabled: true, bevelSize: 0.04, bevelThickness: 0.04, bevelSegments: 2, curveSegments: 56 }), cemPU); bk.add(cor); ostacoli.push(cor); }
+  // le strisce di pericolo sul bordo, gialle e nere
+  for (let i = 0; i < 28; i++) { const a = i / 28 * Math.PI * 2; const st = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 0.02), new THREE.MeshStandardMaterial({ color: i % 2 ? 0x141414 : 0xc8a018, roughness: 0.7 })); st.position.set(Math.cos(a) * (DR + 0.22), DY + Math.sin(a) * (DR + 0.22), 0.6); st.rotation.z = a + Math.PI / 2; bk.add(st); }
+  const anelloU = new THREE.Mesh(new THREE.TorusGeometry(DR + 0.06, 0.1, 14, 64), metU); anelloU.position.set(0, DY, 0.58); bk.add(anelloU);
+  // il tunnel dietro, e in fondo fuori: il cielo ocra, le rovine controluce
+  const tunU = new THREE.Mesh(new THREE.CylinderGeometry(DR, DR, 3, 40, 1, true), new THREE.MeshStandardMaterial({ map: cbU.map, color: 0x4a4640, roughness: 0.9, side: THREE.BackSide })); tunU.rotation.x = Math.PI / 2; tunU.position.set(0, DY, -1.5); bk.add(tunU);
+  const fuoriC = canvas(512, 512), fx = fuoriC.getContext('2d'); {
+    const gr = fx.createLinearGradient(0, 0, 0, 512); gr.addColorStop(0, '#3a3634'); gr.addColorStop(0.45, '#a86a3a'); gr.addColorStop(0.62, '#e8a058'); gr.addColorStop(0.7, '#5a4a40'); gr.addColorStop(1, '#2a2622'); fx.fillStyle = gr; fx.fillRect(0, 0, 512, 512);
+    const rr = rng(3640); fx.fillStyle = '#1a1614'; for (let x = 0; x < 512; x += 20 + rr() * 30) { const hh = 60 + rr() * 160; fx.fillRect(x, 330 - hh, 18 + rr() * 40, hh + 200); }
+    fx.fillStyle = '#d8c8b0'; fx.beginPath(); fx.ellipse(300, 150, 60, 22, 0, 0, 7); fx.fill(); fx.fillStyle = '#3a4a46'; fx.beginPath(); fx.arc(300, 150, 16, 0, 7); fx.fill(); fx.fillStyle = '#050505'; fx.beginPath(); fx.arc(300, 150, 6, 0, 7); fx.fill();   // l'occhio, lontano
+  }
+  const fondoU = new THREE.Mesh(new THREE.CircleGeometry(DR, 40), new THREE.MeshBasicMaterial({ map: toTex(fuoriC) })); fondoU.position.set(0, DY, -3.0); bk.add(fondoU);
+  const luceFuori = new THREE.PointLight(0xffb070, 0, 9, 1.4); luceFuori.position.set(0, DY, 0.8); bk.add(luceFuori);
+  // i cardini a sinistra; la porta gira intorno a loro
+  for (let i = 0; i < 3; i++) { const c2 = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.42, 16), metU); c2.position.set(-DR - 0.32, DY + (i - 1) * 0.62, 0.72); bk.add(c2); }
+  const cardine = new THREE.Group(); cardine.position.set(-DR - 0.32, DY, 0.72); bk.add(cardine);
+  const portone = new THREE.Group(); portone.position.set(DR + 0.32, 0, 0); cardine.add(portone);
+  const disU = new THREE.Mesh(new THREE.CylinderGeometry(DR + 0.04, DR + 0.04, 0.34, 64), metU); disU.rotation.x = Math.PI / 2; portone.add(disU);
+  const gradU = new THREE.Mesh(new THREE.CylinderGeometry(DR * 0.76, DR * 0.82, 0.1, 64), metU); gradU.rotation.x = Math.PI / 2; gradU.position.z = 0.2; portone.add(gradU);
+  const bullU = new THREE.MeshStandardMaterial({ color: 0x2a2a28, metalness: 0.9, roughness: 0.4 });
+  for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2; const bb = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.06, 6), bullU); bb.rotation.x = Math.PI / 2; bb.position.set(Math.cos(a) * (DR - 0.12), Math.sin(a) * (DR - 0.12), 0.19); portone.add(bb); }
+  const chiav = []; for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + Math.PI / 4; const ch = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.13, 0.08), metU); ch.position.set(Math.cos(a) * (DR - 0.2), Math.sin(a) * (DR - 0.2), 0.27); ch.rotation.z = a; portone.add(ch); chiav.push({ ch, a }); }   // i chiavistelli
+  const volU = new THREE.Group(); volU.position.z = 0.44; portone.add(volU);
+  const volMU = new THREE.MeshStandardMaterial({ color: 0x8a2a1a, metalness: 0.6, roughness: 0.45 });
+  volU.add(new THREE.Mesh(new THREE.TorusGeometry(0.44, 0.045, 12, 48), volMU));
+  for (let i = 0; i < 3; i++) { const rg = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.88, 10), volMU); rg.rotation.z = i * Math.PI / 3; volU.add(rg); }
+  // la spia sopra: rossa chiusa, verde aperta
+  const spiaUM = new THREE.MeshStandardMaterial({ color: 0x300000, emissive: 0xff2a1a, emissiveIntensity: 2.5, toneMapped: false });
+  const spiaU = new THREE.Mesh(new THREE.SphereGeometry(0.09, 14, 10), spiaUM); spiaU.position.set(0, 3.45, 0.62); bk.add(spiaU);
+  // la targa: dove porta
+  const tgU = canvas(512, 256), tf = tgU.getContext('2d'); tf.fillStyle = '#c8b89a'; tf.fillRect(0, 0, 512, 256); tf.strokeStyle = '#2a2622'; tf.lineWidth = 8; tf.strokeRect(8, 8, 496, 240); tf.fillStyle = '#1a1814'; tf.font = `bold 46px ${FONT}`; tf.fillText('USCITA EX-02', 36, 80); tf.font = `30px ${FONT}`; tf.fillText('MONDO ESTERNO', 36, 136); tf.fillStyle = '#8a0a06'; tf.font = `bold 34px ${FONT}`; tf.fillText('NON GUARDARE IN ALTO', 36, 206);
+  const targaU = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.45), new THREE.MeshStandardMaterial({ map: toTex(tgU), roughness: 0.8 })); targaU.position.set(1.65, 3.25, 0.6); bk.add(targaU);
+  let statoU = 0, t0U = 0, aperturaU = 0, uscendo = false;
+  const giraVolante = () => { if (statoU) return; statoU = 1; t0U = performance.now() / 1000; say('il volante gira. dall\'altra parte, aria che non respiri da anni'); ctx.suoni && ctx.suoni.evento && ctx.suoni.evento('porta'); try { navigator.vibrate && navigator.vibrate([60, 80, 60]); } catch (e) { } };
+  bk.traverse(m => { if (m.isMesh) interact.push({ mesh: m, label: 'il portellone · gira il volante', view: null, action: giraVolante }); });
+  ctx.allaUscita = () => ctx.viaggio && ctx.viaggio.go(view(at(0, 1.6, UZ1 + 2.8), at(0, 1.4, UZ0)), () => say('di nuovo nel bunker. il portellone si richiude da solo'));
   function libero(x, z) {
     if (z > -CL - 0.2) { if (Math.abs(x) > CW - 0.3 || z > -0.4) return false; if (z < -CL + 0.6 && apertura < 0.8) return false; }
-    else { if (z > UZ0 - 0.3 && Math.abs(x) > CW - 0.3) return false; if (Math.abs(x) > UW - 0.3 || z < UZ1 + 0.35) return false; }
+    else { if (z > UZ0 - 0.3 && Math.abs(x) > CW - 0.3) return false; if (Math.abs(x) > UW - 0.3) return false; if (z < UZ1 + 0.8 && !(aperturaU > 0.85 && Math.abs(x) < 0.8 && z > UZ1 - 2.6)) return false; }   // il portellone: ci si passa solo quando e' aperto
     return !colliders.some(c => Math.abs(x - c.x) < c.w / 2 + 0.25 && Math.abs(z - c.z) < c.d / 2 + 0.25);
   }
   const O = orda(g, E, A, { hi, libero, posto: () => ({ x: (Math.random() - 0.5) * 6, z: ZC + (Math.random() - 0.5) * 5 }) });
@@ -392,11 +420,19 @@ export async function buildBunker(scene, ctx) {
       const vuole = Math.abs(cam.z + CL) < 4.5 ? 1 : 0; apertura += (vuole - apertura) * dt * 1.8;
       anteF.forEach(({ a, k }) => { a.position.x = k * (CW / 2 + apertura * CW * 0.95); });
       spia.material.emissive.set(apertura > 0.8 ? 0x2aff3a : 0xff2a1a);
-      const vuoleU = cam.z < UZ1 + 2.8 && Math.abs(cam.x) < PW + 1 ? 1 : 0; aperturaU += (vuoleU - aperturaU) * dt * 1.4;
-      anteU.forEach(({ a, k }) => { a.position.x = k * (PW / 2 + aperturaU * PW * 0.92); });
-      strada.visible = aperturaU > 0.02 || cam.z < UZ1 + 0.5;
-      if (strada.visible) { const on = Math.sin(t * 9) > -0.3 && Math.random() > 0.06; lantM.emissiveIntensity = on ? 2 : 0.1; luceStr.intensity = on ? 9 * aperturaU : 0; }
-      if (aperturaU > 0.85 && cam.z < UZ1 + 0.8 && !uscendo) { uscendo = true; ctx.entra && ctx.entra('piazza'); setTimeout(() => { uscendo = false; }, 3000); }
+      // il portellone: prima il volante (1.6 s), i chiavistelli rientrano, poi la porta gira sui cardini
+      if (statoU) {
+        const e = performance.now() / 1000 - t0U;
+        volU.rotation.z = -Math.min(e, 1.6) * 3.2;
+        chiav.forEach(c2 => { const k = Math.min(1, e / 1.6); c2.ch.position.set(Math.cos(c2.a) * (DR - 0.2 - k * 0.3), Math.sin(c2.a) * (DR - 0.2 - k * 0.3), 0.27); });
+        const k = Math.max(0, Math.min(1, (e - 1.7) / 2.2)); aperturaU = k * k * (3 - 2 * k);
+        cardine.rotation.y = -aperturaU * 1.85;
+        if (e > 1.7 && e < 1.75) A.suono('tonfo', 0.5);
+        if (e > 40 && cam.z > UZ1 + 3) statoU = 0;   // si richiude se non esci
+      } else { aperturaU = Math.max(0, aperturaU - dt * 0.5); cardine.rotation.y = -aperturaU * 1.85; volU.rotation.z = 0; }
+      spiaUM.emissive.set(aperturaU > 0.5 ? 0x2aff3a : 0xff2a1a);
+      luceFuori.intensity = aperturaU * 10;
+      if (aperturaU > 0.85 && cam.z < UZ1 - 0.4 && !uscendo) { uscendo = true; ctx.entra && ctx.entra('fuori'); setTimeout(() => { uscendo = false; statoU = 0; }, 3000); }
       prossimoBuio -= dt;
       if (prossimoBuio <= 0 && buio <= 0) { buio = 0.4 + Math.random() * 1.6; prossimoBuio = 7 + Math.random() * 12; }
       if (buio > 0) { buio -= dt; if (buio <= 0) neonC.forEach(n => { n.stato = 'torna'; n.t = Math.random() * 0.6; }); }

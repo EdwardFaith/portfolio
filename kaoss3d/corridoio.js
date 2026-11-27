@@ -179,6 +179,46 @@ function porta({ colore = 0x5a4a32, aperta = 0, lavori = false }) {
   return g;
 }
 
+/* la porta d'hotel: per la V «Codice», che porta alla hall. Legno scuro a sei riquadri in rilievo,
+   la cornice modanata, il numero d'ottone, lo spioncino, la maniglia a leva, la piastra in basso,
+   il cartellino «non disturbare» appeso; davanti la passatoia rossa, ai lati due applique */
+function portaHotel({ aperta = 0 }) {
+  const g = new THREE.Group(), r = rng(611);
+  const W = 1.05, Hd = 2.32;
+  const lc = canvas(256, 512), lf = lc.getContext('2d');   // il legno: mogano scuro, venato, consumato dove si appoggia la mano
+  lf.fillStyle = '#3a1a10'; lf.fillRect(0, 0, 256, 512);
+  for (let i = 0; i < 90; i++) { lf.strokeStyle = `rgba(${20 + r() * 30 | 0},${8 + r() * 10 | 0},4,${0.25 + r() * 0.4})`; lf.lineWidth = 0.6 + r() * 1.6; lf.beginPath(); const x = r() * 256; lf.moveTo(x, 0); lf.bezierCurveTo(x + (r() - 0.5) * 20, 170, x + (r() - 0.5) * 20, 340, x + (r() - 0.5) * 14, 512); lf.stroke(); }
+  const gm = lf.createRadialGradient(200, 260, 4, 200, 260, 60); gm.addColorStop(0, 'rgba(120,70,40,.35)'); gm.addColorStop(1, 'rgba(120,70,40,0)'); lf.fillStyle = gm; lf.fillRect(0, 0, 256, 512);
+  for (let i = 0; i < 14; i++) { lf.strokeStyle = 'rgba(200,170,130,.18)'; lf.lineWidth = 1; lf.beginPath(); const x = r() * 256, y = r() * 512; lf.moveTo(x, y); lf.lineTo(x + (r() - 0.5) * 30, y + (r() - 0.5) * 8); lf.stroke(); }   // i graffi
+  const legno = new THREE.MeshStandardMaterial({ map: toTex(lc), roughness: 0.45, metalness: 0.05 });
+  const legnoC = new THREE.MeshStandardMaterial({ map: legno.map, color: 0x8a6a5a, roughness: 0.5 });
+  const ottone = new THREE.MeshStandardMaterial({ color: 0xc8a050, metalness: 0.9, roughness: 0.28 });
+  // la cornice modanata, a tre gradini
+  [[0.16, 0.06], [0.1, 0.1], [0.05, 0.14]].forEach(([sp, dz], i) => { [[-W / 2 - sp / 2 - i * 0.04, Hd / 2 + 0.04, sp, Hd + 0.08], [W / 2 + sp / 2 + i * 0.04, Hd / 2 + 0.04, sp, Hd + 0.08]].forEach(([x, y, w, h]) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h + i * 0.08, dz), legnoC); m.position.set(x, y + i * 0.04, dz / 2); g.add(m); }); const tp = new THREE.Mesh(new THREE.BoxGeometry(W + 0.34 + i * 0.12, sp, dz), legnoC); tp.position.set(0, Hd + sp / 2 + i * 0.05, dz / 2); g.add(tp); });
+  const capp = new THREE.Mesh(new THREE.BoxGeometry(W + 0.6, 0.1, 0.2), legnoC); capp.position.set(0, Hd + 0.3, 0.1); g.add(capp);
+  const buio = new THREE.Mesh(new THREE.PlaneGeometry(W, Hd), new THREE.MeshBasicMaterial({ color: 0x000000 })); buio.position.set(0, Hd / 2, -0.06); g.add(buio);
+  const cerniera = new THREE.Group(); cerniera.position.set(-W / 2, 0, 0); g.add(cerniera);
+  const anta = new THREE.Mesh(new THREE.BoxGeometry(W - 0.02, Hd - 0.02, 0.05), legno); anta.position.set(W / 2, Hd / 2, 0); cerniera.add(anta);
+  for (let row = 0; row < 3; row++) for (let col = 0; col < 2; col++) { const h = row === 1 ? 0.42 : 0.58, y = [0.42, 1.08, 1.72][row], x = W / 2 + (col ? 0.22 : -0.22); const pr = new THREE.Mesh(new THREE.BoxGeometry(0.34, h, 0.02), legno); pr.position.set(x, y, 0.035); cerniera.add(pr); const bm = new THREE.Mesh(new THREE.BoxGeometry(0.38, h + 0.04, 0.012), legnoC); bm.position.set(x, y, 0.028); cerniera.add(bm); }
+  const nc = canvas(128, 160), nf = nc.getContext('2d'); nf.fillStyle = '#c8a050'; nf.fillRect(0, 0, 128, 160); nf.strokeStyle = '#6a4a18'; nf.lineWidth = 6; nf.strokeRect(6, 6, 116, 148); nf.fillStyle = '#2a1a08'; nf.font = 'bold 96px Georgia, serif'; nf.textAlign = 'center'; nf.fillText('V', 64, 116);
+  const num = new THREE.Mesh(new THREE.PlaneGeometry(0.14, 0.18), new THREE.MeshStandardMaterial({ map: toTex(nc), metalness: 0.8, roughness: 0.3 })); num.position.set(W / 2, 1.82, 0.05); cerniera.add(num);
+  const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.03, 14), ottone); sp.rotation.x = Math.PI / 2; sp.position.set(W / 2, 1.58, 0.04); cerniera.add(sp);
+  const plac = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.24, 0.015), ottone); plac.position.set(W - 0.12, 1.0, 0.035); cerniera.add(plac);
+  const leva = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.014, 0.14, 8), ottone); leva.rotation.z = Math.PI / 2; leva.position.set(W - 0.18, 1.04, 0.07); cerniera.add(leva);
+  const kick = new THREE.Mesh(new THREE.BoxGeometry(W - 0.12, 0.2, 0.008), ottone); kick.position.set(W / 2, 0.13, 0.03); cerniera.add(kick);
+  const hc = canvas(128, 256), hf = hc.getContext('2d'); hf.fillStyle = '#e8dcc0'; hf.fillRect(0, 0, 128, 256); hf.fillStyle = '#7a1a10'; hf.beginPath(); hf.arc(64, 34, 22, 0, 7); hf.fill(); hf.fillStyle = '#e8dcc0'; hf.beginPath(); hf.arc(64, 34, 14, 0, 7); hf.fill();
+  hf.fillStyle = '#2a1a10'; hf.font = 'bold 22px Georgia, serif'; hf.textAlign = 'center'; ['NON', 'DISTUR-', 'BARE'].forEach((t, i) => hf.fillText(t, 64, 110 + i * 30)); hf.font = 'italic 15px Georgia, serif'; hf.fillText('sei dentro', 64, 220); hf.fillText('il programma', 64, 238);
+  const hang = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.2), new THREE.MeshStandardMaterial({ map: toTex(hc), roughness: 0.8, side: THREE.DoubleSide })); hang.position.set(W - 0.18, 0.9, 0.085); hang.rotation.z = 0.06; cerniera.add(hang);
+  const pc = canvas(128, 256), pf = pc.getContext('2d'); pf.fillStyle = '#5a0e0a'; pf.fillRect(0, 0, 128, 256); pf.strokeStyle = '#b8902a'; pf.lineWidth = 4; pf.strokeRect(10, -4, 108, 264); for (let y = 20; y < 256; y += 40) { pf.fillStyle = 'rgba(184,144,42,.6)'; pf.beginPath(); pf.moveTo(64, y); pf.lineTo(80, y + 14); pf.lineTo(64, y + 28); pf.lineTo(48, y + 14); pf.fill(); } for (let i = 0; i < 400; i++) { pf.fillStyle = `rgba(0,0,0,${r() * 0.25})`; pf.fillRect(r() * 128, r() * 256, 3, 3); }
+  const tappeto = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 2.6), new THREE.MeshStandardMaterial({ map: toTex(pc), roughness: 0.95 })); tappeto.rotation.x = -Math.PI / 2; tappeto.position.set(0, 0.006, 1.35); g.add(tappeto);
+  [-1, 1].forEach(k => { const ap = new THREE.Group(); ap.position.set(k * (W / 2 + 0.38), 1.95, 0.02); g.add(ap); const pl = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.02, 14), ottone); pl.rotation.x = Math.PI / 2; ap.add(pl); const br = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.16, 6), ottone); br.rotation.x = Math.PI / 2; br.position.z = 0.08; ap.add(br); const pm = new THREE.MeshStandardMaterial({ color: 0xffe8c0, emissive: 0xffb860, emissiveIntensity: 1.6, transparent: true, opacity: 0.9 }); const par = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 0.14, 14, 1, true), pm); par.position.set(0, 0.05, 0.16); ap.add(par); });
+  const calda = new THREE.PointLight(0xffb060, 2.2, 3.5, 1.6); calda.position.set(0, 2.0, 0.6); g.add(calda);
+  cerniera.rotation.y = aperta;
+  g.traverse(o => { if (o.isMesh && !o.material.transparent && o !== tappeto) { o.castShadow = true; o.receiveShadow = true; } });
+  g.userData = { anta, cerniera, base: aperta, W, Hd };
+  return g;
+}
+
 /* l'erba: ciuffi di fili sottili, tutti in un solo disegno (instanced) */
 function erba(n, zona, seed) {
   const r = rng(seed);
@@ -199,6 +239,7 @@ function erba(n, zona, seed) {
   return im;
 }
 
+let metroQui = null;
 export function buildCorridoio(scene, ctx) {
   const { quality, view } = ctx;
   const hi = quality.high;
@@ -277,15 +318,16 @@ export function buildCorridoio(scene, ctx) {
     { id: 'kaoss', num: 'II', nome: 'Radio KaOsS', frase: 'la voce non si spegne mai', col: '#ff2a1a', lato: 1, z: -5.6, colore: 0x5a1a14, aperta: 0.55, viva: true },
     { id: 'visual', num: 'III', nome: 'Visual & AI', frase: 'gli occhi non sono tuoi', col: '#3affd6', lato: -1, z: -8.8, colore: 0x2c3440, aperta: 0.5, viva: true, luce: 0xff6a2a },
     { id: 'cosmo', num: 'IV', nome: 'Memorie del Cosmo', frase: 'ricordi che non hai vissuto', col: '#9ad8ff', lato: 1, z: -12, colore: 0x1e2a3a, aperta: 0.5, viva: true, luce: 0xff1a3a },
-    { id: 'codice', num: 'V', nome: 'Codice', frase: 'sei dentro il programma', col: '#9dff3a', lato: 0, z: Z0, colore: 0x2a3a26, aperta: 0.5, viva: true, luce: 0x9dff3a }
+    { id: 'codice', num: 'V', nome: 'Codice', frase: 'sei dentro il programma', col: '#9dff3a', lato: 0, z: Z0, colore: 0x2a3a26, aperta: 0.5, viva: true, luce: 0xffb060 },
+    { id: 'illustrazioni', num: 'VI', nome: 'Illustrazioni', frase: 'carta, inchiostro, e qualcosa che non si toglie più', col: '#e8d8b0', lato: -1, z: -15.2, colore: 0x4a4038, aperta: 0.45, viva: true, luce: 0xd8e4ff }
   ];
   const nodoPorta = {};
   PORTE.forEach(p => {
-    const d = porta({ colore: p.colore, aperta: p.aperta ? -p.aperta : 0, lavori: !p.viva });
+    const d = p.id === 'codice' ? portaHotel({ aperta: -0.32 }) : porta({ colore: p.colore, aperta: p.aperta ? -p.aperta : 0, lavori: !p.viva });
     const ne = neon(p.num + ' · ' + p.nome, p.frase, p.col);
     let pos, look;
     if (p.lato === 0) {
-      d.position.set(0, 0, Z0 + 0.07); ne.position.set(0, 2.55, Z0 + 0.04);
+      d.position.set(0, 0, Z0 + 0.07); ne.position.set(0, p.id === 'codice' ? 2.88 : 2.55, Z0 + 0.04);
       pos = [0, 1.6, Z0 + 2.2]; look = [0, 1.3, Z0];
     } else {
       const x = p.lato < 0 ? X0 + 0.07 : X1 - 0.07;
@@ -298,8 +340,8 @@ export function buildCorridoio(scene, ctx) {
     if (p.viva) {   // dietro la porta di Radio KaOsS c'è la luce rossa della sala
       const col = p.luce || 0xff2a1a;
       const rosso = new THREE.PointLight(col, 3, 3.2, 1.6); rosso.position.set(p.lato === 0 ? 0 : (p.lato < 0 ? X0 + 0.4 : X1 - 0.4), 1.3, p.lato === 0 ? Z0 + 0.5 : p.z + 0.3); g.add(rosso);
-      const fessura = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 2.1), new THREE.MeshBasicMaterial({ color: new THREE.Color(col).multiplyScalar(0.45) }));
-      fessura.position.set(0, 1.05, -0.05); d.add(fessura);
+      const fessura = new THREE.Mesh(new THREE.PlaneGeometry(d.userData.W || 0.95, d.userData.Hd || 2.1), new THREE.MeshBasicMaterial({ color: new THREE.Color(col).multiplyScalar(0.45) }));
+      fessura.position.set(0, (d.userData.Hd || 2.1) / 2, -0.05); d.add(fessura);
       d.userData.rosso = rosso;
     }
     const n = { id: p.id, label: p.nome, view: view(at(...pos), at(...look)) }; nodes.push(n); nodoPorta[p.id] = n;
@@ -308,6 +350,54 @@ export function buildCorridoio(scene, ctx) {
     interact.push({ mesh: ne, label: p.num + ' · ' + p.nome, view: n.view, action });
     porte.push(d);
   });
+
+  /* LA MAPPA DELLA METROPOLITANA: sul muro di destra, la rete di tutte le stanze del sito (tranne il mondo
+     fuori, che si raggiunge solo a piedi). Si tocca una fermata e ci si va. */
+  {
+    const MW = 2.2, MH = 1.38, mz = -2.7;
+    const FERMATE = [   // [id, nome, x, y sulla mappa (0..1024, 0..640), linea]
+      ['sala', 'Radio KaOsS', 150, 330], ['live', 'la stanza del live', 150, 470], ['corridoio', 'il corridoio', 400, 330],
+      ['chi', 'I · la cucina', 400, 140], ['visual', 'III · il cinema', 560, 180], ['cosmo', 'IV · la cameretta', 600, 470],
+      ['codice', 'V · la hall dell\'hotel', 660, 330], ['lift', 'l\'ascensore', 820, 230], ['gioco1', 'il fanciullo', 930, 140], ['bunker', 'il bunker', 860, 430],
+      ['illustrazioni', 'VI · la mostra', 400, 560]
+    ];
+    const LINEE = [   // [colore, nome, fermate]
+      ['#c4211c', 'linea KaOsS', ['live', 'sala', 'corridoio']], ['#e8b820', 'linea Chi sono', ['corridoio', 'chi']], ['#2ab8a0', 'linea Visual', ['corridoio', 'visual']],
+      ['#3a6ad8', 'linea Cosmo', ['corridoio', 'cosmo']], ['#5aa82a', 'linea Codice', ['corridoio', 'codice', 'lift', 'gioco1']], ['#7a7a76', 'diramazione bunker', ['codice', 'bunker']], ['#b89a6a', 'linea Illustrazioni', ['corridoio', 'illustrazioni']]
+    ];
+    const pos = id => FERMATE.find(f => f[0] === id);
+    const c = canvas(1024, 640), f = c.getContext('2d'), rr = rng(4040);
+    f.fillStyle = '#ece6d8'; f.fillRect(0, 0, 1024, 640);
+    for (let i = 0; i < 40; i++) { f.fillStyle = `rgba(${110 + rr() * 40 | 0},${90 + rr() * 30 | 0},${60 + rr() * 20 | 0},${0.04 + rr() * 0.1})`; torn(f, rr, rr() * 1024, rr() * 640, 20 + rr() * 90, 20 + rr() * 70, 0.6, 20); f.fill(); }
+    f.fillStyle = '#1a1816'; f.fillRect(0, 0, 1024, 64); f.fillStyle = '#ece6d8'; f.font = 'bold 34px Arial, sans-serif'; f.fillText('LIMINAL · RETE DELLE STANZE', 28, 44); f.font = '18px Arial, sans-serif'; f.fillStyle = '#c4211c'; f.fillText('tocca una fermata', 760, 42);
+    // le linee: tratti orizzontali, verticali e a 45 gradi, come nelle mappe vere
+    LINEE.forEach(([col, , ferm]) => { f.strokeStyle = col; f.lineWidth = 14; f.lineCap = 'round'; f.lineJoin = 'round'; f.beginPath(); ferm.forEach((id, i) => { const [, , x, y] = pos(id); if (!i) f.moveTo(x, y); else { const [, , px, py] = pos(ferm[i - 1]); const dx = x - px, dy = y - py, k = Math.min(Math.abs(dx), Math.abs(dy)); f.lineTo(px + Math.sign(dx) * k, py + Math.sign(dy) * k); f.lineTo(x, y); } }); f.stroke(); });
+    FERMATE.forEach(([id, nome, x, y]) => {
+      const scambio = id === 'corridoio' || id === 'codice' || id === 'sala';
+      f.fillStyle = '#fff'; f.strokeStyle = '#1a1816'; f.lineWidth = scambio ? 7 : 5; f.beginPath(); f.arc(x, y, scambio ? 19 : 13, 0, 7); f.fill(); f.stroke();
+      f.fillStyle = '#1a1816'; f.font = `${scambio ? 'bold ' : ''}22px Arial, sans-serif`; const tw = f.measureText(nome).width; const tx = x + 26 + tw > 1010 ? x - 26 - tw : x + 26; f.fillText(nome, tx, y + (y < 200 ? -18 : 30) + (y < 200 ? 0 : -24) + 8);
+    });
+    // la legenda
+    let lx = 28; LINEE.forEach(([col, nome]) => { f.fillStyle = col; f.fillRect(lx, 606, 26, 10); f.fillStyle = '#3a3630'; f.font = '15px Arial, sans-serif'; f.fillText(nome, lx + 32, 616); lx += 40 + f.measureText(nome).width; });
+    f.fillStyle = 'rgba(196,33,28,.9)'; f.font = 'italic 16px Arial, sans-serif'; f.fillText('il mondo fuori non è sulla mappa. ci si arriva a piedi, dal bunker.', 520, 580);
+    for (let i = 0; i < 3000; i++) { f.fillStyle = rr() > 0.5 ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)'; f.fillRect(rr() * 1024, rr() * 640, 2, 2); }
+    const mappa = new THREE.Group(); mappa.position.set(X1 - 0.04, 1.55, mz); mappa.rotation.y = -Math.PI / 2; g.add(mappa);
+    const cornice = new THREE.Mesh(new THREE.BoxGeometry(MW + 0.12, MH + 0.12, 0.05), new THREE.MeshStandardMaterial({ color: 0x2a2a28, metalness: 0.7, roughness: 0.4 })); cornice.position.z = -0.02; mappa.add(cornice);
+    const carta = new THREE.Mesh(new THREE.PlaneGeometry(MW, MH), new THREE.MeshStandardMaterial({ map: toTex(c), roughness: 0.7 })); carta.position.z = 0.01; mappa.add(carta);
+    const vetro = new THREE.Mesh(new THREE.PlaneGeometry(MW, MH), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.06, roughness: 0.05, metalness: 0.5, depthWrite: false })); vetro.position.z = 0.025; mappa.add(vetro);
+    const luceM = new THREE.PointLight(0xfff0d8, 1.6, 2.6, 1.6); luceM.position.set(0, 0.9, 0.5); mappa.add(luceM);
+    // il «sei qui»: un pallino rosso che pulsa sul corridoio
+    const qui = new THREE.Mesh(new THREE.CircleGeometry(0.035, 20), new THREE.MeshBasicMaterial({ color: 0xff2a1a })); const [, , qx, qy] = pos('corridoio'); qui.position.set((qx / 1024 - 0.5) * MW, (0.5 - qy / 640) * MH, 0.03); mappa.add(qui); mappa.userData.qui = qui;
+    const vai = id => { if (id === 'corridoio') { ctx.say && ctx.say('sei qui.'); return; } if (id === 'live') { ctx.alLive && ctx.alLive(); return; } if (id === 'sala') { ctx.entra && ctx.entra('kaoss'); return; } ctx.entra && ctx.entra(id); };
+    const nodoM = { id: 'mappa', label: 'la mappa', view: view(at(X1 - 1.2, 1.6, mz), at(X1, 1.5, mz)) }; nodes.push(nodoM);
+    FERMATE.forEach(([id, nome, x, y]) => {
+      const hs = new THREE.Mesh(new THREE.CircleGeometry(0.07, 12), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
+      hs.position.set((x / 1024 - 0.5) * MW, (0.5 - y / 640) * MH, 0.04); mappa.add(hs);
+      interact.push({ mesh: hs, label: 'metro · ' + nome, view: null, action: () => vai(id) });
+    });
+    interact.push({ mesh: carta, label: 'la mappa della metropolitana · tocca una fermata', view: nodoM.view, action: () => { } });
+    metroQui = qui;
+  }
 
   /* la porta da dove si arriva: torna a liminal.exe */
   const uscita = porta({ colore: 0x1a1a1a });

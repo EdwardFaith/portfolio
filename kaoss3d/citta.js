@@ -333,7 +333,11 @@ export function macchine(g, ctx, A, E, opt) {
       if (D.stato === 'arriva' && p.distanceTo(meta) < 6) D.stato = 'attacca';
       const vMax = D.stato === 'arriva' ? 11 : 5.5;
       V.copy(meta).sub(p); const dl = V.length(); if (dl > 0.01) V.multiplyScalar(Math.min(vMax, dl * 1.5) / dl);
-      D.vel.lerp(V, Math.min(1, dt * 2)); p.addScaledVector(D.vel, dt);
+      // dove c'e' un palazzo sotto non si scende: si sale sopra i tetti e si gira intorno
+      if (opt.aria && !opt.aria(meta.x, meta.z)) { for (let k = 1; k < 12; k++) { const a2 = D.orbita + Math.ceil(k / 2) * 0.35 * (k % 2 ? 1 : -1), mx = occhiPlayer.x + Math.cos(a2) * D.raggio, mz = occhiPlayer.z + Math.sin(a2) * D.raggio; if (opt.aria(mx, mz)) { meta.x = mx; meta.z = mz; D.orbita = a2; break; } if (k === 11) { meta.x = occhiPlayer.x; meta.z = occhiPlayer.z; } } V.copy(meta).sub(p); const dl2 = V.length(); if (dl2 > 0.01) V.multiplyScalar(Math.min(vMax, dl2 * 1.5) / dl2); }
+      D.vel.lerp(V, Math.min(1, dt * 2));
+      if (opt.aria && p.y < (opt.tetti || 30) && !opt.aria(p.x + D.vel.x * dt * 4, p.z + D.vel.z * dt * 4)) { D.vel.x *= 0.15; D.vel.z *= 0.15; D.vel.y = Math.max(D.vel.y, 6); }
+      p.addScaledVector(D.vel, dt);
       // si separano fra loro
       droni.forEach(o => { if (o === D || o.morto) return; const dx = p.x - o.g.position.x, dy = p.y - o.g.position.y, dz = p.z - o.g.position.z, dd = Math.hypot(dx, dy, dz); if (dd < 1.6 && dd > 0.01) { p.x += dx / dd * (1.6 - dd) * 0.5; p.y += dy / dd * (1.6 - dd) * 0.5; p.z += dz / dd * (1.6 - dd) * 0.5; } });
       // si inclina nel verso in cui va, guarda te
@@ -424,7 +428,7 @@ export function macchine(g, ctx, A, E, opt) {
       const bp = S.braccia[1]; bp.sp.rotation.x = Math.sin(S.passo + Math.PI) * 0.3 * amp; bp.gom.rotation.x = -0.4;
       S.busto.rotation.x = S.colpo > 0 ? -0.2 : 0; S.busto.rotation.y = Math.sin(S.passo) * 0.06 * amp;
       S.occM.emissiveIntensity = S.stato === 'ronda' ? 2 + Math.sin(t * 3 + i) * 0.5 : (Math.sin(t * 25) > 0 ? 4 : 1);
-      if (hi) S.faro.intensity = S.stato === 'ronda' ? 6 : 14; S.coneM.opacity = (S.stato === 'ronda' ? 0.08 : S.stato === 'cerca' ? 0.12 : 0.2) * Math.min(1, Math.max(0.15, (p.distanceTo(occhiPlayer) - 2) / 8)); S.coneM.color.setHex(S.stato === 'ronda' ? 0xffa030 : 0xff2010);
+      if (hi) S.faro.intensity = S.stato === 'ronda' ? 6 : 14; S.coneM.opacity = (S.stato === 'ronda' ? 0.045 : S.stato === 'cerca' ? 0.12 : 0.2) * Math.min(1, Math.max(0.15, (p.distanceTo(occhiPlayer) - 2) / 8)); S.coneM.color.setHex(S.stato === 'ronda' ? 0xffa030 : 0xff2010);
     });
   }
 
