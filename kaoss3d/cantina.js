@@ -200,10 +200,12 @@ export function buildCantina(scene, ctx) {
     const fr = d.querySelector('iframe'); fr.src = src; fr.title = titolo;
     document.body.appendChild(d);
     requestAnimationFrame(() => { d.style.opacity = '1'; fr.style.transform = 'scale(1)'; });
-    const close = () => { removeEventListener('keydown', onKey, true); d.style.opacity = '0'; fr.src = 'about:blank'; setTimeout(() => d.remove(), 350); if (ctx.onWindowClose) ctx.onWindowClose(); };
+    let voce = null;
+    const close = daStoria => { if (d._chiuso) return; d._chiuso = true; removeEventListener('keydown', onKey, true); d.style.opacity = '0'; fr.src = 'about:blank'; setTimeout(() => d.remove(), 350); if (ctx.onWindowClose) ctx.onWindowClose(); if (voce && daStoria !== true && window.Storia) window.Storia.chiuso(voce); };
+    if (window.Storia) voce = window.Storia.apri(() => close(true));
     const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
     addEventListener('keydown', onKey, true);
-    d.querySelector('button').addEventListener('click', close);
+    d.querySelector('button').addEventListener('click', () => close());
     say(titolo);
   }
 

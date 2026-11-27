@@ -284,11 +284,13 @@ export async function buildSala(scene, ctx) {
     document.body.appendChild(d);
     const fr = d.querySelector('iframe');
     requestAnimationFrame(() => { d.style.opacity = '1'; fr.style.transform = 'scale(1)'; });
-    const close = () => { removeEventListener('keydown', onKey, true); removeEventListener('message', onMsg); d.style.opacity = '0'; setTimeout(() => d.remove(), 350); };
+    let voce = null;
+    const close = daStoria => { if (d._chiuso) return; d._chiuso = true; removeEventListener('keydown', onKey, true); removeEventListener('message', onMsg); d.style.opacity = '0'; setTimeout(() => d.remove(), 350); if (voce && daStoria !== true && window.Storia) window.Storia.chiuso(voce); };
+    if (window.Storia) voce = window.Storia.apri(() => close(true));   // «indietro» del browser: si esce dal computer
     const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
     const onMsg = e => { if (e.data === 'zl-desktop-exit') close(); };
     addEventListener('keydown', onKey, true); addEventListener('message', onMsg);
-    d.querySelector('button').addEventListener('click', close);
+    d.querySelector('button').addEventListener('click', () => close());
     ctx.say("zona larga · accesso ai file dell'artista");
   }
   [fScreen, aBody, marquee].forEach(m => interact.push({ mesh: m, label: 'zona larga · accendi il computer', view: nodes[7].view, action: playFoglio }));

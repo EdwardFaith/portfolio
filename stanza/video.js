@@ -60,10 +60,14 @@ export function openWindow(tv, { onOpen, onClose } = {}) {
   win.querySelector('.fv-titolo').textContent = tv.title;
   win.querySelector('.fv-video').innerHTML = `<iframe src="https://www.youtube.com/embed/${tv.yt}?autoplay=1&rel=0&modestbranding=1&playsinline=1" allow="autoplay; encrypted-media; fullscreen" allowfullscreen title="${tv.title}"></iframe>`;
   win.hidden = false; requestAnimationFrame(() => win.classList.add('on'));
+  if (!voceStoria && window.Storia) voceStoria = window.Storia.apri(() => closeWindow(true));   // «indietro» del browser chiude il video
   if (onOpen) onOpen();
 }
-export function closeWindow() {
+let voceStoria = null;
+export function closeWindow(daStoria) {
   if (!wOpen) return;
+  if (voceStoria && daStoria !== true && window.Storia) window.Storia.chiuso(voceStoria);
+  voceStoria = null;
   wOpen = null; win.classList.remove('on');
   setTimeout(() => { if (!wOpen) { win.hidden = true; win.querySelector('.fv-video').innerHTML = ''; } }, 300);
   const f = onWinClose; onWinClose = null; if (f) f();

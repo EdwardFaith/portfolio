@@ -336,7 +336,9 @@ async function build() {
     history.pushState({ stanza: z }, '', urlDi(z));
   };
   addEventListener('popstate', async e => {
+    if (window.Storia && window.Storia.consumato) return;   // quell'«indietro» ha chiuso una finestra sopra la scena
     const st = e.state || {}, z = st.stanza || new URLSearchParams(location.search).get('stanza') || 'sala';
+    if (z === zonaOra) return;
     daStoria = z !== zonaOra; clearTimeout(tStoria); tStoria = setTimeout(() => { daStoria = false; }, 9000);
     try {
       if (st.pos) {

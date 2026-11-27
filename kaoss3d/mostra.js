@@ -233,9 +233,11 @@ export async function buildMostra(scene, ctx) {
     d.style.cssText = 'position:fixed;inset:0;z-index:40;background:rgba(6,5,4,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;transition:opacity .35s;cursor:zoom-out;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom))';
     d.innerHTML = `<img alt="${titolo}" src="kaoss3d/opere/${hi ? 'grande' : 'desktop'}/${file}.webp" style="max-width:92vw;max-height:80vh;box-shadow:0 0 60px rgba(0,0,0,.8);border:10px solid #1a1208;outline:2px solid #8a6a2a"><div style="font:italic 22px Georgia,serif;color:#e8e2d4">${titolo}</div><div style="font:15px Georgia,serif;color:#a8a294">${sotto || 'Emanuele Baccigalupi · illustrazione'} · tocca per tornare</div>`;
     document.body.appendChild(d); requestAnimationFrame(() => { d.style.opacity = '1'; });
-    const chiudi = () => { d.style.opacity = '0'; setTimeout(() => d.remove(), 360); aperto = null; ctx.viaggio && ctx.viaggio.enable(true); removeEventListener('keydown', esc); };
+    let voce = null;
+    const chiudi = daStoria => { if (!aperto) return; d.style.opacity = '0'; setTimeout(() => d.remove(), 360); aperto = null; ctx.viaggio && ctx.viaggio.enable(true); removeEventListener('keydown', esc); if (voce && daStoria !== true && window.Storia) window.Storia.chiuso(voce); };
+    if (window.Storia) voce = window.Storia.apri(() => chiudi(true));   // «indietro» del browser: si chiude il quadro
     const esc = e => { if (e.key === 'Escape') chiudi(); };
-    d.addEventListener('click', chiudi); addEventListener('keydown', esc);
+    d.addEventListener('click', () => chiudi()); addEventListener('keydown', esc);
     aperto = d;
   }
   await tick();
