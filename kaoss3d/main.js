@@ -21,7 +21,7 @@ import { buildCorridoio, Y as CORR_Y } from './corridoio.js';
 import { openWindow, closeWindow } from '../stanza/video.js';
 import { createViaggio } from './viaggio.js';
 import { createSentinella } from './sentinella.js';
-import { creaSuoni } from './suoni.js';
+import { creaSuoni } from './suoni.js?v=2';
 
 const $ = id => document.getElementById(id);
 // ?cuoci=desktop|telefono: si cuociono le texture (vedi tools/cuoci-server.js)

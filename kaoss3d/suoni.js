@@ -86,15 +86,15 @@ export function creaSuoni(listener) {
     },
     cameretta() {
       const out = guad(0), nodi = [];
-      // la pioggia sui vetri
-      const n = noise(), hp = filtro('highpass', 900), lp = filtro('lowpass', 6500), g = guad(0.05); n.connect(hp); hp.connect(lp); lp.connect(g); g.connect(out); n.start(); nodi.push(n);
+      // la pioggia sui vetri (volume attenuato per sottofondo morbido e non invadente)
+      const n = noise(), hp = filtro('highpass', 750), lp = filtro('lowpass', 4200), g = guad(0.01); n.connect(hp); hp.connect(lp); lp.connect(g); g.connect(out); n.start(); nodi.push(n);
       // la città: un drone di sintetizzatori lontani
       const dl = filtro('lowpass', 320, 2); dl.connect(out);
       [[73.4, 0.03], [110, 0.022], [146.8, 0.012]].forEach(([f, v]) => { const o = osc('sawtooth', f), gg = guad(v); o.detune.value = (Math.random() - 0.5) * 20; o.connect(gg); gg.connect(dl); o.start(); nodi.push(o); });
       const lfo = osc('sine', 0.05), ld = guad(160); lfo.connect(ld); ld.connect(dl.frequency); lfo.start(); nodi.push(lfo);
       let prossimo = 6 + Math.random() * 10, gocce = 0;
       return { out, nodi, tick(dt) {
-        if ((gocce -= dt) <= 0) { gocce = 0.05 + Math.random() * 0.3; colpo({ f: 2500 + Math.random() * 3000, q: 4, dur: 0.02, vol: 0.015 + Math.random() * 0.02, dove: out }); }
+        if ((gocce -= dt) <= 0) { gocce = 0.08 + Math.random() * 0.35; colpo({ f: 2200 + Math.random() * 2500, q: 4, dur: 0.02, vol: 0.003 + Math.random() * 0.004, dove: out }); }
         if ((prossimo -= dt) > 0) return; prossimo = 14 + Math.random() * 18;
         // una sirena lontana, due toni che battono
         [220, 233].forEach(f => tono({ tipo: 'triangle', f0: f, f1: f * 1.06, dur: 3, vol: 0.01, att: 1.2, dove: out }));
