@@ -271,7 +271,7 @@ async function build() {
       float rand(vec2 c){ return fract(sin(dot(c, vec2(12.9898,78.233))) * 43758.5453); }
       void main(){ vec2 d = vUv - 0.5; float r2 = dot(d,d); vec3 c = texture2D(tDiffuse, vUv).rgb;
         // il colore-chiave (magenta) degli schermi: li' la scena si buca e si vede il video che sta dietro
-        if (chiave > 0.5) { float kr = c.r - c.g, kb = c.b - c.g, k = min(kr, kb); if (k > 0.12 && abs(kr - kb) < 0.25 * max(kr, kb)) { k = min(1.0, k); gl_FragColor = vec4(max(c - k * vec3(1.0, 0.0, 1.0), 0.0), 1.0 - k); return; } }   // schermo = k*magenta + quello che ci sta davanti (fumo, nebbia): si toglie il magenta e resta il velo sopra il video
+        if (chiave > 0.5) { float kr = c.r - c.g, kb = c.b - c.g, k = min(kr, kb); if (k > 0.2 && c.g < 0.6 * min(c.r, c.b)) { k = min(1.0, k * 1.15); gl_FragColor = vec4(max(c - k * vec3(1.0, 0.0, 1.0), 0.0) * 0.6, k > 0.75 ? 0.0 : 1.0 - k); return; } }   // schermo = k*magenta + quello che ci sta davanti (fumo, nebbia): si toglie il magenta e resta il velo sopra il video
         // il mondo fuori: l'aria distopica. Le aberrazioni ai bordi, i colori spenti verso l'ocra, il contrasto duro, la vignetta pesante, il respiro
         if (distopia > 0.5) { vec2 ab = d * (0.0015 + r2 * 0.012); c.r = texture2D(tDiffuse, vUv + ab).r; c.b = texture2D(tDiffuse, vUv - ab).b;
           float l = dot(c, vec3(0.299, 0.587, 0.114)); c = mix(vec3(l), c, 0.58); c *= vec3(1.04, 1.0, 0.86); c = mix(c, c * c * (3.0 - 2.0 * c), 0.3);

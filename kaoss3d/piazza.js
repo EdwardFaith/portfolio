@@ -348,7 +348,7 @@ function selciato(seed) {
 }
 function travertino(seed) {
   const r = rng(seed), c = cv(512, 512), f = c.getContext('2d');
-  f.fillStyle = '#a89c86'; f.fillRect(0, 0, 512, 512);
+  f.fillStyle = '#8e887c'; f.fillRect(0, 0, 512, 512);
   for (let y = 0; y < 512; y += 64) { f.fillStyle = 'rgba(40,34,28,.6)'; f.fillRect(0, y, 512, 3); for (let x = (y / 64 % 2) * 64; x < 512; x += 128) f.fillRect(x, y, 3, 64); }
   for (let i = 0; i < 700; i++) { f.fillStyle = `rgba(${60 + r() * 40 | 0},${50 + r() * 30 | 0},${40 + r() * 20 | 0},${0.1 + r() * 0.3})`; f.beginPath(); f.ellipse(r() * 512, r() * 512, 2 + r() * 8, 1 + r() * 2, 0, 0, 7); f.fill(); }
   for (let i = 0; i < 40; i++) { f.fillStyle = `rgba(20,16,12,${0.15 + r() * 0.3})`; torn(f, r, r() * 512, r() * 512, 15 + r() * 60, 15 + r() * 60, 0.6, 20); f.fill(); }
@@ -540,7 +540,7 @@ export async function buildPiazza(scene, ctx) {
   await tick();
 
   /* ---- i palazzi lungo l'ellisse, rivolti verso la piazza; il porticato a est ---- */
-  const matPal = ['#6a5e50', '#5e564c', '#726452', '#565250'].map((c, i) => { const t2 = intonaco(3710 + i, c); return new THREE.MeshStandardMaterial({ map: t2, bumpMap: t2, bumpScale: 3, roughness: 0.95 }); });
+  const matPal = ['#5f5c56', '#57544f', '#64605a', '#4f4d4a'].map((c, i) => { const t2 = intonaco(3710 + i, c); return new THREE.MeshStandardMaterial({ map: t2, bumpMap: t2, bumpScale: 3, roughness: 0.95 }); });
   const matBalc = new THREE.MeshStandardMaterial({ color: 0x3a3632, roughness: 0.6, metalness: 0.5 });
   const fuochiFin = [], negozi = [];
   const INSEGNE = [['TV · RADIO', '#ff3a2a'], ['ELETTRODOMESTICI', '#4ad8ff'], ['BAR CENTRALE', '#ffb040'], ['TELEVISORI', '#ff3a4a'], ['FOTO OTTICA', '#9aff4a']];
@@ -682,7 +682,7 @@ export async function buildPiazza(scene, ctx) {
         S.ifr = S.div.querySelector('iframe'); S.info = null;
         S.ifr.addEventListener('load', () => { const ascolta = () => S.ifr && S.ifr.contentWindow && S.ifr.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 'k' + i, channel: 'widget' }), '*'); ascolta(); setTimeout(ascolta, 800); setTimeout(ascolta, 2500); });
       });
-      ctx.chiave && ctx.chiave(true); ctx.distopia && ctx.distopia(true);
+      ctx.chiave && ctx.chiave(true);
     }
     if (!si && acceso) {
       acceso = false;

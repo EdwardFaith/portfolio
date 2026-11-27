@@ -192,8 +192,9 @@ export async function buildMondo(g, ctx, h) {
   const mat = (t, o = {}) => new THREE.MeshStandardMaterial({ map: t, bumpMap: hi ? t : null, bumpScale: 2.5, roughness: 0.95, ...o });
   const MAT = {
     blocco: mat(tF.blocco), fabbrica: mat(tF.fabbrica), cyber: mat(tF.cyber, { roughness: 0.8 }), vicolo: mat(tF.vicolo),
-    cemento: mat(tC), cemento2: mat(tC2), osso: mat(tO, { roughness: 0.75, color: 0xe8e0cc }),
+    cemento: mat(tC), cemento2: mat(tC2), osso: mat(tO, { roughness: 0.85, color: 0xa39a88 }),
     buio: new THREE.MeshStandardMaterial({ color: 0x050403, roughness: 1 }),
+    marciapiede: mat(tC2, { color: 0x9a968c }),
     ruggine: mat(tR, { metalness: 0.45, roughness: 0.7 }),
     ferro: new THREE.MeshStandardMaterial({ color: 0x2a2826, metalness: 0.7, roughness: 0.55 }),
     insegna: new THREE.MeshStandardMaterial({ map: tE, transparent: true, alphaTest: 0.25, roughness: 0.9 }),
@@ -258,6 +259,22 @@ export async function buildMondo(g, ctx, h) {
 
   /* ======================= I PEZZI ======================= */
   const C = cantiere(), sagome = [], fiori = [], detriti = [], fumi = [], vivi = [];
+  /* i dettagli che fanno vero un edificio: il marciapiede col cordolo, il basamento, i marcapiani in
+     aggetto a ogni solaio, il cornicione col parapetto, l'ingresso con i gradini e la pensilina */
+  function dettagli(x, z, w, d, hgt, ry, opt = {}) {
+    const c = Math.cos(ry), sn = Math.sin(ry), y0 = suolo(x, z), passo = opt.piano || 3;
+    C.add(scatola(w + 3, 0.18, d + 3, x, y0 + 0.02, z, ry, 0, 0, 1 / 4), MAT.marciapiede);                 // il marciapiede
+    C.add(scatola(w + 3.1, 0.24, 0.22, x + sn * (d / 2 + 1.5), y0 + 0.06, z + c * (d / 2 + 1.5), ry), MAT.cemento);   // il cordolo davanti
+    C.add(scatola(w + 0.3, 1.0, d + 0.3, x, y0 + 0.5, z, ry, 0, 0, 1 / 6), MAT.cemento2);                   // il basamento, piu' sporco
+    for (let y = passo; y < hgt - 0.5; y += passo) C.add(scatola(w + 0.36, 0.28, d + 0.36, x, y0 + y, z, ry), MAT.cemento);   // i solai che sporgono
+    if (!opt.senzaTetto) { C.add(scatola(w + 0.7, 0.5, d + 0.7, x, y0 + hgt + 0.05, z, ry), MAT.cemento); [[0, d / 2], [0, -d / 2], [w / 2, 0], [-w / 2, 0]].forEach(([a, b]) => { const lungo = b ? w : d; C.add(scatola(b ? lungo + 0.6 : 0.25, 0.9, b ? 0.25 : lungo + 0.6, x + c * a + sn * b, y0 + hgt + 0.7, z - sn * a + c * b, ry), MAT.cemento2); }); }
+    if (opt.ingresso !== false) {
+      const fx = x + sn * (d / 2), fz = z + c * (d / 2);
+      C.add(scatola(2.4, 2.6, 0.3, fx, y0 + 1.3 + 0.4, fz, ry), MAT.buio);                                    // il portone, buio
+      C.add(scatola(3.6, 0.2, 1.8, fx + sn * 0.9, y0 + 3.3, fz + c * 0.9, ry), MAT.cemento);                  // la pensilina
+      for (let k = 0; k < 3; k++) C.add(scatola(3.0, 0.18, 0.42, fx + sn * (0.35 + (2 - k) * 0.4), y0 + 0.09 + k * 0.18, fz + c * (0.35 + (2 - k) * 0.4), ry), MAT.cemento);   // i tre gradini
+    }
+  }
   // un palazzo: blocco (sovietico), cemento (brutalista), cyber; a volte rotto in cima
   function palazzo(x, z, w, d, hgt, ry, tipo = 'blocco', opt = {}) {
     const m = MAT[tipo] || MAT.blocco, s = 1 / 12;
@@ -275,6 +292,7 @@ export async function buildMondo(g, ctx, h) {
     if (top) { const c = Math.cos(ry), sn = Math.sin(ry); for (let k = 0; k < 2 + (r() * 3 | 0); k++) { const ox = (r() - 0.5) * w * 0.7, oz = (r() - 0.5) * d * 0.7; C.add(scatola(1 + r() * 3, 1 + r() * 2.5, 1 + r() * 3, x + c * ox + sn * oz, top + 1, z - sn * ox + c * oz, ry), MAT.cemento2); } if (r() < 0.4) C.add(cilindro(0.04, 0.04, 6, x, top + 3, z), MAT.ferro); }
     // i balconi dei blocchi sovietici, sulla facciata davanti (+z locale)
     if (tipo === 'blocco' && opt.balconi !== false) { const c = Math.cos(ry), sn = Math.sin(ry); for (let y = 3; y < (rotto ? hgt * 0.5 : hgt) - 2; y += 3) for (let k = -w / 2 + 3; k < w / 2 - 2; k += 6) { if (r() < 0.35) continue; const fx = x + c * k + sn * (d / 2 + 0.6), fz = z - sn * k + c * (d / 2 + 0.6); C.add(scatola(2.6, 0.18, 1.2, fx, y, fz, ry + (r() < 0.1 ? 0.15 : 0)), MAT.cemento2); C.add(scatola(2.6, 0.9, 0.08, fx + sn * 0.6, y + 0.5, fz + c * 0.6, ry), MAT.ferro); } }
+    dettagli(x, z, w, d, rotto ? hgt * 0.55 : hgt, ry, { senzaTetto: !!rotto, ingresso: opt.ingresso });
     muro(x, z, w, d, ry, top || hgt * 0.6);
     if (top && opt.tetto) piano(x, z, w, d, ry, top);
     return { top };
@@ -323,6 +341,10 @@ export async function buildMondo(g, ctx, h) {
       if (Z > 0) { const k = Math.min(1, Z); X *= 1 - 0.42 * k; Y *= 1 - 0.38 * k; Z *= 2.3; }   // il muso lungo, come di cavallo
       if (Y < -0.35) Y = -0.35 + (Y + 0.35) * 0.4;   // la base piatta
       X *= 1 + 0.12 * Math.max(0, -Z) * Math.max(0, Y);   // le tempie
+      X *= 1 + 0.16 * Math.exp(-Math.pow((Z - 0.5) / 0.35, 2)) * Math.exp(-Math.pow((Y + 0.05) / 0.2, 2));   // gli zigomi
+      Y += 0.08 * Math.exp(-Math.pow(X / 0.12, 2)) * Math.max(0, Y) * (Z < 0.8 ? 1 : 0);   // la cresta sopra
+      const ru = Math.sin(X * 13 + Z * 7) * Math.sin(Y * 11 - Z * 5) * 0.025 + Math.sin(X * 31 + Y * 23) * 0.01;   // l'osso consumato, scavato
+      X += X * ru * 2; Y += Y * ru * 2; Z += Z * ru;
       p.setXYZ(i, X, Y, Z);
     }
     geo.computeVertexNormals();
@@ -408,6 +430,7 @@ export async function buildMondo(g, ctx, h) {
         const crollato = r() < 0.1;
         C.add(scatola(w, crollato ? hh * 0.45 : hh, d, x, (crollato ? hh * 0.45 : hh) / 2, z, 0, 0, 0, 1 / 12), r() < 0.25 ? MAT.cemento2 : MAT.vicolo);
         if (crollato) { for (let k = 0; k < 5; k++) detriti.push([x + (r() - 0.5) * w, z + (r() - 0.5) * d, 0.8 + r() * 1.4]); C.add(scatola(w * 0.4, hh * 0.3, 0.3, x + (r() - 0.5) * w * 0.4, hh * 0.6, z, 0, 0, 0.3, 1 / 12), MAT.vicolo); }
+        { const H2 = crollato ? hh * 0.45 : hh; for (let y = 3; y < H2 - 0.5; y += 3) C.add(scatola(w + 0.24, 0.22, d + 0.24, x, y, z), MAT.cemento); if (!crollato) C.add(scatola(w + 0.5, 0.45, d + 0.5, x, hh + 0.1, z), MAT.cemento); C.add(scatola(w + 0.2, 0.8, d + 0.2, x, 0.4, z, 0, 0, 0, 1 / 6), MAT.cemento2); }
         muro(x, z, w, d, 0, crollato ? hh * 0.45 : hh);
         if (i > 0 && j > 0 && i < CX - 1 && j < CZ - 1 && r() < 0.15) C.add(scatola(w + 0.8, 0.4, d + 0.8, x, hh * (0.4 + r() * 0.3), z, 0), MAT.cemento2);   // un cornicione sporgente
         // sulle facce che danno sul vicolo: manifesti, scale antincendio, condizionatori
@@ -455,6 +478,7 @@ export async function buildMondo(g, ctx, h) {
       // sul tetto: i lucernari a shed, le macchine, il parapetto
       for (let k = x0 + 4; k < x1 - 4; k += 9) C.add(scatola(6, 2.2, d * 0.7, k, H + 1.1, z, 0, 0, -0.35), MAT.cemento2);
       if (insegna) { const sw = Math.min(w * 0.7, 36), ins = pulisci(sposta(new THREE.PlaneGeometry(sw, sw / 2), x, H * 0.62, z1 + 1.06)); C.add(ins, MAT.insegna); }
+      dettagli(x, z, w, d, H, 0, { piano: 6, ingresso: false });
       muro(x, z, w, d, 0, H);
       if (opt.tetto) piano(x, z, w, d, 0, H);
     };
