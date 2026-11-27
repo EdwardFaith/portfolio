@@ -559,11 +559,7 @@
       desktop: "desktop/index.html",
       collab: [
         {
-          name: "Michelangelo Toffetti", yt: "Jr15_es8qso", title: "Zona Larga: Michelangelo Toffetti",
-          text: {
-            it: "Michelangelo Toffetti, artista ospite di Zona Larga (Treviglio, 1976), è un artista italiano che spazia tra scultura, pittura materica e fotografia. Figlio dello scultore Mario Toffetti, ha appreso le tecniche scultoree nella bottega paterna, evolvendo poi verso un linguaggio che include ritratti arcaici, figure mitologiche e dinamiche futuriste, attivo anche nel settore pittorico.",
-            en: "Michelangelo Toffetti, a guest artist of Zona Larga (Treviglio, 1976), is an Italian artist working across sculpture, matter painting and photography. Son of the sculptor Mario Toffetti, he learned sculpting in his father's workshop, then moved towards a language including archaic portraits, mythological figures and futuristic dynamics, also active as a painter."
-          }
+          name: "Michelangelo Toffetti", yt: "Jr15_es8qso", title: "Zona Larga: Michelangelo Toffetti"
         }
       ],
       works: [

@@ -1,15 +1,13 @@
 /* ============================================================
-   LO SCHERMO DEL TELEFONO — a tutto schermo, in verticale.
+   LO SCHERMO DEL TELEFONO — a tutto schermo, orientamento libero.
    Prima qui c'era un velo: in verticale non si giocava, si leggeva
    «gira il telefono». Era la cosa sbagliata da chiedere — il telefono
-   non si gira, si tiene in mano come si tiene — e il velo copriva il
-   gioco proprio a chi voleva giocarci.
+   non si gira a comando, si tiene in mano come si vuole — e il velo
+   copriva il gioco proprio a chi voleva giocarci.
    Adesso il velo non c'è più. Al primo tocco la pagina chiede lo
-   schermo intero (serve il gesto: senza, il browser non lo dà) e,
-   dove esiste, blocca l'orientamento in verticale. Se il browser non
-   ha nessuna delle due cose — iOS non ha il blocco — non succede
-   niente: il gioco si gioca lo stesso, e i tasti del pollice sono già
-   in fondo allo schermo, dove il pollice arriva.
+   schermo intero (serve il gesto: senza, il browser non lo dà) e
+   lascia l'orientamento libero (orizzontale o verticale), con i
+   tasti del pollice che si adattano allo schermo.
    Lo schermo intero si chiede anche col mouse: è il modo in cui si
    gioca, non un extra da telefono. Sul sito basta una volta per
    visita (memoria di sessione); con ?intero=1 — cioè quando si entra
@@ -20,7 +18,7 @@
    (`touch-device`, `ritratto`/`orizzontale`) e il foglietto che porta
    il canvas all'altezza vera dello schermo (100dvh: la barra degli
    indirizzi che va e viene non lascia più una striscia nera).
-   Uso: <script src="museo/orienta.js?v=8"></script>, dopo device.js
+   Uso: <script src="museo/orienta.js?v=9"></script>, dopo device.js
    se c'è. Lo schermo intero si lascia tenendo premuto Esc per un terzo
    di secondo: non c'è nessun tasto da cercare sopra il gioco, e non
    c'è nessuna scritta che lo dica.
@@ -112,17 +110,26 @@
     }
   }
 
-  /* il blocco dell'orientamento esiste solo a schermo intero, e non
-     su iOS: se non c'è, non è un errore — è un telefono che si tiene
-     in verticale per conto suo */
+  /* l'orientamento: se la pagina richiede esplicitamente landscape o
+     portrait (es. data-orienta="landscape"), lo blocca. Altrimenti
+     lascia l'orientamento libero e chiama unlock(): l'utente può così
+     usare il sito sia in verticale che in orizzontale ruotando il telefono. */
   function blocco() {
     var so = root.screen && root.screen.orientation;
-    if (!so || !so.lock) return;
+    if (!so) return;
     try {
-      var isLand = (doc.documentElement && doc.documentElement.getAttribute("data-orienta") === "landscape") ||
-                   (root.location && /cosmo/i.test(root.location.pathname));
-      var r = so.lock(isLand ? "landscape" : "portrait");
-      if (r && r.catch) r.catch(function () { });
+      var attr = doc.documentElement && doc.documentElement.getAttribute("data-orienta");
+      var isLand = attr === "landscape" || (root.location && /cosmo/i.test(root.location.pathname));
+      var isPort = attr === "portrait";
+      if (isLand && so.lock) {
+        var r = so.lock("landscape");
+        if (r && r.catch) r.catch(function () { });
+      } else if (isPort && so.lock) {
+        var r2 = so.lock("portrait");
+        if (r2 && r2.catch) r2.catch(function () { });
+      } else if (so.unlock) {
+        try { so.unlock(); } catch (eU) { }
+      }
     } catch (e) { }
   }
 

@@ -153,10 +153,7 @@
       works: [
         {
           kind: "video", yt: "Jr15_es8qso", title: "Michelangelo Toffetti", wide: true,
-          sub: "zona larga · collaborazioni",
-          desc: "Michelangelo Toffetti (artista ospite, Treviglio 1976). Scultura, pittura materica e fotografia. Figlio dello scultore " +
-            "Mario Toffetti, ha appreso le tecniche scultoree nella bottega paterna, evolvendo poi " +
-            "verso un linguaggio che include ritratti arcaici, figure mitologiche e dinamiche futuriste."
+          sub: "zona larga · collaborazioni"
         }
       ]
     },

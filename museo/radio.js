@@ -379,10 +379,32 @@
      Se la radio era accesa, qui si rimette il pezzo nel lettore,
      fermo al secondo in cui si era rimasti, e si aspetta il primo
      gesto per farlo ripartire. Se invece era spenta non si tocca
-     niente: una radio spenta non deve chiedere il permesso. */
+     niente: una radio spenta non deve chiedere il permesso.
+     Dal telefono la musica non deve MAI partire da sola all'avvio. */
   R.boot = function () {
     if (R.avviato) return R;
     R.avviato = true;
+
+    var isMobile = (function () {
+      try {
+        return (root.matchMedia && (root.matchMedia("(pointer: coarse)").matches || root.matchMedia("(hover: none)").matches)) ||
+               (root.innerWidth && root.innerWidth < 820) ||
+               /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(root.navigator && root.navigator.userAgent || "");
+      } catch (e) { return false; }
+    })();
+
+    if (isMobile) {
+      try { root.localStorage.removeItem(R.CHIAVE); } catch (e) { }
+      try { root.sessionStorage.removeItem(R.CHIAVE); } catch (e) { }
+      R.on = false;
+      R.armato = false;
+      if (root.addEventListener) {
+        root.addEventListener("pagehide", function () { R.salva(); });
+        root.addEventListener("beforeunload", function () { R.salva(); });
+      }
+      return R;
+    }
+
     var d = R.leggi();
     if (d && d.on) {
       R.dove = d;

@@ -59,12 +59,15 @@
     <script type="application/ld+json">
     { "@context": "https://schema.org", "@type": "WebSite", "name": "Emanuele Baccigalupi", "url": "https://www.ebmaker.it/" }
     </script>
-    <style>html, body { margin: 0; height: 100%; background: #030303; overflow: hidden; }</style>
+    <style>
+        html, body { margin: 0; height: 100%; background: #030303; overflow: hidden; }
+        .sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    </style>
 </head>
 <body>
     <!-- chi è l'artista, in parole: è il testo che i motori di ricerca leggono di questa pagina
-         (sta sotto lo schermo di liminal.exe, che lo copre). È la bio di Emanuele, e solo la sua. -->
-    <main id="chi-sono" style="position:absolute;left:0;top:0;width:100%;padding:24px;box-sizing:border-box;color:#cfcac2;font:15px/1.5 Georgia,serif">
+         (accessibile per SEO e screen reader, senza apparire a schermo). -->
+    <main id="chi-sono" class="sr">
         <h1>Emanuele Baccigalupi</h1>
         <p>Nato a Carrara nel 2001, Emanuele Baccigalupi è un artista poliedrico la cui ricerca spazia tra teatro, musica e arti visive.</p>
         <p>Dopo una formazione come attore teatrale e liricista, ha abbracciato le arti multimediali studiando presso la Scuola di Nuove Tecnologie per l'Arte dell'Accademia di Belle Arti di Carrara.</p>
