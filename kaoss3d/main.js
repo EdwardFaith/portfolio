@@ -320,6 +320,36 @@ async function build() {
 
   const clock = new THREE.Clock();
   let zonaOra = null;
+  /* LA STORIA DEL BROWSER: ogni passaggio da una stanza all'altra si ricorda.
+     «indietro» non ti rimanda all'inizio del sito: ti riporta nella stanza di prima, davanti alla
+     porta da cui eri uscito. E l'indirizzo dice dove sei (?stanza=...), cosi' ricaricando resti li'. */
+  const campioni = []; let campT = 0, daStoria = false, tStoria = 0;
+  const urlDi = z => { const u = new URL(location.href); u.searchParams.delete('cam'); if (z === 'sala') u.searchParams.delete('stanza'); else u.searchParams.set('stanza', z); return u.pathname + u.search + u.hash; };
+  const moduloDi = z => Object.keys(MODULI).find(k => MODULI[k].zona === z);
+  const segnaPassaggio = (prima, z) => {
+    if (COTTURA) return;
+    if (!prima) { history.replaceState({ stanza: z }, ''); return; }
+    if (new URLSearchParams(location.search).get('stanza') === z && !history.state?.pos && prima === 'sala') { history.replaceState({ stanza: z }, ''); return; }   // aperto direttamente su una stanza (?stanza=): quella e' l'inizio
+    if (daStoria) { daStoria = false; return; }
+    const c = campioni.filter(s2 => s2.z === prima).slice(-4)[0];   // dove eri un paio di secondi prima di uscire: davanti alla porta
+    history.replaceState({ stanza: prima, pos: c && c.pos, yaw: c && c.yaw }, '', urlDi(prima));
+    history.pushState({ stanza: z }, '', urlDi(z));
+  };
+  addEventListener('popstate', async e => {
+    const st = e.state || {}, z = st.stanza || new URLSearchParams(location.search).get('stanza') || 'sala';
+    daStoria = z !== zonaOra; clearTimeout(tStoria); tStoria = setTimeout(() => { daStoria = false; }, 9000);
+    try {
+      if (st.pos) {
+        const id = moduloDi(z); if (id && !STANZE[z]) await caricaStanza(id);
+        const yaw = st.yaw || 0; viaggio.go({ pos: st.pos, look: [st.pos[0] - Math.sin(yaw), st.pos[1], st.pos[2] - Math.cos(yaw)] }, () => say('di nuovo qui'));
+        return;
+      }
+      if (z === 'sala') ctx.entra('kaoss');
+      else if (z === 'live') scendi();
+      else if (z === 'corridoio') viaggio.go(corridoio.entry, () => say('il corridoio'));
+      else if (moduloDi(z)) ctx.entra(moduloDi(z));
+    } catch (er) { console.error(er); daStoria = false; }
+  });
   let frames = 0, fpsT = 0, lowered = false;
   renderer.setAnimationLoop(() => {
     const dt = Math.min(0.05, clock.getDelta()), t = clock.elapsedTime;
@@ -329,8 +359,9 @@ async function build() {
     animateCurtain(room.curtain, t);
     // si disegna solo la stanza dove si è: la sala (con la notte fuori) o una delle altre
     const z = zona();
+    campT -= dt; if (campT <= 0 && zonaOra) { campT = 0.5; campioni.push({ z: zonaOra, pos: camera.position.toArray(), yaw: viaggio.st.yaw }); if (campioni.length > 8) campioni.shift(); }
     if (z !== zonaOra) {
-      const prima = zonaOra; zonaOra = z;
+      const prima = zonaOra; zonaOra = z; segnaPassaggio(prima, z);
       const gruppi = Object.values(STANZE).filter(s => s.obj).map(s => s.obj.group);
       scene.children.forEach(o => {
         if (gruppi.includes(o) || o === camera) return;
