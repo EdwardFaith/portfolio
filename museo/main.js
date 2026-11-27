@@ -186,6 +186,14 @@
 
     room = r;
     room._t0 = time;
+    /* la storia del browser: ogni stanza e' un passo. «indietro» riporta nella stanza di prima,
+       nel punto da cui eri uscito; l'indirizzo dice dove sei (?stanza=...) */
+    try {
+      var url = root.location.pathname + "?stanza=" + id;
+      if (G._daStoria) G._daStoria = false;
+      else if (!from || instant) root.history.replaceState({ museo: id }, "", url);
+      else if (from !== id) { root.history.replaceState({ museo: from, x: entrata && entrata.id === from ? entrata.x : null }, ""); root.history.pushState({ museo: id }, "", url); }
+    } catch (e) { }
     /* gli schermi di questa sala si accendono adesso, non tutti insieme
        all'apertura del museo */
     if (M.WORLD.warm) M.WORLD.warm(room);
@@ -231,6 +239,14 @@
     if (!instant) toast(txt(room.title, "room." + room.id));
   };
   G.goRoomById = G.goRoom;
+  root.addEventListener("popstate", function (e) {
+    if (root.Storia && root.Storia.consumato) return;   // quell'«indietro» ha chiuso un pannello
+    var st = e.state || {}, id = st.museo;
+    if (!id || !M.WORLD || !M.WORLD.byId || !M.WORLD.byId[id] || (room && room.id === id)) return;
+    G._daStoria = true;
+    G.goRoom(id, false);
+    if (st.x != null && rabbit) { rabbit.x = st.x; cam.x = room.loop ? rabbit.x - cam.w / 2 : Math.max(0, rabbit.x - cam.w / 2); clampCam(); }
+  });
 
   /* al ritorno dal Foglio: i tasti restano quelli del museo, e il
      tempo riparte da adesso (il museo è rimasto fermo, non in pausa) */

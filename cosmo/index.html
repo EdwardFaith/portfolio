@@ -1244,21 +1244,7 @@ addEventListener("mouseup",function(e){if(e.button===0)mouse.down=false;});
     var animFrame = 0;
     var HOLD_MS = 1200;
 
-    try {
-      history.pushState({ page: "cosmo" }, "", location.href);
-      window.addEventListener("popstate", function(e) {
-        history.pushState({ page: "cosmo" }, "", location.href);
-        if (backBtn) {
-          backBtn.style.borderColor = "#dc2626";
-          backBtn.style.color = "#ff8888";
-          setTimeout(function(){
-            backBtn.style.borderColor = "";
-            backBtn.style.color = "";
-          }, 1200);
-        }
-        toast(T("TIENI PREMUTO IL TASTO INDIETRO PER USCIRE", "HOLD BACK BUTTON TO EXIT"), 2.2);
-      });
-    } catch(ex) {}
+    /* il tasto «indietro» del browser funziona: riporta dove eri prima (il museo, il sito) */
 
     if (!backBtn) return;
 

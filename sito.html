@@ -7,6 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="storia.js"></script>
     <script src="schermo-intero.js?v=3" data-telefono></script>
     <title>Emanuele Baccigalupi - Digital Artist, Maker & Creative Developer</title>
 
@@ -1366,14 +1367,17 @@
                 return () => window.removeEventListener('keydown', handleKeyDown);
             }, [selectedImage]);
 
+            const voceFoto = useRef(null);
             const openLightbox = (item) => {
                 setSelectedImage(item);
                 document.body.style.overflow = 'hidden';
+                if (window.Storia && !voceFoto.current) voceFoto.current = window.Storia.apri(() => { voceFoto.current = null; setSelectedImage(null); document.body.style.overflow = 'auto'; });
             };
 
             const closeLightbox = () => {
                 setSelectedImage(null);
                 document.body.style.overflow = 'auto';
+                if (voceFoto.current && window.Storia) { window.Storia.chiuso(voceFoto.current); voceFoto.current = null; }
             };
 
             const galleryItems = [
@@ -1523,7 +1527,7 @@
                                     {acceso ? (
                                         <iframe src="desktop/index.html" title="Zona Larga · accesso ai file dell'artista" className="absolute inset-0 w-full h-full border-0" allow="autoplay; fullscreen; gyroscope; accelerometer" allowFullScreen></iframe>
                                     ) : (
-                                        <button type="button" onClick={() => { if (window.innerWidth < 768) window.open("desktop/index.html", "_blank", "noopener"); else setAcceso(true); }} aria-label="accedi al computer" className="absolute inset-0 w-full h-full cursor-pointer group" style={{ fontFamily: 'var(--pc)' }}>
+                                        <button type="button" onClick={() => { if (window.innerWidth < 768) window.open("desktop/index.html", "_blank", "noopener"); else { setAcceso(true); if (window.Storia) window.Storia.apri(() => setAcceso(false)); } }} aria-label="accedi al computer" className="absolute inset-0 w-full h-full cursor-pointer group" style={{ fontFamily: 'var(--pc)' }}>
                                             <span className="absolute inset-0 bg-black flex items-center justify-center">
                                                 <span className="text-neutral-200 text-sm md:text-base tracking-wide group-hover:text-white">accedi<span className="animate-pulse">_</span></span>
                                             </span>
@@ -2479,8 +2483,21 @@
                         behavior: 'smooth'
                     });
                     setActiveSection(id);
+                    // il passo nella storia del browser: «indietro» riporta alla sezione di prima
+                    if (window.location.hash !== '#' + id) window.history.pushState({ sezione: id }, '', '#' + id);
                 }
             };
+            useEffect(() => {
+                const indietro = () => {
+                    if (window.Storia && window.Storia.consumato) return;   // quell'«indietro» ha chiuso una foto o il computer
+                    const id = (window.location.hash || '').replace(/^#/, '');
+                    const el = id ? document.getElementById(id) : null;
+                    window.scrollTo({ top: el ? el.offsetTop : 0, behavior: 'smooth' });
+                    setActiveSection(id || 'home');
+                };
+                window.addEventListener('popstate', indietro);
+                return () => window.removeEventListener('popstate', indietro);
+            }, []);
 
             /* all'avvio si sta in home. Il browser, tornando sulla
                pagina, riporta da solo dove eravamo — e spesso quel

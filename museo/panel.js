@@ -39,9 +39,12 @@
      serve al catalogo, che deve rimettere in piedi il coniglio */
   P.onClose = function (fn) { closer = fn || null; };
 
-  P.close = function () {
+  var voceStoria = null;   // il pannello aperto e' un passo della storia: «indietro» del browser lo chiude
+  P.close = function (daStoria) {
     if (!open) return;
     open = false;
+    if (voceStoria && root.Storia && daStoria !== true) root.Storia.chiuso(voceStoria);
+    voceStoria = null;
     veil.classList.remove("on");
     body.innerHTML = "";
     if (rafT) { if (root.cancelAnimationFrame) root.cancelAnimationFrame(rafT); rafT = 0; }
@@ -64,6 +67,7 @@
     body.className = "card" + (cls ? " " + cls : "");
     body.innerHTML = html;
     veil.classList.add("on");
+    if (!open && root.Storia) voceStoria = root.Storia.apri(function () { voceStoria = null; P.close(true); });
     open = true;
     /* i video e le immagini si prendono il tubo intero */
     var crt = veil.querySelector(".crt");

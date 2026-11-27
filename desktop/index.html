@@ -183,6 +183,7 @@
   <div id="ctx" hidden></div>
   <div id="nero" hidden></div>
 
+  <script src="../storia.js"></script>
   <script>window.MUSEO = window.MUSEO || {};</script>
   <script src="../museo/data.js"></script>
   <script src="../museo/radio-fila.js"></script>
@@ -661,11 +662,13 @@
       w._tab = tab;
       const focus = () => { w.classList.remove('ridotta'); w.style.zIndex = ++z; attiva(w); tab.classList.remove('ridotta'); };
       const riduci = () => { w.classList.add('ridotta'); tab.classList.add('ridotta'); attiva(null); };
-      const close = () => { w.querySelectorAll('iframe,audio,video').forEach(m => { m.src = 'about:blank'; }); w.remove(); tab.remove(); };
+      let voce = null;   // la finestra aperta e' un passo della storia: «indietro» del browser la chiude
+      const close = daStoria => { if (!w.isConnected) return; if (w._primaDiChiudere) w._primaDiChiudere(); w.querySelectorAll('iframe,audio,video').forEach(m => { m.src = 'about:blank'; }); w.remove(); tab.remove(); if (!daStoria && voce && window.Storia) Storia.chiuso(voce); };
+      if (window.Storia) voce = Storia.apri(ds => close(ds));
       w._close = close; w._riduci = riduci; w._focus = focus;
       w.addEventListener('pointerdown', focus);
       tab.addEventListener('click', () => { if (w.classList.contains('attiva') && !w.classList.contains('ridotta')) riduci(); else focus(); });
-      w.querySelector('.x').addEventListener('click', e => { e.stopPropagation(); close(); });
+      w.querySelector('.x').addEventListener('click', e => { e.stopPropagation(); w._close(); });
       w.querySelector('.mn').addEventListener('click', e => { e.stopPropagation(); riduci(); });
       w.querySelector('.mx').addEventListener('click', () => w.classList.toggle('max'));
       const bar = w.querySelector('.titolo');
@@ -695,23 +698,24 @@
 
     function esplora(node, path) {
       return win(node.name, path, (c, w) => {
-        const storia = [];
+        const storia = [], voci = [];
         let cur = { node, path };
+        w._primaDiChiudere = () => { while (voci.length) { const v = voci.pop(); window.Storia && Storia.chiuso(v); } };
         const ind = w.querySelector('.indietro'), su = w.querySelector('.su'), via = w.querySelector('.percorso span');
         const st = document.createElement('div'); st.className = 'stato'; w.appendChild(st);
         function mostra(x) {
           cur = x;
           c.innerHTML = ''; c.scrollTop = 0;
           const g = document.createElement('div'); g.className = 'cartella';
-          x.node.kids.forEach(k => g.appendChild(iconEl(k, x.path, k.type === 'dir' ? (d => { storia.push(cur); mostra({ node: d, path: [...x.path, d.name] }); }) : null)));
+          x.node.kids.forEach(k => g.appendChild(iconEl(k, x.path, k.type === 'dir' ? (d => { storia.push(cur); if (window.Storia) voci.push(Storia.apri(ds => { if (ds && storia.length && w.isConnected) { voci.pop(); mostra(storia.pop()); } })); mostra({ node: d, path: [...x.path, d.name] }); }) : null)));
           c.appendChild(g);
           via.textContent = x.path.join(' › ');
           w.querySelector('.titolo b').textContent = x.node.name; w._tab.textContent = x.node.name;
           st.textContent = x.node.kids.length + (x.node.kids.length === 1 ? ' elemento' : ' elementi');
           ind.disabled = !storia.length; su.disabled = !storia.length;
         }
-        ind.addEventListener('click', () => { if (storia.length) mostra(storia.pop()); });
-        su.addEventListener('click', () => { if (storia.length) { const p = storia[0]; storia.length = 0; mostra(p); } });
+        ind.addEventListener('click', () => { if (storia.length) { const v = voci.pop(); if (v && window.Storia) Storia.chiuso(v); mostra(storia.pop()); } });
+        su.addEventListener('click', () => { if (storia.length) { const p = storia[0]; storia.length = 0; while (voci.length) { const v = voci.pop(); window.Storia && Storia.chiuso(v); } mostra(p); } });
         c.addEventListener('click', () => c.querySelectorAll('.scelta').forEach(x => x.classList.remove('scelta')));
         mostra(cur);
       }, [600, 420], ICON.dir);
